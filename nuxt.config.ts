@@ -6,5 +6,11 @@ export default defineNuxtConfig({
       // Config here
     },
     css: ['typography', 'reset']
-  }
+  },
+  components: [
+    {
+      pathPrefix: true,
+      extensions: ['.vue'],
+    },
+  ],
 })
