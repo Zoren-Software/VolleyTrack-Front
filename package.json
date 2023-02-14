@@ -9,5 +9,10 @@
   },
   "devDependencies": {
     "nuxt": "^3.2.0"
+  },
+  "dependencies": {
+    "@vuestic/nuxt": "^1.0.10",
+    "vue": "^3.2.47",
+    "vuestic-ui": "^1.5.3"
   }
 }
