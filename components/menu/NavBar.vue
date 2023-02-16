@@ -1,21 +1,34 @@
 <template>
-  <va-navbar color="primary" shape class="mb-2">
+  <va-navbar color="primary" shape class="mb-1">
     <template #left>
-      <va-navbar-item class="logo">LOGO</va-navbar-item>
+      <va-navbar-item class="logo">
+        <va-icon class="ml-2" name="menu" />
+      </va-navbar-item>
+      <va-navbar-item class="logo">
+        <va-icon name="sports_volleyball" />
+        <span>VoleiClub</span>
+      </va-navbar-item>
     </template>
     <template #right>
       <va-navbar-item>Dashboard</va-navbar-item>
       <va-navbar-item>Reports</va-navbar-item>
       <va-navbar-item>Users</va-navbar-item>
       <va-navbar-item>
-        <va-icon name="mdi-magnify" />
-      </va-navbar-item>
-      <va-navbar-item>
-        <va-icon name="mdi-account-circle-outline" />
+        <va-icon name="account_circle" />
       </va-navbar-item>
     </template>
   </va-navbar>
 </template>
+
+<script>
+export default{
+  data () {
+    return {
+      minimized:false
+    }
+  },
+}
+</script>
 
 <style scoped>
 .logo {

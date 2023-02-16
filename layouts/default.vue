@@ -2,12 +2,12 @@
    <va-card color="background-element" >
     <NavBar />
     <div class="row align-content-start">
-      <div class="flex flex-col xs2">
+      <div class="flex flex-col xs3">
         <div class="item">
           <SideBar />
         </div>
       </div>
-      <div class="flex flex-col xs10">
+      <div class="flex flex-col xs9">
         <div class="item">
           <NuxtPage />
         </div>

@@ -22,11 +22,18 @@ export default {
   data () {
     return {
       items: [
-        { title: 'Dashboard', icon: 'dashboard' },
-        { title: 'Sidebar demo', icon: 'room', active: true },
-        { title: 'Loop', icon: 'loop' },
+        { title: 'Home', icon: 'dashboard', active: this.getNameRoute() === 'index' },
+        { title: 'Treinos', icon: 'fitness_center', active: this.getNameRoute() === 'trainings' },
+        { title: 'Times', icon: 'group', active: this.getNameRoute() === 'teams' },
+        { title: 'Jogadores', icon: 'person', active: this.getNameRoute() === 'players' },
       ],
     }
+  },
+
+  methods: {
+    getNameRoute () {
+      return this.$route.name
+    },
   },
 }
 </script>
