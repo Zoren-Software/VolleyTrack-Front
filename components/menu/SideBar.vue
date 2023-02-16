@@ -1,6 +1,6 @@
 <template>
-  <div style="height: 54rem; width: 1rem;">
-    <va-sidebar hoverable minimizedWidth="4rem">
+  <div style="height: 54rem;">
+    <va-sidebar hoverable >
       <va-sidebar-item
         v-for="item in items"
         :key="item.title"
@@ -15,8 +15,6 @@
       </va-sidebar-item>
     </va-sidebar>
   </div>
-
-  <slot />
 </template>
 
 <script>

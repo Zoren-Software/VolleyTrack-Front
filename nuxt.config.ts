@@ -5,7 +5,7 @@ export default defineNuxtConfig({
     config: {
       // Config here
     },
-    css: ['typography', 'reset']
+    css: ['typography', 'reset', 'grid']
   },
   components: [
     {
