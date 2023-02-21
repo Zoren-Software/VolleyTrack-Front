@@ -2,7 +2,7 @@
   <va-navbar color="primary" shape class="mb-1">
     <template #left>
       <va-navbar-item class="logo">
-        <va-icon @click="toggleMinimize" class="ml-2" name="menu" />
+        <va-icon @click="toggleMinimize" class="ml-2" :name="minimized ? `menu` : `menu_open`" />
       </va-navbar-item>
       <va-navbar-item class="logo">
         <va-icon name="sports_volleyball" />
@@ -25,13 +25,6 @@ export default{
   data () {
     return {
       minimized: false
-    }
-  },
-
-  props: {
-    minimized: {
-      type: Boolean,
-      default: false
     }
   },
 
