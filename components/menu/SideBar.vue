@@ -1,6 +1,6 @@
 <template>
   <div style="height: 54rem;">
-    <va-sidebar hoverable >
+    <va-sidebar :hoverable="toggle" >
       <va-sidebar-item
         v-for="item in items"
         :key="item.title"
@@ -19,6 +19,13 @@
 
 <script>
 export default {
+  props: {
+    toggle: {
+      type: Boolean,
+      default: false
+    }
+  },
+
   data () {
     return {
       items: [

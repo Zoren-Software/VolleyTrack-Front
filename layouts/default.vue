@@ -1,15 +1,16 @@
 <template>
    <va-card color="background-element" >
-    <NavBar />
+    <NavBar @toggle-minimize="valueTogle"/>
     <div class="row align-content-start">
-      <div class="flex flex-col xs3">
+      <div :class="`flex flex-col ` + minimized ? `xs3` : ``">
         <div class="item">
-          <SideBar />
+          <SideBar :toggle="minimized"/>
         </div>
       </div>
-      <div class="flex flex-col xs9">
+      <div :class="`flex flex-col ` + minimized ? `xs9` : `xs12`">
         <div class="item">
           <NuxtPage />
+          {{ minimized  }}
         </div>
       </div>
     </div>
@@ -25,6 +26,16 @@ export default {
   components: {
     SideBar,
     NavBar
+  },
+  data () {
+    return {
+      minimized: false
+    }
+  },
+  methods: {
+    valueTogle(value) {
+      this.minimized = value
+    },
   }
 }
 </script>
