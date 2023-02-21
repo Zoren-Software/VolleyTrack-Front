@@ -6,7 +6,7 @@
       </va-navbar-item>
       <va-navbar-item class="logo">
         <va-icon name="sports_volleyball" />
-        <span>VoleiClub</span>
+        <span class="ml-2">VoleiClub</span>
       </va-navbar-item>
     </template>
     <template #right>
