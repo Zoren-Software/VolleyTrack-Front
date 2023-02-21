@@ -1,5 +1,5 @@
 <template>
-  <div style="height: 54rem;">
+  <div style="height: 53rem;">
     <va-sidebar :hoverable="toggle" >
       <va-sidebar-item
         v-for="item in items"
