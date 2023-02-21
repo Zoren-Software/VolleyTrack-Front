@@ -15,9 +15,16 @@
     <template #right>
       <va-navbar-item>Dashboard</va-navbar-item>
       <va-navbar-item>Reports</va-navbar-item>
-      <va-navbar-item>Users</va-navbar-item>
       <va-navbar-item>
-        <va-icon name="account_circle" />
+        <va-badge overlap>
+          <template #text>
+            <va-icon size="12px" /> 5+
+          </template>
+          <va-icon name="account_circle" />
+        </va-badge>
+      </va-navbar-item>
+      <va-navbar-item>
+        <va-icon name="settings" />
       </va-navbar-item>
     </template>
   </va-navbar>
