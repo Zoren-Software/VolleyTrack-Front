@@ -10,7 +10,6 @@
       <div :class="`flex flex-col ` + minimized ? `xs9` : `xs12`">
         <div class="item">
           <NuxtPage />
-          {{ minimized  }}
         </div>
       </div>
     </div>

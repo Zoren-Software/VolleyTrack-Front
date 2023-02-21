@@ -1,5 +1,5 @@
 <template>
-  <va-navbar color="primary" shape class="mb-1">
+  <va-navbar color="primary" class="mb-1">
     <template #left>
       <va-navbar-item class="logo">
         <va-icon @click="toggleMinimize" class="ml-2" :name="minimized ? `menu` : `menu_open`" />
@@ -8,6 +8,9 @@
         <va-icon name="sports_volleyball" />
         <span class="ml-2">VoleiClub</span>
       </va-navbar-item>
+    </template>
+    <template #center>
+      <h4 class="va-h4">{{titleActive()}}</h4>
     </template>
     <template #right>
       <va-navbar-item>Dashboard</va-navbar-item>
@@ -24,7 +27,13 @@
 export default{
   data () {
     return {
-      minimized: false
+      minimized: false,
+      titles: [
+        { title: 'Home', active: this.getNameRoute() === 'index' },
+        { title: 'Treinos', active: this.getNameRoute() === 'trainings' },
+        { title: 'Times', active: this.getNameRoute() === 'teams' },
+        { title: 'Jogadores', active: this.getNameRoute() === 'players' },
+      ],
     }
   },
 
@@ -32,6 +41,12 @@ export default{
     toggleMinimize() {
       this.minimized = !this.minimized
       this.$emit('toggleMinimize', this.minimized)
+    },
+    titleActive() {
+      return this.titles.find(title => title.active).title
+    },
+    getNameRoute () {
+      return this.$route.name
     },
   }
 }
