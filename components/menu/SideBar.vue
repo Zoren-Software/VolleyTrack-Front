@@ -19,13 +19,15 @@
       <p
         style="position: absolute; bottom: 0; left: 0; right: 0; text-align: center; font-size: 0.8rem; color: #999;"
       >
-        {{ version() }}
+        {{ version }}
       </p>
     </va-sidebar>
   </div>
 </template>
 
 <script>
+import packageJSON from '/package.json';
+
 export default {
   props: {
     toggle: {
@@ -42,6 +44,7 @@ export default {
         { title: 'Times', link:'teams', icon: 'group', active: this.getNameRoute() === 'teams' },
         { title: 'Jogadores', link:'players', icon: 'person', active: this.getNameRoute() === 'players' },
       ],
+      version: this.version()
     }
   },
 
@@ -50,8 +53,7 @@ export default {
       return this.$route.name
     },
     version () {
-      // função que buscar a versão do projeto no package.json
-      return 
+      return packageJSON.version
     }
   },
 }
