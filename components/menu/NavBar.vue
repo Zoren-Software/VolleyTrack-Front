@@ -10,7 +10,7 @@
       </va-navbar-item>
     </template>
     <template #center>
-      <h4 class="va-h4">{{titleActive()}}</h4>
+      <h4 class="va-h4">{{ activeTitle }}</h4>
     </template>
     <template #right>
       <va-navbar-item>Dashboard</va-navbar-item>
@@ -36,10 +36,10 @@ export default{
     return {
       minimized: false,
       titles: [
-        { title: 'Home', active: this.getNameRoute() === 'index' },
-        { title: 'Treinos', active: this.getNameRoute() === 'trainings' },
-        { title: 'Times', active: this.getNameRoute() === 'teams' },
-        { title: 'Jogadores', active: this.getNameRoute() === 'players' },
+        { title: 'Home', link: '/', active: false },
+        { title: 'Treinos', link: '/trainings', active: false },
+        { title: 'Times', link: '/teams', active: false },
+        { title: 'Jogadores', link: '/players', active: false },
       ],
     }
   },
@@ -49,13 +49,29 @@ export default{
       this.minimized = !this.minimized
       this.$emit('toggleMinimize', this.minimized)
     },
-    titleActive() {
-      return this.titles.find(title => title.active).title
+  },
+
+  watch: {
+    $route() {
+      this.computedTitles;
     },
-    getNameRoute () {
-      return this.$route.name
+  },
+
+  created() {
+    this.computedTitles;
+  },
+
+  computed: {
+    activeTitle() {
+      return this.titles.find((title) => title.active).title;
     },
-  }
+    computedTitles() {
+      return this.titles.map((title) => {
+        title.active = this.$route.path === title.link;
+        return title
+      });
+    },
+  },
 }
 </script>
 

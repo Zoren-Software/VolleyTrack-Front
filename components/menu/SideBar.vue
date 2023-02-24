@@ -6,7 +6,10 @@
         :key="item.title"
         :active="item.active"
       >
-        <NuxtLink :to="item.link" >
+        <NuxtLink 
+          :to="item.link"
+          class="link-custom"
+        >
           <va-sidebar-item-content>
             <va-icon :name="item.icon" />
             <va-sidebar-item-title>
@@ -58,3 +61,10 @@ export default {
   },
 }
 </script>
+
+<style>
+.link-custom {
+  color: inherit;
+  text-decoration: none;
+}
+</style>

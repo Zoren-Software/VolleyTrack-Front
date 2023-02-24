@@ -9,7 +9,8 @@
     "postinstall": "nuxt prepare"
   },
   "devDependencies": {
-    "nuxt": "^3.2.0"
+    "nuxt": "^3.2.0",
+    "sass": "^1.58.3"
   },
   "dependencies": {
     "@vuestic/nuxt": "^1.0.10",
