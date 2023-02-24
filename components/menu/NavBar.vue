@@ -13,7 +13,6 @@
         <va-icon name="sports_volleyball" />
         <span class="ml-2">VoleiClub</span>
       </va-navbar-item>
-      
     </template>
     <template #right>
       <va-navbar-item>Reports</va-navbar-item>
