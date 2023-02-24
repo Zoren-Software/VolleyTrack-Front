@@ -4,16 +4,18 @@
       <va-navbar-item class="logo">
         <va-icon @click="toggleMinimize" class="ml-2" :name="minimized ? `menu` : `menu_open`" />
       </va-navbar-item>
+      <va-navbar-item>
+        <h4 class="va-h4">{{ activeTitle }}</h4>
+      </va-navbar-item>
+    </template>
+    <template #center>
       <va-navbar-item class="logo">
         <va-icon name="sports_volleyball" />
         <span class="ml-2">VoleiClub</span>
       </va-navbar-item>
-    </template>
-    <template #center>
-      <h4 class="va-h4">{{ activeTitle }}</h4>
+      
     </template>
     <template #right>
-      <va-navbar-item>Dashboard</va-navbar-item>
       <va-navbar-item>Reports</va-navbar-item>
       <va-navbar-item>
         <va-badge overlap>
@@ -75,9 +77,30 @@ export default{
 }
 </script>
 
-<style scoped>
+<style>
 .logo {
   font-weight: 600;
   font-size: 1.5rem;
+}
+
+.va-navbar__left {
+  justify-content: initial !important;
+  align-items: center !important;
+}
+
+.va-navbar__right {
+  justify-content: end !important;
+  align-items: center !important;
+}
+
+@media (max-width: 767.98px) {
+  .va-navbar {
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      align-items: center;
+      height:  4rem !important;
+      padding: 0px 15px 0px 15px !important;
+  }
 }
 </style>
