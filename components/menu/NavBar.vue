@@ -21,8 +21,19 @@
           <template #text>
             <va-icon size="12px" /> 5+
           </template>
-          <va-icon name="account_circle" />
+          <va-icon name="notifications" />
         </va-badge>
+      </va-navbar-item>
+      <va-navbar-item>
+        <va-button-dropdown
+          class=""
+        >
+          <template #label>
+            <va-icon name="account_circle" />
+          </template>
+          <!-- TODO - Fazendo menu de ações do usuário -->
+          Logout
+        </va-button-dropdown>
       </va-navbar-item>
       <va-navbar-item>
         <va-icon name="settings" />
