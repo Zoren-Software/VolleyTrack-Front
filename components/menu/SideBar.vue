@@ -8,7 +8,7 @@
       >
         <NuxtLink 
           :to="item.link"
-          class="link-custom"
+          class="no-style-link"
         >
           <va-sidebar-item-content>
             <va-icon :name="item.icon" />
@@ -69,7 +69,7 @@ export default {
 </script>
 
 <style>
-.link-custom {
+.no-style-link {
   color: inherit;
   text-decoration: none;
 }

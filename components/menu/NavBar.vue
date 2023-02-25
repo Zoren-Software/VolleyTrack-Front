@@ -1,10 +1,15 @@
 <template>
   <va-navbar color="primary" class="mb-1">
-    <template #left>
+    <template 
+      class=""
+      #left
+    >
       <va-navbar-item class="logo">
         <va-icon @click="toggleMinimize" class="ml-2" :name="minimized ? `menu` : `menu_open`" />
       </va-navbar-item>
-      <va-navbar-item>
+      <va-navbar-item 
+        class="mr-5"
+      >
         <h4 class="va-h4">{{ activeTitle }}</h4>
       </va-navbar-item>
     </template>
@@ -25,25 +30,24 @@
         </va-badge>
       </va-navbar-item>
       <va-navbar-item>
-        <va-button-dropdown
-          class=""
-        >
+        <va-button-dropdown>
           <template #label>
             <va-icon name="account_circle" />
           </template>
-          <!-- TODO - Fazendo menu de ações do usuário -->
-          Logout
+          <ListItemsUser />
         </va-button-dropdown>
-      </va-navbar-item>
-      <va-navbar-item>
-        <va-icon name="settings" />
       </va-navbar-item>
     </template>
   </va-navbar>
 </template>
 
 <script>
+  import ListItemsUser from '~/components/menu/actions/user/ListItems'
 export default{
+  components: {
+    ListItemsUser,
+  },
+
   data () {
     return {
       minimized: false,
@@ -88,6 +92,13 @@ export default{
 </script>
 
 <style>
+
+.va-dropdown__content {
+  width: 8rem !important;
+  align-items: center !important;
+  margin-right: 2rem;
+}
+
 .logo {
   font-weight: 600;
   font-size: 1.5rem;
