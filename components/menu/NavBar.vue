@@ -1,16 +1,21 @@
 <template>
   <va-navbar color="primary">
     <template 
-      class=""
       #left
     >
       <va-navbar-item class="logo">
-        <va-icon @click="toggleMinimize" class="ml-2" :name="minimized ? `menu` : `menu_open`" />
+        <va-icon
+          class="ml-2"
+          :name="minimized ? `menu` : `menu_open`"
+          @click="toggleMinimize"
+        />
       </va-navbar-item>
       <va-navbar-item 
         class="mr-5"
       >
-        <h4 class="va-h4">{{ activeTitle }}</h4>
+        <h4 class="va-h4">
+          {{ activeTitle }}
+        </h4>
       </va-navbar-item>
     </template>
     <template #center>
@@ -24,7 +29,12 @@
         <va-popover
           message="Reporte um problema ou sugestão"
         >
-          <va-button href="https://github.com/Zoren-Software/VoleiClub/issues/new?assignees=&labels=bug&template=--bug--.md&title=%5B+BUG+%5D+Descri%C3%A7%C3%A3o+do+Bug" target="blank">Reports</va-button>
+          <va-button
+            href="https://github.com/Zoren-Software/VoleiClub/issues/new?assignees=&labels=bug&template=--bug--.md&title=%5B+BUG+%5D+Descri%C3%A7%C3%A3o+do+Bug"
+            target="blank"
+          >
+            Reports
+          </va-button>
         </va-popover> 
       </va-navbar-item>
       <va-navbar-item>
@@ -51,7 +61,10 @@
         </va-button-dropdown>
       </va-navbar-item>
       <va-navbar-item>
-        <va-button icon="settings" to="/settings"/>
+        <va-button
+          icon="settings"
+          to="/settings"
+        />
       </va-navbar-item>
     </template>
   </va-navbar>
@@ -67,6 +80,8 @@ export default{
     ListItemsNotification
   },
 
+  emits: ['toggleMinimize'],
+
   data () {
     return {
       minimized: false,
@@ -81,10 +96,15 @@ export default{
     }
   },
 
-  methods: {
-    toggleMinimize() {
-      this.minimized = !this.minimized
-      this.$emit('toggleMinimize', this.minimized)
+  computed: {
+    activeTitle() {
+      return this.titles.find((title) => title.active).title;
+    },
+    computedTitles() {
+      return this.titles.map((title) => {
+        title.active = this.$route.path === title.link;
+        return title
+      });
     },
   },
 
@@ -98,15 +118,10 @@ export default{
     this.computedTitles;
   },
 
-  computed: {
-    activeTitle() {
-      return this.titles.find((title) => title.active).title;
-    },
-    computedTitles() {
-      return this.titles.map((title) => {
-        title.active = this.$route.path === title.link;
-        return title
-      });
+  methods: {
+    toggleMinimize() {
+      this.minimized = !this.minimized
+      this.$emit('toggleMinimize', this.minimized)
     },
   },
 }

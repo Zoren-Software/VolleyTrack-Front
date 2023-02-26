@@ -5,13 +5,13 @@
     </va-list-label>
     <va-list-item 
       v-for="action in actionsUser"
+      :key="action.title"
       class="no-style-link hover"
-      :v-key="action.title"
       :to="action.link"
       :preset="value ? 'primary' : 'secondary'"
     >
       <va-list-item-section class="mb-2 ml-3 mr-3 mt-2">
-        {{action.title}}
+        {{ action.title }}
       </va-list-item-section>
     </va-list-item>
   </va-list>

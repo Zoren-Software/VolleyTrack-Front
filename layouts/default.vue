@@ -1,10 +1,10 @@
 <template>
-   <va-card color="background-element" >
-    <NavBar @toggle-minimize="valueTogle"/>
+  <va-card color="background-element">
+    <NavBar @toggle-minimize="valueTogle" />
     <div class="row align-content-start">
       <div :class="`flex flex-col ` + minimized ? `xs3` : ``">
         <div class="item">
-          <SideBar :toggle="minimized"/>
+          <SideBar :toggle="minimized" />
         </div>
       </div>
       <div :class="`flex flex-col ` + minimized ? `xs9` : `xs12`">

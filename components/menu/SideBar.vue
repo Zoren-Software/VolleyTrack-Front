@@ -1,6 +1,6 @@
 <template>
   <div style="height: 53rem;">
-    <va-sidebar :hoverable="toggle" >
+    <va-sidebar :hoverable="toggle">
       <va-sidebar-item
         v-for="item in titles"
         :key="item.title"
@@ -23,7 +23,6 @@
 </template>
 
 <script>
-import packageJSON from '/package.json';
 
 export default {
   props: {
@@ -44,16 +43,6 @@ export default {
     }
   },
 
-  watch: {
-    $route() {
-      this.computedTitles;
-    },
-  },
-
-  created() {
-    this.computedTitles;
-  },
-
   computed: {
     activeTitle() {
       return this.titles.find((title) => title.active).active;
@@ -64,6 +53,16 @@ export default {
         return title
       });
     },
+  },
+
+  watch: {
+    $route() {
+      this.computedTitles;
+    },
+  },
+
+  created() {
+    this.computedTitles;
   },
 }
 </script>
