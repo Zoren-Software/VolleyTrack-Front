@@ -21,7 +21,12 @@
     </template>
     <template #right>
       <va-navbar-item>
-        <va-button href="https://github.com/Zoren-Software/VoleiClub/issues/new?assignees=&labels=bug&template=--bug--.md&title=%5B+BUG+%5D+Descri%C3%A7%C3%A3o+do+Bug" target="blank">Reports</va-button>
+        <va-popover
+          class="mr-2 mb-2"
+          message="Reporte um problema ou sugestão"
+        >
+          <va-button href="https://github.com/Zoren-Software/VoleiClub/issues/new?assignees=&labels=bug&template=--bug--.md&title=%5B+BUG+%5D+Descri%C3%A7%C3%A3o+do+Bug" target="blank">Reports</va-button>
+        </va-popover> 
       </va-navbar-item>
       <va-navbar-item>
         <va-button-dropdown
