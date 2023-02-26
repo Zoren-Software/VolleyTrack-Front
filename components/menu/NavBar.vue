@@ -59,8 +59,9 @@
 </template>
 
 <script>
-  import ListItemsUser from '~/components/menu/actions/user/ListItems'
-  import ListItemsNotification from '~/components/menu/actions/notification/ListItems'
+import ListItemsUser from '~/components/menu/actions/user/ListItems'
+import ListItemsNotification from '~/components/menu/actions/notification/ListItems'
+
 export default{
   components: {
     ListItemsUser,
@@ -76,6 +77,7 @@ export default{
         { title: 'Times', link: '/teams', active: false },
         { title: 'Jogadores', link: '/players', active: false },
         { title: 'Notificações', link: '/notifications', active: false },
+        { title: 'Configurações', link: '/settings', active: false },
       ],
     }
   },
