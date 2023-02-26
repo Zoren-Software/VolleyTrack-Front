@@ -1,5 +1,5 @@
 <template>
-  <va-navbar color="primary" class="mb-1">
+  <va-navbar color="primary">
     <template 
       class=""
       #left
