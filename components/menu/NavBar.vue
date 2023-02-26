@@ -52,7 +52,7 @@
         </va-button-dropdown>
       </va-navbar-item>
       <va-navbar-item>
-        <va-button icon="settings"/>
+        <va-button icon="settings" to="/settings"/>
       </va-navbar-item>
     </template>
   </va-navbar>
