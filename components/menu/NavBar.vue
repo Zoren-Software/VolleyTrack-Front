@@ -22,12 +22,19 @@
     <template #right>
       <va-navbar-item>Reports</va-navbar-item>
       <va-navbar-item>
-        <va-badge overlap>
-          <template #text>
-            <va-icon size="12px" /> 5+
+        <va-button-dropdown
+          hide-icon
+        >
+          <template #label>
+            <va-badge overlap>
+              <template #text>
+                <va-icon size="12px" /> 99+
+              </template>
+              <va-icon name="notifications" />
+            </va-badge>
           </template>
-          <va-icon name="notifications" />
-        </va-badge>
+          <ListItemsNotification />
+        </va-button-dropdown>
       </va-navbar-item>
       <va-navbar-item>
         <va-button-dropdown>
@@ -43,9 +50,11 @@
 
 <script>
   import ListItemsUser from '~/components/menu/actions/user/ListItems'
+  import ListItemsNotification from '~/components/menu/actions/notification/ListItems'
 export default{
   components: {
     ListItemsUser,
+    ListItemsNotification
   },
 
   data () {
@@ -93,12 +102,6 @@ export default{
 
 <style>
 
-.va-dropdown__content {
-  width: 8rem !important;
-  align-items: center !important;
-  margin-right: 2rem;
-}
-
 .logo {
   font-weight: 600;
   font-size: 1.5rem;
@@ -124,4 +127,5 @@ export default{
       padding: 0px 15px 0px 15px !important;
   }
 }
+
 </style>
