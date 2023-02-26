@@ -44,6 +44,9 @@
           <ListItemsUser />
         </va-button-dropdown>
       </va-navbar-item>
+      <va-navbar-item>
+        <va-button icon="settings"/>
+      </va-navbar-item>
     </template>
   </va-navbar>
 </template>
@@ -65,6 +68,7 @@ export default{
         { title: 'Treinos', link: '/trainings', active: false },
         { title: 'Times', link: '/teams', active: false },
         { title: 'Jogadores', link: '/players', active: false },
+        { title: 'Notificações', link: '/notifications', active: false },
       ],
     }
   },

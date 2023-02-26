@@ -29,6 +29,11 @@
       </va-list-item-section>
     </va-list-item>
   </va-list>
+  <div class="mt-3 mb-3">
+    <va-divider />
+  </div>
+  <va-button to="/notifications" size="small" class="mr-6 mb-2 mr-5">Ver todas as notificações</va-button>
+  <va-button size="small" class="mr-6 mb-2">Limpar</va-button>
 </template>
 
 <script>
