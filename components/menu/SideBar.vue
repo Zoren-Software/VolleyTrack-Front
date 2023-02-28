@@ -1,6 +1,6 @@
 <template>
   <div style="height: 53rem;">
-    <va-sidebar :hoverable="toggle">
+    <va-sidebar :hoverable="toggle" color="background-primary">
       <va-sidebar-item
         v-for="item in titles"
         :key="item.title"

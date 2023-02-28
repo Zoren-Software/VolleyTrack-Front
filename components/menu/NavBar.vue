@@ -1,5 +1,5 @@
 <template>
-  <va-navbar color="primary">
+  <va-navbar color="background-primary" >
     <template 
       #left
     >
@@ -32,13 +32,15 @@
           <va-button
             href="https://github.com/Zoren-Software/VoleiClub/issues/new?assignees=&labels=bug&template=--bug--.md&title=%5B+BUG+%5D+Descri%C3%A7%C3%A3o+do+Bug"
             target="blank"
+            color="background-primary"
           >
-            Reports
+            <va-icon name="report" />
           </va-button>
         </va-popover> 
       </va-navbar-item>
       <va-navbar-item>
         <va-button-dropdown
+          color="background-primary"
           hide-icon
         >
           <template #label>
@@ -53,7 +55,9 @@
         </va-button-dropdown>
       </va-navbar-item>
       <va-navbar-item>
-        <va-button-dropdown>
+        <va-button-dropdown
+          color="background-primary"
+        >
           <template #label>
             <va-icon name="account_circle" />
           </template>
@@ -62,6 +66,7 @@
       </va-navbar-item>
       <va-navbar-item>
         <va-button
+          color="background-primary"
           icon="settings"
           to="/settings"
         />
