@@ -4,7 +4,7 @@
       <div class="flex flex-col">
         <div class="item">
           <va-input
-            v-model="inputValue1"
+            v-model="email"
             label="E-mail"
             :rules="[value => (value && value.length > 0) || 'Este campo é obrigatório', value => verifyValueIsEmail() || 'Este campo deve ser um e-mail válido']"
           />
@@ -15,7 +15,7 @@
       <div class="flex flex-col">
         <div class="item">
           <va-input
-            v-model="inputValue2"
+            v-model="password"
             type="password"
             label="Password"
             :rules="[value => (value && value.length > 0) || 'Este campo é obrigatório']"
@@ -27,7 +27,7 @@
       <va-button
         :block="true"
         color="primary"
-        @click="submit"
+        @click="login"
       >
         Login
       </va-button>
@@ -44,17 +44,41 @@ definePageMeta({
 export default {
   data () {
     return {
-      inputValue1: '',
-      inputValue2: '',
+      email: '',
+      password: '',
     }
   },
 
   methods: {
     verifyValueIsEmail() {
-      if (this.inputValue1.includes('@')) {
+      if (this.email.includes('@')) {
         return true
       } else {
         return false
+      }
+    },
+
+    async login() {
+      console.log('login')
+      try {
+        const { data } = await this.$apollo.clients.default.mutate({
+          mutation: gql`
+            mutation Login($email: String!, $password: String!) {
+              login(input: { email: $email, password: $password }) {
+                token
+              }
+            }
+          `,
+          variables: {
+            email: this.email,
+            password: this.password
+          }
+        })
+        // faça algo com o resultado
+      } catch (error) {
+        // trate o erro
+        console.log(this.$apollo)
+        console.error(error)
       }
     }
   }

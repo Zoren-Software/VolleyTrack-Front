@@ -1,6 +1,22 @@
-// https://nuxt.com/docs/api/configuration/nuxt-config
+
+// // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  modules: ['@vuestic/nuxt'],
+  modules: [
+    '@vuestic/nuxt',
+    '@nuxtjs/apollo',
+  ],
+  apollo: {
+    autoImports: true,
+    authType: 'Bearer',
+    authHeader: 'Authorization',
+    tokenStorage: 'cookie',
+    proxyCookies: true,
+    clients: {
+      default: {
+        httpEndpoint: 'http://api.voleiclub.local/graphql',
+      }
+    },
+  },
   vuestic: {
     config: {
       // Config here
