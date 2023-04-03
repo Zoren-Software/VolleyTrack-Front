@@ -44,8 +44,8 @@ definePageMeta({
 export default {
   data () {
     return {
-      email: '',
-      password: '',
+      email: 'admin@voleiclub.com',
+      password: 'password',
     }
   },
 
@@ -61,9 +61,9 @@ export default {
     async login() {
       console.log('login')
       try {
-        const { data } = await this.$apollo.clients.default.mutate({
+        const { data:{login} } = await this.$apollo.clients.default.mutate({
           mutation: gql`
-            mutation Login($email: String!, $password: String!) {
+            mutation login($email: String!, $password: String!) {
               login(input: { email: $email, password: $password }) {
                 token
               }
@@ -72,12 +72,18 @@ export default {
           variables: {
             email: this.email,
             password: this.password
+          },
+          context: {
+            headers: {
+              'x-tenant': window.location.hostname.split('.')[0]
+            }
           }
         })
+        useApollo().onLogin(login.token)
+        console.log(useApollo().onLogin(login.token))
         // faça algo com o resultado
       } catch (error) {
         // trate o erro
-        console.log(this.$apollo)
         console.error(error)
       }
     }
