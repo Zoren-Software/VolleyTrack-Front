@@ -36,7 +36,9 @@
 </template>
 
 <script>
-// This will work in both `<script setup>` and `<script>`
+
+import LOGIN from '~/graphql/user/mutation/login.graphql'
+
 definePageMeta({
   layout: "login",
 });
@@ -63,13 +65,8 @@ export default {
         const { onLogin } = useApollo()
 
         const query = gql`
-            mutation login($email: String!, $password: String!) {
-              login(input: { email: $email, password: $password }) {
-                token
-              }
-            }
-          `
-
+          ${LOGIN}
+        `
         const variables = {
           email: this.email,
           password: this.password
