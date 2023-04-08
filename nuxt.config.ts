@@ -15,6 +15,11 @@ export default defineNuxtConfig({
       default: {
         httpEndpoint: 'http://api.voleiclub.local/graphql',
         tokenStorage: 'localStorage',
+        httpLinkOptions: {
+          headers: {
+            'x-tenant': 'test',
+          },
+        },
       }
     },
   },

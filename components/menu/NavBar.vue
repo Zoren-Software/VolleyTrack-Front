@@ -59,7 +59,8 @@
           color="background-primary"
         >
           <template #label>
-            <va-icon name="account_circle" />
+            <va-avatar v-if="user.id" size="small" class="mr-6">{{ firstLatter }}</va-avatar>
+            <va-icon v-else name="account_circle" />
           </template>
           <ListItemsUser />
         </va-button-dropdown>
@@ -78,6 +79,7 @@
 <script>
 import ListItemsUser from '~/components/menu/actions/user/ListItems'
 import ListItemsNotification from '~/components/menu/actions/notification/ListItems'
+import getUser from '~/graphql/user/getUser.graphql'
 
 export default{
   components: {
@@ -98,6 +100,10 @@ export default{
         { title: 'Notificações', link: '/notifications', active: false },
         { title: 'Configurações', link: '/settings', active: false },
       ],
+      user: {
+        id: null,
+        name: 'Usuário',
+      }
     }
   },
 
@@ -111,16 +117,20 @@ export default{
         return title
       });
     },
+    firstLatter() {
+      return this.user.name.charAt(0).toUpperCase()
+    }
   },
 
   watch: {
     $route() {
-      this.computedTitles;
+      this.computedTitles
     },
   },
 
   created() {
-    this.computedTitles;
+    this.computedTitles
+    this.getUser()
   },
 
   methods: {
@@ -128,6 +138,25 @@ export default{
       this.minimized = !this.minimized
       this.$emit('toggleMinimize', this.minimized)
     },
+
+    async getUser() {
+      const { clients, getToken, onLogin, onLogout } = useApollo()
+
+      const query = gql`
+        query user($id: ID!) {
+          user(id: $id) {
+            id
+            name
+          }
+        }
+      `
+      const { data } = await useAsyncQuery(query, {
+        id: 1,
+      })
+      if (data.value?.user) {
+        this.user = data.value.user
+      }
+    }
   },
 }
 </script>

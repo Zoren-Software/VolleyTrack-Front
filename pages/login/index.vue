@@ -59,8 +59,9 @@ export default {
     },
 
     async login() {
-      console.log('login')
       try {
+        const { onLogin } = useApollo()
+
         const { data:{login} } = await this.$apollo.clients.default.mutate({
           mutation: gql`
             mutation login($email: String!, $password: String!) {
@@ -79,7 +80,7 @@ export default {
             }
           }
         })
-        await useApollo().onLogin(login.token);
+        await onLogin(login.token)
         this.$router.push('/');
       } catch (error) {
         console.error(error)
