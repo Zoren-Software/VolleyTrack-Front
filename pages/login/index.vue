@@ -79,11 +79,9 @@ export default {
             }
           }
         })
-        useApollo().onLogin(login.token)
-        console.log(useApollo().onLogin(login.token))
-        // faça algo com o resultado
+        await useApollo().onLogin(login.token);
+        this.$router.push('/');
       } catch (error) {
-        // trate o erro
         console.error(error)
       }
     }
