@@ -140,8 +140,6 @@ export default{
     },
 
     async getUser() {
-      const { clients, getToken, onLogin, onLogout } = useApollo()
-
       const query = gql`
         query user($id: ID!) {
           user(id: $id) {
@@ -153,6 +151,7 @@ export default{
       const { data } = await useAsyncQuery(query, {
         id: 1,
       })
+
       if (data.value?.user) {
         this.user = data.value.user
       }

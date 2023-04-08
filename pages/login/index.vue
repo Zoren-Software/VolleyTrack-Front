@@ -62,26 +62,28 @@ export default {
       try {
         const { onLogin } = useApollo()
 
-        const { data:{login} } = await this.$apollo.clients.default.mutate({
-          mutation: gql`
+        const query = gql`
             mutation login($email: String!, $password: String!) {
               login(input: { email: $email, password: $password }) {
                 token
               }
             }
-          `,
-          variables: {
-            email: this.email,
-            password: this.password
-          },
-          context: {
-            headers: {
-              'x-tenant': window.location.hostname.split('.')[0]
-            }
-          }
-        })
-        await onLogin(login.token)
-        this.$router.push('/');
+          `
+
+        const variables = {
+          email: this.email,
+          password: this.password
+        }
+
+        const {mutate} = await useMutation(query, {variables})
+
+        const { data:{login:{token}} } = await mutate()
+
+        if (token) {
+          onLogin(token)
+          this.$router.push('/')
+        }
+
       } catch (error) {
         console.error(error)
       }
