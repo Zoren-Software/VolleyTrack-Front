@@ -18,6 +18,10 @@
 
 <script>
 
+definePageMeta({
+  middleware: ['auth'],
+});
+
 import SideBar from '~/components/menu/SideBar.vue'
 import NavBar from '~/components/menu/NavBar.vue'
 
