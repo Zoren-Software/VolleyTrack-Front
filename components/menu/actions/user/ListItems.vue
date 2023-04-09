@@ -7,8 +7,8 @@
       v-for="action in actionsUser"
       :key="action.title"
       class="no-style-link hover"
-      :to="action.link"
       :preset="value ? 'primary' : 'secondary'"
+      @click="this.action(action.action)"
     >
       <va-list-item-section class="mb-2 ml-3 mr-3 mt-2">
         {{ action.title }}
@@ -22,9 +22,25 @@ export default{
   data () {
     return {
       actionsUser: [
-        { title: 'Minha conta', link: '/account' },
-        { title: 'Logout', link: '/logout' },
+        { title: 'Minha conta', action: 'account' },
+        { title: 'Logout', action: 'logout' },
       ],
+    }
+  },
+
+  methods: {
+    action (type) {
+      if (type === 'account') {
+        this.$router.push('/account')
+      } else if (type === 'logout') {
+        this.logout()
+      }
+    },
+
+    logout () {
+      const { onLogout } = useApollo()
+      onLogout()
+      this.$router.push('/login')
     }
   },
 }
