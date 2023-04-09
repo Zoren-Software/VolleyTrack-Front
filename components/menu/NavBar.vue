@@ -79,7 +79,7 @@
 <script>
 import ListItemsUser from '~/components/menu/actions/user/ListItems'
 import ListItemsNotification from '~/components/menu/actions/notification/ListItems'
-import USER from '~/graphql/user/query/user.graphql'
+import ME from '~/graphql/user/query/me.graphql'
 
 export default{
   components: {
@@ -141,14 +141,12 @@ export default{
 
     async getUser() {
       const query = gql`
-        ${USER}
+        ${ME}
       `
-      const { data:{value} } = await useAsyncQuery(query, {
-        id: 1,
-      })
+      const { data:{value} } = await useAsyncQuery(query, {})
 
-      if (value?.user) {
-        this.user = value.user
+      if (value?.me) {
+        this.user = value.me
       }
     }
   },
