@@ -1,5 +1,6 @@
 
-// // https://nuxt.com/docs/api/configuration/nuxt-config
+import * as dotenv from 'dotenv'
+
 export default defineNuxtConfig({
   modules: [
     '@vuestic/nuxt',
@@ -13,7 +14,7 @@ export default defineNuxtConfig({
     proxyCookies: true,
     clients: {
       default: {
-        httpEndpoint: 'http://api.voleiclub.local/graphql',
+        httpEndpoint: process.env.ENDPOINT_API_GRAPHQL,
         tokenStorage: 'localStorage',
         httpLinkOptions: {
           headers: {
