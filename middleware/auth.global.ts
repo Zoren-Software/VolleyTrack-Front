@@ -1,13 +1,10 @@
 
 export default defineNuxtRouteMiddleware((to, from, next) => {
-//   if (process.client) {
-    const { getToken } = useApollo()
-    const tokenPromise = getToken()
+  if (process.client) {
+    const token = localStorage.getItem('apollo:default.token')
 
-    tokenPromise.then((token) => {
-        if (token === null) {
-            //return abortNavigation('Você não esta logado.')
-        }
-    })
-//   }
+    if (to.path != '/login' && token == null) {
+      return '/login'
+    }
+  }
 })
