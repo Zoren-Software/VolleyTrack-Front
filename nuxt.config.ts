@@ -14,7 +14,7 @@ export default defineNuxtConfig({
     proxyCookies: true,
     clients: {
       default: {
-        httpEndpoint: process.env.ENDPOINT_API_GRAPHQL,
+        httpEndpoint: dotenv.config().parsed?.GRAPHQL_ENDPOINT,
         tokenStorage: 'localStorage',
         httpLinkOptions: {
           headers: {
