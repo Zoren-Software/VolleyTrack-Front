@@ -133,6 +133,10 @@ export default{
     this.getUser()
   },
 
+  mounted() {
+    this.getUser()
+  },
+
   methods: {
     toggleMinimize() {
       this.minimized = !this.minimized
@@ -140,13 +144,19 @@ export default{
     },
 
     async getUser() {
-      const query = gql`
-        ${ME}
-      `
-      const { data:{value} } = await useAsyncQuery(query, {})
 
-      if (value?.me) {
-        this.user = value.me
+      if (localStorage.getItem('user')) {
+        this.user = await JSON.parse(localStorage.getItem('user'))
+      } else {
+        const query = gql`
+          ${ME}
+        `
+        const { data:{value} } = await useAsyncQuery(query, {})
+  
+        if (value?.me) {
+          this.user = value.me
+          localStorage.setItem('user', JSON.stringify(this.user));
+        }
       }
     }
   },

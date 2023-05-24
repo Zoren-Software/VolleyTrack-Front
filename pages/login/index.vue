@@ -77,6 +77,7 @@ export default {
         const { data:{login:{token}} } = await mutate()
 
         if (token) {
+          localStorage.setItem('userToken', token); 
           onLogin(token)
           this.$router.push('/')
         }
