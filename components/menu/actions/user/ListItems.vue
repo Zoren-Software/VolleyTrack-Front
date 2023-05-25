@@ -40,6 +40,7 @@ export default{
     logout () {
       const { onLogout } = useApollo()
       onLogout()
+      localStorage.removeItem('userToken')
       this.$router.push('/login')
     }
   },
