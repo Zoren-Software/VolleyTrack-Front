@@ -144,7 +144,6 @@ export default{
     },
 
     async getUser() {
-
       if (localStorage.getItem('user')) {
         this.user = await JSON.parse(localStorage.getItem('user'))
       } else {

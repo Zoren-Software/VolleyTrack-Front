@@ -6,6 +6,7 @@ export default defineNuxtConfig({
     '@vuestic/nuxt',
     '@nuxtjs/apollo',
   ],
+  ssr: false,
   apollo: {
     autoImports: true,
     authType: 'Bearer',

@@ -1,14 +1,12 @@
 
 export default defineNuxtRouteMiddleware((to, from, next) => {
-  if (process.client) {
-    const token = localStorage.getItem('apollo:default.token')
-
-    if (to.path != '/login' && token == null) {
+  const token = localStorage.getItem('apollo:default.token')
+  
+  if (to.path != '/login' && token == null) {
       return '/login'
-    }
-
-    if (to.path == '/login' && token != null) {
+  }
+  
+  if (to.path == '/login' && token != null) {
       return '/'
-    }
   }
 })
