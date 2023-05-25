@@ -6,5 +6,9 @@ export default defineNuxtRouteMiddleware((to, from, next) => {
     if (to.path != '/login' && token == null) {
       return '/login'
     }
+
+    if (to.path == '/login' && token != null) {
+      return '/'
+    }
   }
 })
