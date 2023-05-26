@@ -3,17 +3,6 @@
     <div class="row justify-center px-3 pb-4">
       <div class="flex flex-col">
         <div class="item">
-          <va-input
-            v-model="email"
-            label="E-mail"
-            :rules="[value => (value && value.length > 0) || 'Este campo é obrigatório', value => verifyValueIsEmail() || 'Este campo deve ser um e-mail válido']"
-          />
-        </div>
-      </div>
-    </div>
-    <div class="row justify-center px-3 pb-4">
-      <div class="flex flex-col">
-        <div class="item">
           <ZInput
             v-model="email"
             label="E-mail"
@@ -25,10 +14,10 @@
     <div class="row justify-center px-3 pb-4">
       <div class="flex flex-col">
         <div class="item">
-          <va-input
+          <ZInput
             v-model="password"
-            type="password"
             label="Password"
+            type="password"
             :rules="[value => (value && value.length > 0) || 'Este campo é obrigatório']"
           />
         </div>

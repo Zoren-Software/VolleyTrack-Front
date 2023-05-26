@@ -4,6 +4,7 @@
     v-model="internalValue"
     :label="label"
     :rules="rules"
+    :type="type"
   />
 </template>
 
@@ -25,6 +26,10 @@ export default {
     id: {
       type: String,
       default: '',
+    },
+    type: {
+      type: String,
+      default: 'text',
     },
   },
   computed: {
