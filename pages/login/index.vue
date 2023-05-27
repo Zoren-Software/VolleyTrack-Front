@@ -3,10 +3,9 @@
     <div class="row justify-center px-3 pb-4">
       <div class="flex flex-col">
         <div class="item">
-          <ZInput
+          <ZEmailInput
             v-model="email"
             label="E-mail"
-            :rules="[value => (value && value.length > 0) || 'Este campo é obrigatório', value => verifyValueIsEmail() || 'Este campo deve ser um e-mail válido']"
           />
         </div>
       </div>
@@ -14,23 +13,21 @@
     <div class="row justify-center px-3 pb-4">
       <div class="flex flex-col">
         <div class="item">
-          <ZInput
+          <ZPasswordInput
             v-model="password"
             label="Password"
-            type="password"
-            :rules="[value => (value && value.length > 0) || 'Este campo é obrigatório']"
           />
         </div>
       </div>
     </div>
     <div class="row justify-center px-3 pb-3">
-      <va-button
+      <ZButton
         :block="true"
         color="primary"
         @click="login"
       >
         Login
-      </va-button>
+      </ZButton>
     </div>
   </va-form>
 </template>
@@ -38,7 +35,10 @@
 <script>
 
 import LOGIN from '~/graphql/user/mutation/login.graphql'
-import ZInput from '~/components/atoms/ZInput'
+import ZInput from '~/components/atoms/Inputs/ZInput'
+import ZPasswordInput from '~/components/molecules/Inputs/ZPasswordInput'
+import ZEmailInput from '~/components/molecules/Inputs/ZEmailInput'
+import ZButton from '~/components/atoms/Buttons/ZButton'
 
 definePageMeta({
   layout: "login",
@@ -46,7 +46,10 @@ definePageMeta({
 
 export default {
   components: {
-    ZInput
+    ZInput,
+    ZPasswordInput,
+    ZButton,
+    ZEmailInput
   },
 
   data () {
@@ -56,15 +59,7 @@ export default {
     }
   },
 
-  methods: {    
-    verifyValueIsEmail() {
-      if (this.email.includes('@')) {
-        return true
-      } else {
-        return false
-      }
-    },
-
+  methods: {
     async login() {
       try {
         const { onLogin } = useApollo()

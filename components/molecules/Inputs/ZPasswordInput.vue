@@ -1,15 +1,20 @@
 <template>
-  <va-input
+  <ZInput
     :id="id"
     v-model="internalValue"
     :label="label"
     :rules="rules"
-    :type="type"
+    type="password"
   />
 </template>
 
 <script>
+import ZInput from '~/components/atoms/Inputs/ZInput'
+
 export default {
+  components: {
+    ZInput
+  },
   props: {
     modelValue: {
       type: String,
@@ -21,17 +26,14 @@ export default {
     },
     rules: {
       type: Array,
-      default: () => [],
+      default: () => [value => (value && value.length > 0) || 'Este campo é obrigatório'],
     },
     id: {
       type: String,
       default: '',
     },
-    type: {
-      type: String,
-      default: 'text',
-    },
   },
+  
   computed: {
     internalValue: {
       get() {
@@ -41,15 +43,6 @@ export default {
         this.$emit('update:modelValue', value);
       }
     }
-  },
-  methods: {
-    verifyValueIsEmail() {
-      if (this.internalValue.includes('@')) {
-        return true
-      } else {
-        return false
-      }
-    },
-  },
+  }
 }
 </script>
