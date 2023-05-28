@@ -1,32 +1,146 @@
 <template>
   <va-button
-    :block="true"
+    :active-class="activeClass"
+    :append="append"
+    :background-opacity="backgroundOpacity"
+    :block="block"
+    :border-color="borderColor"
+    :color="color"
     :disabled="disabled"
-    color="primary"
+    :gradient="gradient"
+    :hover-behavior="hoverBehavior"
+    :hover-mask-color="hoverMaskColor"
+    :hover-opacity="hoverOpacity"
+    :href="href"
+    :icon="icon"
+    :icon-right="iconRight"
+    :loading="loading"
+    :plain="plain"
+    :preset="preset"
+    :pressed-behavior="pressedBehavior"
+    :pressed-mask-color="pressedMaskColor"
+    :pressed-opacity="pressedOpacity"
+    :rounded="rounded"
+    :size="size"
+    :tag="tag"
+    :target="target"
+    :text-color="textColor"
+    :text-opacity="textOpacity"
+    :type="type"
   >
-    <slot></slot>
+    <slot name="default"/>
   </va-button>
 </template>
 
 <script>
-  export default {
-    props: {
-      block: {
-        type: Boolean,
-        default: false,
-      },
-      color: {
-        type: String,
-        default: 'primary',
-      },
-      disabled: {
-        type: Boolean,
-        default: false,
-      },
-      textButton: {
-        type: String,
-        default: 'Button',
-      },
-    }
+import { defineComponent } from "vue";
+
+export default defineComponent({
+  props: {
+    activeClass: {
+      type: String,
+    },
+    append: {
+      type: Boolean,
+    },
+    backgroundOpacity: {
+      type: Number,
+      default: 1,
+    },
+    block: {
+      type: Boolean,
+      default: false,
+    },
+    borderColor: {
+      type: String,
+      default: '#ffffff',
+    },
+    color: {
+      type: String,
+      default: 'primary',
+    },
+    disabled: {
+      type: Boolean,
+      default: false,
+    },
+    gradient: {
+      type: Boolean,
+      default: false,
+    },
+    hoverBehavior: {
+      type: String,
+      default: 'mask',
+    },
+    hoverMaskColor: {
+      type: String,
+      default: 'textInverted',
+    },
+    hoverOpacity: {
+      type: Number,
+      default: 0.15,
+    },
+    href: {
+      type: String,
+    },
+    icon: {
+      type: String,
+      default: '',
+    },
+    iconRight: {
+      type: String,
+      default: '',
+    },
+    loading: {
+      type: Boolean,
+      default: false,
+    },
+    plain: {
+      type: Boolean,
+      default: false,
+    },
+    preset: {
+      type: String,
+      default: 'white',
+    },
+    pressedBehavior: {
+      type: String,
+      default: 'mask',
+    },
+    pressedMaskColor: {
+      type: String,
+      default: 'textPrimary',
+    },
+    pressedOpacity: {
+      type: Number,
+      default: 0.13,
+    },
+    rounded: {
+      type: Boolean,
+      default: false,
+    },
+    size: {
+      type: String,
+      default: 'medium',
+    },
+    tag: {
+      type: String,
+      default: 'button',
+    },
+    target: {
+      type: String,
+    },
+    textColor: {
+      type: String,
+      default: '#ffffff',
+    },
+    textOpacity: {
+      type: Number,
+      default: 1,
+    },
+    type: {
+      type: String,
+      default: 'button',
+    },
   }
+});
 </script>

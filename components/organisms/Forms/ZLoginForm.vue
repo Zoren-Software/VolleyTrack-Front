@@ -23,6 +23,7 @@
     <div class="row justify-center px-3 pb-3">
       <ZButton
         :block="true"
+        :loading="loading"
         color="primary"
         @click="login"
       >
@@ -52,6 +53,7 @@ export default {
 
   data () {
     return {
+      loading: false,
       email: 'admin@voleiclub.com',
       password: 'password',
     }
@@ -60,6 +62,7 @@ export default {
   methods: {
     async login() {
       try {
+        this.loading = true
         const { onLogin } = useApollo()
 
         const query = gql`
@@ -79,8 +82,10 @@ export default {
           onLogin(token)
           this.$router.push('/')
         }
-
+        this.loading = false
+        
       } catch (error) {
+        this.loading = false
         console.error(error)
       }
     }
