@@ -1,14 +1,15 @@
 <template>
   <va-badge
     :class="class"
-    :text="text"
     :color="color"
-    :placement="placement"
     :dot="dot"
+    :multi-line="multiLine"
     :overlap="overlap"
+    :placement="placement"
+    :text="text"
+    :text-color="textColor"
     :transparent="transparent"
     :visible-empty="visibleEmpty"
-
   >
     <slot name="default"/>
   </va-badge>
@@ -20,38 +21,45 @@ import { defineComponent } from "vue";
 
 export default defineComponent({
   props: {
-      class: {
-        type: String,
-        default: '',
-      },
-      text: {
-        type: String,
-        default: '',
-      },
-      color: {
-        type: String,
-        default: 'danger',
-      },
-      placement: {
-        type: String,
-        default: 'top-end',
-      },
-      dot: {
-        type: Boolean,
-        default: false,
-      },
-      overlap: {
-        type: Boolean,
-        default: false,
-      },
-      transparent: {
-        type: Boolean,
-        default: false,
-      },
-      visibleEmpty: {
-        type: Boolean,
-        default: false,
-      },
-    }
+    class: {
+      type: String,
+      default: '',
+    },
+    color: {
+      type: String,
+      default: 'danger',
+    },
+    dot: {
+      type: Boolean,
+      default: false,
+    },
+    multiLine: {
+      type: Boolean,
+      default: false,
+    },
+    overlap: {
+      type: Boolean,
+      default: false,
+    },
+    placement: {
+      type: String,
+      default: 'top-end',
+    },
+    text: {
+      type: String,
+      default: '',
+    },
+    textColor: {
+      type: String,
+    },
+    transparent: {
+      type: Boolean,
+      default: false,
+    },
+    visibleEmpty: {
+      type: Boolean,
+      default: false,
+    },
+  }
 });
 </script>

@@ -1,27 +1,52 @@
 <template>
-  <div style="display: flex; align-items: center;">
-    <va-button-dropdown
-      :label="label"
-      :class="class"
-      :rounded="rounded"
-      :size="size"
-      :split="split"
-      :border-color="borderColor"
-      :color="color"
-      :text-color="textColor"
-      :disabled-button="disabledButton"
-      :disabled-dropdown="disabledDropdown"
-      :icon="icon"
-      :hide-icon="hideIcon"
-      :left-icon="leftIcon"
-      :opened-icon="openedIcon"
-      :icon-color="iconColor"
-      :close-on-content-click="closeOnContentClick"
-    >
-      <slot name="label" />
-      <slot name="default" />
-    </va-button-dropdown>
-  </div>
+  <va-button-dropdown
+    :active-class="activeClass"
+    :anchor-selector="anchorSelector"
+    :append="append"
+    :auto-placement="autoPlacement"
+    :background-opacity="backgroundOpacity"
+    :border-color="borderColor"
+    :class="class"
+    :close-on-anchor-click="closeOnAnchorClick"
+    :close-on-click-outside="closeOnClickOutside"
+    :close-on-content-click="closeOnContentClick"
+    :cursor="cursor"
+    :color="color"
+    :disabled-button="disabledButton"
+    :disabled-dropdown="disabledDropdown"
+    :disabled="disabled"
+    :hide-icon="hideIcon"
+    :hover-behavior="hoverBehavior"
+    :hover-mask-color="hoverMaskColor"
+    :hover-opacity="hoverOpacity"
+    :hover-out-timeout="hoverOutTimeout"
+    :hover-over-timeout="hoverOverTimeout"
+    :href="href"
+    :icon="icon"
+    :icon-color="iconColor"
+    :inner-anchor-selector="innerAnchorSelector"
+    :is-content-hoverable="isContentHoverable"
+    :keep-anchor-width="keepAnchorWidth"
+    :keyboard-navigation="keyboardNavigation"
+    :label="label"
+    :left-icon="leftIcon"
+    :loading="loading"
+    :opened-icon="openedIcon"
+    :plain="plain"
+    :rounded="rounded"
+    :pressed-behavior="pressedBehavior"
+    :pressed-mask-color="pressedMaskColor"
+    :pressed-opacity="pressedOpacity"
+    :prevent-overflow="preventOverflow"
+    :readonly="readonly"
+    :replace="replace"
+    :size="size"
+    :split="split"
+    :text-color="textColor"
+  >
+    <slot name="label" />
+    <slot name="default" />
+  </va-button-dropdown>
 </template>
 
 
@@ -30,70 +55,179 @@ import { defineComponent } from "vue";
 
 export default defineComponent({
   props: {
-      label: {
-        type: String,
-        default: '',
-      },
-      class: {
-        type: String,
-        default: '',
-      },
-      rounded: {
-        type: Boolean,
-        default: false,
-      },
-      size: {
-        type: String,
-        default: 'medium',
-      },
-      split: {
-        type: Boolean,
-        default: false,
-      },
-      borderColor: {
-        type: String,
-        default: '',
-      },
-      color: {
-        type: String,
-        default: 'primary',
-      },
-      textColor: {
-        type: String,
-        default: '',
-      },
-      disabledButton: {
-        type: Boolean,
-        default: false,
-      },
-      disabledDropdown: {
-        type: Boolean,
-        default: false,
-      },
-      icon: {
-        type: String,
-        default: 'va-arrow-down',
-      },
-      hideIcon: {
-        type: Boolean,
-        default: false,
-      },
-      leftIcon: {
-        type: Boolean,
-        default: false,
-      },
-      openedIcon: {
-        type: String,
-        default: '',
-      },
-      iconColor: {
-        type: String,
-        default: '',
-      },
-      closeOnContentClick: {
-        type: Boolean,
-        default: false,
-      },
-    }
+    activeClass: {
+      type: String,
+    },
+    anchorSelector: {
+      type: String,
+      default: '',
+    },
+    append: {
+      type: Boolean,
+    },
+    autoPlacement: {
+      type: Boolean,
+      default: true,
+    },
+    backgroundOpacity: {
+      type: Number,
+      default: 1,
+    },
+    borderColor: {
+      type: String,
+      default: '',
+    },
+    class: {
+      type: String,
+      default: '',
+    },
+    closeOnAnchorClick: {
+      type: Boolean,
+      default: true,
+    },
+    closeOnClickOutside: {
+      type: Boolean,
+      default: true,
+    },
+    closeOnContentClick: {
+      type: Boolean,
+      default: true,
+    },
+    color: {
+      type: String,
+      default: 'primary',
+    },
+    cursor: {
+      type: Boolean,
+      default: false,
+    },
+    disabledButton: {
+      type: Boolean,
+      default: false,
+    },
+    disabledDropdown: {
+      type: Boolean,
+      default: false,
+    },
+    disabled: {
+      type: Boolean,
+      default: false,
+    },
+    exact: {
+      type: Boolean,
+    },
+    exactActiveClass: {
+      type: String,
+    },
+    hideIcon: {
+      type: Boolean,
+      default: false,
+    },
+    hoverBehavior: {
+      type: String,
+      default: 'mask',
+    },
+    hoverMaskColor: {
+      type: String,
+      default: 'textInverted',
+    },
+    hoverOpacity: {
+      type: Number,
+      default: 0.15,
+    },
+    hoverOutTimeout: {
+      type: Number,
+      default: 200,
+    },
+    hoverOverTimeout: {
+      type: Number,
+      default: 30,
+    },
+    href: {
+      type: String,
+    },
+    icon: {
+      type: String,
+      default: 'va-arrow-down',
+    },
+    iconColor: {
+      type: String,
+      default: '',
+    },
+    innerAnchorSelector: {
+      type: String,
+      default: '',
+    },
+    isContentHoverable: {
+      type: Boolean,
+      default: true,
+    },
+    keepAnchorWidth: {
+      type: Boolean,
+      default: false,
+    },
+    keyboardNavigation: {
+      type: Boolean,
+      default: false,
+    },
+    label: {
+      type: String,
+      default: '',
+    },
+    leftIcon: {
+      type: Boolean,
+      default: false,
+    },
+    loading: {
+      type: Boolean,
+      default: false,
+    },
+    openedIcon: {
+      type: String,
+      default: '',
+    },
+    plain: {
+      type: Boolean,
+      default: false,
+    },
+    pressedBehavior: {
+      type: String,
+      default: 'mask',
+    },
+    pressedMaskColor: {
+      type: String,
+      default: 'textPrimary',
+    },
+    pressedOpacity: {
+      type: Number,
+      default: 0.13,
+    },
+    preventOverflow: {
+      type: Boolean,
+      default: false,
+    },
+    readonly: {
+      type: Boolean,
+    },
+    replace: {
+      type: Boolean,
+    },
+    rounded: {
+      type: Boolean,
+      default: false,
+    },
+    size: {
+      type: String,
+      default: 'medium',
+    },
+    split: {
+      type: Boolean,
+      default: false,
+    },
+    textColor: {
+      type: String,
+      default: '',
+    },
+  }
 });
 </script>

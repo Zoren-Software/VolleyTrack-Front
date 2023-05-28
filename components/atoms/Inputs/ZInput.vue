@@ -1,17 +1,17 @@
 <template>
   <va-input
     :id="id"
-    v-model="internalValue"
     :label="label"
     :rules="rules"
     :type="type"
+    v-model="internalValue"
   />
 </template>
 
 <script>
 export default {
   props: {
-    modelValue: {
+    id: {
       type: String,
       default: '',
     },
@@ -19,13 +19,13 @@ export default {
       type: String,
       default: '',
     },
+    modelValue: {
+      type: String,
+      default: '',
+    },
     rules: {
       type: Array,
       default: () => [],
-    },
-    id: {
-      type: String,
-      default: '',
     },
     type: {
       type: String,

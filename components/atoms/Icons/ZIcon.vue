@@ -1,18 +1,16 @@
 <template>
-  <div>
-    <va-icon
-      :class="class"
-      :name="name"
-      :size="large"
-      :color="color"
-      :rotation="rotation"
-      :flip="flip"
-      :spin="spin"
-      :tag="tag"
-    >
-      <slot />
-    </va-icon>
-  </div>
+  <va-icon
+    :color="color"
+    :class="class"
+    :flip="flip"
+    :name="name"
+    :rotation="rotation"
+    :size="size"
+    :spin="spin"
+    :tag="tag"
+  >
+    <slot />
+  </va-icon>
 </template>
 
 <script>
@@ -21,30 +19,26 @@ import { defineComponent } from "vue";
 export default defineComponent({
 
   props: {
-    name: {
+    class: {
       type: String,
-      required: true,
-      default: "thumb_up",
-    },
-    large: {
-      type: String,
-      default: "medium",
+      default: "mr-3",
     },
     color: {
       type: String,
       default: "primary",
     },
-    rotation: {
-      type: Number,
-      default: 0,
-    },
     flip: {
       type: String,
       default: "off",
     },
-    class: {
+    name: {
       type: String,
-      default: "mr-3",
+      required: true,
+      default: "thumb_up",
+    },
+    rotation: {
+      type: Number,
+      default: 0,
     },
     size: {
       type: String,
