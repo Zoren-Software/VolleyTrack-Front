@@ -10,7 +10,7 @@
     :visible-empty="visibleEmpty"
 
   >
-    <slot />
+    <slot name="default"/>
   </va-badge>
 </template>
 
