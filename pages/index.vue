@@ -12,10 +12,6 @@
 
 <script>
 
-definePageMeta({
-  layout: "main",
-});
-
 import ZList from '~/components/atoms/List/ZList'
 
 export default {
