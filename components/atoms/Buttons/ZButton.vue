@@ -53,11 +53,9 @@ export default defineComponent({
     },
     borderColor: {
       type: String,
-      default: '#ffffff',
     },
     color: {
       type: String,
-      default: 'primary',
     },
     disabled: {
       type: Boolean,
@@ -108,7 +106,6 @@ export default defineComponent({
     },
     pressedMaskColor: {
       type: String,
-      default: 'textPrimary',
     },
     pressedOpacity: {
       type: Number,
@@ -131,7 +128,6 @@ export default defineComponent({
     },
     textColor: {
       type: String,
-      default: '#ffffff',
     },
     textOpacity: {
       type: Number,

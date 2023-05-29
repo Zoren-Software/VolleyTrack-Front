@@ -33,6 +33,7 @@
     :loading="loading"
     :opened-icon="openedIcon"
     :plain="plain"
+    :preset="preset"
     :rounded="rounded"
     :pressed-behavior="pressedBehavior"
     :pressed-mask-color="pressedMaskColor"
@@ -44,8 +45,8 @@
     :split="split"
     :text-color="textColor"
   >
-    <slot name="label" />
     <slot name="default" />
+    <slot name="label" />
   </va-button-dropdown>
 </template>
 
@@ -60,7 +61,6 @@ export default defineComponent({
     },
     anchorSelector: {
       type: String,
-      default: '',
     },
     append: {
       type: Boolean,
@@ -71,11 +71,9 @@ export default defineComponent({
     },
     backgroundOpacity: {
       type: Number,
-      default: 1,
     },
     borderColor: {
       type: String,
-      default: '',
     },
     class: {
       type: String,
@@ -190,6 +188,9 @@ export default defineComponent({
       type: Boolean,
       default: false,
     },
+    preset: {
+      type: String,
+    },
     pressedBehavior: {
       type: String,
       default: 'mask',
@@ -226,7 +227,6 @@ export default defineComponent({
     },
     textColor: {
       type: String,
-      default: '',
     },
   }
 });

@@ -19,11 +19,10 @@ export default defineComponent({
   props: {
     message: {
       type: String,
-      default: "Popover!",
+      required: true,
     },
     color: {
       type: String,
-      default: "default",
     },
     class: {
       type: String,
@@ -31,15 +30,12 @@ export default defineComponent({
     },
     placement: {
       type: String,
-      default: "top",
     },
     icon: {
       type: String,
-      default: "",
     },
     title: {
       type: String,
-      default: "",
     },
     trigger: {
       type: String,

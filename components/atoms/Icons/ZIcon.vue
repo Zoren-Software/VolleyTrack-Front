@@ -25,7 +25,6 @@ export default defineComponent({
     },
     color: {
       type: String,
-      default: "primary",
     },
     flip: {
       type: String,
@@ -34,7 +33,6 @@ export default defineComponent({
     name: {
       type: String,
       required: true,
-      default: "thumb_up",
     },
     rotation: {
       type: Number,
@@ -42,7 +40,6 @@ export default defineComponent({
     },
     size: {
       type: String,
-      default: "large",
     },
     spin: {
       type: Boolean,
