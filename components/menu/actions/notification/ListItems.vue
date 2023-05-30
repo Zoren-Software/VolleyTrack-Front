@@ -7,7 +7,6 @@
       v-for="action in actionsUser"
       :key="action.title"
       class="no-style-link hover"
-      :to="action.link"
       :preset="value ? 'primary' : 'secondary'"
     >
       <va-list-item-section>
@@ -24,7 +23,7 @@
       <va-list-item-section icon>
         <va-icon
           name="remove_red_eye"
-          color="background-tertiary"
+          color="primary"
         />
       </va-list-item-section>
     </va-list-item>
