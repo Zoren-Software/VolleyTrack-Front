@@ -55,6 +55,7 @@ export default{
         { title: 'Treino', description:'Lorem Ipsum is simply dummy text of the printing and typesetting industry.', link: '/trainings' },
         { title: 'Treino', description:'Lorem Ipsum is simply dummy text of the printing and typesetting industry.', link: '/trainings' },
       ],
+      value: 'primary'
     }
   },
 }
