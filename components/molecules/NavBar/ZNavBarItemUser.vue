@@ -26,12 +26,6 @@
       ZAvatar,
       ZIcon
     },
-    props: {
-      user: {
-        type: Object,
-        required: true
-      }
-    },
     data () {
       return {
         user: {
@@ -97,12 +91,12 @@
 
 @media (max-width: 767.98px) {
   .va-navbar {
-      display: flex;
-      flex-direction: row;
-      justify-content: center;
-      align-items: center;
-      height:  4rem !important;
-      padding: 0px 15px 0px 15px !important;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    height:  4rem !important;
+    padding: 0px 15px 0px 15px !important;
   }
 }
 

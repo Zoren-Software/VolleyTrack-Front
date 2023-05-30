@@ -1,7 +1,5 @@
 <template>
-  <ZNavBar>
-    <ZButton color="background-primary" icon="settings" to="/settings"/>
-  </ZNavBar>
+  <ZButton color="background-primary" icon="settings" to="/settings"/>
 </template>
 
 <script>

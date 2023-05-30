@@ -11,27 +11,26 @@
   </va-navbar>
 </template>
 
-<script setup>
 
-import { defineComponent } from "vue";
-
-const props = defineComponent({
-  color: {
-    type: String,
-    default: "background-primary",
-  },
-  class: {
-    type: String,
-    default: "",
-  },
-  style: {
-    type: String,
-    default: "",
-  },
-  shape: {
-    type: String,
-    default: "rounded",
-  },
-});
-
+<script>
+  export default {
+    props: {
+      class: {
+        type: String,
+        default: '',
+      },
+      color: {
+        type: String,
+        default: 'primary',
+      },
+      style: {
+        type: String,
+        default: '',
+      },
+      shape: {
+        type: String,
+        default: 'rounded',
+      },
+    },
+  };
 </script>
