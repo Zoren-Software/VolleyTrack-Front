@@ -5,3 +5,15 @@
     <slot />
   </va-navbar-item>
 </template>
+
+<script>
+
+export default {
+  props: {
+    class: {
+      type: String,
+      default: '',
+    },
+  },
+}
+</script>
