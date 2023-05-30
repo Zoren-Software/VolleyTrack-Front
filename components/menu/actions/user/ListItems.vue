@@ -25,6 +25,7 @@ export default{
         { title: 'Minha conta', action: 'account' },
         { title: 'Logout', action: 'logout' },
       ],
+      value: true,
     }
   },
 
