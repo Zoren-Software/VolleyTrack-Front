@@ -47,6 +47,7 @@ export default{
         { title: 'Treinos', link: '/trainings', active: false },
         { title: 'Times', link: '/teams', active: false },
         { title: 'Jogadores', link: '/players', active: false },
+        { title: 'Minha Conta', link: '/account', active: false },
         { title: 'Notificações', link: '/notifications', active: false },
         { title: 'Configurações', link: '/settings', active: false },
       ],

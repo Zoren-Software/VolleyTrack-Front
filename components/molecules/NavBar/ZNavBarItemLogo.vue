@@ -9,6 +9,7 @@
 </template>
 
 <script>
+
 import ZIcon from '~/components/atoms/Icons/ZIcon';
 import ZNavBarItem from '~/components/atoms/NavBar/ZNavBarItem';
 
