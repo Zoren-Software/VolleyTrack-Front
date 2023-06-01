@@ -2,7 +2,7 @@
   <ZNavBarItem>
     <va-navbar-item>
         <va-button-dropdown
-          color="background-primary"
+          :color="color()" 
           hide-icon
         >
           <template #label>
@@ -34,6 +34,11 @@ export default {
     ZBadge,
     ZIcon,
     ZListItemsNotification
+  },
+  methods: {
+    color() {
+      return this.$route.path === "/notifications" ? "primary" : "background-primary";
+    },
   }
 };
 </script>
