@@ -4,7 +4,7 @@
     <div class="row align-content-start">
       <div :class="`flex flex-col ` + minimized ? `xs3` : ``">
         <div class="item">
-          <SideBar :toggle="minimized" />
+          <ZSidebar :toggle="minimized" />
         </div>
       </div>
       <div :class="`flex flex-col ` + minimized ? `xs9` : `xs12`">
@@ -18,13 +18,13 @@
 
 <script>
 
-import SideBar from '~/components/menu/SideBar'
+import ZSidebar from '~/components/molecules/Sidebar/ZSidebar'
 import ZNavBar from '~/components/organisms/NavBar/ZNavBar'
 
 
 export default {
   components: {
-    SideBar,
+    ZSidebar,
     ZNavBar
   },
   data () {
