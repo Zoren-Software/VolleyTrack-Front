@@ -2,9 +2,9 @@
   <va-icon
     :color="color"
     :class="class"
-    :flip="flip"
+    :flip="inputFlip"
     :name="name"
-    :rotation="rotation"
+    :rotation="inputRotation"
     :size="size"
     :spin="spin"
     :tag="tag"
@@ -14,35 +14,30 @@
 </template>
 
 <script>
-import { defineComponent } from "vue";
 
-export default defineComponent({
-
+export default {
   props: {
     class: {
       type: String,
-      default: "mr-3",
+      default: "",
     },
     color: {
       type: String,
-      default: "primary",
     },
-    flip: {
+    inputFlip: {
       type: String,
       default: "off",
     },
     name: {
       type: String,
       required: true,
-      default: "thumb_up",
     },
-    rotation: {
+    inputRotation: {
       type: Number,
       default: 0,
     },
     size: {
       type: String,
-      default: "large",
     },
     spin: {
       type: Boolean,
@@ -64,18 +59,34 @@ export default defineComponent({
 
     return {
       flipOptions,
-      flip: flipOptions[0].value,
-      rotation: 0,
+      flip: this.inputFlip,
+      rotation: this.inputRotation,
       isRotation: true,
     };
   },
 
   watch: {
+    inputFlip(newVal) {
+      this.flip = newVal;
+    },
+    flip(newVal) {
+      if (this.inputFlip !== newVal) {
+        this.$emit('update:inputFlip', newVal);
+      }
+    },
+    inputRotation(newVal) {
+      this.rotation = newVal;
+    },
+    rotation(newVal) {
+      if (this.inputRotation !== newVal) {
+        this.$emit('update:inputRotation', newVal);
+      }
+    },
     isRotation(value) {
       if (!value) {
         this.rotation = undefined;
       }
     },
   },
-});
+}
 </script>

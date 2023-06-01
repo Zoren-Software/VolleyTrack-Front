@@ -13,14 +13,14 @@ import { defineComponent } from "vue";
 
 export default defineComponent({
   props: {
-      class: {
-        type: String,
-        default: '',
-      },
-      fit: {
-        type: Boolean,
-        default: false,
-      },
-    }
+    class: {
+      type: String,
+      default: '',
+    },
+    fit: {
+      type: Boolean,
+      default: false,
+    },
+  }
 });
 </script>

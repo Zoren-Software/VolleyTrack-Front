@@ -1,37 +1,31 @@
 <template>
   <div style="height: 53rem;">
     <va-sidebar :hoverable="toggle" color="background-primary">
-      <va-sidebar-item
+      <ZSidebarItem
         v-for="item in titles"
         :key="item.title"
-        :active="item.active"
-      >
-        <NuxtLink 
-          :to="item.link"
-          class="no-style-link"
-        >
-          <va-sidebar-item-content>
-            <va-icon :name="item.icon" />
-            <va-sidebar-item-title>
-              {{ item.title }}
-            </va-sidebar-item-title>
-          </va-sidebar-item-content>
-        </NuxtLink>
-      </va-sidebar-item>
+        :title="item.title"
+        :link="item.link"
+        :icon="item.icon"
+        :isActive="item.active"
+      />
     </va-sidebar>
   </div>
 </template>
 
 <script>
+import ZSidebarItem from '~/components/atoms/Sidebar/ZSidebarItem'
 
 export default {
+  components: {
+    ZSidebarItem
+  },
   props: {
     toggle: {
       type: Boolean,
       default: false
     }
   },
-
   data () {
     return {
       titles: [
@@ -42,11 +36,7 @@ export default {
       ],
     }
   },
-
   computed: {
-    activeTitle() {
-      return this.titles.find((title) => title.active).active;
-    },
     computedTitles() {
       return this.titles.map((title) => {
         title.active = this.$route.path === title.link;
@@ -54,22 +44,13 @@ export default {
       });
     },
   },
-
   watch: {
     $route() {
       this.computedTitles;
     },
   },
-
   created() {
     this.computedTitles;
   },
 }
 </script>
-
-<style>
-.no-style-link {
-  color: inherit;
-  text-decoration: none;
-}
-</style>

@@ -1,10 +1,10 @@
 <template>
   <va-card color="background-element">
-    <NavBar @toggle-minimize="valueTogle" />
+    <ZNavBar @toggle-minimize="valueToggle" />
     <div class="row align-content-start">
       <div :class="`flex flex-col ` + minimized ? `xs3` : ``">
         <div class="item">
-          <SideBar :toggle="minimized" />
+          <ZSidebar :toggle="minimized" />
         </div>
       </div>
       <div :class="`flex flex-col ` + minimized ? `xs9` : `xs12`">
@@ -18,13 +18,14 @@
 
 <script>
 
-import SideBar from '~/components/menu/SideBar.vue'
-import NavBar from '~/components/menu/NavBar.vue'
+import ZSidebar from '~/components/molecules/Sidebar/ZSidebar'
+import ZNavBar from '~/components/organisms/NavBar/ZNavBar'
+
 
 export default {
   components: {
-    SideBar,
-    NavBar
+    ZSidebar,
+    ZNavBar
   },
   data () {
     return {
@@ -32,7 +33,7 @@ export default {
     }
   },
   methods: {
-    valueTogle(value) {
+    valueToggle(value) {
       this.minimized = value
     },
   }

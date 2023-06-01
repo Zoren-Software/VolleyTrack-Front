@@ -6,7 +6,7 @@
     <va-list-item 
       v-for="action in actionsUser"
       :key="action.title"
-      class="no-style-link hover"
+      :class="`no-style-link hover` + (isSelected(action.action) ? ' selected' : '')"
       :preset="value ? 'primary' : 'secondary'"
       @click="this.action(action.action)"
     >
@@ -22,9 +22,10 @@ export default{
   data () {
     return {
       actionsUser: [
-        { title: 'Minha conta', action: 'account' },
-        { title: 'Logout', action: 'logout' },
+        { title: 'Minha conta', action: 'account', active: false },
+        { title: 'Logout', action: 'logout', active: false },
       ],
+      value: true,
     }
   },
 
@@ -42,7 +43,13 @@ export default{
       onLogout()
       localStorage.removeItem('userToken')
       this.$router.push('/login')
-    }
+    },
+
+    isSelected (action) {
+      if (this.$route.path === '/account') {
+        return action === 'account'
+      }
+    },
   },
 }
 </script>
@@ -61,4 +68,11 @@ export default{
   border-radius: 5px; /* raio de arredondamento */
 }
 
+.selected {
+  transition: all 0.1s ease;
+  background-color: #deecfd;
+  border: 2px solid transparent;
+  border-color: #deecfd; /* cor da borda ao passar o mouse */
+  border-radius: 5px; /* raio de arredondamento */
+}
 </style>
