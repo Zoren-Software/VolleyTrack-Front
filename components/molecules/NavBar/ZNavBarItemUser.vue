@@ -7,7 +7,7 @@
         <va-avatar v-if="user.id" size="small" class="mr-6">{{ firstLatter }}</va-avatar>
         <va-icon v-else name="account_circle" />
       </template>
-      <ListItemsUser />
+      <ZListItemsUser :actionsUser="actionsUser" @action="actionHandler" />
     </va-button-dropdown>
   </va-navbar-item>
 </template>
@@ -16,12 +16,13 @@
   import ZButtonDropdown from '~/components/atoms/Buttons/ZButtonDropdown';
   import ZAvatar from '~/components/atoms/Avatar/ZAvatar';
   import ZIcon from '~/components/atoms/Icons/ZIcon'
-  import ListItemsUser from '~/components/menu/actions/user/ListItems'
+  import ZListItemsUser from '~/components/molecules/List/ZListItemsUser'
+
 
   export default {
     name: "ZNavbarItemUser",
     components: {
-      ListItemsUser,
+      ZListItemsUser,
       ZButtonDropdown,
       ZAvatar,
       ZIcon
@@ -31,7 +32,11 @@
         user: {
           id: null,
           name: 'Usuário',
-        }
+        },
+        actionsUser: [
+          { title: 'Minha conta', action: 'account', active: false },
+          { title: 'Logout', action: 'logout', active: false },
+        ],
       }
     },
     computed: {
@@ -39,18 +44,25 @@
         return this.user.name.charAt(0).toUpperCase()
       }
     },
-    created() {
-      this.getUser()
-    },
 
     mounted() {
       this.getUser()
     },
 
     methods: {
-      toggleMinimize() {
-        this.minimized = !this.minimized
-        this.$emit('toggleMinimize', this.minimized)
+      actionHandler (type) {
+        if (type === 'account') {
+          this.$router.push('/account')
+        } else if (type === 'logout') {
+          this.logout()
+        }
+      },
+
+      logout () {
+        const { onLogout } = useApollo()
+        onLogout()
+        localStorage.removeItem('userToken')
+        this.$router.push('/login')
       },
 
       async getUser() {
