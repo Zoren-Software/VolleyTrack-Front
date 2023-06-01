@@ -13,7 +13,7 @@ export default {
   props: {
     id: {
       type: String,
-      default: '',
+      required: true,
     },
     label: {
       type: String,

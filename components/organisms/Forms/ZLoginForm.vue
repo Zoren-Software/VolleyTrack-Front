@@ -6,6 +6,7 @@
           <ZEmailInput
             v-model="email"
             label="E-mail"
+            id="email"
           />
         </div>
       </div>
@@ -16,6 +17,7 @@
           <ZPasswordInput
             v-model="password"
             label="Password"
+            id="password"
           />
         </div>
       </div>
