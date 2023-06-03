@@ -1,5 +1,5 @@
 <template>
-  <va-card color="background-element">
+  <va-card color="background-border">
     <ZNavBar @toggle-minimize="valueToggle" />
     <div class="row align-content-start">
       <div :class="`flex flex-col ` + minimized ? `xs3` : ``">
