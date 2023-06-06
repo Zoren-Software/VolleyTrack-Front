@@ -1,17 +1,13 @@
 <template>
-  <div>
-    <h1>Jogadores</h1>
-  </div>
+  <ZDatatablesPlayers />
 </template>
 
 <script>
+import ZDatatablesPlayers from '~/components/organisms/Datatables/Players/ZDatatablesPlayers.vue';
 
-// import ZSelect from '~/components/atoms/Select/ZSelect'
-
-// export default {
-//   components: {
-//     ZSelect
-//   }
-// }
-
+export default {
+  components: {
+    ZDatatablesPlayers,
+  },
+}
 </script>

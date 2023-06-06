@@ -1,5 +1,6 @@
 <template>
   <va-input
+    v-bind="$attrs"
     :id="id"
     :label="label"
     :rules="rules"
