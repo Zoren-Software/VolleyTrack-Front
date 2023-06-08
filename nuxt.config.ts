@@ -17,11 +17,6 @@ export default defineNuxtConfig({
       default: {
         httpEndpoint: dotenv.config().parsed?.GRAPHQL_ENDPOINT,
         tokenStorage: 'localStorage',
-        httpLinkOptions: {
-          headers: {
-            'x-tenant': 'test',
-          },
-        },
       }
     },
   },
