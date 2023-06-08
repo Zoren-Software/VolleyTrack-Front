@@ -43,6 +43,7 @@ import ZDataTableInputSearch from '~/components/molecules/Datatable/ZDataTableIn
 import ZDataTable from '~/components/molecules/Datatable/ZDataTable'
 import ZInput from '~/components/atoms/Inputs/ZInput';
 import ZIcon from '~/components/atoms/Icons/ZIcon';
+import Swal from 'sweetalert2'
 
 export default defineComponent({
   components: {
@@ -103,11 +104,73 @@ export default defineComponent({
          item.id
       )
 
-      this.$emit('deletes', itemsDelete);
+      const totalItems = this.selectedItemsEmitted.length
+
+      Swal.fire({
+        title: 'Deseja deletar estes registros?',
+        text: "Você não será capaz de reverter isso!",
+        icon: 'warning',
+        html:
+          'Você tem <b>' + totalItems + '</b> registros selecionados para deletar.<br>',
+        showCancelButton: true,
+        confirmButtonText: 'Sim, deletar!',
+        confirmButtonColor: '#154EC1',
+        cancelButtonColor: '#E42222',
+        cancelButtonText: 'Não, cancelar!',
+      }).then((result) => {
+        if (result.isConfirmed) {
+          Swal.fire({
+            title: 'Deletando!',
+            text: 'Seus registros estão sendo deletados!',
+            icon: 'info',
+            showConfirmButton: false,
+          })
+          this.$emit('deletes', itemsDelete);
+        } else if (
+          /* Read more about handling dismissals below */
+          result.dismiss === Swal.DismissReason.cancel
+        ) {
+          Swal.fire({
+            title: 'Cancelado',
+            text: 'Seus registros ainda continuam existindo :)',
+            icon: 'error',
+            confirmButtonColor: '#154EC1',
+          })
+        }
+      })
     },
 
     actionDelete(id) {
-      this.$emit('delete', id);
+      Swal.fire({
+        title: 'Deseja deletar este registro?',
+        text: "Você não será capaz de reverter isso!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sim, deletar!',
+        confirmButtonColor: '#154EC1',
+        cancelButtonColor: '#E42222',
+        cancelButtonText: 'Não, cancelar!',
+      }).then((result) => {
+        if (result.isConfirmed) {
+          Swal.fire({
+            title: 'Deletando!',
+            text: 'Seu registro esta sendo deletado!',
+            icon: 'info',
+            showConfirmButton: false,
+          })
+          this.$emit('delete', id);
+        } else if (
+          /* Read more about handling dismissals below */
+          result.dismiss === Swal.DismissReason.cancel
+        ) {
+          Swal.fire({
+            title: 'Cancelado',
+            text: 'Seu registro ainda continua existindo :)',
+            icon: 'error',
+            confirmButtonColor: '#154EC1',
+          })
+        }
+      })
     },
 
     actionEdit(id) {

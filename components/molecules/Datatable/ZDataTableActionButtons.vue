@@ -1,6 +1,6 @@
 <template>
   <ZButton color="primary" class="mr-3" @click="$emit('add')">Adicionar</ZButton>
-  <ZButton color="danger" :disabled="selectedItemsEmitted.length === 0" @click="$emit('delete')">Deletar</ZButton>
+  <ZButton color="danger" :disabled="!(selectedItemsEmitted.length > 1)" @click="$emit('delete')">Deletar</ZButton>
 </template>
 
 <script>
