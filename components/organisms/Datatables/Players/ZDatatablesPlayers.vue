@@ -1,13 +1,14 @@
 <template>
   <ZDatatableGeneric 
+    selectable
+    :includeActionsColumn="true"
     :items="items" 
     :columns="columns"
-    :includeActionsColumn="true"
-    @add="addPlayer" 
+    v-model="search"
+    @add="addPlayer"
+    @edit="editPlayer"
     @delete="deletePlayer"
     @deletes="deletePlayers"
-    v-model="search"
-    selectable
   />
 </template>
 
@@ -92,6 +93,10 @@ export default defineComponent({
     addPlayer() {
       // Implemente a lógica de adicionar jogador.
       console.log('action add')
+    },
+    editPlayer(id) {
+      // Implemente a lógica de adicionar jogador.
+      console.log('action edit', id)
     },
     deletePlayer(id) {
       // Implemente a lógica de deletar jogadores.

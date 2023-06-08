@@ -19,17 +19,10 @@
     @selectionChange="selectedItemsEmitted = $event.currentSelectedItems"
   >
     <template #cell(actions)="{ id }">
-      <va-button
-        preset="plain"
-        icon="edit"
-        @click="actionEdit(id)"
-      />
-      <va-button
-        preset="plain"
-        icon="delete"
-        color="danger"
-        class="ml-3"
-        @click="actionDelete(id)"
+      <ZDataTableActions 
+        :id="id"
+        @edit="actionEdit" 
+        @delete="actionDelete"
       />
     </template>
   </ZDataTable>
@@ -39,6 +32,7 @@
 
 import { defineComponent } from "vue";
 import ZDataTableActionButtons from '~/components/molecules/Datatable/ZDataTableActionButtons'
+import ZDataTableActions from '~/components/molecules/Datatable/ZDataTableActions'
 import ZDataTableInputSearch from '~/components/molecules/Datatable/ZDataTableInputSearch'
 import ZDataTable from '~/components/molecules/Datatable/ZDataTable'
 import ZInput from '~/components/atoms/Inputs/ZInput';
@@ -48,6 +42,7 @@ import Swal from 'sweetalert2'
 export default defineComponent({
   components: {
       ZDataTableActionButtons,
+      ZDataTableActions,
       ZDataTableInputSearch,
       ZDataTable,
       ZInput,
@@ -141,36 +136,7 @@ export default defineComponent({
     },
 
     actionDelete(id) {
-      Swal.fire({
-        title: 'Deseja deletar este registro?',
-        text: "Você não será capaz de reverter isso!",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Sim, deletar!',
-        confirmButtonColor: '#154EC1',
-        cancelButtonColor: '#E42222',
-        cancelButtonText: 'Não, cancelar!',
-      }).then((result) => {
-        if (result.isConfirmed) {
-          Swal.fire({
-            title: 'Deletando!',
-            text: 'Seu registro esta sendo deletado!',
-            icon: 'info',
-            showConfirmButton: false,
-          })
-          this.$emit('delete', id);
-        } else if (
-          /* Read more about handling dismissals below */
-          result.dismiss === Swal.DismissReason.cancel
-        ) {
-          Swal.fire({
-            title: 'Cancelado',
-            text: 'Seu registro ainda continua existindo :)',
-            icon: 'error',
-            confirmButtonColor: '#154EC1',
-          })
-        }
-      })
+      this.$emit('delete', id);
     },
 
     actionEdit(id) {
