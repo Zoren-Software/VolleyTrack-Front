@@ -39,6 +39,7 @@ export default {
           Swal.fire({
             title: 'Deletando!',
             text: 'Seu registro esta sendo deletado!',
+            timer: 1000,
             icon: 'info',
             showConfirmButton: false,
           })
