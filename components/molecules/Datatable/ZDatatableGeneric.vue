@@ -2,7 +2,7 @@
   <div class="row justify-start mt-3">
     <div class="flex flex-col xs2">
       <div class="item">
-        <ZDataTableActionButtons @add="actionAdd" @delete="actionDelete" :selectedItemsEmitted="selectedItemsEmitted" />
+        <ZDataTableActionButtons @add="actionAdd" @delete="actionDeletes" :selectedItemsEmitted="selectedItemsEmitted" />
       </div>
     </div>
     <div class="flex flex-col offset-xl7 xs2">
@@ -17,7 +17,22 @@
     :selectable="selectable"
     :includeActionsColumn="includeActionsColumn"
     @selectionChange="selectedItemsEmitted = $event.currentSelectedItems"
-  />
+  >
+    <template #cell(actions)="{ id }">
+      <va-button
+        preset="plain"
+        icon="edit"
+        @click="actionEdit(id)"
+      />
+      <va-button
+        preset="plain"
+        icon="delete"
+        color="danger"
+        class="ml-3"
+        @click="actionDelete(id)"
+      />
+    </template>
+  </ZDataTable>
 </template>
 
 <script>
@@ -37,7 +52,7 @@ export default defineComponent({
       ZInput,
       ZIcon
   },
-  emits: ['add', 'delete', 'update:modelValue'],
+  emits: ['add', 'edit', 'deletes', 'delete', 'update:modelValue'],
   props: {
     items: {
       type: Array,
@@ -78,14 +93,27 @@ export default defineComponent({
         (selectedItem) => selectedItem !== item
       );
     },
+
     actionAdd() {
-      // Implemente a lógica de adicionar jogador.
       this.$emit('add');
     },
-    actionDelete() {
-      // Implemente a lógica de deletar jogadores.
-      this.$emit('delete');
+
+    actionDeletes() {
+      const itemsDelete = this.selectedItemsEmitted.map((item) =>
+         item.id
+      )
+
+      this.$emit('deletes', itemsDelete);
     },
+
+    actionDelete(id) {
+      this.$emit('delete', id);
+    },
+
+    actionEdit(id) {
+      this.$emit('edit', id);
+    },
+
     updateSearch(value) {
       this.search = value;
       this.$emit('update:modelValue', value);

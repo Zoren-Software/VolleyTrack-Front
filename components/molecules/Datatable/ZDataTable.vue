@@ -7,7 +7,11 @@
       :items="items"
       :columns="extendedColumns"
       v-bind="$attrs"
-    />
+    >
+      <template v-slot:cell(actions)="{ rowKey: {id} }">
+        <slot name="cell(actions)" :id="id"></slot>
+      </template>
+    </va-data-table>
   </va-card>
 </template>
 

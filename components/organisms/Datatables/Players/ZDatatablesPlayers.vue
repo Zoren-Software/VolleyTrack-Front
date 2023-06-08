@@ -4,7 +4,8 @@
     :columns="columns"
     :includeActionsColumn="true"
     @add="addPlayer" 
-    @delete="deletePlayers"
+    @delete="deletePlayer"
+    @deletes="deletePlayers"
     v-model="search"
     selectable
   />
@@ -92,9 +93,13 @@ export default defineComponent({
       // Implemente a lógica de adicionar jogador.
       console.log('action add')
     },
-    deletePlayers() {
+    deletePlayer(id) {
       // Implemente a lógica de deletar jogadores.
-      console.log('action delete')
+      console.log('action delete', id)
+    },
+    deletePlayers(items) {
+      // Implemente a lógica de deletar jogadores.
+      console.log('action deletes', items)
     }
   },
 });
