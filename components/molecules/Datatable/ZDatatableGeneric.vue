@@ -22,6 +22,7 @@
     :items="items"
     :columns="columns"
     :selectable="selectable"
+    :loading="loading"
     :includeActionsColumn="includeActionsColumn"
     @selectionChange="selectedItemsEmitted = $event.currentSelectedItems"
   >
@@ -65,6 +66,10 @@ export default defineComponent({
       default: () => []
     },
     includeActionsColumn: {
+      type: Boolean,
+      default: false
+    },
+    loading: {
       type: Boolean,
       default: false
     },

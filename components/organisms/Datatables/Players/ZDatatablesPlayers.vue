@@ -4,12 +4,14 @@
     :includeActionsColumn="true"
     :items="items" 
     :columns="columns"
+    :loading="loading"
     v-model="search"
     @add="addPlayer"
     @edit="editPlayer"
     @delete="deletePlayer"
     @deletes="deletePlayers"
   />
+  {{ loading }}
 </template>
 
 <script>
@@ -22,9 +24,13 @@ export default defineComponent({
       ZDatatableGeneric,
   },
 
+  created() {
+    this.loadData()
+  },
+
   data() {
     const search = ''
-      
+    let loading = false
     const items = [
       {
         id: 1,
@@ -74,6 +80,7 @@ export default defineComponent({
     return {
       search,
       items,
+      loading,
       columns,
       selectedItems: [],
       selectedItemsEmitted: [],
@@ -105,7 +112,14 @@ export default defineComponent({
     deletePlayers(items) {
       // Implemente a lógica de deletar jogadores.
       console.log('action deletes', items)
-    }
+    },
+    loadData() {
+      this.loading = true
+      // criar timeout para simular carregamento de dados
+      setTimeout(() => {
+        this.loading = false
+      }, 1000)
+    },
   },
 });
 </script>

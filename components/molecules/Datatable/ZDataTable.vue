@@ -6,6 +6,7 @@
       v-model="value"
       :items="items"
       :columns="extendedColumns"
+      :loading="this.loading"
       v-bind="$attrs"
     >
       <template v-slot:cell(actions)="{ rowKey: {id} }">
@@ -18,22 +19,26 @@
 <script>
 export default {
   props: {
-    items: {
+    columns: {
       type: Array,
       required: true
     },
-    columns: {
+    items: {
       type: Array,
       required: true
     },
     includeActionsColumn: {
       type: Boolean,
       default: false
-    }
+    },
+    loading: {
+      type: Boolean,
+      default: false
+    },
   },
   data() {
     return {
-      value: []
+      value: [],
     }
   },
   computed: {
