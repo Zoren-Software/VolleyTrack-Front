@@ -14,6 +14,9 @@
     <template #cell(user)="{rowKey}">
       <ZUser :data="rowKey" />
     </template>
+    <template #cell(position)="{rowKey:{positions}}">
+      <ZPosition :data="positions" />
+    </template>
   </ZDatatableGeneric>
 </template>
 
@@ -22,12 +25,14 @@
 import { defineComponent } from "vue";
 import ZDatatableGeneric from '~/components/molecules/Datatable/ZDatatableGeneric'
 import ZUser from '~/components/molecules/Datatable/Slots/ZUser'
+import ZPosition from "~/components/molecules/Datatable/Slots/ZPosition";
 
 export default defineComponent({
   components: {
-      ZDatatableGeneric,
-      ZUser
-  },
+    ZDatatableGeneric,
+    ZUser,
+    ZPosition
+},
 
   mounted() {
     this.loadData()
@@ -41,7 +46,12 @@ export default defineComponent({
           id: "1",
           name: "Administrador",
           email: "admin@voleiclub.com",
-          positions: [],
+          positions: [
+            {
+              id: 1,
+              name: "Central"
+            }
+          ],
           emailVerifiedAt: null,
           createdAt: "2023-05-22 02:20:56",
           updatedAt: "2023-05-25 00:00:14"
@@ -50,7 +60,12 @@ export default defineComponent({
           id: "2",
           name: "Suporte",
           email: "suporte@voleiclub.com",
-          positions: [],
+          positions: [
+            {
+              id: 2,
+              name: "Levantador"
+            }
+          ],
           emailVerifiedAt: null,
           createdAt: "2023-05-22 02:20:56",
           updatedAt: "2023-05-25 00:00:14"
@@ -59,7 +74,12 @@ export default defineComponent({
           id: "3",
           name: "Usuário Teste Técnico",
           email: "test.technician@voleiclub.com",
-          positions: [],
+          positions: [
+            {
+              id: 3,
+              name: "Libero"
+            }
+          ],
           emailVerifiedAt: null,
           createdAt: "2023-05-22 02:20:57",
           updatedAt: "2023-05-25 00:00:14"
@@ -68,7 +88,12 @@ export default defineComponent({
           id: "4",
           name: "Usuário Teste Jogador",
           email: "test.player@voleiclub.com",
-          positions: [],
+          positions: [
+            {
+              id: 4,
+              name: "Oposto"
+            }
+          ],
           emailVerifiedAt: null,
           createdAt: "2023-05-22 02:20:57",
           updatedAt: "2023-05-25 00:00:14"
@@ -77,7 +102,12 @@ export default defineComponent({
           id: "5",
           name: "Usuário Sem Permissao",
           email: "no.permission@voleiclub.com",
-          positions: [],
+          positions: [
+            {
+              id: 5,
+              name: "Ponteiro"
+            }
+          ],
           emailVerifiedAt: null,
           createdAt: "2023-05-22 02:20:57",
           updatedAt: "2023-05-25 00:00:14"
