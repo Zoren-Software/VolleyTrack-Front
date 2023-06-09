@@ -23,7 +23,7 @@ export default defineComponent({
       ZDatatableGeneric,
   },
 
-  created() {
+  mounted() {
     this.loadData()
   },
 
