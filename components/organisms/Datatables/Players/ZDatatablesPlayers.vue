@@ -17,6 +17,9 @@
     <template #cell(positions)="{rowKey:{positions}}">
       <ZPosition :data="positions" />
     </template>
+    <template #cell(cpf)="{rowKey:{cpf}}">
+      <ZCPF :data="cpf" />
+    </template>
   </ZDatatableGeneric>
 </template>
 
@@ -26,12 +29,14 @@ import { defineComponent } from "vue";
 import ZDatatableGeneric from '~/components/molecules/Datatable/ZDatatableGeneric'
 import ZUser from '~/components/molecules/Datatable/Slots/ZUser'
 import ZPosition from "~/components/molecules/Datatable/Slots/ZPosition";
+import ZCPF from "~/components/molecules/Datatable/Slots/ZCPF";
 
 export default defineComponent({
   components: {
     ZDatatableGeneric,
     ZUser,
-    ZPosition
+    ZPosition,
+    ZCPF
 },
 
   mounted() {
@@ -46,6 +51,8 @@ export default defineComponent({
           id: "1",
           name: "Administrador",
           email: "admin@voleiclub.com",
+          phone: "11999999999",
+          cpf: "09708699918",
           positions: [
             {
               id: 1,
@@ -64,6 +71,8 @@ export default defineComponent({
           id: "2",
           name: "Suporte",
           email: "suporte@voleiclub.com",
+          phone: "11999999999",
+          cpf: "09708699918",
           positions: [
             {
               id: 2,
@@ -78,6 +87,8 @@ export default defineComponent({
           id: "3",
           name: "Usuário Teste Técnico",
           email: "test.technician@voleiclub.com",
+          phone: "11999999999",
+          cpf: "09708699918",
           positions: [
             {
               id: 3,
@@ -92,6 +103,8 @@ export default defineComponent({
           id: "4",
           name: "Usuário Teste Jogador",
           email: "test.player@voleiclub.com",
+          phone: "11999999999",
+          cpf: "09708699918",
           positions: [
             {
               id: 4,
@@ -106,6 +119,8 @@ export default defineComponent({
           id: "5",
           name: "Usuário Sem Permissao",
           email: "no.permission@voleiclub.com",
+          phone: "11999999999",
+          cpf: "09708699918",
           positions: [
             {
               id: 5,
