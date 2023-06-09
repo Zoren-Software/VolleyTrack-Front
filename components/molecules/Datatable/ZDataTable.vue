@@ -57,3 +57,12 @@ export default {
   }
 }
 </script>
+
+<style>
+/* NOTE - Para fazer com que o badge não fique sobrepondo o menu superior do datatables */
+
+.va-data-table .va-data-table__table .va-data-table__table-thead--sticky {
+  z-index: 3;
+}
+
+</style>
