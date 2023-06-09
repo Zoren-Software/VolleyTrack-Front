@@ -87,7 +87,7 @@ export default defineComponent({
   },
   data() {
     return {
-      search: this.modelValue, // adicione esta linha
+      search: this.modelValue,
       selectedItems: [],
       selectedItemsEmitted: [],
       selectMode: "multiple",
