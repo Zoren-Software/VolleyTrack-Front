@@ -33,6 +33,9 @@
         @delete="actionDelete"
       />
     </template>
+    <template v-for="(_, slotName) in $slots" #[slotName]="scope">
+      <slot :name="slotName" v-bind="scope"></slot>
+    </template>
   </ZDataTable>
 </template>
 

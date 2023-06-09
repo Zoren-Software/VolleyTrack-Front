@@ -9,8 +9,8 @@
       :loading="this.loading"
       v-bind="$attrs"
     >
-      <template v-slot:cell(actions)="{ rowKey: {id} }">
-        <slot name="cell(actions)" :id="id"></slot>
+      <template v-for="(_, slotName) in $slots" #[slotName]="scope">
+        <slot :name="slotName" v-bind="scope"></slot>
       </template>
     </va-data-table>
   </va-card>
