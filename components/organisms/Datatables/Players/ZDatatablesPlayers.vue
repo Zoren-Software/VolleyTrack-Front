@@ -11,7 +11,6 @@
     @delete="deletePlayer"
     @deletes="deletePlayers"
   />
-  {{ loading }}
 </template>
 
 <script>
