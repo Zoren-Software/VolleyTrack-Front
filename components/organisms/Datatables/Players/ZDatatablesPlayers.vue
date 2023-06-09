@@ -14,7 +14,7 @@
     <template #cell(user)="{rowKey}">
       <ZUser :data="rowKey" />
     </template>
-    <template #cell(position)="{rowKey:{positions}}">
+    <template #cell(positions)="{rowKey:{positions}}">
       <ZPosition :data="positions" />
     </template>
   </ZDatatableGeneric>
@@ -50,6 +50,10 @@ export default defineComponent({
             {
               id: 1,
               name: "Central"
+            },
+            {
+              id: 2,
+              name: "Levantador"
             }
           ],
           emailVerifiedAt: null,
@@ -161,10 +165,10 @@ export default defineComponent({
 
     const columns = [
       { key: "id", name:"id", sortable: true },
-      { key: "user", name:"user", label:"Jogadores", sortable: true, },
-      { key: "position", name:"position", label:"Posição", sortable: true },
-      { key: "email", name:"email", sortable: true },
-      { key: "phone", name:"phone", sortable: true },
+      { key: "user", name:"user", label:"Jogadores", sortable: true },
+      { key: "positions", name:"positions", label:"Posições", sortable: true },
+      { key: "cpf", name:"cpf", label: "CPF", sortable: true },
+      { key: "team", name:"team", label:"Times", sortable: true },
     ];
 
     return {

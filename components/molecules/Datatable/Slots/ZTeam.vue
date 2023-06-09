@@ -1,17 +1,13 @@
 <template>
-  <ZBadge :text="willPositions(data)" overlap>
-    <ZButton v-if="data[0]" size="small" :color="colors(data[0].id)"> {{data[0].name}}</ZButton> 
-  </ZBadge>
+  <ZBadge v-if="data[0]" :color="colors(data[0].id)" :text="data[0].name" /> 
 </template>
 
 <script>
 import ZBadge from '~/components/atoms/Badges/ZBadge'
-import ZButton from '~/components/atoms/Buttons/ZButton'
 
 export default {
   components: {
-    ZBadge,
-    ZButton
+    ZBadge
   },
   props: {
     data: {
@@ -30,12 +26,8 @@ export default {
         5: 'danger',
       }
       return colors[id]
-    },
-    willPositions(total) {
-      total = total.length
-      if(total <= 1) return ''
-      return `+${total - 1}`
     }
   },
+ 
 }
 </script>
