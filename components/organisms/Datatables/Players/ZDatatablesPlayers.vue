@@ -48,7 +48,7 @@ export default defineComponent({
     let loading = false
     const items = [
       {
-          id: "1",
+          id: 1,
           name: "Administrador",
           email: "admin@voleiclub.com",
           phone: "11999999999",
@@ -68,7 +68,7 @@ export default defineComponent({
           updatedAt: "2023-05-25 00:00:14"
         },
         {
-          id: "2",
+          id: 2,
           name: "Suporte",
           email: "suporte@voleiclub.com",
           phone: "11999999999",
@@ -84,7 +84,7 @@ export default defineComponent({
           updatedAt: "2023-05-25 00:00:14"
         },
         {
-          id: "3",
+          id: 3,
           name: "Usuário Teste Técnico",
           email: "test.technician@voleiclub.com",
           phone: "11999999999",
@@ -100,7 +100,7 @@ export default defineComponent({
           updatedAt: "2023-05-25 00:00:14"
         },
         {
-          id: "4",
+          id: 4,
           name: "Usuário Teste Jogador",
           email: "test.player@voleiclub.com",
           phone: "11999999999",
@@ -116,7 +116,7 @@ export default defineComponent({
           updatedAt: "2023-05-25 00:00:14"
         },
         {
-          id: "5",
+          id: 5,
           name: "Usuário Sem Permissao",
           email: "no.permission@voleiclub.com",
           phone: "11999999999",
@@ -132,7 +132,7 @@ export default defineComponent({
           updatedAt: "2023-05-25 00:00:14"
         },
         {
-          id: "6",
+          id: 6,
           name: "Srta. Nicole Mel Correia Neto",
           email: "patricia90@example.net",
           positions: [],
@@ -141,7 +141,7 @@ export default defineComponent({
           updatedAt: "2023-05-22 02:21:17"
         },
         {
-          id: "7",
+          id: 7,
           name: "Sr. Breno Serna Valência",
           email: "xrico@example.org",
           positions: [],
@@ -150,7 +150,7 @@ export default defineComponent({
           updatedAt: "2023-05-22 02:21:17"
         },
         {
-          id: "8",
+          id: 8,
           name: "Breno Gian Zaragoça Jr.",
           email: "patricia31@example.org",
           positions: [],
@@ -159,7 +159,7 @@ export default defineComponent({
           updatedAt: "2023-05-22 02:21:17"
         },
         {
-          id: "9",
+          id: 9,
           name: "Dr. Danilo Ortiz Sobrinho",
           email: "neves.jonas@example.net",
           positions: [],
@@ -168,7 +168,7 @@ export default defineComponent({
           updatedAt: "2023-05-22 02:21:17"
         },
         {
-          id: "10",
+          id: 10,
           name: "Sr. Mário Davi Saito Neto",
           email: "icolaco@example.net",
           positions: [],
