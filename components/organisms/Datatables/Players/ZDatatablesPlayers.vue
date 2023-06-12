@@ -93,14 +93,14 @@ export default defineComponent({
       console.log('action deletes', items)
     },
 
-    async getPlayers() {
+    getPlayers() {
       this.loading = true
 
       const query = gql`
           ${PLAYERS}
       `;
 
-      const {onResult} = await useQuery(query, {});
+      const {onResult} = useQuery(query, {});
 
       onResult((result) => {
         if(result?.data?.users?.data.length > 0) {
