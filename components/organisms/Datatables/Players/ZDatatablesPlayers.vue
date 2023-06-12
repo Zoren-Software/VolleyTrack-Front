@@ -100,19 +100,14 @@ export default defineComponent({
           ${PLAYERS}
       `;
 
-      let { onResult } = await useQuery(query, {});
+      const {onResult} = await useQuery(query, {});
 
-      console.log('onResult 1')
-      
       onResult((result) => {
         if(result?.data?.users?.data.length > 0) {
           this.items = result.data.users.data;
         }
-        console.log('onResult 2')
-      })
-      console.log('onResult 3')
-
-      this.loading = false
+        this.loading = false
+      });
     },
   },
 });
