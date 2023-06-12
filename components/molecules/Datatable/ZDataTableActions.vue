@@ -18,7 +18,12 @@
 import Swal from 'sweetalert2'
 
 export default {
-  props: ['id'],
+  props: {
+    id: {
+      type: Number,
+      required: true
+    }
+  },
   emits: ['edit', 'delete'],
   methods: {
     actEdit(id) {
