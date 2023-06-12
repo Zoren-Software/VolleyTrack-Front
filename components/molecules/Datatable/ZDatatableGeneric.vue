@@ -26,7 +26,7 @@
     :includeActionsColumn="includeActionsColumn"
     @selectionChange="selectedItemsEmitted = $event.currentSelectedItems"
   >
-    <template #cell(actions)="{ id }">
+    <template #cell(actions)="{rowKey:{id}}">
       <ZDataTableActions
         :id="id"
         @edit="actionEdit"
