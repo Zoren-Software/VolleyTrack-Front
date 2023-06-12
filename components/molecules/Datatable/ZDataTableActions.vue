@@ -20,7 +20,7 @@ import Swal from 'sweetalert2'
 export default {
   props: {
     id: {
-      type: Number,
+      type: String,
       required: true
     }
   },

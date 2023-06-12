@@ -1,0 +1,36 @@
+query users($name: String, $first: Int, $page: Int) {
+  users(name: $name, first: $first, page: $page) {
+    paginatorInfo {
+      count
+      currentPage
+      firstItem
+      hasMorePages
+      lastItem
+      lastPage
+      perPage
+      total
+    }
+    data {
+      id
+      name
+      email
+      emailVerifiedAt
+      createdAt
+      updatedAt
+      positions {
+        id
+        name
+      }
+      teams {
+        id
+        name
+      }
+      information {
+        id
+        cpf
+        rg
+        phone
+      }
+    }
+  }
+}
