@@ -23,6 +23,7 @@
     :columns="columns"
     :selectable="selectable"
     :loading="loading"
+    :per-page="paginatorInfo.perPage"
     :includeActionsColumn="includeActionsColumn"
     @selectionChange="selectedItemsEmitted = $event.currentSelectedItems"
   >
@@ -32,6 +33,26 @@
         @edit="actionEdit"
         @delete="actionDelete"
       />
+    </template>
+    <template #bodyAppend>
+      <tr>
+        <td colspan="12">
+          <div class="flex justify-center mt-4 ml-4">
+            <va-pagination
+              v-model="currentPageActive"
+              :pages="paginatorInfo.lastPage"
+              :visible-pages="5"
+              buttons-preset="secondary"
+              rounded
+              gapped
+              class="mb-3"
+            />
+            <p>
+              Itens de {{ paginatorInfo.firstItem }} a {{ paginatorInfo.lastItem }} de {{ paginatorInfo.total }}
+            </p>
+          </div>
+        </td>
+      </tr>
     </template>
     <template v-for="(_, slotName) in $slots" #[slotName]="scope">
       <slot :name="slotName" v-bind="scope"></slot>
@@ -58,7 +79,14 @@ export default defineComponent({
       ZInput,
       ZIcon
   },
-  emits: ['add', 'edit', 'deletes', 'delete', 'update:modelValue'],
+  emits: [
+    'add', 
+    'edit', 
+    'deletes', 
+    'delete', 
+    'update:modelValue', 
+    'update:currentPageActive'
+  ],
   props: {
     items: {
       type: Array,
@@ -80,6 +108,9 @@ export default defineComponent({
       type: Boolean,
       default: false
     },
+    paginatorInfo: {
+      type: Object,
+    },
     modelValue: {
       type: [String, Number, Boolean, Object, Array, Date],
       default: null
@@ -88,6 +119,7 @@ export default defineComponent({
   data() {
     return {
       search: this.modelValue,
+      currentPageActive: this.paginatorInfo.currentPage,
       selectedItems: [],
       selectedItemsEmitted: [],
       selectMode: "multiple",
@@ -140,6 +172,9 @@ export default defineComponent({
   watch: {
     modelValue(newVal) {
       this.search = newVal;
+    },
+    currentPageActive(newVal) {
+      this.$emit('update:currentPageActive', newVal);
     }
   },
 });

@@ -5,11 +5,13 @@
     :items="items" 
     :columns="columns"
     :loading="loading"
+    :paginatorInfo="paginatorInfo"
     v-model="search"
     @add="addPlayer"
     @edit="editPlayer"
     @delete="deletePlayer"
     @deletes="deletePlayers"
+    @update:currentPageActive="updateCurrentPageActive"
   >
     <template #cell(user)="{rowKey}">
       <ZUser :data="rowKey" />
@@ -61,6 +63,17 @@ export default defineComponent({
       items : [],
       loading,
       columns,
+      paginatorInfo: {
+        currentPage: 1,
+        lastPage: 1,
+        total: 0,
+      },
+      variablesGetPlayers: {
+        page: 1,
+        search: '',
+        orderBy: 'id',
+        sortedBy: 'desc',
+      },
       selectedItems: [],
       selectedItemsEmitted: [],
       selectMode: "multiple",
@@ -92,6 +105,11 @@ export default defineComponent({
       // Implemente a lógica de deletar jogadores.
       console.log('action deletes', items)
     },
+    updateCurrentPageActive(page) {
+      console.log('updateCurrentPageActive', page)
+      this.variablesGetPlayers.page = page
+      this.getPlayers()
+    },
 
     getPlayers() {
       this.loading = true
@@ -100,14 +118,25 @@ export default defineComponent({
           ${PLAYERS}
       `;
 
-      const {onResult} = useQuery(query, {});
+      const {result:{value}} = useQuery(query, this.variablesGetPlayers);
+
+      const { onResult } = useQuery(query, this.variablesGetPlayers);
 
       onResult((result) => {
         if(result?.data?.users?.data.length > 0) {
+          this.paginatorInfo = result.data.users.paginatorInfo;
           this.items = result.data.users.data;
         }
-        this.loading = false
       });
+
+      if (value) {
+        if(value?.users?.data.length > 0) {
+          this.paginatorInfo = value.users.paginatorInfo;
+          this.items = value.users.data;
+        }
+        console.log(value.users)
+      }
+      this.loading = false
     },
   },
 });
