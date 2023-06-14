@@ -1,5 +1,4 @@
 <template>
-   <!-- justify--start -->
   <div class="row justify-start">
     <div class="flex flex-col xs2">
       <div class="item mt-2">
