@@ -22,6 +22,10 @@
     <template #cell(cpf)="{rowKey:{information}}">
       <ZCPF :cpf="information?.cpf" :rg="information?.rg" />
     </template>
+    <template #cell(team)="{rowKey:{teams}}">
+      <ZTeam :data="teams" />
+    </template>
+
   </ZDatatableGeneric>
 </template>
 
@@ -33,13 +37,15 @@ import ZDatatableGeneric from '~/components/molecules/Datatable/ZDatatableGeneri
 import ZUser from '~/components/molecules/Datatable/Slots/ZUser'
 import ZPosition from "~/components/molecules/Datatable/Slots/ZPosition";
 import ZCPF from "~/components/molecules/Datatable/Slots/ZCPF";
+import ZTeam from "~/components/molecules/Datatable/Slots/ZTeam";
 
 export default defineComponent({
   components: {
     ZDatatableGeneric,
     ZUser,
     ZPosition,
-    ZCPF
+    ZCPF,
+    ZTeam
 },
 
   created() {
