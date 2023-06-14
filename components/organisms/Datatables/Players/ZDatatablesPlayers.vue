@@ -59,8 +59,8 @@ export default defineComponent({
     const columns = [
       { key: "id", name:"id", sortable: true },
       { key: "user", name:"user", label:"Jogadores", sortable: true },
-      { key: "positions", name:"positions", label:"Posições", sortable: true },
       { key: "cpf", name:"cpf", label: "CPF e RG", sortable: true },
+      { key: "positions", name:"positions", label:"Posições", sortable: true },
       { key: "team", name:"team", label:"Times", sortable: true },
     ];
 
