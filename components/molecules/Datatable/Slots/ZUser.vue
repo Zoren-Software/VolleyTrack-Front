@@ -13,9 +13,9 @@
           <div class="flex gap-1 mb-1">
             <span><b>{{ data.name }}</b></span>
           </div>
-          <div v-if="data.phone" class="flex items-center">
+          <div v-if="data.information?.phone" class="flex items-center">
             <va-icon size="small" name="phone" color="secondary" class="mr-2" />
-            <span>{{ data.phone }}</span>
+            <span>{{ data.information?.phone }}</span>
           </div>
           <div class="flex items-center">
             <va-icon size="small" name="email" color="secondary" class="mr-2" />
