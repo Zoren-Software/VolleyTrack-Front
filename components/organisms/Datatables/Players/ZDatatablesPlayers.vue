@@ -19,8 +19,8 @@
     <template #cell(positions)="{rowKey:{positions}}">
       <ZPosition :data="positions" />
     </template>
-    <template #cell(cpf)="{rowKey:{cpf}}">
-      <ZCPF :data="cpf" />
+    <template #cell(cpf)="{rowKey:{information}}">
+      <ZCPF :cpf="information?.cpf" :rg="information?.rg" />
     </template>
   </ZDatatableGeneric>
 </template>
@@ -54,7 +54,7 @@ export default defineComponent({
       { key: "id", name:"id", sortable: true },
       { key: "user", name:"user", label:"Jogadores", sortable: true },
       { key: "positions", name:"positions", label:"Posições", sortable: true },
-      { key: "cpf", name:"cpf", label: "CPF", sortable: true },
+      { key: "cpf", name:"cpf", label: "CPF e RG", sortable: true },
       { key: "team", name:"team", label:"Times", sortable: true },
     ];
 
