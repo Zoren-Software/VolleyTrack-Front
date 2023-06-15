@@ -6,7 +6,11 @@
     :rules="rules"
     :type="type"
     v-model="internalValue"
-  />
+  >
+    <template v-for="(_, slotName) in $slots" #[slotName]="scope">
+      <slot :name="slotName" v-bind="scope"></slot>
+    </template>
+  </va-input>
 </template>
 
 <script>
@@ -18,11 +22,11 @@ export default {
     },
     label: {
       type: String,
-      default: '',
+      default: "",
     },
     modelValue: {
       type: String,
-      default: '',
+      default: "",
     },
     rules: {
       type: Array,
@@ -30,7 +34,7 @@ export default {
     },
     type: {
       type: String,
-      default: 'text',
+      default: "text",
     },
   },
   computed: {
@@ -39,9 +43,9 @@ export default {
         return this.modelValue;
       },
       set(value) {
-        this.$emit('update:modelValue', value);
-      }
-    }
-  }
-}
+        this.$emit("update:modelValue", value);
+      },
+    },
+  },
+};
 </script>
