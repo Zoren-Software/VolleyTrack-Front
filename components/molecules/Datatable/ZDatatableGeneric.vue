@@ -18,6 +18,9 @@
       </div>
     </div>
   </div>
+  <ZFilter>
+    
+  </ZFilter>
   <ZDataTable
     :items="items"
     :columns="columns"
@@ -67,17 +70,18 @@ import ZDataTableActionButtons from '~/components/molecules/Datatable/ZDataTable
 import ZDataTableActions from '~/components/molecules/Datatable/ZDataTableActions'
 import ZDataTableInputSearch from '~/components/molecules/Datatable/ZDataTableInputSearch'
 import ZDataTable from '~/components/molecules/Datatable/ZDataTable'
-import ZInput from '~/components/atoms/Inputs/ZInput';
-import ZIcon from '~/components/atoms/Icons/ZIcon';
-
+import ZInput from '~/components/atoms/Inputs/ZInput'
+import ZIcon from '~/components/atoms/Icons/ZIcon'
+import ZFilter from '~/components/molecules/Filters/ZFilter'
 export default defineComponent({
   components: {
-      ZDataTableActionButtons,
-      ZDataTableActions,
-      ZDataTableInputSearch,
-      ZDataTable,
-      ZInput,
-      ZIcon
+    ZDataTableActionButtons,
+    ZDataTableActions,
+    ZDataTableInputSearch,
+    ZDataTable,
+    ZInput,
+    ZIcon,
+    ZFilter
   },
   emits: [
     'add', 

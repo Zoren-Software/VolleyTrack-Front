@@ -45,7 +45,7 @@ export default defineComponent({
     ZUser,
     ZPosition,
     ZCPF,
-    ZTeam
+    ZTeam,
 },
 
   created() {
