@@ -49,7 +49,11 @@ export default {
       if (this.includeActionsColumn) {
         return [
           ...this.columns,
-          { key: "actions", width: 80 }
+          { 
+            key: "actions", 
+            label: "Ações", 
+            width: 80 
+          }
         ]
       }
       return this.columns;
