@@ -1,21 +1,21 @@
 <template>
   <div v-if="cpf" class="flex items-center">
-    <span ref="cpfEl" class="mr-2 va-text-secondary" v-once>CPF:</span>
-    <span ref="cpfEl" class="mr-2" v-once>{{ formatCpf(cpf) }}</span>
-    <va-icon size="small" name="content_copy" color="primary" @click="copyToClipboardCPF" />
+    <ZSpanCopyClipboard ref="cpfEl" ref-name="cpfEl" label="CPF" :text="formatCpf(cpf)" />
   </div>
   <div v-if="rg" class="flex items-center">
-    <span ref="cpfEl" class="mr-2 va-text-secondary" v-once>RG:</span>
-    <span ref="rgEl" class="mr-2" v-once>{{ rg }}</span>
-    <va-icon size="small" name="content_copy" color="primary" @click="copyToClipboardRG" />
+    <ZSpanCopyClipboard ref="rgEl" ref-name="rgEl" label="RG" :text="rg" />
   </div>
 </template>
 
 <script>
 
 import Clipboard from 'clipboard';
+import ZSpanCopyClipboard from '~/components/atoms/Span/ZSpanCopyClipboard';
 
 export default {
+  components: {
+    ZSpanCopyClipboard
+  },
   props: {
     cpf: {
       type: String,
