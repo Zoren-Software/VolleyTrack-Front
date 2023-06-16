@@ -1,4 +1,5 @@
 query users($name: String, $first: Int, $page: Int) {
+  ## TODO - Implementar o filtro search
   users(name: $name, first: $first, page: $page) {
     paginatorInfo {
       count

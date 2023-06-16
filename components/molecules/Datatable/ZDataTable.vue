@@ -1,7 +1,5 @@
 <template>
-  <va-card 
-    class="mr-3 mt-3"
-  >
+  <va-card class="mr-3 mt-3">
     <va-data-table
       v-model="value"
       :items="items"
@@ -24,42 +22,42 @@ export default {
   props: {
     columns: {
       type: Array,
-      required: true
+      required: true,
     },
     items: {
       type: Array,
-      required: true
+      required: true,
     },
     includeActionsColumn: {
       type: Boolean,
-      default: false
+      default: false,
     },
     loading: {
       type: Boolean,
-      default: false
+      default: false,
     },
   },
   data() {
     return {
       value: [],
-    }
+    };
   },
   computed: {
     extendedColumns() {
       if (this.includeActionsColumn) {
         return [
           ...this.columns,
-          { 
-            key: "actions", 
-            label: "Ações", 
-            width: 80 
-          }
-        ]
+          {
+            key: "actions",
+            label: "Ações",
+            width: 80,
+          },
+        ];
       }
       return this.columns;
-    }
-  }
-}
+    },
+  },
+};
 </script>
 
 <style>
@@ -68,5 +66,4 @@ export default {
 .va-data-table .va-data-table__table .va-data-table__table-thead--sticky {
   z-index: 3;
 }
-
 </style>

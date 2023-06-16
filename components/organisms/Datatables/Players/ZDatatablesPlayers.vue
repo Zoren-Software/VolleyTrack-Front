@@ -1,40 +1,38 @@
 <template>
-  <ZDatatableGeneric 
+  <ZDatatableGeneric
     selectable
     :includeActionsColumn="true"
-    :items="items" 
+    :items="items"
     :columns="columns"
     :loading="loading"
     :paginatorInfo="paginatorInfo"
-    v-model="search"
+    @search="searchPlayers"
     @add="addPlayer"
     @edit="editPlayer"
     @delete="deletePlayer"
     @deletes="deletePlayers"
     @update:currentPageActive="updateCurrentPageActive"
   >
-    <template #cell(user)="{rowKey}">
+    <template #cell(user)="{ rowKey }">
       <ZUser :data="rowKey" />
     </template>
-    <template #cell(positions)="{rowKey:{positions}}">
+    <template #cell(positions)="{ rowKey: { positions } }">
       <ZPosition :data="positions" />
     </template>
-    <template #cell(cpf)="{rowKey:{information}}">
+    <template #cell(cpf)="{ rowKey: { information } }">
       <ZCPF :cpf="information?.cpf" :rg="information?.rg" />
     </template>
-    <template #cell(team)="{rowKey:{teams}}">
+    <template #cell(team)="{ rowKey: { teams } }">
       <ZTeam :data="teams" />
     </template>
-
   </ZDatatableGeneric>
 </template>
 
 <script>
-
 import { defineComponent } from "vue";
-import PLAYERS from '~/graphql/user/query/users.graphql'
-import ZDatatableGeneric from '~/components/molecules/Datatable/ZDatatableGeneric'
-import ZUser from '~/components/molecules/Datatable/Slots/ZUser'
+import PLAYERS from "~/graphql/user/query/users.graphql";
+import ZDatatableGeneric from "~/components/molecules/Datatable/ZDatatableGeneric";
+import ZUser from "~/components/molecules/Datatable/Slots/ZUser";
 import ZPosition from "~/components/molecules/Datatable/Slots/ZPosition";
 import ZCPF from "~/components/molecules/Datatable/Slots/ZCPF";
 import ZTeam from "~/components/molecules/Datatable/Slots/ZTeam";
@@ -46,27 +44,32 @@ export default defineComponent({
     ZPosition,
     ZCPF,
     ZTeam,
-},
+  },
 
   created() {
-    this.getPlayers()
+    this.getPlayers();
   },
 
   data() {
-    const search = ''
-    let loading = false
+    const search = "";
+    let loading = false;
 
     const columns = [
-      { key: "id", name:"id", sortable: true },
-      { key: "user", name:"user", label:"Jogadores", sortable: true },
-      { key: "cpf", name:"cpf", label: "CPF e RG", sortable: true },
-      { key: "positions", name:"positions", label:"Posições", sortable: true },
-      { key: "team", name:"team", label:"Times", sortable: true },
+      { key: "id", name: "id", sortable: true },
+      { key: "user", name: "user", label: "Jogadores", sortable: true },
+      { key: "cpf", name: "cpf", label: "CPF e RG", sortable: true },
+      {
+        key: "positions",
+        name: "positions",
+        label: "Posições",
+        sortable: true,
+      },
+      { key: "team", name: "team", label: "Times", sortable: true },
     ];
 
     return {
-      search,
-      items : [],
+      search: "",
+      items: [],
       loading,
       columns,
       paginatorInfo: {
@@ -76,9 +79,9 @@ export default defineComponent({
       },
       variablesGetPlayers: {
         page: 1,
-        search: '',
-        orderBy: 'id',
-        sortedBy: 'desc',
+        search: "",
+        orderBy: "id",
+        sortedBy: "desc",
       },
       selectedItems: [],
       selectedItemsEmitted: [],
@@ -97,52 +100,57 @@ export default defineComponent({
     },
     addPlayer() {
       // Implemente a lógica de adicionar jogador.
-      console.log('action add')
+      console.log("action add");
     },
     editPlayer(id) {
       // Implemente a lógica de adicionar jogador.
-      console.log('action edit', id)
+      console.log("action edit", id);
     },
     deletePlayer(id) {
       // Implemente a lógica de deletar jogadores.
-      console.log('action delete', id)
+      console.log("action delete", id);
     },
     deletePlayers(items) {
       // Implemente a lógica de deletar jogadores.
-      console.log('action deletes', items)
+      console.log("action deletes", items);
     },
     updateCurrentPageActive(page) {
-      console.log('updateCurrentPageActive', page)
-      this.variablesGetPlayers.page = page
-      this.getPlayers()
+      console.log("updateCurrentPageActive", page);
+      this.variablesGetPlayers.page = page;
+      this.getPlayers();
+    },
+
+    searchPlayers(search) {
+      this.variablesGetPlayers.search = search;
     },
 
     getPlayers() {
-      this.loading = true
+      this.loading = true;
 
       const query = gql`
-          ${PLAYERS}
+        ${PLAYERS}
       `;
 
-      const {result:{value}} = useQuery(query, this.variablesGetPlayers);
+      const {
+        result: { value },
+      } = useQuery(query, this.variablesGetPlayers);
 
       const { onResult } = useQuery(query, this.variablesGetPlayers);
 
       onResult((result) => {
-        if(result?.data?.users?.data.length > 0) {
+        if (result?.data?.users?.data.length > 0) {
           this.paginatorInfo = result.data.users.paginatorInfo;
           this.items = result.data.users.data;
         }
       });
 
       if (value) {
-        if(value?.users?.data.length > 0) {
+        if (value?.users?.data.length > 0) {
           this.paginatorInfo = value.users.paginatorInfo;
           this.items = value.users.data;
         }
-        console.log(value.users)
       }
-      this.loading = false
+      this.loading = false;
     },
   },
 });

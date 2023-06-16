@@ -11,16 +11,11 @@
     </div>
     <div class="flex flex-col offset-xl7 xs2">
       <div class="item">
-        <ZDataTableInputSearch
-          v-model="search"
-          @input="updateSearch"
-        />
+        <ZDataTableInputSearch v-model="search" @actionSearch="actionSearch" />
       </div>
     </div>
   </div>
-  <ZFilter>
-    
-  </ZFilter>
+  <ZFilter> </ZFilter>
   <ZDataTable
     :items="items"
     :columns="columns"
@@ -30,12 +25,8 @@
     :includeActionsColumn="includeActionsColumn"
     @selectionChange="selectedItemsEmitted = $event.currentSelectedItems"
   >
-    <template #cell(actions)="{rowKey:{id}}">
-      <ZDataTableActions
-        :id="id"
-        @edit="actionEdit"
-        @delete="actionDelete"
-      />
+    <template #cell(actions)="{ rowKey: { id } }">
+      <ZDataTableActions :id="id" @edit="actionEdit" @delete="actionDelete" />
     </template>
     <template #bodyAppend>
       <tr>
@@ -51,7 +42,8 @@
               class="mb-3"
             />
             <p>
-              Itens de {{ paginatorInfo.firstItem }} a {{ paginatorInfo.lastItem }} de {{ paginatorInfo.total }}
+              Itens de {{ paginatorInfo.firstItem }} a
+              {{ paginatorInfo.lastItem }} de {{ paginatorInfo.total }}
             </p>
           </div>
         </td>
@@ -64,15 +56,14 @@
 </template>
 
 <script>
-
 import { defineComponent } from "vue";
-import ZDataTableActionButtons from '~/components/molecules/Datatable/ZDataTableActionButtons'
-import ZDataTableActions from '~/components/molecules/Datatable/ZDataTableActions'
-import ZDataTableInputSearch from '~/components/molecules/Datatable/ZDataTableInputSearch'
-import ZDataTable from '~/components/molecules/Datatable/ZDataTable'
-import ZInput from '~/components/atoms/Inputs/ZInput'
-import ZIcon from '~/components/atoms/Icons/ZIcon'
-import ZFilter from '~/components/molecules/Filters/ZFilter'
+import ZDataTableActionButtons from "~/components/molecules/Datatable/ZDataTableActionButtons";
+import ZDataTableActions from "~/components/molecules/Datatable/ZDataTableActions";
+import ZDataTableInputSearch from "~/components/molecules/Datatable/ZDataTableInputSearch";
+import ZDataTable from "~/components/molecules/Datatable/ZDataTable";
+import ZInput from "~/components/atoms/Inputs/ZInput";
+import ZIcon from "~/components/atoms/Icons/ZIcon";
+import ZFilter from "~/components/molecules/Filters/ZFilter";
 export default defineComponent({
   components: {
     ZDataTableActionButtons,
@@ -81,48 +72,44 @@ export default defineComponent({
     ZDataTable,
     ZInput,
     ZIcon,
-    ZFilter
+    ZFilter,
   },
   emits: [
-    'add', 
-    'edit', 
-    'deletes', 
-    'delete', 
-    'update:modelValue', 
-    'update:currentPageActive'
+    "add",
+    "edit",
+    "deletes",
+    "delete",
+    "search",
+    "update:currentPageActive",
   ],
   props: {
     items: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     columns: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     includeActionsColumn: {
       type: Boolean,
-      default: false
+      default: false,
     },
     loading: {
       type: Boolean,
-      default: false
+      default: false,
     },
     selectable: {
       type: Boolean,
-      default: false
+      default: false,
     },
     paginatorInfo: {
       type: Object,
     },
-    modelValue: {
-      type: [String, Number, Boolean, Object, Array, Date],
-      default: null
-    },
   },
   data() {
     return {
-      search: this.modelValue,
+      search: this.search,
       currentPageActive: this.paginatorInfo.currentPage,
       selectedItems: [],
       selectedItemsEmitted: [],
@@ -141,45 +128,50 @@ export default defineComponent({
     },
 
     actionAdd() {
-      this.$emit('add');
+      this.$emit("add");
     },
 
     actionDeletes(itemsDelete) {
-      this.$emit('deletes', itemsDelete);
+      this.$emit("deletes", itemsDelete);
     },
 
     actionDelete(id) {
-      this.$emit('delete', id);
+      this.$emit("delete", id);
     },
 
     actionEdit(id) {
-      this.$emit('edit', id);
+      this.$emit("edit", id);
+    },
+
+    actionSearch(a) {
+      this.$emit("search", this.search);
     },
 
     updateSearch(value) {
-      this.search = value;
-      this.$emit('update:modelValue', value);
-    }
+      this.$emit("search", value);
+    },
   },
 
   computed: {
     computedItems() {
       if (this.search) {
-        return this.items.filter(item => 
-          Object.values(item).some(value => String(value).toLowerCase().includes(this.search.toLowerCase()))
+        return this.items.filter((item) =>
+          Object.values(item).some((value) =>
+            String(value).toLowerCase().includes(this.search.toLowerCase())
+          )
         );
       } else {
         return this.items;
       }
-    }
+    },
   },
   watch: {
-    modelValue(newVal) {
-      this.search = newVal;
+    search(newVal) {
+      this.$emit("search", newVal);
     },
     currentPageActive(newVal) {
-      this.$emit('update:currentPageActive', newVal);
-    }
+      this.$emit("update:currentPageActive", newVal);
+    },
   },
 });
 </script>
