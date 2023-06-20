@@ -14,6 +14,12 @@
     @deletes="deletePlayers"
     @update:currentPageActive="updateCurrentPageActive"
   >
+    <!-- FILTER -->
+    <template #filter>
+      <ZSelectPosition label="Posições" />
+    </template>
+
+    <!-- CELL -->
     <template #cell(user)="{ rowKey }">
       <ZUser :data="rowKey" />
     </template>
@@ -33,6 +39,7 @@
 import { defineComponent } from "vue";
 import PLAYERS from "~/graphql/user/query/users.graphql";
 import ZDatatableGeneric from "~/components/molecules/Datatable/ZDatatableGeneric";
+import ZSelectPosition from "~/components/molecules/Selects/ZSelectPosition";
 import ZUser from "~/components/molecules/Datatable/Slots/ZUser";
 import ZPosition from "~/components/molecules/Datatable/Slots/ZPosition";
 import ZCPF from "~/components/molecules/Datatable/Slots/ZCPF";
@@ -45,6 +52,7 @@ export default defineComponent({
     ZPosition,
     ZCPF,
     ZTeam,
+    ZSelectPosition,
   },
 
   created() {

@@ -1,0 +1,36 @@
+query positions($name: String, $first: Int, $page: Int) {
+  positions(name: $name, first: $first, page: $page) {
+    paginatorInfo {
+      count
+      currentPage
+      firstItem
+      hasMorePages
+      lastItem
+      lastPage
+      perPage
+      total
+    }
+    data {
+      id
+      name
+      userId
+    #   user {
+    #     id
+    #     name
+    #     email
+    #   }
+    # TODO: Verificar para implementar a relação de total de usuários relacionados
+    #   users {
+    #     id
+    #     name
+    #     email
+    #     emailVerifiedAt
+    #     createdAt
+    #     updatedAt
+    #   }
+    
+      createdAt
+      updatedAt
+    }
+  }
+}

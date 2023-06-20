@@ -15,7 +15,9 @@
       </div>
     </div>
   </div>
-  <ZFilter> </ZFilter>
+  <ZFilter>
+    <slot name="filter"></slot>
+  </ZFilter>
   <ZDataTable
     :items="items"
     :columns="columns"

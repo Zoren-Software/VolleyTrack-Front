@@ -1,7 +1,5 @@
 <template>
-  <va-card
-    class="mt-2 mr-3"
-  >
+  <va-card class="mt-2 mr-3">
     <va-collapse
       v-model="value[0]"
       header="Filtrar"
@@ -20,8 +18,9 @@
 export default {
   data() {
     return {
-      value: [false],
-    }
+      //NOTE - Se o elemento vem aberto ou fechado por padrão
+      value: [true],
+    };
   },
-}
+};
 </script>
