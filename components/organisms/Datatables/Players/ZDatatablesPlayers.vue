@@ -7,6 +7,7 @@
     :loading="loading"
     :paginatorInfo="paginatorInfo"
     @search="searchPlayers"
+    @actionSearch="getPlayers"
     @add="addPlayer"
     @edit="editPlayer"
     @delete="deletePlayer"

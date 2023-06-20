@@ -80,6 +80,7 @@ export default defineComponent({
     "deletes",
     "delete",
     "search",
+    "actionSearch",
     "update:currentPageActive",
   ],
   props: {
@@ -144,7 +145,7 @@ export default defineComponent({
     },
 
     actionSearch(a) {
-      this.$emit("search", this.search);
+      this.$emit("actionSearch", this.search);
     },
 
     updateSearch(value) {
