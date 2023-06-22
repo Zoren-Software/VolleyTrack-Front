@@ -1,13 +1,24 @@
 <template>
-  <div style="max-width: 300px">
+  <div style="max-width: 350px">
     <va-select
+      style="width: 100%"
       v-model="value"
       v-bind="$attrs"
       :label="label"
       :options="options"
       value-by="valueBy"
+      searchable
+      highlight-matched-text
+      :max-visible-options="2"
+      selected-top-shown
+      clearable
+      clearable-icon="cancel"
       no-options-text="Nenhuma opção encontrada"
-    />
+    >
+      <template v-for="(_, slotName) in $slots" #[slotName]="scope">
+        <slot :name="slotName" v-bind="scope"></slot>
+      </template>
+    </va-select>
   </div>
 </template>
 
@@ -25,7 +36,7 @@ export default {
   },
   data() {
     return {
-      value: "",
+      value: [],
     };
   },
 };
