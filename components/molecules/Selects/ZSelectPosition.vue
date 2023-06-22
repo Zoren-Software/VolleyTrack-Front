@@ -9,6 +9,7 @@
       multiple
       @click="getPositions"
       @scrollBottom="loadMore"
+      @updateSearch="updateSearch"
     >
       <template #content="{ value }">
         <va-chip
@@ -75,8 +76,9 @@ export default {
         if (value) {
           this.handleResult(value);
         }
+
         this.loading = false;
-      }, 300);
+      }, 400);
     },
 
     handleResult(result) {
@@ -102,6 +104,10 @@ export default {
 
         this.items = uniqueItems;
       }
+    },
+    updateSearch(newSearchValue) {
+      this.variablesGetPositions.filter.search = newSearchValue;
+      this.getPositions();
     },
     loadMore() {
       this.variablesGetPositions.page += 1;
