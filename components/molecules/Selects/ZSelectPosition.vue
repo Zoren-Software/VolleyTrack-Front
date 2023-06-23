@@ -9,7 +9,7 @@
       multiple
       @click="getPositions"
       @scrollBottom="loadMore"
-      @updateSearch="updateSearch"
+      @updateSearch="newSearch"
     >
       <template #content="{ value }">
         <va-chip
@@ -49,7 +49,7 @@ export default {
         page: 1,
         perPage: 10,
         filter: {
-          search: "",
+          search: "%%",
         },
       },
     };
@@ -105,8 +105,8 @@ export default {
         this.items = uniqueItems;
       }
     },
-    updateSearch(newSearchValue) {
-      this.variablesGetPositions.filter.search = newSearchValue;
+    newSearch(newSearchValue) {
+      this.variablesGetPositions.filter.search = `%${newSearchValue}%`;
       this.getPositions();
     },
     loadMore() {

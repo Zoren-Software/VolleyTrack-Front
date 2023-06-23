@@ -1,5 +1,9 @@
-query positions($name: String, $first: Int, $page: Int) {
-  positions(name: $name, first: $first, page: $page) {
+query positions($filter: PositionSearchInput, $first: Int, $page: Int) {
+  positions(
+    filter: $filter,
+    first: $first,
+    page: $page
+  ) {
     paginatorInfo {
       count
       currentPage
