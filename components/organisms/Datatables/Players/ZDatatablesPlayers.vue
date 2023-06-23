@@ -16,6 +16,7 @@
   >
     <!-- FILTER -->
     <template #filter>
+      <!-- TODO - Ajustar distribuição dos itens dentro deste componente -->
       <ZSelectPosition label="Posições" />
       <ZSelectTeam label="Times" />
     </template>
