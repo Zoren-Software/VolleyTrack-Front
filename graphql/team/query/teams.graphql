@@ -1,5 +1,5 @@
-query positions($filter: PositionSearchInput, $first: Int, $page: Int) {
-  positions(
+query teams($filter: TeamSearchInput, $first: Int, $page: Int) {
+  teams(
     filter: $filter,
     first: $first,
     page: $page

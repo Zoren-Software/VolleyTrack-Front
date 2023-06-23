@@ -17,6 +17,7 @@
     <!-- FILTER -->
     <template #filter>
       <ZSelectPosition label="Posições" />
+      <ZSelectTeam label="Times" />
     </template>
 
     <!-- CELL -->
@@ -40,6 +41,7 @@ import { defineComponent } from "vue";
 import PLAYERS from "~/graphql/user/query/users.graphql";
 import ZDatatableGeneric from "~/components/molecules/Datatable/ZDatatableGeneric";
 import ZSelectPosition from "~/components/molecules/Selects/ZSelectPosition";
+import ZSelectTeam from "~/components/molecules/Selects/ZSelectTeam";
 import ZUser from "~/components/molecules/Datatable/Slots/ZUser";
 import ZPosition from "~/components/molecules/Datatable/Slots/ZPosition";
 import ZCPF from "~/components/molecules/Datatable/Slots/ZCPF";
@@ -53,6 +55,7 @@ export default defineComponent({
     ZCPF,
     ZTeam,
     ZSelectPosition,
+    ZSelectTeam,
   },
 
   created() {
