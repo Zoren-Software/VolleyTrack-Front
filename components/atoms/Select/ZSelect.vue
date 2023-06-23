@@ -8,7 +8,7 @@
       :options="options"
       value-by="valueBy"
       searchable
-      highlight-matched-text
+      searchPlaceholderText="Pesquisar"
       :max-visible-options="2"
       selected-top-shown
       clearable
