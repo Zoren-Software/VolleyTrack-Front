@@ -122,19 +122,19 @@ export default defineComponent({
       );
     },
     addPlayer() {
-      // Implemente a lógica de adicionar jogador.
+      // TODO - Implemente a lógica de adicionar jogador.
       console.log("action add");
     },
     editPlayer(id) {
-      // Implemente a lógica de adicionar jogador.
+      // TODO - Implemente a lógica de adicionar jogador.
       console.log("action edit", id);
     },
     deletePlayer(id) {
-      // Implemente a lógica de deletar jogadores.
+      // TODO - Implemente a lógica de deletar jogadores.
       console.log("action delete", id);
     },
     deletePlayers(items) {
-      // Implemente a lógica de deletar jogadores.
+      // TODO - Implemente a lógica de deletar jogadores.
       console.log("action deletes", items);
     },
     updateCurrentPageActive(page) {
