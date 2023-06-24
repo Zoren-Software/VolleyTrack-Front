@@ -1,29 +1,27 @@
 <template>
-  <div style="max-width: 300px">
-    <ZSelect
-      v-model="value"
-      v-bind="$attrs"
-      :label="label"
-      :options="items"
-      :loading="loading"
-      multiple
-      @click="getPositions"
-      @scrollBottom="loadMore"
-      @updateSearch="newSearch"
-    >
-      <template #content="{ value }">
-        <va-chip
-          v-if="value.length >= 2"
-          v-for="chip in value.slice(0, 3)"
-          :key="chip.value"
-          class="mr-1 my-1 py-3"
-          size="small"
-        >
-          {{ chip.text }}
-        </va-chip>
-      </template>
-    </ZSelect>
-  </div>
+  <ZSelect
+    v-model="value"
+    v-bind="$attrs"
+    :label="label"
+    :options="items"
+    :loading="loading"
+    multiple
+    @click="getPositions"
+    @scrollBottom="loadMore"
+    @updateSearch="newSearch"
+  >
+    <template #content="{ value }">
+      <va-chip
+        v-if="value.length >= 2"
+        v-for="chip in value.slice(0, 3)"
+        :key="chip.value"
+        class="mr-2"
+        size="small"
+      >
+        {{ chip.text }}
+      </va-chip>
+    </template>
+  </ZSelect>
 </template>
 
 <script>

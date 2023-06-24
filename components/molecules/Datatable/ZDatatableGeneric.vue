@@ -9,14 +9,36 @@
         />
       </div>
     </div>
-    <div class="flex flex-col offset-xl7 xs2">
-      <div class="item">
-        <ZDataTableInputSearch v-model="search" @actionSearch="actionSearch" />
-      </div>
-    </div>
   </div>
   <ZFilter>
-    <slot name="filter"></slot>
+    <div class="row">
+      <div class="flex flex-col md6 py-1">
+        <div class="item">
+          <ZDataTableInputSearch
+            v-model="search"
+            @actionSearch="actionSearch"
+          />
+        </div>
+      </div>
+      <div class="flex flex-col md12 py-1">
+        <div class="item my-2">
+          <span class="mr my-2 va-text-bold">Filtros avançados:</span>
+        </div>
+        <div class="item mb-2">
+          <slot name="filter"></slot>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="flex flex-col md6 py-1">
+        <div class="item">
+          <ZButton label="Limpar" class="mr-3" @click="actionClear"
+            >Limpar</ZButton
+          >
+          <ZButton label="Pesquisar" @click="actionSearch">Pesquisar</ZButton>
+        </div>
+      </div>
+    </div>
   </ZFilter>
   <ZDataTable
     :items="items"
@@ -66,6 +88,7 @@ import ZDataTable from "~/components/molecules/Datatable/ZDataTable";
 import ZInput from "~/components/atoms/Inputs/ZInput";
 import ZIcon from "~/components/atoms/Icons/ZIcon";
 import ZFilter from "~/components/molecules/Filters/ZFilter";
+import ZButton from "~/components/atoms/Buttons/ZButton";
 export default defineComponent({
   components: {
     ZDataTableActionButtons,
@@ -75,6 +98,7 @@ export default defineComponent({
     ZInput,
     ZIcon,
     ZFilter,
+    ZButton,
   },
   emits: [
     "add",
@@ -148,6 +172,11 @@ export default defineComponent({
 
     actionSearch(a) {
       this.$emit("actionSearch", this.search);
+    },
+
+    actionClear() {
+      this.search = "";
+      this.$emit("actionSearch", true);
     },
 
     updateSearch(value) {

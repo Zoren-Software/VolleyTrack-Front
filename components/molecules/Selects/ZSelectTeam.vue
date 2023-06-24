@@ -1,17 +1,15 @@
 <template>
-  <div style="max-width: 300px">
-    <ZSelect
-      v-model="value"
-      v-bind="$attrs"
-      :label="label"
-      :options="items"
-      :loading="loading"
-      multiple
-      @click="getTeams"
-      @scrollBottom="loadMore"
-      @updateSearch="newSearch"
-    />
-  </div>
+  <ZSelect
+    v-model="value"
+    v-bind="$attrs"
+    :label="label"
+    :options="items"
+    :loading="loading"
+    multiple
+    @click="getTeams"
+    @scrollBottom="loadMore"
+    @updateSearch="newSearch"
+  />
 </template>
 
 <script>

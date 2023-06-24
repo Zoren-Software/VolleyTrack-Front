@@ -17,8 +17,18 @@
     <!-- FILTER -->
     <template #filter>
       <!-- TODO - Ajustar distribuição dos itens dentro deste componente -->
-      <ZSelectPosition label="Posições" />
-      <ZSelectTeam label="Times" />
+      <div class="row">
+        <div class="flex flex-col md6">
+          <div class="item mr-2">
+            <ZSelectPosition label="Posições" />
+          </div>
+        </div>
+        <div class="flex flex-col md6">
+          <div class="item">
+            <ZSelectTeam label="Times" />
+          </div>
+        </div>
+      </div>
     </template>
 
     <!-- CELL -->
