@@ -32,7 +32,7 @@
     <div class="row">
       <div class="flex flex-col md6 py-1">
         <div class="item">
-          <ZButton label="Limpar" class="mr-3" @click="actionClear"
+          <ZButton label="Limpar" color="info" class="mr-3" @click="actionClear"
             >Limpar</ZButton
           >
           <ZButton label="Pesquisar" @click="actionSearch">Pesquisar</ZButton>
@@ -107,6 +107,7 @@ export default defineComponent({
     "delete",
     "search",
     "actionSearch",
+    "actionClear",
     "update:currentPageActive",
   ],
   props: {
@@ -176,7 +177,7 @@ export default defineComponent({
 
     actionClear() {
       this.search = "";
-      this.$emit("actionSearch", true);
+      this.$emit("actionClear", true);
     },
 
     updateSearch(value) {
