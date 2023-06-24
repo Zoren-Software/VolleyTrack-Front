@@ -88,7 +88,7 @@ export default {
             text: item.name,
             textBy: `Text by ${item.name}`,
             value: item.id,
-            valueBy: item.name.toLowerCase(),
+            valueBy: item.id,
           };
         });
 
