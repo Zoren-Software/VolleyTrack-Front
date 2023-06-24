@@ -8,6 +8,7 @@
     :paginatorInfo="paginatorInfo"
     @search="searchPlayers"
     @actionSearch="getPlayers"
+    @actionClear="clearSearch"
     @add="addPlayer"
     @edit="editPlayer"
     @delete="deletePlayer"
@@ -20,12 +21,18 @@
       <div class="row">
         <div class="flex flex-col md6">
           <div class="item mr-2">
-            <ZSelectPosition label="Posições" />
+            <ZSelectPosition
+              label="Posições"
+              v-model="variablesGetPlayers.filter.idsPositions"
+            />
           </div>
         </div>
         <div class="flex flex-col md6">
           <div class="item">
-            <ZSelectTeam label="Times" />
+            <ZSelectTeam
+              label="Times"
+              v-model="variablesGetPlayers.filter.idsTeams"
+            />
           </div>
         </div>
       </div>
@@ -57,6 +64,7 @@ import ZUser from "~/components/molecules/Datatable/Slots/ZUser";
 import ZPosition from "~/components/molecules/Datatable/Slots/ZPosition";
 import ZCPF from "~/components/molecules/Datatable/Slots/ZCPF";
 import ZTeam from "~/components/molecules/Datatable/Slots/ZTeam";
+import { toRaw } from "vue";
 
 export default defineComponent({
   components: {
@@ -74,7 +82,6 @@ export default defineComponent({
   },
 
   data() {
-    const search = "";
     let loading = false;
 
     const columns = [
@@ -91,7 +98,6 @@ export default defineComponent({
     ];
 
     return {
-      search: "",
       items: [],
       loading,
       columns,
@@ -102,7 +108,11 @@ export default defineComponent({
       },
       variablesGetPlayers: {
         page: 1,
-        search: "",
+        filter: {
+          search: "",
+          idsPositions: [],
+          idsTeams: [],
+        },
         orderBy: "id",
         sortedBy: "desc",
       },
@@ -144,7 +154,15 @@ export default defineComponent({
     },
 
     searchPlayers(search) {
-      this.variablesGetPlayers.search = search;
+      this.variablesGetPlayers.filter.search = search;
+    },
+
+    clearSearch() {
+      this.variablesGetPlayers.filter = {
+        search: "",
+        idsPositions: [],
+        idsTeams: [],
+      };
     },
 
     getPlayers() {
@@ -153,6 +171,9 @@ export default defineComponent({
       const query = gql`
         ${PLAYERS}
       `;
+
+      // TODO - Debug
+      console.log(toRaw(this.variablesGetPlayers));
 
       const {
         result: { value },
