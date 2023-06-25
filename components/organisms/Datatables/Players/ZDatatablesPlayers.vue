@@ -64,7 +64,7 @@ import ZUser from "~/components/molecules/Datatable/Slots/ZUser";
 import ZPosition from "~/components/molecules/Datatable/Slots/ZPosition";
 import ZCPF from "~/components/molecules/Datatable/Slots/ZCPF";
 import ZTeam from "~/components/molecules/Datatable/Slots/ZTeam";
-import { toRaw } from "vue";
+//import { toRaw } from "vue"; // NOTE - Para debug
 
 export default defineComponent({
   components: {
@@ -171,9 +171,6 @@ export default defineComponent({
       const query = gql`
         ${PLAYERS}
       `;
-
-      // TODO - Debug
-      console.log(toRaw(this.variablesGetPlayers));
 
       const {
         result: { value },
