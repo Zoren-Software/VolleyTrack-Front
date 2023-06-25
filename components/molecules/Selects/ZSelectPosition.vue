@@ -87,8 +87,8 @@ export default {
           return {
             text: item.name,
             textBy: `Text by ${item.name}`,
-            value: item.id,
-            valueBy: item.id,
+            value: Number(item.id),
+            valueBy: Number(item.id),
           };
         });
 
