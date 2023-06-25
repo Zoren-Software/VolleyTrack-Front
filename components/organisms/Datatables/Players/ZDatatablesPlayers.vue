@@ -109,7 +109,7 @@ export default defineComponent({
       variablesGetPlayers: {
         page: 1,
         filter: {
-          search: "",
+          search: "%%",
           positionsIds: [],
           teamsIds: [],
         },
@@ -154,7 +154,7 @@ export default defineComponent({
     },
 
     searchPlayers(search) {
-      this.variablesGetPlayers.filter.search = search;
+      this.variablesGetPlayers.filter.search = `%${search}%`;
     },
 
     clearSearch() {
