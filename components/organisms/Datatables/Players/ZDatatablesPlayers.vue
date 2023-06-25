@@ -23,7 +23,7 @@
           <div class="item mr-2">
             <ZSelectPosition
               label="Posições"
-              v-model="variablesGetPlayers.filter.idsPositions"
+              v-model="variablesGetPlayers.filter.positionsIds"
             />
           </div>
         </div>
@@ -31,7 +31,7 @@
           <div class="item">
             <ZSelectTeam
               label="Times"
-              v-model="variablesGetPlayers.filter.idsTeams"
+              v-model="variablesGetPlayers.filter.teamsIds"
             />
           </div>
         </div>
@@ -110,8 +110,8 @@ export default defineComponent({
         page: 1,
         filter: {
           search: "",
-          idsPositions: [],
-          idsTeams: [],
+          positionsIds: [],
+          teamsIds: [],
         },
         orderBy: "id",
         sortedBy: "desc",
@@ -160,8 +160,8 @@ export default defineComponent({
     clearSearch() {
       this.variablesGetPlayers.filter = {
         search: "",
-        idsPositions: [],
-        idsTeams: [],
+        positionsIds: [],
+        teamsIds: [],
       };
     },
 
