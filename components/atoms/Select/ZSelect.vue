@@ -1,11 +1,23 @@
 <template>
-  <div style="max-width: 300px;">
-    <va-select 
-      v-model="value" 
-      :options="options" 
-      :label="label" 
-    />
-  </div>
+  <va-select
+    style="width: 100%"
+    v-model="value"
+    v-bind="$attrs"
+    :label="label"
+    :options="options"
+    value-by="valueBy"
+    searchable
+    searchPlaceholderText="Pesquisar"
+    :max-visible-options="2"
+    selected-top-shown
+    clearable
+    clearable-icon="cancel"
+    no-options-text="Nenhuma opção encontrada"
+  >
+    <template v-for="(_, slotName) in $slots" #[slotName]="scope">
+      <slot :name="slotName" v-bind="scope"></slot>
+    </template>
+  </va-select>
 </template>
 
 <script>
@@ -13,17 +25,17 @@ export default {
   props: {
     options: {
       type: Array,
-      required: true
+      required: true,
     },
     label: {
       type: String,
-      required: true
-    }
+      required: true,
+    },
   },
-  data () {
+  data() {
     return {
-      value: '',
-    }
+      value: [],
+    };
   },
-}
+};
 </script>

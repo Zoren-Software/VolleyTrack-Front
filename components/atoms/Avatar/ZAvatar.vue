@@ -1,18 +1,6 @@
 <template>
   <va-avatar
-    :alt="alt"
-    :class="class"
-    :color="color"
-    :fallback-icon="fallbackIcon"
-    :fallback-render="fallbackRender"
-    :fallback-src="fallbackSrc"
-    :fallback-text="fallbackText"
-    :font-size="fontSize"
-    :icon="icon"
-    :loading="loading"
-    :size="size"
-    :src="src"
-    :square="square"
+    v-bind="$attrs"
   >
     <slot name="default"/>
   </va-avatar>

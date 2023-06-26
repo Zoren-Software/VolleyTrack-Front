@@ -2,12 +2,12 @@
   <va-card color="background-border">
     <ZNavBar @toggle-minimize="valueToggle" />
     <div class="row align-content-start">
-      <div :class="`flex flex-col ` + minimized ? `xs3` : ``">
+      <div :class="['flex', 'flex-col', minimized ? 'xs1 sm1 md1 lg1 xl1' : 'xs2']">
         <div class="item">
           <ZSidebar :toggle="minimized" />
         </div>
       </div>
-      <div :class="`flex flex-col ` + minimized ? `xs9` : `xs12`">
+      <div :class="['flex', 'flex-col', minimized ? 'xs11 sm11 md11 lg11 xl11' : 'xs10']">
         <div class="item">
           <NuxtPage />
         </div>
@@ -15,7 +15,6 @@
     </div>
   </va-card>
 </template>
-
 <script>
 
 import ZSidebar from '~/components/molecules/Sidebar/ZSidebar'
