@@ -37,6 +37,10 @@ export default {
       type: String,
       required: true,
     },
+    teamsIds: {
+      type: Array,
+      required: true,
+    },
   },
   data() {
     return {
@@ -48,14 +52,22 @@ export default {
         perPage: 10,
         filter: {
           search: "%%",
+          teamsIds: this.teamsIds,
         },
       },
     };
+  },
+  watch: {
+    teamsIds(newVal) {
+      this.variablesGetPositions.filter.teamsIds = newVal;
+      this.getPositions();
+    },
   },
 
   methods: {
     getPositions() {
       this.loading = true;
+      this.items = [];
       setTimeout(() => {
         const query = gql`
           ${POSITIONS}

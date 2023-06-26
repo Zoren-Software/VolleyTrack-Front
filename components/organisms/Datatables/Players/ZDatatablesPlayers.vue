@@ -24,6 +24,7 @@
             <ZSelectPosition
               label="Posições"
               v-model="variablesGetPlayers.filter.positionsIds"
+              :teamsIds="variablesGetPlayers.filter.teamsIds"
             />
           </div>
         </div>
@@ -32,6 +33,7 @@
             <ZSelectTeam
               label="Times"
               v-model="variablesGetPlayers.filter.teamsIds"
+              :positionsIds="variablesGetPlayers.filter.positionsIds"
             />
           </div>
         </div>
@@ -167,6 +169,7 @@ export default defineComponent({
 
     getPlayers() {
       this.loading = true;
+      this.items = [];
 
       const query = gql`
         ${PLAYERS}

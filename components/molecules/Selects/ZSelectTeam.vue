@@ -25,6 +25,10 @@ export default {
       type: String,
       required: true,
     },
+    positionsIds: {
+      type: Array,
+      required: true,
+    },
   },
   data() {
     return {
@@ -36,14 +40,23 @@ export default {
         perPage: 10,
         filter: {
           search: "%%",
+          positionsIds: this.positionsIds,
         },
       },
     };
   },
 
+  watch: {
+    positionsIds(newVal) {
+      this.variablesGetTeams.filter.positionsIds = newVal;
+      this.getTeams();
+    },
+  },
+
   methods: {
     getTeams() {
       this.loading = true;
+      this.items = [];
       console.log("getTeams");
 
       setTimeout(() => {
