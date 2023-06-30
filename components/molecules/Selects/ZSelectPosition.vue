@@ -67,7 +67,6 @@ export default {
   methods: {
     getPositions() {
       this.loading = true;
-      this.items = [];
       setTimeout(() => {
         const query = gql`
           ${POSITIONS}

@@ -56,8 +56,6 @@ export default {
   methods: {
     getTeams() {
       this.loading = true;
-      this.items = [];
-      console.log("getTeams");
 
       setTimeout(() => {
         const query = gql`
