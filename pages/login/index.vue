@@ -3,10 +3,9 @@
 </template>
 
 <script setup>
+import ZLoginForm from "~/components/organisms/Forms/Login/ZLoginForm";
 
-import ZLoginForm from '~/components/organisms/Forms/ZLoginForm'
- 
 definePageMeta({
   layout: "login",
-})
+});
 </script>
