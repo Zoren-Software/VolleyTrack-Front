@@ -136,6 +136,8 @@ export default defineComponent({
     addPlayer() {
       // TODO - Implemente a lógica de adicionar jogador.
       console.log("action add");
+      // redirecionar para a página de cadastro de jogador
+      this.$router.push("/players/create");
     },
     editPlayer(id) {
       // TODO - Implemente a lógica de adicionar jogador.
