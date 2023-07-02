@@ -1,42 +1,51 @@
 <template>
-  <va-stepper v-model="step" :steps="steps" vertical>
-    <template #step-content-0>
-      <ul>
-        <li>Select a category</li>
-        <li>Browse products</li>
-        <li>Add to cart</li>
-      </ul>
-    </template>
-    <template #step-content-1>
-      <ul>
-        <li>Fill out shipping information</li>
-        <li>Choose payment method</li>
-      </ul>
-    </template>
-    <template #step-content-2>
-      <ul>
-        <li>View order summary</li>
-        <li>Edit shipping information</li>
-      </ul>
-    </template>
-    <template #step-content-3>
-      <ul>
-        <li>Review order details</li>
-        <li>Complete payment</li>
-      </ul>
-    </template>
-  </va-stepper>
+  <va-card class="my-3 mr-3">
+    <va-form ref="myForm" stateful class="mb-2 flex flex-col gap-2">
+      <va-stepper v-model="step" :steps="steps" aria-label="lala">
+        <template #step-content-0>
+          <ZTextInput name="name" label="Nome" id="name" />
+          <ZPasswordInput name="password" label="Password" id="password" />
+        </template>
+        <template #step-content-1>
+          <ul>
+            <li>Fill out shipping information</li>
+            <li>Choose payment method</li>
+          </ul>
+        </template>
+        <template #step-content-2>
+          <ul>
+            <li>Fill out shipping information</li>
+            <li>Choose payment method</li>
+          </ul>
+        </template>
+      </va-stepper>
+    </va-form>
+  </va-card>
 </template>
 
-<script setup lang="ts">
-import { ref } from "vue";
+<script>
+import { useForm } from "vuestic-ui";
+import ZPasswordInput from "~/components/molecules/Inputs/ZPasswordInput";
+import ZTextInput from "~/components/molecules/Inputs/ZTextInput";
 
-const step = ref(0);
+const { formData } = useForm("myForm");
 
-const steps = [
-  { label: "Informações Essenciais" },
-  { label: "Informações Pessoais" },
-  { label: "Review order" },
-  { label: "Confirm and pay" },
-];
+export default {
+  components: {
+    ZPasswordInput,
+    ZTextInput,
+  },
+  data() {
+    return {
+      formData,
+      step: 0,
+      steps: [
+        { label: "Informações Essenciais" },
+        { label: "Informações Pessoais" },
+        { label: "Permissão" },
+        { label: "Posição" },
+      ],
+    };
+  },
+};
 </script>
