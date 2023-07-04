@@ -27,8 +27,8 @@
         </template>
         <!-- Outros steps ... -->
         <template #step-content-1>
-          <ZCPFInput v-model="form.cpf" label="CPF" id="cpf" class="mb-3" />
-          <ZRGInput v-model="form.rg" label="RG" id="rg" class="mb-3" />
+          <ZCPFInput v-model="form.cpf" />
+          <ZRGInput v-model="form.rg" />
         </template>
         <!-- Outros steps ... -->
       </va-stepper>
