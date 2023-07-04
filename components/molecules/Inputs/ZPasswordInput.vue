@@ -1,21 +1,44 @@
 <template>
-  <ZInput
-    v-model="internalValue"
-    :id="id"
-    :type="isPasswordVisible ? 'text' : 'password'"
-    :label="label"
-    :rules="rules"
-    class="mr-6 mb-6"
-  >
-    <template #appendInner>
-      <va-icon
-        :name="isPasswordVisible ? 'visibility_off' : 'visibility'"
-        size="small"
-        color="primary"
-        @click="isPasswordVisible = !isPasswordVisible"
-      />
-    </template>
-  </ZInput>
+  <div>
+    <ZInput
+      v-model="password"
+      v-bind="$attrs"
+      :id="id + '-password'"
+      :type="isPasswordVisible ? 'text' : 'password'"
+      :label="passwordLabel"
+      :rules="passwordRules"
+      :success="password === confirmPassword && password !== ''"
+      @input="validatePassword"
+    >
+      <template #appendInner>
+        <va-icon
+          :name="isPasswordVisible ? 'visibility_off' : 'visibility'"
+          size="small"
+          color="primary"
+          @click="isPasswordVisible = !isPasswordVisible"
+        />
+      </template>
+    </ZInput>
+    <ZInput
+      v-if="confirmPasswordInput"
+      v-model="confirmPassword"
+      :id="id + '-confirm-password'"
+      :type="isPasswordVisible ? 'text' : 'password'"
+      :label="confirmPasswordLabel"
+      :rules="confirmPasswordRules"
+      :success="password === confirmPassword && password !== ''"
+      @input="validatePassword"
+    >
+      <template #appendInner>
+        <va-icon
+          :name="isPasswordVisible ? 'visibility_off' : 'visibility'"
+          size="small"
+          color="primary"
+          @click="isPasswordVisible = !isPasswordVisible"
+        />
+      </template>
+    </ZInput>
+  </div>
 </template>
 
 <script>
@@ -26,13 +49,21 @@ export default {
     ZInput,
   },
   props: {
-    modelValue: {
+    id: {
       type: String,
-      default: "",
+      required: true,
     },
-    label: {
+    passwordLabel: {
       type: String,
-      default: "",
+      default: "Senha",
+    },
+    confirmPasswordLabel: {
+      type: String,
+      default: "Confirmar Senha",
+    },
+    confirmPasswordInput: {
+      type: Boolean,
+      default: false,
     },
     rules: {
       type: Array,
@@ -40,23 +71,39 @@ export default {
         (value) => (value && value.length > 0) || "Este campo é obrigatório",
       ],
     },
-    id: {
-      type: String,
-      required: true,
-    },
   },
   data: () => ({
     isPasswordVisible: false,
+    password: "",
+    confirmPassword: "",
   }),
-
   computed: {
-    internalValue: {
-      get() {
-        return this.modelValue;
-      },
-      set(value) {
-        this.$emit("update:modelValue", value);
-      },
+    passwordRules() {
+      return [
+        ...this.rules,
+        (value) =>
+          this.confirmPassword === "" ||
+          value === this.confirmPassword ||
+          "As senhas não coincidem",
+      ];
+    },
+    confirmPasswordRules() {
+      return [
+        ...this.rules,
+        (value) =>
+          this.password === "" ||
+          value === this.password ||
+          "As senhas não coincidem",
+      ];
+    },
+  },
+  methods: {
+    validatePassword() {
+      if (this.password !== this.confirmPassword) {
+        console.error("As senhas não coincidem");
+      } else {
+        this.$emit("update:modelValue", this.password);
+      }
     },
   },
 };

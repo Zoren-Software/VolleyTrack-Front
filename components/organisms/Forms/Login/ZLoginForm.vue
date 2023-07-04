@@ -3,32 +3,19 @@
     <div class="row justify-center px-3 pb-4">
       <div class="flex flex-col">
         <div class="item">
-          <ZEmailInput
-            v-model="email"
-            label="E-mail"
-            id="email"
-          />
+          <ZEmailInput v-model="email" label="E-mail" id="email" />
         </div>
       </div>
     </div>
     <div class="row justify-center px-3 pb-4">
       <div class="flex flex-col">
         <div class="item">
-          <ZPasswordInput
-            v-model="password"
-            label="Password"
-            id="password"
-          />
+          <ZPasswordInput v-model="password" label="Password" id="password" />
         </div>
       </div>
     </div>
     <div class="row justify-center px-3 pb-3">
-      <ZButton
-        :block="true"
-        :loading="loading"
-        color="primary"
-        @click="login"
-      >
+      <ZButton :block="true" :loading="loading" color="primary" @click="login">
         Login
       </ZButton>
     </div>
@@ -36,61 +23,61 @@
 </template>
 
 <script>
-
-import LOGIN from '~/graphql/user/mutation/login.graphql'
-import ZInput from '~/components/atoms/Inputs/ZInput'
-import ZPasswordInput from '~/components/molecules/Inputs/ZPasswordInput'
-import ZEmailInput from '~/components/molecules/Inputs/ZEmailInput'
-import ZButton from '~/components/atoms/Buttons/ZButton'
-
-
+import LOGIN from "~/graphql/user/mutation/login.graphql";
+import ZInput from "~/components/atoms/Inputs/ZInput";
+import ZPasswordInput from "~/components/molecules/Inputs/ZPasswordInput";
+import ZEmailInput from "~/components/molecules/Inputs/ZEmailInput";
+import ZButton from "~/components/atoms/Buttons/ZButton";
 
 export default {
   components: {
     ZInput,
     ZPasswordInput,
     ZButton,
-    ZEmailInput
+    ZEmailInput,
   },
 
-  data () {
+  data() {
     return {
       loading: false,
-      email: 'admin@voleiclub.com',
-      password: 'password',
-    }
+      email: "admin@voleiclub.com",
+      password: "password",
+    };
   },
 
   methods: {
     async login() {
       try {
-        this.loading = true
-        const { onLogin } = useApollo()
+        this.loading = true;
+        const { onLogin } = useApollo();
 
         const query = gql`
           ${LOGIN}
-        `
+        `;
         const variables = {
           email: this.email,
-          password: this.password
-        }
+          password: this.password,
+        };
 
-        const {mutate} = await useMutation(query, {variables})
+        const { mutate } = await useMutation(query, { variables });
 
-        const { data:{login:{token}} } = await mutate()
+        const {
+          data: {
+            login: { token },
+          },
+        } = await mutate();
 
         if (token) {
-          localStorage.setItem('userToken', token); 
-          onLogin(token)
-          this.$router.push('/')
+          localStorage.setItem("userToken", token);
+          onLogin(token);
+          this.$router.push("/");
         }
-        this.loading = false
-        
+        this.loading = false;
       } catch (error) {
-        this.loading = false
-        console.error(error)
+        this.loading = false;
+        console.error(error);
       }
-    }
-  }
-}
+    },
+  },
+};
 </script>
