@@ -19,6 +19,9 @@ dependencies:
   vue-sweetalert2:
     specifier: ^5.0.5
     version: 5.0.5(vue@3.3.4)
+  vue-the-mask:
+    specifier: ^0.11.1
+    version: 0.11.1
   vuestic-ui:
     specifier: ^1.7.0
     version: 1.7.0(vue@3.3.4)
@@ -5232,6 +5235,10 @@ packages:
     dependencies:
       sweetalert2: 11.7.12
       vue: 3.3.4
+    dev: false
+
+  /vue-the-mask@0.11.1:
+    resolution: {integrity: sha512-UquSfnSWejD0zAfcD+3jJ1chUAkOAyoxya9Lxh9acCRtrlmGcAIvd0cQYraWqKenbuZJUdum+S174atv2AuEHQ==}
     dev: false
 
   /vue@3.3.4:
