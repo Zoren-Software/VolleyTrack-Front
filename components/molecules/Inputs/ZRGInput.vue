@@ -1,5 +1,5 @@
 <template>
-  <ZInput v-model="displayedValue" name="rg" label="RG" id="rg" class="mb-3" />
+  <ZInput v-model="displayedValue" v-bind="$attrs" />
 </template>
 
 <script>
