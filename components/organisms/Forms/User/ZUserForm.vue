@@ -1,7 +1,7 @@
 <template>
   <va-card class="my-3 mr-3">
     <va-form ref="myForm" class="flex flex-col gap-6 mb-2">
-      <va-stepper v-model="step" :steps="steps" aria-label="lala">
+      <va-stepper v-model="step" :steps="steps">
         <template #step-content-0>
           <ZTextInput
             v-model="form.name"
@@ -30,6 +30,23 @@
           <ZCPFInput v-model="form.cpf" />
           <ZRGInput v-model="form.rg" />
         </template>
+        <template #step-content-2>
+          <ZSelectPermission
+            class="mb-3"
+            label="Permissões"
+            v-model="form.permission"
+          />
+        </template>
+        <template #step-content-3>
+          <ZSelectPosition
+            class="mb-3"
+            label="Posições"
+            v-model="form.positions"
+          />
+        </template>
+        <template #step-content-4>
+          <ZSelectTeam class="mb-3" label="Times" v-model="form.teams" />
+        </template>
         <!-- Outros steps ... -->
       </va-stepper>
     </va-form>
@@ -47,6 +64,9 @@ import ZInput from "~/components/atoms/Inputs/ZInput";
 import ZEmailInput from "~/components/molecules/Inputs/ZEmailInput";
 import ZCPFInput from "~/components/molecules/Inputs/ZCPFInput";
 import ZRGInput from "~/components/molecules/Inputs/ZRGInput";
+import ZSelectPermission from "~/components/molecules/Selects/ZSelectPermission";
+import ZSelectPosition from "~/components/molecules/Selects/ZSelectPosition";
+import ZSelectTeam from "~/components/molecules/Selects/ZSelectTeam";
 
 import { mask } from "vue-the-mask";
 
@@ -60,6 +80,9 @@ export default {
     ZInput,
     ZCPFInput,
     ZRGInput,
+    ZSelectPermission,
+    ZSelectPosition,
+    ZSelectTeam,
   },
   data() {
     return {
@@ -70,12 +93,16 @@ export default {
         { label: "Informações Pessoais" },
         { label: "Permissão" },
         { label: "Posição" },
+        { label: "Times" },
       ],
       form: {
         name: "",
         email: "",
         password: "",
         cpf: "",
+        permission: [],
+        positions: [],
+        teams: [],
         // Inicialize os dados de outros steps aqui...
       },
     };

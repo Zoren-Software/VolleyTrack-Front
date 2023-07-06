@@ -27,7 +27,7 @@ export default {
     },
     positionsIds: {
       type: Array,
-      required: true,
+      required: false,
     },
   },
   data() {
