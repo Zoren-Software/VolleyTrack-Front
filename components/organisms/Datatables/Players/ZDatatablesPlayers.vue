@@ -27,6 +27,7 @@
               :teamsIds="variablesGetPlayers.filter.teamsIds"
             />
           </div>
+          {{ this.variablesGetPlayers.filter }}
         </div>
         <div class="flex flex-col md6">
           <div class="item">
@@ -177,11 +178,28 @@ export default defineComponent({
         ${PLAYERS}
       `;
 
+      let positionsIdsValues = this.variablesGetPlayers.filter.positionsIds.map(
+        (position) => position.value
+      );
+
+      let teamsIdsValues = this.variablesGetPlayers.filter.teamsIds.map(
+        (team) => team.value
+      );
+
+      const consult = {
+        ...this.variablesGetPlayers,
+        filter: {
+          ...this.variablesGetPlayers.filter,
+          positionsIds: positionsIdsValues,
+          teamsIds: teamsIdsValues,
+        },
+      };
+
       const {
         result: { value },
-      } = useQuery(query, this.variablesGetPlayers);
+      } = useQuery(query, consult);
 
-      const { onResult } = useQuery(query, this.variablesGetPlayers);
+      const { onResult } = useQuery(query, consult);
 
       onResult((result) => {
         if (result?.data?.users?.data.length > 0) {

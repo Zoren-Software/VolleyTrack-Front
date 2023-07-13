@@ -5,7 +5,6 @@
     v-bind="$attrs"
     :label="label"
     :options="options"
-    value-by="valueBy"
     searchable
     searchPlaceholderText="Pesquisar"
     :max-visible-options="2"

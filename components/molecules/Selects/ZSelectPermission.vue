@@ -37,10 +37,6 @@ export default {
       type: String,
       required: true,
     },
-    teamsIds: {
-      type: Array,
-      required: false,
-    },
   },
   data() {
     return {
@@ -56,12 +52,6 @@ export default {
         },
       },
     };
-  },
-  watch: {
-    teamsIds(newVal) {
-      this.variablesGetPositions.filter.teamsIds = newVal;
-      this.getPositions();
-    },
   },
 
   methods: {

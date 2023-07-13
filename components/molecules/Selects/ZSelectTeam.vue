@@ -32,7 +32,7 @@ export default {
   },
   data() {
     return {
-      value: "",
+      value: [],
       loading: false,
       items: [],
       variablesGetTeams: {
@@ -48,7 +48,9 @@ export default {
 
   watch: {
     positionsIds(newVal) {
-      this.variablesGetTeams.filter.positionsIds = newVal;
+      this.variablesGetTeams.filter.positionsIds = newVal.map((item) =>
+        Number(item.value)
+      );
       this.getTeams();
     },
   },
