@@ -6,7 +6,7 @@
     :options="items"
     :loading="loading"
     multiple
-    @click="getPositions"
+    @click="getPositions(true)"
     @scrollBottom="loadMore"
     @updateSearch="newSearch"
   >
@@ -67,7 +67,10 @@ export default {
   },
 
   methods: {
-    getPositions() {
+    getPositions(click = false) {
+      if (click) {
+        this.items = [];
+      }
       this.loading = true;
       setTimeout(() => {
         const query = gql`
@@ -99,9 +102,7 @@ export default {
         const newItems = result.positions.data.map((item) => {
           return {
             text: item.name,
-            textBy: `Text by ${item.name}`,
             value: Number(item.id),
-            valueBy: Number(item.id),
           };
         });
 

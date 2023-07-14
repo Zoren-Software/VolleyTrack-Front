@@ -6,7 +6,7 @@
     :options="items"
     :loading="loading"
     multiple
-    @click="getTeams"
+    @click="getTeams(true)"
     @scrollBottom="loadMore"
     @updateSearch="newSearch"
   />
@@ -56,7 +56,10 @@ export default {
   },
 
   methods: {
-    getTeams() {
+    getTeams(click = false) {
+      if (click) {
+        this.items = [];
+      }
       this.loading = true;
 
       setTimeout(() => {
@@ -89,9 +92,7 @@ export default {
         const newItems = result.teams.data.map((item) => {
           return {
             text: item.name,
-            textBy: `Text by ${item.name}`,
             value: Number(item.id),
-            valueBy: Number(item.id),
           };
         });
 

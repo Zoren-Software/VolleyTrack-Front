@@ -164,7 +164,7 @@ export default defineComponent({
 
     clearSearch() {
       this.variablesGetPlayers.filter = {
-        search: "",
+        search: "%%",
         positionsIds: [],
         teamsIds: [],
       };

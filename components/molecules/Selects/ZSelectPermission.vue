@@ -87,9 +87,7 @@ export default {
         const newItems = result.positions.data.map((item) => {
           return {
             text: item.name,
-            textBy: `Text by ${item.name}`,
             value: Number(item.id),
-            valueBy: Number(item.id),
           };
         });
 

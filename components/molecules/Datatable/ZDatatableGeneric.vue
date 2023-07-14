@@ -171,7 +171,7 @@ export default defineComponent({
       this.$emit("edit", id);
     },
 
-    actionSearch(a) {
+    actionSearch() {
       this.$emit("actionSearch", this.search);
     },
 
