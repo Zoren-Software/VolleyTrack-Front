@@ -27,7 +27,6 @@
               :teamsIds="variablesGetPlayers.filter.teamsIds"
             />
           </div>
-          {{ this.variablesGetPlayers.filter }}
         </div>
         <div class="flex flex-col md6">
           <div class="item">
