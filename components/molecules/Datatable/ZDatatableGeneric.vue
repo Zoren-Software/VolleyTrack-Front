@@ -3,6 +3,8 @@
     <div class="flex flex-col xs2">
       <div class="item">
         <ZDataTableActionButtons
+          :buttonActionAdd="buttonActionAdd"
+          :buttonActionDelete="buttonActionDelete"
           @add="actionAdd"
           @delete="actionDeletes"
           :selectedItemsEmitted="selectedItemsEmitted"
@@ -50,7 +52,13 @@
     @selectionChange="selectedItemsEmitted = $event.currentSelectedItems"
   >
     <template #cell(actions)="{ rowKey: { id } }">
-      <ZDataTableActions :id="id" @edit="actionEdit" @delete="actionDelete" />
+      <ZDataTableActions
+        :id="id"
+        :includeActionEditList="includeActionEditList"
+        :includeActionDeleteList="includeActionDeleteList"
+        @edit="actionEdit"
+        @delete="actionDelete"
+      />
     </template>
     <template #bodyAppend>
       <tr>
@@ -120,6 +128,22 @@ export default defineComponent({
       default: () => [],
     },
     includeActionsColumn: {
+      type: Boolean,
+      default: false,
+    },
+    includeActionEditList: {
+      type: Boolean,
+      default: false,
+    },
+    includeActionDeleteList: {
+      type: Boolean,
+      default: false,
+    },
+    buttonActionAdd: {
+      type: Boolean,
+      default: false,
+    },
+    buttonActionDelete: {
       type: Boolean,
       default: false,
     },

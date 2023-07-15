@@ -1,68 +1,83 @@
 <template>
-  <ZButton color="primary" class="mr-3" @click="add">Adicionar</ZButton>
-  <ZButton color="danger" :disabled="!(selectedItemsEmitted.length > 1)" @click="actionDelete">Deletar</ZButton>
+  <ZButton v-if="buttonActionAdd" color="primary" class="mr-3" @click="add"
+    >Adicionar</ZButton
+  >
+  <ZButton
+    v-if="buttonActionDelete"
+    color="danger"
+    :disabled="!(selectedItemsEmitted.length > 1)"
+    @click="actionDelete"
+    >Deletar</ZButton
+  >
 </template>
 
 <script>
-
-import ZButton from '~/components/atoms/Buttons/ZButton'
-import Swal from 'sweetalert2'
+import ZButton from "~/components/atoms/Buttons/ZButton";
+import Swal from "sweetalert2";
 
 export default {
   components: {
-    ZButton
+    ZButton,
   },
-  emits: ['add', 'delete'],
+  emits: ["add", "delete"],
   props: {
+    buttonActionAdd: {
+      type: Boolean,
+      default: false,
+    },
+    buttonActionDelete: {
+      type: Boolean,
+      default: false,
+    },
     selectedItemsEmitted: {
       type: Array,
-      default: () => []
-    }
+      default: () => [],
+    },
   },
   methods: {
     add() {
-      this.$emit('add')
+      this.$emit("add");
     },
     actionDelete() {
-      const itemsDelete = this.selectedItemsEmitted.map((item) =>
-         item.id
-      )
-      const totalItems = this.selectedItemsEmitted.length
+      const itemsDelete = this.selectedItemsEmitted.map((item) => item.id);
+      const totalItems = this.selectedItemsEmitted.length;
 
       Swal.fire({
-        title: 'Deseja deletar estes registros?',
+        title: "Deseja deletar estes registros?",
         text: "Você não será capaz de reverter isso!",
-        icon: 'warning',
+        icon: "warning",
         html:
-          'Você tem <b>' + totalItems + '</b> registros selecionados para deletar.<br>',
+          "Você tem <b>" +
+          totalItems +
+          "</b> registros selecionados para deletar.<br>",
         showCancelButton: true,
-        confirmButtonText: 'Sim, deletar!',
-        confirmButtonColor: '#154EC1',
-        cancelButtonColor: '#E42222',
-        cancelButtonText: 'Não, cancelar!',
+        confirmButtonText: "Sim, deletar!",
+        confirmButtonColor: "#154EC1",
+        cancelButtonColor: "#E42222",
+        cancelButtonText: "Não, cancelar!",
       }).then((result) => {
         if (result.isConfirmed) {
           Swal.fire({
-            title: 'Deletando!',
-            text: 'Seus registros estão sendo deletados!',
+            title: "Deletando!",
+            text: "Seus registros estão sendo deletados!",
             timer: 1000,
-            icon: 'info',
+            icon: "info",
             showConfirmButton: false,
-          })
-          this.$emit('delete', itemsDelete);
+          });
+          this.$emit("delete", itemsDelete);
         } else if (
           /* Read more about handling dismissals below */
           result.dismiss === Swal.DismissReason.cancel
         ) {
           Swal.fire({
-            title: 'Cancelado',
-            text: 'Seus registros ainda continuam existindo :)',
-            icon: 'error',
-            confirmButtonColor: '#154EC1',
-          })
+            title: "Cancelado",
+            text: "Seus registros ainda continuam existindo :)",
+            icon: "error",
+            confirmButtonColor: "#154EC1",
+          });
         }
-      })
-    }
-  }
-}
+      });
+    },
+  },
+};
 </script>

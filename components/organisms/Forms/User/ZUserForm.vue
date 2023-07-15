@@ -38,11 +38,15 @@
           />
         </template>
         <template #step-content-3>
-          <ZSelectPosition
-            class="mb-3"
-            label="Posições"
-            v-model="form.positions"
-          />
+          <ZListRelationPosition>
+            <template #filter>
+              <ZSelectPosition
+                class="mb-3"
+                label="Posições"
+                v-model="form.positions"
+              />
+            </template>
+          </ZListRelationPosition>
         </template>
         <template #step-content-4>
           <ZSelectTeam class="mb-3" label="Times" v-model="form.teams" />
@@ -67,6 +71,7 @@ import ZRGInput from "~/components/molecules/Inputs/ZRGInput";
 import ZSelectPermission from "~/components/molecules/Selects/ZSelectPermission";
 import ZSelectPosition from "~/components/molecules/Selects/ZSelectPosition";
 import ZSelectTeam from "~/components/molecules/Selects/ZSelectTeam";
+import ZListRelationPosition from "~/components/organisms/List/Relations/ZListRelationPositions";
 
 import { mask } from "vue-the-mask";
 
@@ -83,6 +88,7 @@ export default {
     ZSelectPermission,
     ZSelectPosition,
     ZSelectTeam,
+    ZListRelationPosition,
   },
   data() {
     return {

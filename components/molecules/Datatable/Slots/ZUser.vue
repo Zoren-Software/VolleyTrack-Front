@@ -10,7 +10,9 @@
       <div class="item">
         <div class="pl-2">
           <div class="flex gap-1 mb-1">
-            <span><b>{{ data.name }}</b></span>
+            <span
+              ><b>{{ data.name }}</b></span
+            >
           </div>
           <div v-if="data.information?.phone" class="flex items-center">
             <va-icon size="small" name="phone" color="secondary" class="mr-2" />
@@ -31,13 +33,13 @@ export default {
   props: {
     data: {
       type: Object,
-      required: true
+      required: true,
     },
   },
   computed: {
-      firstLatter() {
-        return this.data.name.charAt(0).toUpperCase()
-      }
+    firstLatter() {
+      return this.data.name.charAt(0).toUpperCase();
     },
-}
+  },
+};
 </script>
