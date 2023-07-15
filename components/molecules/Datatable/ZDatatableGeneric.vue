@@ -23,7 +23,7 @@
         </div>
       </div>
       <div class="flex flex-col md12 py-1">
-        <div class="item my-2">
+        <div v-if="textAdvancedFilters" class="item my-2">
           <span class="mr my-2 va-text-bold">Filtros avançados:</span>
         </div>
         <div class="item mb-2">
@@ -119,6 +119,10 @@ export default defineComponent({
     "update:currentPageActive",
   ],
   props: {
+    textAdvancedFilters: {
+      type: Boolean,
+      default: false,
+    },
     items: {
       type: Array,
       default: () => [],

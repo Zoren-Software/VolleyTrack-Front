@@ -1,11 +1,12 @@
 <template>
   <ZDatatableGeneric
-    selectable
+    buttonActionAdd
+    buttonActionDelete
     includeActionsColumn
     includeActionEditList
     includeActionDeleteList
-    buttonActionAdd
-    buttonActionDelete
+    textAdvancedFilters
+    selectable
     :items="items"
     :columns="columns"
     :loading="loading"
