@@ -5,9 +5,6 @@
       :items="items"
       :columns="extendedColumns"
       :loading="this.loading"
-      virtual-scroller
-      sticky-header
-      :wrapper-size="730"
       v-bind="$attrs"
     >
       <template v-for="(_, slotName) in $slots" #[slotName]="scope">

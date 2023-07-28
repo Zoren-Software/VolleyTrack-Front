@@ -57,10 +57,10 @@
         :includeActionEditList="includeActionEditList"
         :includeActionDeleteList="includeActionDeleteList"
         @edit="actionEdit"
-        @delete="actionDelete"
+        @delete="actionDelete(id)"
       />
     </template>
-    <template #bodyAppend>
+    <template #bodyAppend v-if="paginatorInfo.firstItem > 0">
       <tr>
         <td colspan="12">
           <div class="flex justify-center mt-4 ml-4">

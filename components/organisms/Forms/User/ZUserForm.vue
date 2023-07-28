@@ -38,12 +38,16 @@
           />
         </template>
         <template #step-content-3>
-          <ZListRelationPosition>
+          <ZListRelationPosition
+            :items="form.positions"
+            @add="addPositions"
+            @delete="actionDeletePosition"
+          >
             <template #filter>
               <ZSelectPosition
                 class="mb-3"
                 label="Posições"
-                v-model="form.positions"
+                v-model="positions"
               />
             </template>
           </ZListRelationPosition>
@@ -55,7 +59,7 @@
       </va-stepper>
     </va-form>
     <pre
-      >{{ form }}
+      >{{ form }} {{ positions }}
     </pre>
   </va-card>
 </template>
@@ -72,8 +76,6 @@ import ZSelectPermission from "~/components/molecules/Selects/ZSelectPermission"
 import ZSelectPosition from "~/components/molecules/Selects/ZSelectPosition";
 import ZSelectTeam from "~/components/molecules/Selects/ZSelectTeam";
 import ZListRelationPosition from "~/components/organisms/List/Relations/ZListRelationPositions";
-
-import { mask } from "vue-the-mask";
 
 const { formData } = useForm("myForm");
 
@@ -111,14 +113,31 @@ export default {
         teams: [],
         // Inicialize os dados de outros steps aqui...
       },
+      positions: [],
     };
   },
-  directives: {
-    mask,
-  },
+
   watch: {
     step(val) {
       console.log(val);
+    },
+  },
+
+  methods: {
+    addPositions() {
+      console.log("addPositions");
+      const transformedPositions = this.positions.map((item) => {
+        return {
+          id: item.value,
+          position: item.text,
+        };
+      });
+      this.form.positions.push(...transformedPositions);
+    },
+    actionDeletePosition(id) {
+      this.form.positions = this.form.positions.filter((position) => {
+        return position.id !== id;
+      });
     },
   },
 };

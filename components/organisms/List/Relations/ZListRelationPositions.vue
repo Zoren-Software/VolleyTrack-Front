@@ -1,5 +1,5 @@
 <template>
-  <ZRelationGeneric>
+  <ZListRelationGeneric @add="add">
     <template #filter>
       <slot name="filter" />
     </template>
@@ -14,6 +14,7 @@
           :columns="columns"
           :loading="loading"
           :paginatorInfo="paginatorInfo"
+          @delete="actionDelete"
         >
           <!-- FILTER -->
 
@@ -25,20 +26,21 @@
         </ZDatatableGeneric>
       </va-list>
     </template>
-  </ZRelationGeneric>
+  </ZListRelationGeneric>
 </template>
 
 <script>
-import ZRelationGeneric from "~/components/molecules/List/ZListRelationGeneric";
+import ZListRelationGeneric from "~/components/molecules/List/ZListRelationGeneric";
 import ZDatatableGeneric from "~/components/molecules/Datatable/ZDatatableGeneric";
 import ZPosition from "~/components/molecules/Datatable/Slots/ZPosition";
 
 export default {
   components: {
-    ZRelationGeneric,
+    ZListRelationGeneric,
     ZDatatableGeneric,
     ZPosition,
   },
+  emits: ["add", "delete"],
   props: {
     items: {
       type: Array,
@@ -50,6 +52,7 @@ export default {
       loading: false,
       paginatorInfo: {
         currentPage: 1,
+        firstItem: 0,
         lastPage: 1,
         total: 0,
       },
@@ -57,18 +60,25 @@ export default {
         {
           key: "id",
           name: "id",
-          label: "id",
+          label: "Id",
           sortable: true,
         },
         {
-          key: "name",
-          name: "positions",
+          key: "position",
+          name: "position",
           label: "Posições",
           sortable: true,
         },
       ],
     };
   },
-  methods: {},
+  methods: {
+    add() {
+      this.$emit("add");
+    },
+    actionDelete(item) {
+      this.$emit("delete", item);
+    },
+  },
 };
 </script>

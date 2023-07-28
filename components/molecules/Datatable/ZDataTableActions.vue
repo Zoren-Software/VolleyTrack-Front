@@ -21,7 +21,7 @@ import Swal from "sweetalert2";
 export default {
   props: {
     id: {
-      type: String,
+      type: Number,
       required: true,
     },
     includeActionEditList: {
