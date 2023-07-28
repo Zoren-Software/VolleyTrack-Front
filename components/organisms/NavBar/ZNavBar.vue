@@ -1,22 +1,24 @@
 <template>
-  <va-navbar color="background-primary">
-    <template #left>
-      <ZNavBarItemLogo
-        :minimized="minimized"
-        @toggleMinimize="toggleMinimize"
-      />
-      <ZNavBarItemTitle :title="activeTitle" />
-    </template>
-    <template #center>
-      <ZNavBarItemBrand />
-    </template>
-    <template #right>
-      <ZNavBarItemReport />
-      <ZNavBarItemNotification />
-      <ZNavBarItemUser :user="user" :firstLatter="firstLatter" />
-      <ZNavBarItemSettings />
-    </template>
-  </va-navbar>
+  <div style="margin-top: 9vh">
+    <va-navbar color="background-primary" style="position: fixed; z-index: 999">
+      <template #left>
+        <ZNavBarItemLogo
+          :minimized="minimized"
+          @toggleMinimize="toggleMinimize"
+        />
+        <ZNavBarItemTitle :title="activeTitle" />
+      </template>
+      <template #center>
+        <ZNavBarItemBrand />
+      </template>
+      <template #right>
+        <ZNavBarItemReport />
+        <ZNavBarItemNotification />
+        <ZNavBarItemUser :user="user" :firstLatter="firstLatter" />
+        <ZNavBarItemSettings />
+      </template>
+    </va-navbar>
+  </div>
 </template>
 
 <script>

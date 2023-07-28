@@ -132,7 +132,16 @@ export default {
           position: item.text,
         };
       });
-      this.form.positions.push(...transformedPositions);
+
+      transformedPositions.forEach((newPosition) => {
+        const isAlreadyAdded = this.form.positions.some(
+          (existingPosition) => existingPosition.id === newPosition.id
+        );
+
+        if (!isAlreadyAdded) {
+          this.form.positions.push(newPosition);
+        }
+      });
     },
     actionDeletePosition(id) {
       this.form.positions = this.form.positions.filter((position) => {

@@ -1,5 +1,5 @@
 <template>
-  <div style="height: 53rem;">
+  <div style="height: 100%; position: fixed; width: 100%">
     <va-sidebar :hoverable="toggle" color="background-primary">
       <ZSidebarItem
         v-for="item in titles"
@@ -14,33 +14,38 @@
 </template>
 
 <script>
-import ZSidebarItem from '~/components/atoms/Sidebar/ZSidebarItem'
+import ZSidebarItem from "~/components/atoms/Sidebar/ZSidebarItem";
 
 export default {
   components: {
-    ZSidebarItem
+    ZSidebarItem,
   },
   props: {
     toggle: {
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
   },
-  data () {
+  data() {
     return {
       titles: [
-        { title: 'Home', link:'/', icon: 'dashboard', active: false },
-        { title: 'Treinos', link:'/trainings', icon: 'fitness_center', active: false },
-        { title: 'Times', link:'/teams', icon: 'group', active: false },
-        { title: 'Jogadores', link:'/players', icon: 'person', active: false },
+        { title: "Home", link: "/", icon: "dashboard", active: false },
+        {
+          title: "Treinos",
+          link: "/trainings",
+          icon: "fitness_center",
+          active: false,
+        },
+        { title: "Times", link: "/teams", icon: "group", active: false },
+        { title: "Jogadores", link: "/players", icon: "person", active: false },
       ],
-    }
+    };
   },
   computed: {
     computedTitles() {
       return this.titles.map((title) => {
         title.active = this.$route.path === title.link;
-        return title
+        return title;
       });
     },
   },
@@ -52,5 +57,5 @@ export default {
   created() {
     this.computedTitles;
   },
-}
+};
 </script>
