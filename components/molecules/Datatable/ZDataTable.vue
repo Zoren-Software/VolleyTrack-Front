@@ -5,6 +5,7 @@
       :items="items"
       :columns="extendedColumns"
       :loading="this.loading"
+      noDataHtml="Nenhum registro encontrado"
       v-bind="$attrs"
     >
       <template v-for="(_, slotName) in $slots" #[slotName]="scope">
@@ -62,5 +63,8 @@ export default {
 
 .va-data-table .va-data-table__table .va-data-table__table-thead--sticky {
   z-index: 3;
+}
+.no-data {
+  padding: 2vh;
 }
 </style>
