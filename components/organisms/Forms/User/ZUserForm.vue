@@ -60,7 +60,7 @@
       </va-stepper>
     </va-form>
     <pre
-      >{{ form }} {{ positions }}
+      >{{ form }}
     </pre>
   </va-card>
 </template>
