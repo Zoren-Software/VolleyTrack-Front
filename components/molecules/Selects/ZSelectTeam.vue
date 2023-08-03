@@ -32,6 +32,7 @@ export default {
   },
   data() {
     return {
+      hasMoreItems: true,
       value: [],
       loading: false,
       items: [],
@@ -59,6 +60,7 @@ export default {
     getTeams(click = false) {
       if (click) {
         this.items = [];
+        this.variablesGetTeams.page = 1;
       }
       this.loading = true;
 
@@ -105,6 +107,9 @@ export default {
         });
 
         this.items = uniqueItems;
+        this.hasMoreItems = result.teams.paginatorInfo.hasMorePages;
+      } else {
+        this.hasMoreItems = false;
       }
     },
     newSearch(newSearchValue) {
@@ -112,6 +117,9 @@ export default {
       this.getTeams();
     },
     loadMore() {
+      if (!this.hasMoreItems) {
+        return;
+      }
       this.variablesGetTeams.page += 1;
       this.getTeams();
     },

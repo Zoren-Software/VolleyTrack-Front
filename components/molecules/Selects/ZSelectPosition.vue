@@ -41,9 +41,14 @@ export default {
       type: Array,
       required: false,
     },
+    ignoreIds: {
+      type: Array,
+      required: false,
+    },
   },
   data() {
     return {
+      hasMoreItems: true,
       value: [],
       loading: false,
       items: [],
@@ -53,6 +58,7 @@ export default {
         filter: {
           search: "%%",
           teamsIds: this.teamsIds,
+          ignoreIds: this.ignoreIds,
         },
       },
     };
@@ -64,12 +70,19 @@ export default {
       );
       this.getPositions();
     },
+    ignoreIds(newVal) {
+      this.variablesGetPositions.filter.ignoreIds = newVal.map((item) => {
+        return Number(item);
+      });
+      this.getPositions();
+    },
   },
 
   methods: {
     getPositions(click = false) {
       if (click) {
         this.items = [];
+        this.variablesGetPositions.page = 1;
       }
       this.loading = true;
       setTimeout(() => {
@@ -115,6 +128,9 @@ export default {
         });
 
         this.items = uniqueItems;
+        this.hasMoreItems = result.positions.paginatorInfo.hasMorePages;
+      } else {
+        this.hasMoreItems = false;
       }
     },
     newSearch(newSearchValue) {
@@ -122,6 +138,9 @@ export default {
       this.getPositions();
     },
     loadMore() {
+      if (!this.hasMoreItems) {
+        return;
+      }
       this.variablesGetPositions.page += 1;
       this.getPositions();
     },

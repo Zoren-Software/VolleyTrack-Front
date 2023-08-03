@@ -24,6 +24,11 @@ export default defineNuxtPlugin(nuxtAppMain => {
   const apolloClient = new ApolloClient({
     link: authLink.concat(httpLink),
     cache: new InMemoryCache(),
+    defaultOptions: {
+      query: {
+        fetchPolicy: 'network-only',
+      },
+    },
   })
 
   const nuxtApp = useNuxtApp()

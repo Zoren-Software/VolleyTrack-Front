@@ -48,6 +48,7 @@
                 class="mb-3"
                 label="Posições"
                 v-model="positions"
+                :ignoreIds="form.positions.map((item) => item.id)"
               />
             </template>
           </ZListRelationPosition>
@@ -125,7 +126,6 @@ export default {
 
   methods: {
     addPositions() {
-      console.log("addPositions");
       const transformedPositions = this.positions.map((item) => {
         return {
           id: item.value,
@@ -142,6 +142,8 @@ export default {
           this.form.positions.push(newPosition);
         }
       });
+
+      this.positions = [];
     },
     actionDeletePosition(id) {
       this.form.positions = this.form.positions.filter((position) => {
