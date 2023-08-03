@@ -77,6 +77,7 @@ import ZSelectPermission from "~/components/molecules/Selects/ZSelectPermission"
 import ZSelectPosition from "~/components/molecules/Selects/ZSelectPosition";
 import ZSelectTeam from "~/components/molecules/Selects/ZSelectTeam";
 import ZListRelationPosition from "~/components/organisms/List/Relations/ZListRelationPositions";
+import Swal from "sweetalert2";
 
 const { formData } = useForm("myForm");
 
@@ -148,6 +149,13 @@ export default {
     actionDeletePosition(id) {
       this.form.positions = this.form.positions.filter((position) => {
         return position.id !== id;
+      });
+
+      Swal.fire({
+        icon: "success",
+        title: "Posição removida com sucesso!",
+        showConfirmButton: true,
+        confirmButtonColor: "#154EC1",
       });
     },
   },
