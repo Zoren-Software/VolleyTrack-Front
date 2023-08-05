@@ -5,6 +5,11 @@
       :items="items"
       :columns="extendedColumns"
       :loading="this.loading"
+      :style="{
+        '--va-data-table-thead-background': 'var(--va-background-element)',
+        '--va-data-table-tfoot-background': 'var(--va-background-element)',
+      }"
+      sticky-header
       noDataHtml="Nenhum registro encontrado"
       v-bind="$attrs"
     >
@@ -55,6 +60,11 @@ export default {
       return this.columns;
     },
   },
+  methods: {
+    logger(msg) {
+      console.log(msg);
+    },
+  },
 };
 </script>
 
@@ -66,5 +76,21 @@ export default {
 }
 .no-data {
   padding: 2vh;
+}
+
+::v-deep(.custom-table) {
+  --va-data-table-thead-background: linear-gradient(
+    0deg,
+    var(--va-primary),
+    var(--va-info)
+  );
+  --va-data-table-tfoot-background: linear-gradient(
+    0deg,
+    var(--va-info),
+    var(--va-primary)
+  );
+  --va-data-table-max-height: 300px;
+  --va-data-table-thead-color: var(--va-text-inverted);
+  --va-data-table-tfoot-color: var(--va-text-inverted);
 }
 </style>
