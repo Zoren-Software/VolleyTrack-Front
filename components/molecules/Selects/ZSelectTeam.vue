@@ -29,6 +29,10 @@ export default {
       type: Array,
       required: false,
     },
+    ignoreIds: {
+      type: Array,
+      required: false,
+    },
   },
   data() {
     return {
@@ -42,6 +46,7 @@ export default {
         filter: {
           search: "%%",
           positionsIds: this.positionsIds,
+          ignoreIds: this.ignoreIds,
         },
       },
     };
@@ -52,6 +57,12 @@ export default {
       this.variablesGetTeams.filter.positionsIds = newVal.map((item) =>
         Number(item.value)
       );
+      this.getTeams();
+    },
+    ignoreIds(newVal) {
+      this.variablesGetTeams.filter.ignoreIds = newVal.map((item) => {
+        return Number(item);
+      });
       this.getTeams();
     },
   },

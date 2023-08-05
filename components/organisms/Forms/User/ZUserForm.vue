@@ -38,7 +38,7 @@
           />
         </template>
         <template #step-content-3>
-          <ZListRelationPosition
+          <ZListRelationPositions
             :items="form.positions"
             @add="addPositions"
             @delete="actionDeletePosition"
@@ -51,10 +51,23 @@
                 :ignoreIds="form.positions.map((item) => item.id)"
               />
             </template>
-          </ZListRelationPosition>
+          </ZListRelationPositions>
         </template>
         <template #step-content-4>
-          <ZSelectTeam class="mb-3" label="Times" v-model="form.teams" />
+          <ZListRelationTeams
+            :items="form.teams"
+            @add="addTeams"
+            @delete="actionDeleteTeam"
+          >
+            <template #filter>
+              <ZSelectTeam
+                class="mb-3"
+                label="Times"
+                v-model="teams"
+                :ignoreIds="form.teams.map((item) => item.id)"
+              />
+            </template>
+          </ZListRelationTeams>
         </template>
         <!-- Outros steps ... -->
       </va-stepper>
@@ -76,7 +89,8 @@ import ZRGInput from "~/components/molecules/Inputs/ZRGInput";
 import ZSelectPermission from "~/components/molecules/Selects/ZSelectPermission";
 import ZSelectPosition from "~/components/molecules/Selects/ZSelectPosition";
 import ZSelectTeam from "~/components/molecules/Selects/ZSelectTeam";
-import ZListRelationPosition from "~/components/organisms/List/Relations/ZListRelationPositions";
+import ZListRelationPositions from "~/components/organisms/List/Relations/ZListRelationPositions";
+import ZListRelationTeams from "~/components/organisms/List/Relations/ZListRelationTeams";
 import Swal from "sweetalert2";
 
 const { formData } = useForm("myForm");
@@ -92,7 +106,8 @@ export default {
     ZSelectPermission,
     ZSelectPosition,
     ZSelectTeam,
-    ZListRelationPosition,
+    ZListRelationPositions,
+    ZListRelationTeams,
   },
   data() {
     return {
@@ -116,6 +131,7 @@ export default {
         // Inicialize os dados de outros steps aqui...
       },
       positions: [],
+      teams: [],
     };
   },
 
@@ -146,6 +162,28 @@ export default {
 
       this.positions = [];
     },
+
+    addTeams() {
+      const transformedteams = this.teams.map((item) => {
+        return {
+          id: item.value,
+          team: item.text,
+        };
+      });
+
+      transformedteams.forEach((newTeam) => {
+        const isAlreadyAdded = this.form.teams.some(
+          (existingTeam) => existingTeam.id === newTeam.id
+        );
+
+        if (!isAlreadyAdded) {
+          this.form.teams.push(newTeam);
+        }
+      });
+
+      this.teams = [];
+    },
+
     actionDeletePosition(id) {
       this.form.positions = this.form.positions.filter((position) => {
         return position.id !== id;
@@ -154,6 +192,19 @@ export default {
       Swal.fire({
         icon: "success",
         title: "Posição removida com sucesso!",
+        showConfirmButton: true,
+        confirmButtonColor: "#154EC1",
+      });
+    },
+
+    actionDeleteTeam(id) {
+      this.form.teams = this.form.teams.filter((team) => {
+        return team.id !== id;
+      });
+
+      Swal.fire({
+        icon: "success",
+        title: "Time removido com sucesso!",
         showConfirmButton: true,
         confirmButtonColor: "#154EC1",
       });
