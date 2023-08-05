@@ -12,7 +12,7 @@
       </div>
     </div>
   </div>
-  <ZFilter>
+  <ZFilter v-if="filter">
     <div class="row">
       <div class="flex flex-col md6 py-1">
         <div class="item">
@@ -53,7 +53,7 @@
   >
     <template #cell(actions)="{ rowKey: { id } }">
       <ZDataTableActions
-        :id="id"
+        :id="Number(id)"
         :includeActionEditList="includeActionEditList"
         :includeActionDeleteList="includeActionDeleteList"
         @edit="actionEdit"
@@ -161,6 +161,10 @@ export default defineComponent({
     },
     paginatorInfo: {
       type: Object,
+    },
+    filter: {
+      type: Boolean,
+      default: false,
     },
   },
   data() {

@@ -11,6 +11,7 @@
     :columns="columns"
     :loading="loading"
     :paginatorInfo="paginatorInfo"
+    :filter="true"
     @search="searchPlayers"
     @actionSearch="getPlayers"
     @actionClear="clearSearch"
