@@ -1,12 +1,33 @@
 <template>
   <div>
-    <ZInput
+    <ZPasswordInput
       v-model="password"
       v-bind="$attrs"
       :id="id + '-password'"
       :type="isPasswordVisible ? 'text' : 'password'"
       :label="passwordLabel"
+      :success="password === confirmPassword && password !== ''"
+      :messages="passwordMessages"
       :rules="passwordRules"
+      @input="validatePassword"
+    >
+      <template #appendInner>
+        <va-icon
+          :name="isPasswordVisible ? 'visibility_off' : 'visibility'"
+          size="small"
+          color="primary"
+          @click="isPasswordVisible = !isPasswordVisible"
+        />
+      </template>
+    </ZPasswordInput>
+    <ZInput
+      v-if="confirmPasswordInput"
+      v-model="confirmPassword"
+      :id="id + '-confirm-password'"
+      :type="isPasswordVisible ? 'text' : 'password'"
+      :label="confirmPasswordLabel"
+      :rules="confirmPasswordRules"
+      :success="password === confirmPassword && password !== ''"
       @input="validatePassword"
     >
       <template #appendInner>
@@ -22,11 +43,11 @@
 </template>
 
 <script>
-import ZInput from "~/components/atoms/Inputs/ZInput";
+import ZPasswordInput from "~/components/atoms/Inputs/ZPasswordInput";
 
 export default {
   components: {
-    ZInput,
+    ZPasswordInput,
   },
   props: {
     id: {

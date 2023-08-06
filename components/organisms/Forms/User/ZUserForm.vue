@@ -25,7 +25,7 @@
             id="email"
             class="mb-3"
           />
-          <ZPasswordInput
+          <ZPasswordInputWithConfirmPassword
             v-model="form.password"
             confirmPasswordInput
             name="password"
@@ -88,7 +88,7 @@
 
 <script>
 import { useForm } from "vuestic-ui";
-import ZPasswordInput from "~/components/molecules/Inputs/ZPasswordInput";
+import ZPasswordInputWithConfirmPassword from "~/components/molecules/Inputs/ZPasswordInputWithConfirmPassword";
 import ZTextInput from "~/components/molecules/Inputs/ZTextInput";
 import ZInput from "~/components/atoms/Inputs/ZInput";
 import ZEmailInput from "~/components/molecules/Inputs/ZEmailInput";
@@ -105,7 +105,7 @@ const { formData } = useForm("myForm");
 
 export default {
   components: {
-    ZPasswordInput,
+    ZPasswordInputWithConfirmPassword,
     ZEmailInput,
     ZTextInput,
     ZInput,

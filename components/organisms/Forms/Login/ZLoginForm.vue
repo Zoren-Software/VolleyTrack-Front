@@ -10,7 +10,15 @@
     <div class="row justify-center px-3 pb-4">
       <div class="flex flex-col">
         <div class="item">
-          <ZPasswordInput v-model="password" label="Password" id="password" />
+          <ZPasswordInput
+            v-model="password"
+            label="Password"
+            id="password"
+            :error="error"
+            :error-messages="errorMessage"
+            :success="success"
+            :messages="successMessage"
+          />
         </div>
       </div>
     </div>
@@ -39,6 +47,10 @@ export default {
 
   data() {
     return {
+      success: false,
+      successMessage: [],
+      error: false,
+      errorMessage: [],
       loading: false,
       email: "admin@voleiclub.com",
       password: "password",
@@ -68,15 +80,17 @@ export default {
         } = await mutate();
 
         if (token) {
+          this.success = true;
+          this.successMessage = ["Login realizado com sucesso"];
           localStorage.setItem("userToken", token);
           onLogin(token);
           this.$router.push("/");
         }
-        this.loading = false;
       } catch (error) {
-        this.loading = false;
-        console.error(error);
+        this.error = true;
+        this.errorMessage = error.message;
       }
+      this.loading = false;
     },
   },
 };
