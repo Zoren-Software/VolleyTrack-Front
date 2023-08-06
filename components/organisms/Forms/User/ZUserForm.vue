@@ -35,7 +35,6 @@
             class="mb-3"
           />
         </template>
-        <!-- Outros steps ... -->
         <template #step-content-1>
           <ZCPFInput v-model="form.cpf" />
           <ZRGInput v-model="form.rg" />
@@ -79,7 +78,6 @@
             </template>
           </ZListRelationTeams>
         </template>
-        <!-- Outros steps ... -->
       </va-stepper>
     </va-form>
     <pre
@@ -143,7 +141,6 @@ export default {
         permission: [],
         positions: [],
         teams: [],
-        // Inicialize os dados de outros steps aqui...
       },
       positions: [],
       teams: [],
