@@ -37,6 +37,10 @@ export default {
       type: String,
       required: true,
     },
+    ignoreIds: {
+      type: Array,
+      required: false,
+    },
   },
   data() {
     return {
@@ -49,9 +53,18 @@ export default {
         perPage: 10,
         filter: {
           search: "%%",
+          ignoreIds: this.ignoreIds,
         },
       },
     };
+  },
+  watch: {
+    ignoreIds(newVal) {
+      this.variablesGetRoles.filter.ignoreIds = newVal.map((item) => {
+        return Number(item);
+      });
+      this.getRoles();
+    },
   },
 
   methods: {

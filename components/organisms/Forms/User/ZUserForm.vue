@@ -44,6 +44,7 @@
             class="mb-3"
             label="Permissões"
             v-model="form.permission"
+            :ignoreIds="form.permission.map((item) => item.id)"
           />
         </template>
         <template #step-content-3>
