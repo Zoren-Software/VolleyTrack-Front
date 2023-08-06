@@ -6,6 +6,7 @@
     :label="label"
     :rules="rules"
     :type="type"
+    :messages="messages"
     v-model="internalValue"
   >
     <template v-for="(_, slotName) in $slots" #[slotName]="scope">
@@ -36,6 +37,10 @@ export default {
     type: {
       type: String,
       default: "text",
+    },
+    messages: {
+      type: Array,
+      default: () => [],
     },
   },
   computed: {

@@ -8,6 +8,7 @@
       :label="passwordLabel"
       :rules="passwordRules"
       :success="password === confirmPassword && password !== ''"
+      :messages="passwordMessages"
       @input="validatePassword"
     >
       <template #appendInner>
@@ -56,6 +57,10 @@ export default {
     passwordLabel: {
       type: String,
       default: "Senha",
+    },
+    passwordMessages: {
+      type: Array,
+      default: () => [],
     },
     confirmPasswordLabel: {
       type: String,

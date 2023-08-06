@@ -9,9 +9,7 @@
           <va-button color="primary" @click="nextStep()" v-if="nextStepButton"
             >Próximo</va-button
           >
-          <va-button color="primary" @click="save()" v-if="prevStepButton"
-            >Salvar</va-button
-          >
+          <va-button color="primary" @click="save()">Salvar</va-button>
         </template>
         <template #step-content-0>
           <ZTextInput
@@ -31,7 +29,8 @@
             v-model="form.password"
             confirmPasswordInput
             name="password"
-            label="Senha"
+            passwordLabel="Senha Provisória"
+            :passwordMessages="passwordMessages"
             id="password"
             class="mb-3"
           />
@@ -126,6 +125,9 @@ export default {
       step: 0,
       nextStepButton: true,
       prevStepButton: false,
+      passwordMessages: [
+        "No primeiro login do usuário ele deverá alterar a senha.",
+      ],
       steps: [
         { label: "Informações Essenciais" },
         { label: "Informações Pessoais" },
