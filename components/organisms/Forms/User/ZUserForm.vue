@@ -9,6 +9,9 @@
           <va-button color="primary" @click="nextStep()" v-if="nextStepButton"
             >Próximo</va-button
           >
+          <va-button color="primary" @click="save()" v-if="prevStepButton"
+            >Salvar</va-button
+          >
         </template>
         <template #step-content-0>
           <ZTextInput
@@ -228,6 +231,10 @@ export default {
         showConfirmButton: true,
         confirmButtonColor: "#154EC1",
       });
+    },
+    save() {
+      //TODO - Fazer a requisição para salvar o usuário
+      console.log(this.form);
     },
   },
 };
