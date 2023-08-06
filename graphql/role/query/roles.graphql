@@ -1,0 +1,24 @@
+query roles($filter: RoleSearchInput, $first: Int, $page: Int) {
+  roles(
+    filter: $filter,
+    first: $first,
+    page: $page
+  ) {
+    paginatorInfo {
+      count
+      currentPage
+      firstItem
+      hasMorePages
+      lastItem
+      lastPage
+      perPage
+      total
+    }
+    data {
+      id
+      name
+      createdAt
+      updatedAt
+    }
+  }
+}

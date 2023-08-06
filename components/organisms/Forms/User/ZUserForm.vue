@@ -31,7 +31,7 @@
           <ZRGInput v-model="form.rg" />
         </template>
         <template #step-content-2>
-          <ZSelectPermission
+          <ZSelectRole
             class="mb-3"
             label="Permissões"
             v-model="form.permission"
@@ -86,7 +86,7 @@ import ZInput from "~/components/atoms/Inputs/ZInput";
 import ZEmailInput from "~/components/molecules/Inputs/ZEmailInput";
 import ZCPFInput from "~/components/molecules/Inputs/ZCPFInput";
 import ZRGInput from "~/components/molecules/Inputs/ZRGInput";
-import ZSelectPermission from "~/components/molecules/Selects/ZSelectPermission";
+import ZSelectRole from "~/components/molecules/Selects/ZSelectRole";
 import ZSelectPosition from "~/components/molecules/Selects/ZSelectPosition";
 import ZSelectTeam from "~/components/molecules/Selects/ZSelectTeam";
 import ZListRelationPositions from "~/components/organisms/List/Relations/ZListRelationPositions";
@@ -103,7 +103,7 @@ export default {
     ZInput,
     ZCPFInput,
     ZRGInput,
-    ZSelectPermission,
+    ZSelectRole,
     ZSelectPosition,
     ZSelectTeam,
     ZListRelationPositions,

@@ -6,7 +6,7 @@
     :options="items"
     :loading="loading"
     multiple
-    @click="getPositions"
+    @click="getRoles(true)"
     @scrollBottom="loadMore"
     @updateSearch="newSearch"
   >
@@ -26,7 +26,7 @@
 
 <script>
 import ZSelect from "~/components/atoms/Select/ZSelect";
-import POSITIONS from "~/graphql/position/query/positions.graphql";
+import ROLES from "~/graphql/role/query/roles.graphql";
 
 export default {
   components: {
@@ -40,33 +40,37 @@ export default {
   },
   data() {
     return {
+      hasMoreItems: true,
       value: "",
       loading: false,
       items: [],
-      variablesGetPositions: {
+      variablesGetRoles: {
         page: 1,
         perPage: 10,
         filter: {
           search: "%%",
-          teamsIds: this.teamsIds,
         },
       },
     };
   },
 
   methods: {
-    getPositions() {
+    getRoles(click = false) {
+      if (click) {
+        this.items = [];
+        this.variablesGetRoles.page = 1;
+      }
       this.loading = true;
       setTimeout(() => {
         const query = gql`
-          ${POSITIONS}
+          ${ROLES}
         `;
 
         const {
           result: { value },
-        } = useQuery(query, this.variablesGetPositions);
+        } = useQuery(query, this.variablesGetRoles);
 
-        const { onResult } = useQuery(query, this.variablesGetPositions);
+        const { onResult } = useQuery(query, this.variablesGetRoles);
 
         onResult((result) => {
           this.handleResult(result.data);
@@ -81,34 +85,40 @@ export default {
     },
 
     handleResult(result) {
-      if (result?.positions?.data.length > 0) {
-        this.paginatorInfo = result.positions.paginatorInfo;
+      if (result?.roles?.data.length > 0) {
+        this.paginatorInfo = result.roles.paginatorInfo;
 
-        const newItems = result.positions.data.map((item) => {
+        const newItems = result.roles.data.map((item) => {
           return {
             text: item.name,
-            value: Number(item.id),
+            id: Number(item.id),
           };
         });
 
         let allItems = [...this.items, ...newItems];
 
-        const uniqueItems = Array.from(
-          new Set(allItems.map((a) => a.value))
-        ).map((value) => {
-          return allItems.find((a) => a.value === value);
-        });
+        const uniqueItems = Array.from(new Set(allItems.map((a) => a.id))).map(
+          (id) => {
+            return allItems.find((a) => a.id === id);
+          }
+        );
 
         this.items = uniqueItems;
+        this.hasMoreItems = result.roles.paginatorInfo.hasMorePages;
+      } else {
+        this.hasMoreItems = false;
       }
     },
     newSearch(newSearchValue) {
-      this.variablesGetPositions.filter.search = `%${newSearchValue}%`;
-      this.getPositions();
+      this.variablesGetRoles.filter.search = `%${newSearchValue}%`;
+      this.getRoles();
     },
     loadMore() {
-      this.variablesGetPositions.page += 1;
-      this.getPositions();
+      if (!this.hasMoreItems) {
+        return;
+      }
+      this.variablesGetRoles.page += 1;
+      this.getRoles();
     },
   },
 };
