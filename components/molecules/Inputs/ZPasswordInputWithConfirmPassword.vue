@@ -43,11 +43,13 @@
 </template>
 
 <script>
-import ZPasswordInput from "~/components/atoms/Inputs/ZPasswordInput";
+import ZPasswordInput from "~/components/molecules/Inputs/ZPasswordInput";
+import ZInput from "~/components/atoms/Inputs/ZInput";
 
 export default {
   components: {
     ZPasswordInput,
+    ZInput,
   },
   props: {
     id: {
