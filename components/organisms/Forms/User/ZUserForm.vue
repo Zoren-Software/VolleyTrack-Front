@@ -1,7 +1,15 @@
 <template>
   <va-card class="my-3 mr-3">
     <va-form ref="myForm" class="flex flex-col gap-6 mb-2">
-      <va-stepper v-model="step" :steps="steps">
+      <va-stepper v-model="step" :steps="steps" controls-hidden>
+        <template #controls="{ nextStep, prevStep }">
+          <va-button color="primary" @click="prevStep()" v-if="prevStepButton"
+            >Anterior</va-button
+          >
+          <va-button color="primary" @click="nextStep()" v-if="nextStepButton"
+            >Próximo</va-button
+          >
+        </template>
         <template #step-content-0>
           <ZTextInput
             v-model="form.name"
@@ -113,6 +121,8 @@ export default {
     return {
       formData,
       step: 0,
+      nextStepButton: true,
+      prevStepButton: false,
       steps: [
         { label: "Informações Essenciais" },
         { label: "Informações Pessoais" },
@@ -137,7 +147,17 @@ export default {
 
   watch: {
     step(val) {
-      console.log(val);
+      if (val === 4) {
+        this.nextStepButton = false;
+      } else {
+        this.nextStepButton = true;
+      }
+
+      if (val === 0) {
+        this.prevStepButton = false;
+      } else {
+        this.prevStepButton = true;
+      }
     },
   },
 
