@@ -12,12 +12,14 @@
           <va-button color="primary" @click="save()">Salvar</va-button>
         </template>
         <template #step-content-0>
+          {{ errors.password }}
           <ZTextInput
             v-model="form.name"
             name="name"
             label="Nome"
             id="name"
             class="mb-3"
+            :messages="errors.name"
           />
           <ZEmailInput
             v-model="form.email"
@@ -30,7 +32,9 @@
             confirmPasswordInput
             name="password"
             passwordLabel="Senha Provisória"
-            :passwordMessages="passwordMessages"
+            :password-messages="messages.password"
+            :error-messages="errors.password"
+            :error="error"
             id="password"
             class="mb-3"
           />
@@ -100,6 +104,8 @@ import ZSelectPosition from "~/components/molecules/Selects/ZSelectPosition";
 import ZSelectTeam from "~/components/molecules/Selects/ZSelectTeam";
 import ZListRelationPositions from "~/components/organisms/List/Relations/ZListRelationPositions";
 import ZListRelationTeams from "~/components/organisms/List/Relations/ZListRelationTeams";
+import USERCREATE from "~/graphql/user/mutation/userCreate.graphql";
+
 import Swal from "sweetalert2";
 
 const { formData } = useForm("myForm");
@@ -124,9 +130,20 @@ export default {
       step: 0,
       nextStepButton: true,
       prevStepButton: false,
-      passwordMessages: [
-        "No primeiro login do usuário ele deverá alterar a senha.",
-      ],
+      messages: {
+        password: ["No primeiro login do usuário ele deverá alterar a senha."],
+      },
+      error: false,
+      errors: {
+        name: [],
+        email: [],
+        password: [],
+        cpf: [],
+        permission: [],
+        positions: [],
+        teams: [],
+      },
+
       steps: [
         { label: "Informações Essenciais" },
         { label: "Informações Pessoais" },
@@ -232,9 +249,54 @@ export default {
         confirmButtonColor: "#154EC1",
       });
     },
-    save() {
+    async save() {
       //TODO - Fazer a requisição para salvar o usuário
       console.log(this.form);
+      try {
+        this.loading = true;
+        this.error = false;
+
+        const query = gql`
+          ${USERCREATE}
+        `;
+
+        // preciso renomear algumas váriaveis para serem enviadas nessa consulta
+        const variables = {
+          name: this.form.name,
+          email: this.form.email,
+          password: this.form.password,
+          cpf: this.form.cpf,
+          roleId: this.form.permission.map((item) => item.id),
+          positionId: this.form.positions.map((item) => item.id),
+          teamId: this.form.teams.map((item) => item.id),
+        };
+
+        const { mutate } = await useMutation(query, { variables });
+
+        const { data } = await mutate();
+
+        console.log(data);
+      } catch (error) {
+        this.error = true;
+        this.errors = error.graphQLErrors[0].extensions.validation;
+
+        const errorMessages = Object.values(this.errors).map((item) => {
+          return item[0];
+        });
+
+        // criar um título para essas validacões que seram mostradas
+        const footer = errorMessages.join("<br>");
+
+        Swal.fire({
+          icon: "error",
+          title: "Erro!",
+          text: "Ocorreu um erro ao salvar o usuário!",
+          showConfirmButton: true,
+          confirmButtonColor: "#154EC1",
+          footer,
+        });
+      }
+      this.loading = false;
     },
   },
 };

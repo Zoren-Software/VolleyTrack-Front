@@ -9,7 +9,7 @@ mutation userCreate(
   $teamId: [Int]
   $password: String!
 ) {
-  userCreate( input: {
+  userCreate(
     name: $name
     email: $email
     cpf: $cpf
@@ -19,7 +19,7 @@ mutation userCreate(
     positionId: $positionId
     teamId: $teamId
     password: $password
-  }) {
+  ) {
     id
     name
     email
