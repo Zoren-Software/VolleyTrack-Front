@@ -12,20 +12,22 @@
           <va-button color="primary" @click="save()">Salvar</va-button>
         </template>
         <template #step-content-0>
-          {{ errors.password }}
           <ZTextInput
             v-model="form.name"
             name="name"
             label="Nome"
             id="name"
             class="mb-3"
-            :messages="errors.name"
+            :error="errorFields.includes('name')"
+            :error-messages="errors.name"
           />
           <ZEmailInput
             v-model="form.email"
             label="E-mail"
             id="email"
             class="mb-3"
+            :error="errorFields.includes('email')"
+            :error-messages="errors.email"
           />
           <ZPasswordInputWithConfirmPassword
             v-model="form.password"
@@ -34,7 +36,7 @@
             passwordLabel="Senha Provisória"
             :password-messages="messages.password"
             :error-messages="errors.password"
-            :error="error"
+            :error="errorFields.includes('password')"
             id="password"
             class="mb-3"
           />
@@ -49,6 +51,8 @@
             label="Permissões"
             v-model="form.permission"
             :ignoreIds="form.permission.map((item) => item.id)"
+            :error="errorFields.includes('roleId')"
+            :error-messages="errors.roleId"
           />
         </template>
         <template #step-content-3>
@@ -133,13 +137,13 @@ export default {
       messages: {
         password: ["No primeiro login do usuário ele deverá alterar a senha."],
       },
-      error: false,
+      errorFields: [],
       errors: {
         name: [],
         email: [],
         password: [],
         cpf: [],
-        permission: [],
+        roleId: [],
         positions: [],
         teams: [],
       },
@@ -283,6 +287,8 @@ export default {
         const errorMessages = Object.values(this.errors).map((item) => {
           return item[0];
         });
+
+        this.errorFields = Object.keys(this.errors);
 
         // criar um título para essas validacões que seram mostradas
         const footer = errorMessages.join("<br>");
