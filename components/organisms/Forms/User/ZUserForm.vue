@@ -42,6 +42,7 @@
           />
         </template>
         <template #step-content-1>
+          <ZPhoneInput v-model="form.phone" />
           <ZCPFInput v-model="form.cpf" />
           <ZRGInput v-model="form.rg" />
         </template>
@@ -101,6 +102,7 @@ import ZPasswordInputWithConfirmPassword from "~/components/molecules/Inputs/ZPa
 import ZTextInput from "~/components/molecules/Inputs/ZTextInput";
 import ZInput from "~/components/atoms/Inputs/ZInput";
 import ZEmailInput from "~/components/molecules/Inputs/ZEmailInput";
+import ZPhoneInput from "~/components/molecules/Inputs/ZPhoneInput";
 import ZCPFInput from "~/components/molecules/Inputs/ZCPFInput";
 import ZRGInput from "~/components/molecules/Inputs/ZRGInput";
 import ZSelectRole from "~/components/molecules/Selects/ZSelectRole";
@@ -118,6 +120,7 @@ export default {
   components: {
     ZPasswordInputWithConfirmPassword,
     ZEmailInput,
+    ZPhoneInput,
     ZTextInput,
     ZInput,
     ZCPFInput,
@@ -160,6 +163,7 @@ export default {
         email: "",
         password: "",
         cpf: "",
+        phone: "",
         permission: [],
         positions: [],
         teams: [],
