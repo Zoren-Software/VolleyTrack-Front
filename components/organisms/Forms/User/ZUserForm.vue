@@ -19,7 +19,7 @@
             id="name"
             class="mb-3"
             :error="errorFields.includes('name')"
-            :error-messages="errors.name"
+            :error-messages="errors.name || []"
           />
           <ZEmailInput
             v-model="form.email"
@@ -27,7 +27,7 @@
             id="email"
             class="mb-3"
             :error="errorFields.includes('email')"
-            :error-messages="errors.email"
+            :error-messages="errors.email || []"
           />
           <ZPasswordInputWithConfirmPassword
             v-model="form.password"
@@ -35,7 +35,7 @@
             name="password"
             passwordLabel="Senha Provisória"
             :password-messages="messages.password"
-            :error-messages="errors.password"
+            :error-messages="errors.password || []"
             :error="errorFields.includes('password')"
             id="password"
             class="mb-3"
@@ -53,7 +53,7 @@
             v-model="form.permission"
             :ignoreIds="form.permission.map((item) => item.id)"
             :error="errorFields.includes('roleId')"
-            :error-messages="errors.roleId"
+            :error-messages="errors.roleId || []"
           />
         </template>
         <template #step-content-3>
@@ -141,15 +141,7 @@ export default {
         password: ["No primeiro login do usuário ele deverá alterar a senha."],
       },
       errorFields: [],
-      errors: {
-        name: [],
-        email: [],
-        password: [],
-        cpf: [],
-        roleId: [],
-        positions: [],
-        teams: [],
-      },
+      errors: this.errorsDefault(),
 
       steps: [
         { label: "Informações Essenciais" },
@@ -190,6 +182,17 @@ export default {
   },
 
   methods: {
+    errorsDefault() {
+      return {
+        name: [],
+        email: [],
+        password: [],
+        cpf: [],
+        phone: [],
+        roleId: [],
+        teamId: [],
+      };
+    },
     addPositions() {
       const transformedPositions = this.positions.map((item) => {
         return {
@@ -258,8 +261,6 @@ export default {
       });
     },
     async save() {
-      //TODO - Fazer a requisição para salvar o usuário
-      console.log(this.form);
       try {
         this.loading = true;
         this.error = false;
@@ -274,6 +275,8 @@ export default {
           email: this.form.email,
           password: this.form.password,
           cpf: this.form.cpf,
+          rg: this.form.rg,
+          phone: this.form.phone,
           roleId: this.form.permission.map((item) => item.id),
           positionId: this.form.positions.map((item) => item.id),
           teamId: this.form.teams.map((item) => item.id),
@@ -283,7 +286,15 @@ export default {
 
         const { data } = await mutate();
 
-        console.log(data);
+        Swal.fire({
+          icon: "success",
+          title: "Usuário salvo com sucesso!",
+          showConfirmButton: true,
+          confirmButtonColor: "#154EC1",
+        }).then((result) => {
+          this.errors = this.errorsDefault();
+          this.$router.push("/players");
+        });
       } catch (error) {
         this.error = true;
         this.errors = error.graphQLErrors[0].extensions.validation;
