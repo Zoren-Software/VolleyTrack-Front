@@ -16,7 +16,7 @@
           </div>
           <div v-if="data.information?.phone" class="flex items-center">
             <va-icon size="small" name="phone" color="secondary" class="mr-2" />
-            <span>{{ data.information?.phone }}</span>
+            <span>{{ formattedPhone }}</span>
           </div>
           <div class="flex items-center">
             <va-icon size="small" name="email" color="secondary" class="mr-2" />
@@ -39,6 +39,32 @@ export default {
   computed: {
     firstLatter() {
       return this.data.name.charAt(0).toUpperCase();
+    },
+    formattedPhone() {
+      return this.formatPhone(this.data.information?.phone);
+    },
+  },
+  methods: {
+    removeNonNumericCharacters(value) {
+      return value.replace(/\D/g, "");
+    },
+    formatPhone(value) {
+      const onlyNumbers = this.removeNonNumericCharacters(value);
+
+      if (onlyNumbers.length === 0) {
+        return "";
+      } else if (onlyNumbers.length <= 2) {
+        return onlyNumbers.replace(/^(\d{0,2})/, "($1");
+      } else if (onlyNumbers.length <= 6) {
+        return onlyNumbers.replace(/^(\d{2})(\d{0,4})/, "($1) $2");
+      } else if (onlyNumbers.length <= 10) {
+        return onlyNumbers.replace(/^(\d{2})(\d{4})(\d{0,4})/, "($1) $2-$3");
+      } else {
+        return onlyNumbers.replace(
+          /^(\d{2})(\d{1})(\d{4})(\d{0,4})/,
+          "($1) $2 $3-$4"
+        );
+      }
     },
   },
 };
