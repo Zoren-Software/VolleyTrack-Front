@@ -16,7 +16,7 @@
 </template>
 
 <script>
-import Swal from "sweetalert2";
+import { confirmDeleteSingle } from "~/utils/sweetAlert2/swalHelper";
 
 export default {
   props: {
@@ -39,37 +39,14 @@ export default {
       this.$emit("edit", id);
     },
     actionDelete(id) {
-      Swal.fire({
-        title: "Deseja deletar este registro?",
-        text: "Você não será capaz de reverter isso!",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonText: "Sim, deletar!",
-        confirmButtonColor: "#154EC1",
-        cancelButtonColor: "#E42222",
-        cancelButtonText: "Não, cancelar!",
-      }).then((result) => {
-        if (result.isConfirmed) {
-          Swal.fire({
-            title: "Deletando!",
-            text: "Seu registro esta sendo deletado!",
-            timer: 1000,
-            icon: "info",
-            showConfirmButton: false,
-          });
+      confirmDeleteSingle(
+        () => {
           this.$emit("delete", id);
-        } else if (
-          /* Read more about handling dismissals below */
-          result.dismiss === Swal.DismissReason.cancel
-        ) {
-          Swal.fire({
-            title: "Cancelado",
-            text: "Seu registro ainda continua existindo :)",
-            icon: "error",
-            confirmButtonColor: "#154EC1",
-          });
+        },
+        () => {
+          // Você pode adicionar qualquer lógica adicional para o caso de cancelamento aqui
         }
-      });
+      );
     },
   },
 };

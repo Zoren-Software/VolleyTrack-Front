@@ -13,7 +13,7 @@
 
 <script>
 import ZButton from "~/components/atoms/Buttons/ZButton";
-import Swal from "sweetalert2";
+import { confirmDeleteMultiple } from "~/utils/sweetAlert2/swalHelper";
 
 export default {
   components: {
@@ -42,41 +42,15 @@ export default {
       const itemsDelete = this.selectedItemsEmitted.map((item) => item.id);
       const totalItems = this.selectedItemsEmitted.length;
 
-      Swal.fire({
-        title: "Deseja deletar estes registros?",
-        text: "Você não será capaz de reverter isso!",
-        icon: "warning",
-        html:
-          "Você tem <b>" +
-          totalItems +
-          "</b> registros selecionados para deletar.<br>",
-        showCancelButton: true,
-        confirmButtonText: "Sim, deletar!",
-        confirmButtonColor: "#154EC1",
-        cancelButtonColor: "#E42222",
-        cancelButtonText: "Não, cancelar!",
-      }).then((result) => {
-        if (result.isConfirmed) {
-          Swal.fire({
-            title: "Deletando!",
-            text: "Seus registros estão sendo deletados!",
-            timer: 1000,
-            icon: "info",
-            showConfirmButton: false,
-          });
+      confirmDeleteMultiple(
+        totalItems,
+        () => {
           this.$emit("delete", itemsDelete);
-        } else if (
-          /* Read more about handling dismissals below */
-          result.dismiss === Swal.DismissReason.cancel
-        ) {
-          Swal.fire({
-            title: "Cancelado",
-            text: "Seus registros ainda continuam existindo :)",
-            icon: "error",
-            confirmButtonColor: "#154EC1",
-          });
+        },
+        () => {
+          // Você pode adicionar qualquer lógica adicional para o caso de cancelamento aqui
         }
-      });
+      );
     },
   },
 };
