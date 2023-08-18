@@ -29,6 +29,8 @@
 </template>
 
 <script>
+import { formatPhoneOnType } from "~/utils/formatting/formatHelper";
+
 export default {
   props: {
     data: {
@@ -47,6 +49,10 @@ export default {
   methods: {
     removeNonNumericCharacters(value) {
       return value.replace(/\D/g, "");
+    },
+    formatPhone(value) {
+      const onlyNumbers = this.removeNonNumericCharacters(value);
+      return formatPhoneOnType(onlyNumbers);
     },
   },
 };
