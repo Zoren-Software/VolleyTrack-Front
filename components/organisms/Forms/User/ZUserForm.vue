@@ -111,6 +111,7 @@ import ZSelectTeam from "~/components/molecules/Selects/ZSelectTeam";
 import ZListRelationPositions from "~/components/organisms/List/Relations/ZListRelationPositions";
 import ZListRelationTeams from "~/components/organisms/List/Relations/ZListRelationTeams";
 import USERCREATE from "~/graphql/user/mutation/userCreate.graphql";
+import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
 
 import Swal from "sweetalert2";
 
@@ -240,12 +241,7 @@ export default {
         return position.id !== id;
       });
 
-      Swal.fire({
-        icon: "success",
-        title: "Posição removida com sucesso!",
-        showConfirmButton: true,
-        confirmButtonColor: "#154EC1",
-      });
+      confirmSuccess("Posição removida com sucesso!");
     },
 
     actionDeleteTeam(id) {
@@ -253,12 +249,7 @@ export default {
         return team.id !== id;
       });
 
-      Swal.fire({
-        icon: "success",
-        title: "Time removido com sucesso!",
-        showConfirmButton: true,
-        confirmButtonColor: "#154EC1",
-      });
+      confirmSuccess("Time removido com sucesso!");
     },
     async save() {
       try {
@@ -286,16 +277,13 @@ export default {
 
         const { data } = await mutate();
 
-        Swal.fire({
-          icon: "success",
-          title: "Usuário salvo com sucesso!",
-          showConfirmButton: true,
-          confirmButtonColor: "#154EC1",
-        }).then((result) => {
+        confirmSuccess("Usuário salvo com sucesso!", () => {
           this.errors = this.errorsDefault();
+
           this.$router.push("/players");
         });
       } catch (error) {
+        console.error(error);
         this.error = true;
         this.errors = error.graphQLErrors[0].extensions.validation;
 
@@ -308,14 +296,7 @@ export default {
         // criar um título para essas validacões que seram mostradas
         const footer = errorMessages.join("<br>");
 
-        Swal.fire({
-          icon: "error",
-          title: "Erro!",
-          text: "Ocorreu um erro ao salvar o usuário!",
-          showConfirmButton: true,
-          confirmButtonColor: "#154EC1",
-          footer,
-        });
+        confirmError("Ocorreu um erro ao salvar o usuário!", footer);
       }
       this.loading = false;
     },
