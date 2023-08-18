@@ -1,10 +1,13 @@
 import Swal from "sweetalert2";
 
 function confirmAction(options, onConfirm, onCancel) {
+  const confirmActionOptions = options.confirmAction;
+  delete options.confirmAction;
+
   Swal.fire(options).then((result) => {
     if (result.isConfirmed) {
-      if (options.confirmAction) {
-        Swal.fire(options.confirmAction);
+      if (confirmActionOptions) {
+        Swal.fire(confirmActionOptions);
       }
       if (onConfirm) onConfirm();
     } else if (result.dismiss === Swal.DismissReason.cancel && onCancel) {
