@@ -25,6 +25,7 @@
       v-model="confirmPassword"
       :id="id + '-confirm-password'"
       :type="isPasswordVisible ? 'text' : 'password'"
+      :disabled="password === ''"
       :label="confirmPasswordLabel"
       :rules="confirmPasswordRules"
       :success="password === confirmPassword && password !== ''"
