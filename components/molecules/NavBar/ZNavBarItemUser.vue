@@ -1,10 +1,10 @@
 <template>
   <va-navbar-item>
-    <va-button-dropdown
-      color="background-primary"
-    >
+    <va-button-dropdown color="background-primary">
       <template #label>
-        <va-avatar v-if="user.id" size="small" class="mr-6">{{ firstLatter }}</va-avatar>
+        <va-avatar v-if="user.id" size="small" class="mr-6">{{
+          firstLatter
+        }}</va-avatar>
         <va-icon v-else name="account_circle" />
       </template>
       <ZListItemsUser :actionsUser="actionsUser" @action="actionHandler" />
@@ -13,79 +13,87 @@
 </template>
 
 <script>
-  import ZButtonDropdown from '~/components/atoms/Buttons/ZButtonDropdown';
-  import ZAvatar from '~/components/atoms/Avatar/ZAvatar';
-  import ZIcon from '~/components/atoms/Icons/ZIcon'
-  import ZListItemsUser from '~/components/molecules/List/ZListItemsUser'
+import ZButtonDropdown from "~/components/atoms/Buttons/ZButtonDropdown";
+import ZAvatar from "~/components/atoms/Avatar/ZAvatar";
+import ZIcon from "~/components/atoms/Icons/ZIcon";
+import ZListItemsUser from "~/components/molecules/List/ZListItemsUser";
 
-
-  export default {
-    name: "ZNavbarItemUser",
-    components: {
-      ZListItemsUser,
-      ZButtonDropdown,
-      ZAvatar,
-      ZIcon
-    },
-    data () {
-      return {
-        user: {
-          id: null,
-          name: 'Usuário',
+export default {
+  name: "ZNavbarItemUser",
+  components: {
+    ZListItemsUser,
+    ZButtonDropdown,
+    ZAvatar,
+    ZIcon,
+  },
+  data() {
+    return {
+      user: {
+        id: null,
+        name: "Usuário",
+      },
+      actionsUser: [
+        {
+          title: "Minha conta",
+          action: "account",
+          active: false,
         },
-        actionsUser: [
-          { title: 'Minha conta', action: 'account', active: false },
-          { title: 'Logout', action: 'logout', active: false },
-        ],
-      }
+        {
+          title: "Logout",
+          action: "logout",
+          active: false,
+        },
+      ],
+    };
+  },
+  computed: {
+    firstLatter() {
+      return this.user.name.charAt(0).toUpperCase();
     },
-    computed: {
-      firstLatter() {
-        return this.user.name.charAt(0).toUpperCase()
+  },
+
+  mounted() {
+    this.getUser();
+  },
+
+  methods: {
+    actionHandler(type) {
+      if (type === "account") {
+        this.$router.push("/account");
+      } else if (type === "logout") {
+        this.logout();
       }
     },
 
-    mounted() {
-      this.getUser()
+    logout() {
+      const { onLogout } = useApollo();
+      onLogout();
+      localStorage.removeItem("userToken");
+      this.$router.push("/login");
     },
 
-    methods: {
-      actionHandler (type) {
-        if (type === 'account') {
-          this.$router.push('/account')
-        } else if (type === 'logout') {
-          this.logout()
+    async getUser() {
+      if (localStorage.getItem("user")) {
+        this.user = await JSON.parse(localStorage.getItem("user"));
+      } else {
+        const query = gql`
+          ${ME}
+        `;
+        const {
+          data: { value },
+        } = await useAsyncQuery(query, {});
+
+        if (value?.me) {
+          this.user = value.me;
+          localStorage.setItem("user", JSON.stringify(this.user));
         }
-      },
-
-      logout () {
-        const { onLogout } = useApollo()
-        onLogout()
-        localStorage.removeItem('userToken')
-        this.$router.push('/login')
-      },
-
-      async getUser() {
-        if (localStorage.getItem('user')) {
-          this.user = await JSON.parse(localStorage.getItem('user'))
-        } else {
-          const query = gql`
-            ${ME}
-          `
-          const { data:{value} } = await useAsyncQuery(query, {})
-    
-          if (value?.me) {
-            this.user = value.me
-            localStorage.setItem('user', JSON.stringify(this.user));
-          }
-        }
       }
     },
-  };
+  },
+};
 </script>
 
 <style>
-
 .logo {
   font-weight: 600;
   font-size: 1.5rem;
@@ -107,9 +115,8 @@
     flex-direction: row;
     justify-content: center;
     align-items: center;
-    height:  4rem !important;
+    height: 4rem !important;
     padding: 0px 15px 0px 15px !important;
   }
 }
-
 </style>

@@ -147,7 +147,7 @@ export default defineComponent({
     },
     editPlayer(id) {
       // TODO - Implemente a lógica de adicionar jogador.
-      console.log("action edit", id);
+      this.$router.push(`/players/edit/${id}`);
     },
     deletePlayer(id) {
       // TODO - Implemente a lógica de deletar jogadores.

@@ -48,15 +48,56 @@ export default {
     return {
       minimized: false,
       titles: [
-        { title: "Home", link: "/", active: false },
-        { title: "Treinos", link: "/trainings", active: false },
-        { title: "Times", link: "/teams", active: false },
-        { title: "Jogadores", link: "/players", active: false },
-        { title: "Criar Jogador", link: "/players/create", active: false },
-        { title: "Login", link: "/login", active: false },
-        { title: "Minha Conta", link: "/account", active: false },
-        { title: "Notificações", link: "/notifications", active: false },
-        { title: "Configurações", link: "/settings", active: false },
+        {
+          title: "Treinos",
+          link: "/trainings",
+          active: false,
+        },
+        {
+          title: "Times",
+          link: "/teams",
+          active: false,
+        },
+        {
+          title: "Editar Jogador",
+          link: "/players/edit/",
+          active: false,
+        },
+        {
+          title: "Jogadores",
+          link: "/players",
+          active: false,
+        },
+        {
+          title: "Criar Jogador",
+          link: "/players/create",
+          active: false,
+        },
+        {
+          title: "Login",
+          link: "/login",
+          active: false,
+        },
+        {
+          title: "Minha Conta",
+          link: "/account",
+          active: false,
+        },
+        {
+          title: "Notificações",
+          link: "/notifications",
+          active: false,
+        },
+        {
+          title: "Configurações",
+          link: "/settings",
+          active: false,
+        },
+        {
+          title: "Home",
+          link: "/",
+          active: false,
+        },
       ],
       user: {
         id: null,
@@ -67,11 +108,17 @@ export default {
 
   computed: {
     activeTitle() {
-      return this.titles.find((title) => title.active).title;
+      const matchedTitle = this.titles.find((title) =>
+        this.$route.path.startsWith(title.link)
+      );
+      // NOTE - Para debug quando necessário
+      //console.log("Rota atual:", this.$route.path);
+      //console.log("Título correspondente:", matchedTitle);
+      return matchedTitle ? matchedTitle.title : "Home"; // Valor padrão se nenhum título for encontrado
     },
     computedTitles() {
       return this.titles.map((title) => {
-        title.active = this.$route.path === title.link;
+        title.active = this.$route.path.startsWith(title.link);
         return title;
       });
     },

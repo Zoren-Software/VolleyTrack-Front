@@ -29,15 +29,30 @@ export default {
   data() {
     return {
       titles: [
-        { title: "Home", link: "/", icon: "dashboard", active: false },
+        {
+          title: "Home",
+          link: "/",
+          icon: "dashboard",
+          active: false,
+        },
         {
           title: "Treinos",
           link: "/trainings",
           icon: "fitness_center",
           active: false,
         },
-        { title: "Times", link: "/teams", icon: "group", active: false },
-        { title: "Jogadores", link: "/players", icon: "person", active: false },
+        {
+          title: "Times",
+          link: "/teams",
+          icon: "group",
+          active: false,
+        },
+        {
+          title: "Jogadores",
+          link: "/players",
+          icon: "person",
+          active: false,
+        },
       ],
     };
   },
