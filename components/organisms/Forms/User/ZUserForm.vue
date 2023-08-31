@@ -261,6 +261,8 @@ export default {
       confirmSuccess("Time removido com sucesso!");
     },
     async save() {
+      // TODO - Este save deve ficar no componente index e no componente [id].vue
+      // Aqui deve ter apenas um emit para o componente pai
       try {
         this.loading = true;
         this.error = false;
