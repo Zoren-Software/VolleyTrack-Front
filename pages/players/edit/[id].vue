@@ -64,7 +64,7 @@ export default {
             roles: result.data.user.roles.map((role) => {
               return {
                 id: Number(role.id),
-                role: role.name,
+                text: role.name,
               };
             }),
             phone: result.data.user?.information?.phone,
