@@ -50,8 +50,8 @@
           <ZSelectRole
             class="mb-3"
             label="Permissões"
-            v-model="form.permission"
-            :ignoreIds="form.permission.map((item) => item.id)"
+            v-model="form.roles"
+            :ignoreIds="form.roles.map((item) => item.id)"
             :error="errorFields.includes('roleId')"
             :error-messages="errors.roleId || []"
           />
@@ -113,11 +113,26 @@ import ZListRelationTeams from "~/components/organisms/List/Relations/ZListRelat
 import USERCREATE from "~/graphql/user/mutation/userCreate.graphql";
 import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
 
-import Swal from "sweetalert2";
-
 const { formData } = useForm("myForm");
 
 export default {
+  props: {
+    data: {
+      type: Object,
+      default: () => {
+        return {
+          name: "",
+          email: "",
+          password: "",
+          cpf: "",
+          phone: "",
+          roles: [],
+          positions: [],
+          teams: [],
+        };
+      },
+    },
+  },
   components: {
     ZPasswordInputWithConfirmPassword,
     ZEmailInput,
@@ -151,16 +166,7 @@ export default {
         { label: "Posição" },
         { label: "Times" },
       ],
-      form: {
-        name: "",
-        email: "",
-        password: "",
-        cpf: "",
-        phone: "",
-        permission: [],
-        positions: [],
-        teams: [],
-      },
+      form: this.data,
       positions: [],
       teams: [],
     };
@@ -179,6 +185,9 @@ export default {
       } else {
         this.prevStepButton = true;
       }
+    },
+    data(val) {
+      this.form = val;
     },
   },
 
@@ -268,7 +277,7 @@ export default {
           cpf: this.form.cpf,
           rg: this.form.rg,
           phone: this.form.phone,
-          roleId: this.form.permission.map((item) => item.id),
+          roleId: this.form.roles.map((item) => item.id),
           positionId: this.form.positions.map((item) => item.id),
           teamId: this.form.teams.map((item) => item.id),
         };
