@@ -67,9 +67,9 @@ export default {
                 role: role.name,
               };
             }),
-            phone: result.data.user.information.phone,
-            cpf: result.data.user.information.cpf,
-            rg: result.data.user.information.rg,
+            phone: result.data.user?.information?.phone,
+            cpf: result.data.user?.information?.cpf,
+            rg: result.data.user?.information?.rg,
             password: "",
             confirmPassword: "",
           };
@@ -98,9 +98,9 @@ export default {
                 text: role.name,
               };
             }),
-            phone: value.user.information.phone,
-            cpf: value.user.information.cpf,
-            rg: value.user.information.rg,
+            phone: value.user?.information?.phone,
+            cpf: value.user?.information?.cpf,
+            rg: value.user?.information?.rg,
             password: "",
             confirmPassword: "",
           };
