@@ -110,7 +110,6 @@ import ZSelectPosition from "~/components/molecules/Selects/ZSelectPosition";
 import ZSelectTeam from "~/components/molecules/Selects/ZSelectTeam";
 import ZListRelationPositions from "~/components/organisms/List/Relations/ZListRelationPositions";
 import ZListRelationTeams from "~/components/organisms/List/Relations/ZListRelationTeams";
-import USERCREATE from "~/graphql/user/mutation/userCreate.graphql";
 import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
 
 const { formData } = useForm("myForm");
@@ -125,10 +124,34 @@ export default {
           email: "",
           password: "",
           cpf: "",
+          rg: "",
           phone: "",
           roles: [],
           positions: [],
           teams: [],
+        };
+      },
+    },
+    loading: {
+      type: Boolean,
+      default: false,
+    },
+    errorFields: {
+      type: Array,
+      default: () => [],
+    },
+    errors: {
+      type: Object,
+      default: () => {
+        return {
+          name: [],
+          email: [],
+          password: [],
+          cpf: [],
+          rg: [],
+          phone: [],
+          roleId: [],
+          teamId: [],
         };
       },
     },
@@ -156,8 +179,6 @@ export default {
       messages: {
         password: ["No primeiro login do usuário ele deverá alterar a senha."],
       },
-      errorFields: [],
-      errors: this.errorsDefault(),
 
       steps: [
         { label: "Informações Essenciais" },
@@ -261,55 +282,7 @@ export default {
       confirmSuccess("Time removido com sucesso!");
     },
     async save() {
-      // TODO - Este save deve ficar no componente index e no componente [id].vue
-      // Aqui deve ter apenas um emit para o componente pai
-      try {
-        this.loading = true;
-        this.error = false;
-
-        const query = gql`
-          ${USERCREATE}
-        `;
-
-        // preciso renomear algumas váriaveis para serem enviadas nessa consulta
-        const variables = {
-          name: this.form.name,
-          email: this.form.email,
-          password: this.form.password,
-          cpf: this.form.cpf,
-          rg: this.form.rg,
-          phone: this.form.phone,
-          roleId: this.form.roles.map((item) => item.id),
-          positionId: this.form.positions.map((item) => item.id),
-          teamId: this.form.teams.map((item) => item.id),
-        };
-
-        const { mutate } = await useMutation(query, { variables });
-
-        const { data } = await mutate();
-
-        confirmSuccess("Usuário salvo com sucesso!", () => {
-          this.errors = this.errorsDefault();
-
-          this.$router.push("/players");
-        });
-      } catch (error) {
-        console.error(error);
-        this.error = true;
-        this.errors = error.graphQLErrors[0].extensions.validation;
-
-        const errorMessages = Object.values(this.errors).map((item) => {
-          return item[0];
-        });
-
-        this.errorFields = Object.keys(this.errors);
-
-        // criar um título para essas validacões que seram mostradas
-        const footer = errorMessages.join("<br>");
-
-        confirmError("Ocorreu um erro ao salvar o usuário!", footer);
-      }
-      this.loading = false;
+      this.$emit("save", this.form);
     },
   },
 };
