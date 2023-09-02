@@ -55,6 +55,10 @@ export default {
     formatRG(value) {
       let formatted = value;
 
+      if (formatted == null) {
+        return formatted;
+      }
+
       // limita a entrada a um máximo de 11 dígitos
       if (formatted.length > 11) {
         formatted = formatted.slice(0, 11);
