@@ -2,10 +2,12 @@
   <va-navbar-item>
     <va-button-dropdown color="background-primary">
       <template #label>
-        <va-avatar v-if="user.id" size="small" class="mr-6">{{
-          firstLatter
-        }}</va-avatar>
-        <va-icon v-else name="account_circle" />
+        <va-inner-loading :loading="loading" :size="50">
+          <va-avatar v-if="user.id" size="small" class="mr-6">
+            {{ firstLatter }}
+          </va-avatar>
+          <va-icon v-else name="account_circle" />
+        </va-inner-loading>
       </template>
       <ZListItemsUser :actionsUser="actionsUser" @action="actionHandler" />
     </va-button-dropdown>
@@ -28,6 +30,7 @@ export default {
   },
   data() {
     return {
+      loading: true,
       user: {
         id: null,
         name: "Usuário",
@@ -53,7 +56,11 @@ export default {
   },
 
   mounted() {
-    this.getUser();
+    this.loading = true;
+    setTimeout(() => {
+      this.getUser();
+      this.loading = false;
+    }, 5000);
   },
 
   methods: {
