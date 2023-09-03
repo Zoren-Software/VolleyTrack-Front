@@ -37,8 +37,8 @@
             :password-messages="messages.password"
             :error-messages="errors.password || []"
             :error="errorFields.includes('password')"
-            :user-login="user.id"
-            :form-id="form.id"
+            :user-login="Number(user.id)"
+            :form-id="Number(form.id)"
             id="password"
             class="mb-3"
           />
@@ -92,9 +92,6 @@
         </template>
       </va-stepper>
     </va-form>
-    <pre
-      >{{ form }}
-    </pre>
   </va-card>
 </template>
 
