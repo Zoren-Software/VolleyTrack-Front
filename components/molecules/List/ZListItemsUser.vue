@@ -1,12 +1,12 @@
 <template>
   <va-list>
-    <va-list-label>
-      Ações
-    </va-list-label>
-    <va-list-item 
+    <va-list-label> Ações </va-list-label>
+    <va-list-item
       v-for="action in actionsUser"
       :key="action.title"
-      :class="`no-style-link hover` + (isSelected(action.action) ? ' selected' : '')"
+      :class="
+        `no-style-link hover` + (isSelected(action.action) ? ' selected' : '')
+      "
       :preset="value ? 'primary' : 'secondary'"
       @click="this.action(action.action)"
     >
@@ -18,40 +18,41 @@
 </template>
 
 <script>
-export default{
-  data () {
+export default {
+  data() {
     return {
       actionsUser: [
-        { title: 'Minha conta', action: 'account', active: false },
-        { title: 'Logout', action: 'logout', active: false },
+        { title: "Minha conta", action: "account", active: false },
+        { title: "Logout", action: "logout", active: false },
       ],
       value: true,
-    }
+    };
   },
 
   methods: {
-    action (type) {
-      if (type === 'account') {
-        this.$router.push('/account')
-      } else if (type === 'logout') {
-        this.logout()
+    action(type) {
+      if (type === "account") {
+        this.$router.push("/account");
+      } else if (type === "logout") {
+        this.logout();
       }
     },
 
-    logout () {
-      const { onLogout } = useApollo()
-      onLogout()
-      localStorage.removeItem('userToken')
-      this.$router.push('/login')
+    logout() {
+      const { onLogout } = useApollo();
+      onLogout();
+      localStorage.removeItem("user");
+      localStorage.removeItem("userToken");
+      this.$router.push("/login");
     },
 
-    isSelected (action) {
-      if (this.$route.path === '/account') {
-        return action === 'account'
+    isSelected(action) {
+      if (this.$route.path === "/account") {
+        return action === "account";
       }
     },
   },
-}
+};
 </script>
 
 <style scoped>

@@ -3,7 +3,12 @@
     <div class="row justify-center px-3 pb-4">
       <div class="flex flex-col">
         <div class="item">
-          <ZEmailInput v-model="email" label="E-mail" id="email" />
+          <ZEmailInput
+            v-model="email"
+            label="E-mail"
+            id="email"
+            placeholder="E-mail"
+          />
         </div>
       </div>
     </div>
@@ -14,6 +19,7 @@
             v-model="password"
             label="Password"
             id="password"
+            placeholder="Senha"
             :error="error"
             :error-messages="errorMessage"
             :success="success"

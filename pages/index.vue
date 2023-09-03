@@ -2,29 +2,30 @@
   <div>
     <h1>
       <!-- Mostrar aqui o token do usuario vindo de localstorage -->
-      {{ token  }}
-      <ZList>
+      {{ token }}
+      <pre>{{ JSON.stringify(user, null, 2) }}</pre>
 
-      </ZList>
+      <ZList> </ZList>
     </h1>
   </div>
 </template>
 
 <script>
-
-import ZList from '~/components/atoms/List/ZList'
+import ZList from "~/components/atoms/List/ZList";
 
 export default {
   components: {
-    ZList
+    ZList,
   },
-  data () {
+  data() {
     return {
-      token: ''
-    }
+      token: "",
+      user: {},
+    };
   },
-  mounted () {
-    this.token = localStorage.getItem('userToken') ?? 'sem token'
-  }
-}
+  mounted() {
+    this.token = localStorage.getItem("userToken") ?? "sem token";
+    this.user = JSON.parse(localStorage.getItem("user"));
+  },
+};
 </script>
