@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div v-if="userLogin == formId || formId == 0">
     <ZPasswordInput
       v-model="password"
       v-bind="$attrs"
@@ -78,6 +78,14 @@ export default {
       default: () => [
         (value) => (value && value.length > 0) || "Este campo é obrigatório",
       ],
+    },
+    userLogin: {
+      type: Number,
+      default: 0,
+    },
+    formId: {
+      type: Number,
+      default: 0,
     },
   },
   data: () => ({

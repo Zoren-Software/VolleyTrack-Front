@@ -37,6 +37,8 @@
             :password-messages="messages.password"
             :error-messages="errors.password || []"
             :error="errorFields.includes('password')"
+            :user-login="user.id"
+            :form-id="form.id"
             id="password"
             class="mb-3"
           />
@@ -173,6 +175,9 @@ export default {
   data() {
     return {
       formData,
+      user: localStorage.getItem("user")
+        ? JSON.parse(localStorage.getItem("user"))
+        : null,
       step: 0,
       nextStepButton: true,
       prevStepButton: false,
