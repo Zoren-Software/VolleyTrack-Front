@@ -60,7 +60,7 @@ export default {
     setTimeout(() => {
       this.getUser();
       this.loading = false;
-    }, 5000);
+    }, 2000);
   },
 
   methods: {
