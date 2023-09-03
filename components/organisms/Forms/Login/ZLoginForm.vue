@@ -1,5 +1,5 @@
 <template>
-  <va-form>
+  <va-form @keyup.enter="login">
     <div class="row justify-center px-3 pb-4">
       <div class="flex flex-col">
         <div class="item">
