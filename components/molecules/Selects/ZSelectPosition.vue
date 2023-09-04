@@ -6,7 +6,7 @@
     :options="items"
     :loading="loading"
     multiple
-    @click="getPositions"
+    @click="getPositions(true)"
     @scrollBottom="loadMore"
     @updateSearch="newSearch"
   >
@@ -39,12 +39,17 @@ export default {
     },
     teamsIds: {
       type: Array,
-      required: true,
+      required: false,
+    },
+    ignoreIds: {
+      type: Array,
+      required: false,
     },
   },
   data() {
     return {
-      value: "",
+      hasMoreItems: true,
+      value: [],
       loading: false,
       items: [],
       variablesGetPositions: {
@@ -53,19 +58,32 @@ export default {
         filter: {
           search: "%%",
           teamsIds: this.teamsIds,
+          ignoreIds: this.ignoreIds,
         },
       },
     };
   },
   watch: {
     teamsIds(newVal) {
-      this.variablesGetPositions.filter.teamsIds = newVal;
+      this.variablesGetPositions.filter.teamsIds = newVal.map((item) =>
+        Number(item.value)
+      );
+      this.getPositions();
+    },
+    ignoreIds(newVal) {
+      this.variablesGetPositions.filter.ignoreIds = newVal.map((item) => {
+        return Number(item);
+      });
       this.getPositions();
     },
   },
 
   methods: {
-    getPositions() {
+    getPositions(click = false) {
+      if (click) {
+        this.items = [];
+        this.variablesGetPositions.page = 1;
+      }
       this.loading = true;
       setTimeout(() => {
         const query = gql`
@@ -97,9 +115,7 @@ export default {
         const newItems = result.positions.data.map((item) => {
           return {
             text: item.name,
-            textBy: `Text by ${item.name}`,
             value: Number(item.id),
-            valueBy: Number(item.id),
           };
         });
 
@@ -112,6 +128,9 @@ export default {
         });
 
         this.items = uniqueItems;
+        this.hasMoreItems = result.positions.paginatorInfo.hasMorePages;
+      } else {
+        this.hasMoreItems = false;
       }
     },
     newSearch(newSearchValue) {
@@ -119,6 +138,9 @@ export default {
       this.getPositions();
     },
     loadMore() {
+      if (!this.hasMoreItems) {
+        return;
+      }
       this.variablesGetPositions.page += 1;
       this.getPositions();
     },

@@ -1,0 +1,51 @@
+mutation userCreate(
+  $name: String!
+  $email: String!
+  $cpf: String
+  $rg: String
+  $phone: String
+  $roleId: [Int!]!
+  $positionId: [Int]
+  $teamId: [Int]
+  $password: String!
+) {
+  userCreate(
+    name: $name
+    email: $email
+    cpf: $cpf
+    rg: $rg
+    phone: $phone
+    roleId: $roleId
+    positionId: $positionId
+    teamId: $teamId
+    password: $password
+  ) {
+    id
+    name
+    email
+    positions {
+      id
+      name
+      createdAt
+      updatedAt
+    }
+    teams {
+      id
+      name
+      createdAt
+      updatedAt
+    }
+    information {
+      id
+      user_id
+      cpf
+      rg
+      phone
+      createdAt
+      updatedAt
+    }
+    emailVerifiedAt
+    createdAt
+    updatedAt
+  }
+}

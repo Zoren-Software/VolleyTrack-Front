@@ -5,9 +5,12 @@
       :items="items"
       :columns="extendedColumns"
       :loading="this.loading"
-      virtual-scroller
+      :style="{
+        '--va-data-table-thead-background': 'var(--va-background-element)',
+        '--va-data-table-tfoot-background': 'var(--va-background-element)',
+      }"
       sticky-header
-      :wrapper-size="730"
+      noDataHtml="Nenhum registro encontrado"
       v-bind="$attrs"
     >
       <template v-for="(_, slotName) in $slots" #[slotName]="scope">
@@ -65,5 +68,24 @@ export default {
 
 .va-data-table .va-data-table__table .va-data-table__table-thead--sticky {
   z-index: 3;
+}
+.no-data {
+  padding: 2vh;
+}
+
+::v-deep(.custom-table) {
+  --va-data-table-thead-background: linear-gradient(
+    0deg,
+    var(--va-primary),
+    var(--va-info)
+  );
+  --va-data-table-tfoot-background: linear-gradient(
+    0deg,
+    var(--va-info),
+    var(--va-primary)
+  );
+  --va-data-table-max-height: 300px;
+  --va-data-table-thead-color: var(--va-text-inverted);
+  --va-data-table-tfoot-color: var(--va-text-inverted);
 }
 </style>

@@ -6,7 +6,6 @@
 </template>
 
 <script>
-
 import ZNavBarItem from "~/components/atoms/NavBar/ZNavBarItem";
 
 export default {

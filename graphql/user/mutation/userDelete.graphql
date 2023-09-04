@@ -1,0 +1,35 @@
+mutation userDelete(
+  $id: [ID!]!
+) {
+  userDelete(
+    id: $id
+  ) {
+    id
+    name
+    email
+    positions {
+      id
+      name
+      createdAt
+      updatedAt
+    }
+    teams {
+      id
+      name
+      createdAt
+      updatedAt
+    }
+    information {
+      id
+      user_id
+      cpf
+      rg
+      phone
+      createdAt
+      updatedAt
+    }
+    emailVerifiedAt
+    createdAt
+    updatedAt
+  }
+}

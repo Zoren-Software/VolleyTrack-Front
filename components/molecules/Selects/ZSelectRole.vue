@@ -6,15 +6,27 @@
     :options="items"
     :loading="loading"
     multiple
-    @click="getTeams(true)"
+    @click="getRoles(true)"
     @scrollBottom="loadMore"
     @updateSearch="newSearch"
-  />
+  >
+    <template #content="{ value }">
+      <va-chip
+        v-if="value.length >= 2"
+        v-for="chip in value.slice(0, 3)"
+        :key="chip.value"
+        class="mr-2"
+        size="small"
+      >
+        {{ chip.text }}
+      </va-chip>
+    </template>
+  </ZSelect>
 </template>
 
 <script>
 import ZSelect from "~/components/atoms/Select/ZSelect";
-import TEAMS from "~/graphql/team/query/teams.graphql";
+import ROLES from "~/graphql/role/query/roles.graphql";
 
 export default {
   components: {
@@ -25,10 +37,6 @@ export default {
       type: String,
       required: true,
     },
-    positionsIds: {
-      type: Array,
-      required: false,
-    },
     ignoreIds: {
       type: Array,
       required: false,
@@ -37,54 +45,45 @@ export default {
   data() {
     return {
       hasMoreItems: true,
-      value: [],
+      value: "",
       loading: false,
       items: [],
-      variablesGetTeams: {
+      variablesGetRoles: {
         page: 1,
         perPage: 10,
         filter: {
           search: "%%",
-          positionsIds: this.positionsIds,
           ignoreIds: this.ignoreIds,
         },
       },
     };
   },
-
   watch: {
-    positionsIds(newVal) {
-      this.variablesGetTeams.filter.positionsIds = newVal.map((item) =>
-        Number(item.value)
-      );
-      this.getTeams();
-    },
     ignoreIds(newVal) {
-      this.variablesGetTeams.filter.ignoreIds = newVal.map((item) => {
+      this.variablesGetRoles.filter.ignoreIds = newVal.map((item) => {
         return Number(item);
       });
-      this.getTeams();
+      this.getRoles();
     },
   },
 
   methods: {
-    getTeams(click = false) {
+    getRoles(click = false) {
       if (click) {
         this.items = [];
-        this.variablesGetTeams.page = 1;
+        this.variablesGetRoles.page = 1;
       }
       this.loading = true;
-
       setTimeout(() => {
         const query = gql`
-          ${TEAMS}
+          ${ROLES}
         `;
 
         const {
           result: { value },
-        } = useQuery(query, this.variablesGetTeams);
+        } = useQuery(query, this.variablesGetRoles);
 
-        const { onResult } = useQuery(query, this.variablesGetTeams);
+        const { onResult } = useQuery(query, this.variablesGetRoles);
 
         onResult((result) => {
           this.handleResult(result.data);
@@ -99,40 +98,40 @@ export default {
     },
 
     handleResult(result) {
-      if (result?.teams?.data.length > 0) {
-        this.paginatorInfo = result.teams.paginatorInfo;
+      if (result?.roles?.data.length > 0) {
+        this.paginatorInfo = result.roles.paginatorInfo;
 
-        const newItems = result.teams.data.map((item) => {
+        const newItems = result.roles.data.map((item) => {
           return {
             text: item.name,
-            value: Number(item.id),
+            id: Number(item.id),
           };
         });
 
         let allItems = [...this.items, ...newItems];
 
-        const uniqueItems = Array.from(
-          new Set(allItems.map((a) => a.value))
-        ).map((value) => {
-          return allItems.find((a) => a.value === value);
-        });
+        const uniqueItems = Array.from(new Set(allItems.map((a) => a.id))).map(
+          (id) => {
+            return allItems.find((a) => a.id === id);
+          }
+        );
 
         this.items = uniqueItems;
-        this.hasMoreItems = result.teams.paginatorInfo.hasMorePages;
+        this.hasMoreItems = result.roles.paginatorInfo.hasMorePages;
       } else {
         this.hasMoreItems = false;
       }
     },
     newSearch(newSearchValue) {
-      this.variablesGetTeams.filter.search = `%${newSearchValue}%`;
-      this.getTeams();
+      this.variablesGetRoles.filter.search = `%${newSearchValue}%`;
+      this.getRoles();
     },
     loadMore() {
       if (!this.hasMoreItems) {
         return;
       }
-      this.variablesGetTeams.page += 1;
-      this.getTeams();
+      this.variablesGetRoles.page += 1;
+      this.getRoles();
     },
   },
 };

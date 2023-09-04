@@ -26,9 +26,7 @@ export default {
     return {
       data: {},
       variablesGetPlayer: {
-        id: localStorage.getItem("user")
-          ? JSON.parse(localStorage.getItem("user")).id
-          : null,
+        id: this.$route.params.id,
       },
       loading: false,
       error: false,

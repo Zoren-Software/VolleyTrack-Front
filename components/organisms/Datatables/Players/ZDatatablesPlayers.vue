@@ -1,11 +1,17 @@
 <template>
   <ZDatatableGeneric
+    buttonActionAdd
+    buttonActionDelete
+    includeActionsColumn
+    includeActionEditList
+    includeActionDeleteList
+    textAdvancedFilters
     selectable
-    :includeActionsColumn="true"
     :items="items"
     :columns="columns"
     :loading="loading"
     :paginatorInfo="paginatorInfo"
+    :filter="true"
     @search="searchPlayers"
     @actionSearch="getPlayers"
     @actionClear="clearSearch"
@@ -66,6 +72,9 @@ import ZUser from "~/components/molecules/Datatable/Slots/ZUser";
 import ZPosition from "~/components/molecules/Datatable/Slots/ZPosition";
 import ZCPF from "~/components/molecules/Datatable/Slots/ZCPF";
 import ZTeam from "~/components/molecules/Datatable/Slots/ZTeam";
+import USERDELETE from "~/graphql/user/mutation/userDelete.graphql";
+import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
+
 //import { toRaw } from "vue"; // NOTE - Para debug
 
 export default defineComponent({
@@ -134,23 +143,67 @@ export default defineComponent({
       );
     },
     addPlayer() {
-      // TODO - Implemente a lógica de adicionar jogador.
-      console.log("action add");
+      this.$router.push("/players/create");
     },
     editPlayer(id) {
-      // TODO - Implemente a lógica de adicionar jogador.
-      console.log("action edit", id);
+      this.$router.push(`/players/edit/${id}`);
     },
-    deletePlayer(id) {
-      // TODO - Implemente a lógica de deletar jogadores.
-      console.log("action delete", id);
+    async deleteItems(ids) {
+      try {
+        this.loading = true;
+
+        const query = gql`
+          ${USERDELETE}
+        `;
+
+        const variables = {
+          id: ids,
+        };
+
+        const { mutate } = await useMutation(query, { variables });
+
+        const { data } = await mutate();
+
+        confirmSuccess("Usuário(s) deletado(s) com sucesso!", () => {
+          this.items = this.items.filter((item) => !ids.includes(item.id));
+        });
+      } catch (error) {
+        console.error(error);
+        this.error = true;
+
+        if (
+          error.graphQLErrors &&
+          error.graphQLErrors[0] &&
+          error.graphQLErrors[0].extensions &&
+          error.graphQLErrors[0].extensions.validation
+        ) {
+          this.errors = error.graphQLErrors[0].extensions.validation;
+
+          const errorMessages = Object.values(this.errors).map((item) => {
+            return item[0];
+          });
+
+          this.errorFields = Object.keys(this.errors);
+
+          const footer = errorMessages.join("<br>");
+
+          confirmError("Ocorreu um erro ao deletar o usuário!", footer);
+        } else {
+          confirmError("Ocorreu um erro ao deletar o usuário!");
+        }
+      }
+      this.loading = false;
     },
-    deletePlayers(items) {
-      // TODO - Implemente a lógica de deletar jogadores.
-      console.log("action deletes", items);
+
+    async deletePlayer(id) {
+      await this.deleteItems([id]);
     },
+
+    async deletePlayers(items) {
+      await this.deleteItems(items);
+    },
+
     updateCurrentPageActive(page) {
-      console.log("updateCurrentPageActive", page);
       this.variablesGetPlayers.page = page;
       this.getPlayers();
     },
@@ -161,7 +214,7 @@ export default defineComponent({
 
     clearSearch() {
       this.variablesGetPlayers.filter = {
-        search: "",
+        search: "%%",
         positionsIds: [],
         teamsIds: [],
       };
@@ -175,11 +228,28 @@ export default defineComponent({
         ${PLAYERS}
       `;
 
+      let positionsIdsValues = this.variablesGetPlayers.filter.positionsIds.map(
+        (position) => position.value
+      );
+
+      let teamsIdsValues = this.variablesGetPlayers.filter.teamsIds.map(
+        (team) => team.value
+      );
+
+      const consult = {
+        ...this.variablesGetPlayers,
+        filter: {
+          ...this.variablesGetPlayers.filter,
+          positionsIds: positionsIdsValues,
+          teamsIds: teamsIdsValues,
+        },
+      };
+
       const {
         result: { value },
-      } = useQuery(query, this.variablesGetPlayers);
+      } = useQuery(query, consult);
 
-      const { onResult } = useQuery(query, this.variablesGetPlayers);
+      const { onResult } = useQuery(query, consult);
 
       onResult((result) => {
         if (result?.data?.users?.data.length > 0) {

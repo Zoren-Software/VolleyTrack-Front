@@ -1,7 +1,6 @@
 <template>
   <ZUserForm
-    :data="data"
-    @save="edit"
+    @save="create"
     :loading="loading"
     :errorFields="errorFields"
     :errors="errors"
@@ -10,32 +9,23 @@
 
 <script>
 import ZUserForm from "~/components/organisms/Forms/User/ZUserForm";
-import PLAYER from "~/graphql/user/query/user.graphql";
-import USEREDIT from "~/graphql/user/mutation/userEdit.graphql";
-import { transformUserData } from "~/utils/forms/userForm";
+import USERCREATE from "~/graphql/user/mutation/userCreate.graphql";
 import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
 
 export default {
   components: {
     ZUserForm,
   },
-  mounted() {
-    this.getPlayer();
-  },
+
   data() {
     return {
-      data: {},
-      variablesGetPlayer: {
-        id: localStorage.getItem("user")
-          ? JSON.parse(localStorage.getItem("user")).id
-          : null,
-      },
       loading: false,
       error: false,
       errorFields: [],
       errors: this.errorsDefault(),
     };
   },
+
   methods: {
     errorsDefault() {
       return {
@@ -49,55 +39,23 @@ export default {
         teamId: [],
       };
     },
-    getPlayer() {
-      this.loading = true;
-
-      const query = gql`
-        ${PLAYER}
-      `;
-
-      const consult = {
-        ...this.variablesGetPlayer,
-      };
-
-      const {
-        result: { value },
-      } = useQuery(query, consult);
-
-      const { onResult } = useQuery(query, consult);
-
-      onResult((result) => {
-        if (result?.data?.user) {
-          this.data = transformUserData(result.data.user);
-        }
-      });
-
-      if (value) {
-        if (value?.user) {
-          this.data = transformUserData(value.user);
-        }
-      }
-
-      this.loading = false;
-    },
-
-    async edit(form) {
+    async create(form) {
       try {
         this.loading = true;
         this.error = false;
 
         const query = gql`
-          ${USEREDIT}
+          ${USERCREATE}
         `;
 
+        // preciso renomear algumas váriaveis para serem enviadas nessa consulta
         const variables = {
-          id: form.id,
           name: form.name,
           email: form.email,
           password: form.password,
-          cpf: form.cpf,
-          rg: form.rg,
-          phone: form.phone,
+          cpf: form.cpf == "" ? null : form.cpf,
+          rg: form.rg == "" ? null : form.rg,
+          phone: form.phone == "" ? null : form.phone,
           roleId: form.roles.map((item) => item.id),
           positionId: form.positions.map((item) => item.id),
           teamId: form.teams.map((item) => item.id),

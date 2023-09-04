@@ -3,6 +3,8 @@
     <div class="flex flex-col xs2">
       <div class="item">
         <ZDataTableActionButtons
+          :buttonActionAdd="buttonActionAdd"
+          :buttonActionDelete="buttonActionDelete"
           @add="actionAdd"
           @delete="actionDeletes"
           :selectedItemsEmitted="selectedItemsEmitted"
@@ -10,7 +12,7 @@
       </div>
     </div>
   </div>
-  <ZFilter>
+  <ZFilter v-if="filter">
     <div class="row">
       <div class="flex flex-col md6 py-1">
         <div class="item">
@@ -21,7 +23,7 @@
         </div>
       </div>
       <div class="flex flex-col md12 py-1">
-        <div class="item my-2">
+        <div v-if="textAdvancedFilters" class="item my-2">
           <span class="mr my-2 va-text-bold">Filtros avançados:</span>
         </div>
         <div class="item mb-2">
@@ -50,9 +52,15 @@
     @selectionChange="selectedItemsEmitted = $event.currentSelectedItems"
   >
     <template #cell(actions)="{ rowKey: { id } }">
-      <ZDataTableActions :id="id" @edit="actionEdit" @delete="actionDelete" />
+      <ZDataTableActions
+        :id="Number(id)"
+        :includeActionEditList="includeActionEditList"
+        :includeActionDeleteList="includeActionDeleteList"
+        @edit="actionEdit"
+        @delete="actionDelete(id)"
+      />
     </template>
-    <template #bodyAppend>
+    <template #bodyAppend v-if="paginatorInfo.firstItem > 0">
       <tr>
         <td colspan="12">
           <div class="flex justify-center mt-4 ml-4">
@@ -111,6 +119,10 @@ export default defineComponent({
     "update:currentPageActive",
   ],
   props: {
+    textAdvancedFilters: {
+      type: Boolean,
+      default: false,
+    },
     items: {
       type: Array,
       default: () => [],
@@ -120,6 +132,22 @@ export default defineComponent({
       default: () => [],
     },
     includeActionsColumn: {
+      type: Boolean,
+      default: false,
+    },
+    includeActionEditList: {
+      type: Boolean,
+      default: false,
+    },
+    includeActionDeleteList: {
+      type: Boolean,
+      default: false,
+    },
+    buttonActionAdd: {
+      type: Boolean,
+      default: false,
+    },
+    buttonActionDelete: {
       type: Boolean,
       default: false,
     },
@@ -133,6 +161,10 @@ export default defineComponent({
     },
     paginatorInfo: {
       type: Object,
+    },
+    filter: {
+      type: Boolean,
+      default: false,
     },
   },
   data() {
@@ -171,7 +203,7 @@ export default defineComponent({
       this.$emit("edit", id);
     },
 
-    actionSearch(a) {
+    actionSearch() {
       this.$emit("actionSearch", this.search);
     },
 
