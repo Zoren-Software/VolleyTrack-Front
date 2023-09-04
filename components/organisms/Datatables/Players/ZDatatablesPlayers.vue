@@ -72,6 +72,9 @@ import ZUser from "~/components/molecules/Datatable/Slots/ZUser";
 import ZPosition from "~/components/molecules/Datatable/Slots/ZPosition";
 import ZCPF from "~/components/molecules/Datatable/Slots/ZCPF";
 import ZTeam from "~/components/molecules/Datatable/Slots/ZTeam";
+import USERDELETE from "~/graphql/user/mutation/userDelete.graphql";
+import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
+
 //import { toRaw } from "vue"; // NOTE - Para debug
 
 export default defineComponent({
@@ -145,14 +148,61 @@ export default defineComponent({
     editPlayer(id) {
       this.$router.push(`/players/edit/${id}`);
     },
-    deletePlayer(id) {
-      // TODO - Implemente a lógica de deletar jogadores.
-      console.log("action delete", id);
+    async deleteItems(ids) {
+      try {
+        this.loading = true;
+
+        const query = gql`
+          ${USERDELETE}
+        `;
+
+        const variables = {
+          id: ids,
+        };
+
+        const { mutate } = await useMutation(query, { variables });
+
+        const { data } = await mutate();
+
+        confirmSuccess("Usuário(s) deletado(s) com sucesso!", () => {
+          this.items = this.items.filter((item) => !ids.includes(item.id));
+        });
+      } catch (error) {
+        console.error(error);
+        this.error = true;
+
+        if (
+          error.graphQLErrors &&
+          error.graphQLErrors[0] &&
+          error.graphQLErrors[0].extensions &&
+          error.graphQLErrors[0].extensions.validation
+        ) {
+          this.errors = error.graphQLErrors[0].extensions.validation;
+
+          const errorMessages = Object.values(this.errors).map((item) => {
+            return item[0];
+          });
+
+          this.errorFields = Object.keys(this.errors);
+
+          const footer = errorMessages.join("<br>");
+
+          confirmError("Ocorreu um erro ao deletar o usuário!", footer);
+        } else {
+          confirmError("Ocorreu um erro ao deletar o usuário!");
+        }
+      }
+      this.loading = false;
     },
-    deletePlayers(items) {
-      // TODO - Implemente a lógica de deletar jogadores.
-      console.log("action deletes", items);
+
+    async deletePlayer(id) {
+      await this.deleteItems([id]);
     },
+
+    async deletePlayers(items) {
+      await this.deleteItems(items);
+    },
+
     updateCurrentPageActive(page) {
       console.log("updateCurrentPageActive", page);
       this.variablesGetPlayers.page = page;
