@@ -204,7 +204,6 @@ export default defineComponent({
     },
 
     updateCurrentPageActive(page) {
-      console.log("updateCurrentPageActive", page);
       this.variablesGetPlayers.page = page;
       this.getPlayers();
     },

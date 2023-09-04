@@ -60,11 +60,6 @@ export default {
       return this.columns;
     },
   },
-  methods: {
-    logger(msg) {
-      console.log(msg);
-    },
-  },
 };
 </script>
 
