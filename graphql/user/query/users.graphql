@@ -34,6 +34,7 @@ query users($filter: UserSearchInput, $first: Int, $page: Int) {
         cpf
         rg
         phone
+        birthDate
       }
     }
   }
