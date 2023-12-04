@@ -43,6 +43,7 @@ export default {
         cpf: [],
         rg: [],
         phone: [],
+        birthDate: [],
         roleId: [],
         teamId: [],
       };
@@ -75,7 +76,6 @@ export default {
           this.data = transformUserData(value.user);
         }
       }
-
       this.loading = false;
     },
 
@@ -88,6 +88,11 @@ export default {
           ${USEREDIT}
         `;
 
+        const birthDate =
+          form.birthDate && typeof form.birthDate === "string"
+            ? form.birthDate.split("/").reverse().join("-")
+            : null;
+
         const variables = {
           id: form.id,
           name: form.name,
@@ -96,6 +101,7 @@ export default {
           cpf: form.cpf,
           rg: form.rg,
           phone: form.phone,
+          birthDate: birthDate,
           roleId: form.roles.map((item) => item.id),
           positionId: form.positions.map((item) => item.id),
           teamId: form.teams.map((item) => item.id),

@@ -48,7 +48,11 @@ export default {
           ${USERCREATE}
         `;
 
-        // preciso renomear algumas váriaveis para serem enviadas nessa consulta
+        const birthDate =
+          form.birthDate && typeof form.birthDate === "string"
+            ? form.birthDate.split("/").reverse().join("-")
+            : null;
+
         const variables = {
           name: form.name,
           email: form.email,
@@ -56,6 +60,7 @@ export default {
           cpf: form.cpf == "" ? null : form.cpf,
           rg: form.rg == "" ? null : form.rg,
           phone: form.phone == "" ? null : form.phone,
+          birthDate: birthDate,
           roleId: form.roles.map((item) => item.id),
           positionId: form.positions.map((item) => item.id),
           teamId: form.teams.map((item) => item.id),

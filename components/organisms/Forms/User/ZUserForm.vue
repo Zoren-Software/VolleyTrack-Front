@@ -44,6 +44,13 @@
           />
         </template>
         <template #step-content-1>
+          <ZDate
+            v-model="form.birthDate"
+            id="birthDate"
+            label="Data de Nascimento"
+            v-model:view="yearView"
+            clearable
+          />
           <ZPhoneInput v-model="form.phone" />
           <ZCPFInput v-model="form.cpf" />
           <ZRGInput v-model="form.rg" />
@@ -100,6 +107,7 @@ import { useForm } from "vuestic-ui";
 import ZPasswordInputWithConfirmPassword from "~/components/molecules/Inputs/ZPasswordInputWithConfirmPassword";
 import ZTextInput from "~/components/molecules/Inputs/ZTextInput";
 import ZInput from "~/components/atoms/Inputs/ZInput";
+import ZDate from "~/components/atoms/Inputs/ZDate";
 import ZEmailInput from "~/components/molecules/Inputs/ZEmailInput";
 import ZPhoneInput from "~/components/molecules/Inputs/ZPhoneInput";
 import ZCPFInput from "~/components/molecules/Inputs/ZCPFInput";
@@ -125,6 +133,7 @@ export default {
           cpf: "",
           rg: "",
           phone: "",
+          birthDate: null,
           roles: [],
           positions: [],
           teams: [],
@@ -149,6 +158,7 @@ export default {
           cpf: [],
           rg: [],
           phone: [],
+          birthDate: null,
           roleId: [],
           teamId: [],
         };
@@ -163,12 +173,14 @@ export default {
     ZInput,
     ZCPFInput,
     ZRGInput,
+    ZDate,
     ZSelectRole,
     ZSelectPosition,
     ZSelectTeam,
     ZListRelationPositions,
     ZListRelationTeams,
   },
+
   data() {
     return {
       formData,
@@ -181,7 +193,7 @@ export default {
       messages: {
         password: ["No primeiro login do usuário ele deverá alterar a senha."],
       },
-
+      yearView: { type: "year" },
       steps: [
         { label: "Informações Essenciais" },
         { label: "Informações Pessoais" },
@@ -189,9 +201,11 @@ export default {
         { label: "Posição" },
         { label: "Times" },
       ],
-      form: this.data,
       positions: [],
       teams: [],
+      form: {
+        ...this.data,
+      },
     };
   },
 
@@ -210,7 +224,7 @@ export default {
       }
     },
     data(val) {
-      this.form = val;
+      this.form = { ...val, birthDate: val.information.birthDate };
     },
   },
 
@@ -221,6 +235,7 @@ export default {
         email: [],
         password: [],
         cpf: [],
+        birthDate: null,
         phone: [],
         roleId: [],
         teamId: [],

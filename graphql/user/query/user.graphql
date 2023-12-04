@@ -28,10 +28,11 @@ query user($id: ID!)
     }
     information {
       id
-      user_id
+      userId
       cpf
       rg
       phone
+      birthDate
       createdAt
       updatedAt
     }

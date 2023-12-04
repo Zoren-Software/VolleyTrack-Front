@@ -5,6 +5,7 @@ mutation userEdit(
   $cpf: String
   $rg: String
   $phone: String
+  $birthDate: String
   $roleId: [Int!]!
   $positionId: [Int]
   $teamId: [Int]
@@ -17,6 +18,7 @@ mutation userEdit(
     cpf: $cpf
     rg: $rg
     phone: $phone
+    birthDate: $birthDate
     roleId: $roleId
     positionId: $positionId
     teamId: $teamId
@@ -39,10 +41,11 @@ mutation userEdit(
     }
     information {
       id
-      user_id
+      userId
       cpf
       rg
       phone
+      birthDate
       createdAt
       updatedAt
     }
