@@ -20,6 +20,11 @@ export default defineNuxtConfig({
       }
     },
   },
+  runtimeConfig: {
+    public: {
+      nameApplication: '', // can be overridden by NUXT_PUBLIC_NAME_APPLICATION environment variable
+    }
+  },
   vuestic: {
     config: {
       // Config here
