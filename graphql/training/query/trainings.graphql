@@ -1,0 +1,39 @@
+query trainings(
+    ##""" $filter: TrainingSearchInput,  """
+    $first: Int, 
+    $page: Int
+  ) 
+{
+  trainings(
+    ##""" filter: $filter, """
+    first: $first,
+    page: $page
+  ) {
+    paginatorInfo {
+      count
+      currentPage
+      firstItem
+      hasMorePages
+      lastItem
+      lastPage
+      perPage
+      total
+    }
+    data {
+      id
+      name
+      userId
+      teamId
+      team {
+        id
+        name
+      }
+      status
+      dateStart
+      dateEnd
+      description
+      createdAt
+      updatedAt
+    }
+  }
+}
