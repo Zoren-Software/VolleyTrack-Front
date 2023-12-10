@@ -1,11 +1,10 @@
 query trainings(
-    ##""" $filter: TrainingSearchInput,  """
+    $filter: TrainingSearchInput
     $first: Int, 
     $page: Int
-  ) 
-{
+) {
   trainings(
-    ##""" filter: $filter, """
+    filter: $filter,
     first: $first,
     page: $page
   ) {

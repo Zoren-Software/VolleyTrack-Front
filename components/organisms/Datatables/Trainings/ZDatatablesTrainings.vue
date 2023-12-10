@@ -12,18 +12,22 @@
     :loading="loading"
     :paginatorInfo="paginatorInfo"
     :filter="true"
-    @search="searchPlayers"
+    @search="searchTrainings"
     @actionSearch="getTrainings"
     @actionClear="clearSearch"
-    @add="addPlayer"
-    @edit="editPlayer"
-    @delete="deletePlayer"
-    @deletes="deletePlayers"
+    @add="addTraining"
+    @edit="editTraining"
+    @delete="deleteTraining"
+    @deletes="deleteTrainings"
     @update:currentPageActive="updateCurrentPageActive"
   >
     <!-- FILTER -->
     <template #filter>
       <!-- TODO - Pensar nos reais filtros que deveram existir aqui -->
+      <ZSelectTeam
+        label="Times"
+        v-model="variablesGetTrainings.filter.teamsIds"
+      />
     </template>
 
     <!-- CELL -->
@@ -47,10 +51,8 @@ import ZDatatableGeneric from "~/components/molecules/Datatable/ZDatatableGeneri
 import ZSelectPosition from "~/components/molecules/Selects/ZSelectPosition";
 import ZSelectTeam from "~/components/molecules/Selects/ZSelectTeam";
 import ZDateTraining from "~/components/molecules/Datatable/Slots/ZDateTraining";
-import ZPosition from "~/components/molecules/Datatable/Slots/ZPosition";
-import ZCPF from "~/components/molecules/Datatable/Slots/ZCPF";
 import ZTeam from "~/components/molecules/Datatable/Slots/ZTeam";
-import USERDELETE from "~/graphql/user/mutation/userDelete.graphql";
+import TRAININGDELETE from "~/graphql/training/mutation/trainingDelete.graphql";
 import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
 
 //import { toRaw } from "vue"; // NOTE - Para debug
@@ -59,8 +61,6 @@ export default defineComponent({
   components: {
     ZDatatableGeneric,
     ZDateTraining,
-    ZPosition,
-    ZCPF,
     ZTeam,
     ZSelectPosition,
     ZSelectTeam,
@@ -92,6 +92,8 @@ export default defineComponent({
       variablesGetTrainings: {
         page: 1,
         filter: {
+          teamsIds: [],
+          usersIds: [],
           search: "%%",
         },
         orderBy: "id",
@@ -112,18 +114,18 @@ export default defineComponent({
         (selectedItem) => selectedItem !== item
       );
     },
-    addPlayer() {
-      this.$router.push("/players/create");
+    addTraining() {
+      this.$router.push("/trainings/create");
     },
-    editPlayer(id) {
-      this.$router.push(`/players/edit/${id}`);
+    editTraining(id) {
+      this.$router.push(`/trainings/edit/${id}`);
     },
     async deleteItems(ids) {
       try {
         this.loading = true;
 
         const query = gql`
-          ${USERDELETE}
+          ${TRAININGDELETE}
         `;
 
         const variables = {
@@ -134,7 +136,7 @@ export default defineComponent({
 
         const { data } = await mutate();
 
-        confirmSuccess("Usuário(s) deletado(s) com sucesso!", () => {
+        confirmSuccess("Treino(s) deletado(s) com sucesso!", () => {
           this.items = this.items.filter((item) => !ids.includes(item.id));
         });
       } catch (error) {
@@ -157,9 +159,9 @@ export default defineComponent({
 
           const footer = errorMessages.join("<br>");
 
-          confirmError("Ocorreu um erro ao deletar o usuário!", footer);
+          confirmError("Ocorreu um erro ao deletar o treino!", footer);
         } else {
-          confirmError("Ocorreu um erro ao deletar o usuário!");
+          confirmError("Ocorreu um erro ao deletar o treino!");
         }
       }
       this.loading = false;
@@ -176,11 +178,11 @@ export default defineComponent({
       return `${formattedDate}`;
     },
 
-    async deletePlayer(id) {
+    async deleteTraining(id) {
       await this.deleteItems([id]);
     },
 
-    async deletePlayers(items) {
+    async deleteTrainings(items) {
       await this.deleteItems(items);
     },
 
@@ -189,20 +191,19 @@ export default defineComponent({
       this.getTrainings();
     },
 
-    searchPlayers(search) {
+    searchTrainings(search) {
+      console.log("search", search);
       this.variablesGetTrainings.filter.search = `%${search}%`;
     },
 
     clearSearch() {
       this.variablesGetTrainings.filter = {
         search: "%%",
-        positionsIds: [],
         teamsIds: [],
       };
     },
 
     getTrainings() {
-      console.log("ola mundo!");
       this.loading = true;
       this.items = [];
 
@@ -210,10 +211,20 @@ export default defineComponent({
         ${TRAININGS}
       `;
 
+      let teamsIdsValues = this.variablesGetTrainings.filter.teamsIds.map(
+        (team) => team.value
+      );
+
+      let usersIdsValues = this.variablesGetTrainings.filter.usersIds.map(
+        (user) => user.value
+      );
+
       const consult = {
         ...this.variablesGetTrainings,
         filter: {
           ...this.variablesGetTrainings.filter,
+          teamsIds: teamsIdsValues,
+          usersIds: usersIdsValues,
         },
       };
 
