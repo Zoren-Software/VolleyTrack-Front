@@ -1,4 +1,8 @@
-query users($filter: UserSearchInput, $first: Int, $page: Int) {
+query users(
+    $filter: UserSearchInput, 
+    $first: Int, 
+    $page: Int
+) {
   users(
     filter: $filter,
     first: $first,
