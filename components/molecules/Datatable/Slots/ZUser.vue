@@ -24,11 +24,11 @@
           </div>
           <div v-if="showCreatedAt" class="flex items-center">
             <va-icon size="small" name="event" color="secondary" class="mr-2" />
-            <span>Criado em: {{ createdAt }}</span>
+            <span>Criado em: {{ formattedCreatedAt }}</span>
           </div>
           <div v-if="showUpdatedAt" class="flex items-center">
             <va-icon size="small" name="event" color="secondary" class="mr-2" />
-            <span>Atualizado em: {{ updatedAt }}</span>
+            <span>Atualizado em: {{ formattedUpdatedAt }}</span>
           </div>
         </div>
       </div>
@@ -52,11 +52,11 @@ export default {
       default: false,
     },
     createdAt: {
-      type: Object,
+      type: String,
       required: false,
     },
     updatedAt: {
-      type: Object,
+      type: String,
       required: false,
     },
     showCreatedAt: {
@@ -77,12 +77,11 @@ export default {
     formattedPhone() {
       return this.formatPhone(this.data.information?.phone);
     },
-    createdAt() {
-      return this.formatDate(this.createdAt);
+    formattedCreatedAt() {
+      return this.createdAt ? this.formatDate(this.createdAt) : "";
     },
-
-    updatedAt() {
-      return this.formatDate(this.updatedAt);
+    formattedUpdatedAt() {
+      return this.updatedAt ? this.formatDate(this.updatedAt) : "";
     },
   },
   methods: {

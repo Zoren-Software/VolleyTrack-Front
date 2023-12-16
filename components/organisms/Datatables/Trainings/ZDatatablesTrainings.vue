@@ -32,7 +32,6 @@
               v-model="variablesGetTrainings.filter.teamsIds"
             />
           </div>
-          {{ variablesGetTrainings.filter.teamsIds }}
         </div>
         <div class="flex flex-col md6 mb-2">
           <div class="item mr-2">
@@ -41,7 +40,6 @@
               v-model="variablesGetTrainings.filter.usersIds"
             />
           </div>
-          {{ variablesGetTrainings.filter.usersIds }}
         </div>
         <div class="flex flex-col md6 mb-2">
           <div class="item mr-2">
@@ -60,8 +58,8 @@
     </template>
     <template #cell(dateStart)="{ rowKey: { dateStart, dateEnd } }">
       <ZDateTraining
-        :date="formatTrainingDate(dateStart)"
-        :time="formatTrainingDateStart(dateStart, dateEnd)"
+        :dateStart="formatTrainingDate(dateStart)"
+        :dateEnd="formatTrainingDate(dateEnd)"
       />
     </template>
     <template #cell(user)="{ rowKey: { user, createdAt, updatedAt } }">
@@ -216,15 +214,8 @@ export default defineComponent({
       this.loading = false;
     },
 
-    formatTrainingDateStart(dateStart, dateEnd) {
-      const startTime = moment(dateStart).format("HH:mm");
-      const endTime = moment(dateEnd).format("HH:mm");
-      return `${startTime} até ${endTime}`;
-    },
-
     formatTrainingDate(dateStart) {
-      const formattedDate = moment(dateStart).format("DD/MM/YYYY");
-      return `${formattedDate}`;
+      return moment(dateStart);
     },
 
     async deleteTraining(id) {
