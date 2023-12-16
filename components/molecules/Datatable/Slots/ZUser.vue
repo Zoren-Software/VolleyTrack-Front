@@ -18,9 +18,17 @@
             <va-icon size="small" name="phone" color="secondary" class="mr-2" />
             <span>{{ formattedPhone }}</span>
           </div>
-          <div class="flex items-center">
+          <div v-if="showEmail" class="flex items-center">
             <va-icon size="small" name="email" color="secondary" class="mr-2" />
             <span>{{ data.email }}</span>
+          </div>
+          <div v-if="showCreatedAt" class="flex items-center">
+            <va-icon size="small" name="event" color="secondary" class="mr-2" />
+            <span>Criado em: {{ createdAt }}</span>
+          </div>
+          <div v-if="showUpdatedAt" class="flex items-center">
+            <va-icon size="small" name="event" color="secondary" class="mr-2" />
+            <span>Atualizado em: {{ updatedAt }}</span>
           </div>
         </div>
       </div>
@@ -30,6 +38,7 @@
 
 <script>
 import { formatPhoneOnType } from "~/utils/formatting/formatHelper";
+import moment from "moment";
 
 export default {
   props: {
@@ -37,16 +46,50 @@ export default {
       type: Object,
       required: true,
     },
+    showEmail: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
+    createdAt: {
+      type: Object,
+      required: false,
+    },
+    updatedAt: {
+      type: Object,
+      required: false,
+    },
+    showCreatedAt: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
+    showUpdatedAt: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
   },
   computed: {
     firstLatter() {
-      return this.data.name.charAt(0).toUpperCase();
+      return this.data.name.charAt(0).toUpperCase() ?? "";
     },
     formattedPhone() {
       return this.formatPhone(this.data.information?.phone);
     },
+    createdAt() {
+      return this.formatDate(this.createdAt);
+    },
+
+    updatedAt() {
+      return this.formatDate(this.updatedAt);
+    },
   },
   methods: {
+    //formatar datas usando o moment
+    formatDate(value) {
+      return moment(value).format("DD/MM/YYYY HH:mm");
+    },
     removeNonNumericCharacters(value) {
       return value.replace(/\D/g, "");
     },

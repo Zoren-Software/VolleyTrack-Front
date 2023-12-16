@@ -24,10 +24,34 @@
     <!-- FILTER -->
     <template #filter>
       <!-- TODO - Pensar nos reais filtros que deveram existir aqui -->
-      <ZSelectTeam
-        label="Times"
-        v-model="variablesGetTrainings.filter.teamsIds"
-      />
+      <div class="row">
+        <div class="flex flex-col md6 mb-2">
+          <div class="item mr-2">
+            <ZSelectTeam
+              label="Times"
+              v-model="variablesGetTrainings.filter.teamsIds"
+            />
+          </div>
+          {{ variablesGetTrainings.filter.teamsIds }}
+        </div>
+        <div class="flex flex-col md6 mb-2">
+          <div class="item mr-2">
+            <ZSelectUser
+              label="Usuário Modificação"
+              v-model="variablesGetTrainings.filter.usersIds"
+            />
+          </div>
+          {{ variablesGetTrainings.filter.usersIds }}
+        </div>
+        <div class="flex flex-col md6 mb-2">
+          <div class="item mr-2">
+            <ZSelectUser
+              label="Jogadores"
+              v-model="variablesGetTrainings.filter.playersIds"
+            />
+          </div>
+        </div>
+      </div>
     </template>
 
     <!-- CELL -->
@@ -40,6 +64,15 @@
         :time="formatTrainingDateStart(dateStart, dateEnd)"
       />
     </template>
+    <template #cell(user)="{ rowKey: { user, createdAt, updatedAt } }">
+      <ZUser
+        :data="user"
+        :createdAt="createdAt"
+        :updatedAt="updatedAt"
+        showUpdatedAt
+        showCreatedAt
+      />
+    </template>
   </ZDatatableGeneric>
 </template>
 
@@ -50,6 +83,8 @@ import TRAININGS from "~/graphql/training/query/trainings.graphql";
 import ZDatatableGeneric from "~/components/molecules/Datatable/ZDatatableGeneric";
 import ZSelectPosition from "~/components/molecules/Selects/ZSelectPosition";
 import ZSelectTeam from "~/components/molecules/Selects/ZSelectTeam";
+import ZSelectUser from "~/components/molecules/Selects/ZSelectUser";
+import ZUser from "~/components/molecules/Datatable/Slots/ZUser";
 import ZDateTraining from "~/components/molecules/Datatable/Slots/ZDateTraining";
 import ZTeam from "~/components/molecules/Datatable/Slots/ZTeam";
 import TRAININGDELETE from "~/graphql/training/mutation/trainingDelete.graphql";
@@ -62,8 +97,10 @@ export default defineComponent({
     ZDatatableGeneric,
     ZDateTraining,
     ZTeam,
+    ZUser,
     ZSelectPosition,
     ZSelectTeam,
+    ZSelectUser,
   },
 
   created() {
@@ -75,9 +112,20 @@ export default defineComponent({
 
     const columns = [
       { key: "id", name: "id", sortable: true },
-      { key: "name", name: "name", label: "Treinos", sortable: true },
+      { key: "name", name: "name", label: "Treino", sortable: true },
       { key: "team", name: "team", label: "Time", sortable: true },
-      { key: "dateStart", name: "dateStart", label: "Data", sortable: true },
+      {
+        key: "dateStart",
+        name: "dateStart",
+        label: "Horário Treino",
+        sortable: true,
+      },
+      {
+        key: "user",
+        name: "user",
+        label: "Usuário Alteração",
+        sortable: true,
+      },
     ];
 
     return {
@@ -94,6 +142,7 @@ export default defineComponent({
         filter: {
           teamsIds: [],
           usersIds: [],
+          playersIds: [],
           search: "%%",
         },
         orderBy: "id",
@@ -192,7 +241,6 @@ export default defineComponent({
     },
 
     searchTrainings(search) {
-      console.log("search", search);
       this.variablesGetTrainings.filter.search = `%${search}%`;
     },
 
@@ -212,11 +260,15 @@ export default defineComponent({
       `;
 
       let teamsIdsValues = this.variablesGetTrainings.filter.teamsIds.map(
-        (team) => team.value
+        (team) => parseInt(team.value)
       );
 
       let usersIdsValues = this.variablesGetTrainings.filter.usersIds.map(
-        (user) => user.value
+        (user) => parseInt(user.value)
+      );
+
+      let playersIdsValues = this.variablesGetTrainings.filter.playersIds.map(
+        (player) => parseInt(player.value)
       );
 
       const consult = {
@@ -225,6 +277,7 @@ export default defineComponent({
           ...this.variablesGetTrainings.filter,
           teamsIds: teamsIdsValues,
           usersIds: usersIdsValues,
+          playersIds: playersIdsValues,
         },
       };
 
@@ -235,7 +288,6 @@ export default defineComponent({
       const { onResult } = useQuery(query, consult);
 
       onResult((result) => {
-        console.log("result", result);
         if (result?.data?.trainings?.data.length > 0) {
           this.paginatorInfo = result.data.trainings.paginatorInfo;
           this.items = result.data.trainings.data;
@@ -243,8 +295,6 @@ export default defineComponent({
       });
 
       if (value) {
-        console.log("result", value);
-
         if (value?.trainings?.data.length > 0) {
           this.paginatorInfo = value.trainings.paginatorInfo;
           this.items = value.trainings.data;

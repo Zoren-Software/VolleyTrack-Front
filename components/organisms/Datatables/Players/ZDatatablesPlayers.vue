@@ -48,7 +48,7 @@
 
     <!-- CELL -->
     <template #cell(user)="{ rowKey }">
-      <ZUser :data="rowKey" />
+      <ZUser :data="rowKey" showEmail />
     </template>
     <template #cell(positions)="{ rowKey: { positions } }">
       <ZPosition :data="positions" />

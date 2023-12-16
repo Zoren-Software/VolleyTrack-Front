@@ -22,6 +22,11 @@ query trainings(
       id
       name
       userId
+      user {
+        id
+        name
+        email
+      }
       teamId
       team {
         id
