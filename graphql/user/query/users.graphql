@@ -33,6 +33,11 @@ query users(
         id
         name
       }
+      user {
+        id
+        name
+        email
+      }
       information {
         id
         cpf

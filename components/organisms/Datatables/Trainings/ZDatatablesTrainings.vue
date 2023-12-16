@@ -64,7 +64,7 @@
     </template>
     <template #cell(user)="{ rowKey: { user, createdAt, updatedAt } }">
       <ZUser
-        :data="user"
+        :data="user || {}"
         :createdAt="createdAt"
         :updatedAt="updatedAt"
         showUpdatedAt

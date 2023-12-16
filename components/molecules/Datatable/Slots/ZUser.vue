@@ -1,12 +1,12 @@
 <template>
-  <div class="row justify-start">
-    <div class="flex flex-col xs2">
+  <div v-if="data" class="row justify-start">
+    <div v-if="data.id" class="flex flex-col xs2">
       <div class="item mt-2">
         <va-avatar v-if="data.id" class="mr-6">{{ firstLatter }}</va-avatar>
         <va-icon v-else name="account_circle" />
       </div>
     </div>
-    <div class="flex flex-col xs2">
+    <div v-if="data.id" class="flex flex-col xs2">
       <div class="item">
         <div class="pl-2">
           <div class="flex gap-1 mb-1">

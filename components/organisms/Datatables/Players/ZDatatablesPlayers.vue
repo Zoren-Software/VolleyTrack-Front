@@ -47,7 +47,7 @@
     </template>
 
     <!-- CELL -->
-    <template #cell(user)="{ rowKey }">
+    <template #cell(player)="{ rowKey }">
       <ZUser :data="rowKey" showEmail />
     </template>
     <template #cell(positions)="{ rowKey: { positions } }">
@@ -58,6 +58,15 @@
     </template>
     <template #cell(team)="{ rowKey: { teams } }">
       <ZTeam :data="teams" />
+    </template>
+    <template #cell(user)="{ rowKey: { user, createdAt, updatedAt } }">
+      <ZUser
+        :data="user || {}"
+        :createdAt="createdAt"
+        :updatedAt="updatedAt"
+        showUpdatedAt
+        showCreatedAt
+      />
     </template>
   </ZDatatableGeneric>
 </template>
@@ -97,7 +106,7 @@ export default defineComponent({
 
     const columns = [
       { key: "id", name: "id", sortable: true },
-      { key: "user", name: "user", label: "Jogadores", sortable: true },
+      { key: "player", name: "player", label: "Jogadores", sortable: true },
       { key: "cpf", name: "cpf", label: "CPF e RG", sortable: true },
       {
         key: "positions",
@@ -106,6 +115,12 @@ export default defineComponent({
         sortable: true,
       },
       { key: "team", name: "team", label: "Times", sortable: true },
+      {
+        key: "user",
+        name: "user",
+        label: "Usuário Alteração",
+        sortable: true,
+      },
     ];
 
     return {

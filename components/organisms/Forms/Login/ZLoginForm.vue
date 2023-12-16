@@ -58,7 +58,7 @@ export default {
       error: false,
       errorMessage: [],
       loading: false,
-      email: "admin@voleiclub.com",
+      email: "admin@volleytrack.com",
       password: "password",
     };
   },
