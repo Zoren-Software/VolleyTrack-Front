@@ -135,8 +135,6 @@ export default {
       }
     },
     async newSearch(newSearchValue) {
-      console.log("newSearchValue", newSearchValue);
-
       this.variablesGetUsers.filter.search = await `%${newSearchValue}%`;
       await this.getUsers();
     },
