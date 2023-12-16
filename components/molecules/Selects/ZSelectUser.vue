@@ -10,7 +10,6 @@
     @scrollBottom="loadMore"
     @updateSearch="newSearch"
   >
-    <!-- TODO - Você esta ajustando esta seleção, deve selecionar o valor do ID, e mostrar o valor do name do usuário Selecionado -->
     <template #option="{ option, index, selectOption }">
       <VaButton
         size="small"
