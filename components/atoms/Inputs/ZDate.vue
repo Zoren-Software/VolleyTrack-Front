@@ -22,7 +22,7 @@ export default {
     },
     modelValue: {
       type: String,
-      default: () => null,
+      default: () => "",
     },
     rules: {
       type: Array,
