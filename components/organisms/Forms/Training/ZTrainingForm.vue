@@ -48,13 +48,38 @@
           />
         </template>
         <template #step-content-1>
-          <ZDate
-            v-model="form.birthDate"
-            id="birthDate"
-            label="Data de Nascimento"
-            v-model:view="yearView"
-            clearable
-          />
+          <div class="mb-5">
+            <ZListRelationFundamentals
+              :items="form.fundamentals"
+              @add="addFundamentals"
+              @delete="actionDeleteFundamental"
+            >
+              <template #filter>
+                <ZSelectFundamental
+                  class="mb-3"
+                  label="Fundamentos"
+                  v-model="fundamentals"
+                  :ignoreIds="form.fundamentals.map((item) => item.id)"
+                />
+              </template>
+            </ZListRelationFundamentals>
+          </div>
+          <div>
+            <ZListRelationSpecificFundamentals
+              :items="form.specificFundamentals"
+              @add="addSpecificFundamental"
+              @delete="actionDeleteSpecificFundamental"
+            >
+              <template #filter>
+                <ZSelectSpecificFundamental
+                  class="mb-3"
+                  label="Fundamentos Específicos"
+                  v-model="specificFundamentals"
+                  :ignoreIds="form.specificFundamentals.map((item) => item.id)"
+                />
+              </template>
+            </ZListRelationSpecificFundamentals>
+          </div>
         </template>
         <template #step-content-2>
           <ZListRelationTeams
@@ -82,10 +107,13 @@ import { useForm } from "vuestic-ui";
 import ZTextInput from "~/components/molecules/Inputs/ZTextInput";
 import ZDate from "~/components/atoms/Inputs/ZDate";
 import ZSelectTeam from "~/components/molecules/Selects/ZSelectTeam";
-import ZListRelationPositions from "~/components/organisms/List/Relations/ZListRelationPositions";
+import ZListRelationFundamentals from "~/components/organisms/List/Relations/ZListRelationFundamentals";
+import ZListRelationSpecificFundamentals from "~/components/organisms/List/Relations/ZListRelationSpecificFundamentals";
 import ZListRelationTeams from "~/components/organisms/List/Relations/ZListRelationTeams";
 import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
 import ZDateTimeRangePicker from "~/components/molecules/Inputs/ZDateTimeRangePicker.vue";
+import ZSelectFundamental from "~/components/molecules/Selects/ZSelectFundamental.vue";
+import ZSelectSpecificFundamental from "~/components/molecules/Selects/ZSelectSpecificFundamental.vue";
 
 const { formData } = useForm("myForm");
 
@@ -101,6 +129,8 @@ export default {
           timeStartValue: new Date(),
           timeEndValue: new Date(new Date().getTime() + 60 * 60 * 1000),
           teams: [],
+          fundamentals: [],
+          specificFundamentals: [],
         };
       },
     },
@@ -122,6 +152,8 @@ export default {
           timeStartValue: [],
           timeEndValue: [],
           teams: [],
+          fundamentals: [],
+          specificFundamentals: [],
         };
       },
     },
@@ -130,9 +162,12 @@ export default {
     ZTextInput,
     ZDate,
     ZSelectTeam,
-    ZListRelationPositions,
+    ZListRelationFundamentals,
+    ZListRelationSpecificFundamentals,
     ZListRelationTeams,
     ZDateTimeRangePicker,
+    ZSelectFundamental,
+    ZSelectSpecificFundamental,
   },
 
   data() {
@@ -159,6 +194,8 @@ export default {
       form: {
         ...this.data,
       },
+      fundamentals: [],
+      specificFundamentals: [],
     };
   },
 
@@ -190,6 +227,8 @@ export default {
         timeStartValue: [],
         timeEndValue: [],
         teams: [],
+        fundamentals: [],
+        specificFundamentals: [],
       };
     },
 
@@ -214,6 +253,51 @@ export default {
       this.teams = [];
     },
 
+    addFundamentals() {
+      const transformedfundamentals = this.fundamentals.map((item) => {
+        return {
+          id: item.value,
+          fundamental: item.text,
+        };
+      });
+
+      transformedfundamentals.forEach((newFundamental) => {
+        const isAlreadyAdded = this.form.fundamentals.some(
+          (existingFundamental) => existingFundamental.id === newFundamental.id
+        );
+
+        if (!isAlreadyAdded) {
+          this.form.fundamentals.push(newFundamental);
+        }
+      });
+
+      this.fundamentals = [];
+    },
+
+    addSpecificFundamental() {
+      const transformedSpecificFundamentals = this.specificFundamentals.map(
+        (item) => {
+          return {
+            id: item.value,
+            specificFundamental: item.text,
+          };
+        }
+      );
+
+      transformedSpecificFundamentals.forEach((newSpecificFundamental) => {
+        const isAlreadyAdded = this.form.specificFundamentals.some(
+          (existingSpecificFundamental) =>
+            existingSpecificFundamental.id === newSpecificFundamental.id
+        );
+
+        if (!isAlreadyAdded) {
+          this.form.specificFundamentals.push(newSpecificFundamental);
+        }
+      });
+
+      this.specificFundamentals = [];
+    },
+
     actionDeletePosition(id) {
       this.form.positions = this.form.positions.filter((position) => {
         return position.id !== id;
@@ -229,6 +313,25 @@ export default {
 
       confirmSuccess("Time removido com sucesso!");
     },
+
+    actionDeleteFundamental(id) {
+      this.form.fundamentals = this.form.fundamentals.filter((fundamental) => {
+        return fundamental.id !== id;
+      });
+
+      confirmSuccess("Fundamento removido com sucesso!");
+    },
+
+    actionDeleteSpecificFundamental(id) {
+      this.form.specificFundamentals = this.form.specificFundamentals.filter(
+        (specificFundamental) => {
+          return specificFundamental.id !== id;
+        }
+      );
+
+      confirmSuccess("Fundamento Específico removido com sucesso!");
+    },
+
     async save() {
       this.$emit("save", this.form);
     },

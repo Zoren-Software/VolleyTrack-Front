@@ -2,7 +2,7 @@
   <div class="d-flex align-items-center justify-content-between">
     <slot name="filter" />
     <ZButton
-      class="mb-3 ml-2"
+      class="mb-3 ml-2 custom-button"
       color="primary"
       icon="add"
       icon-right
@@ -28,3 +28,9 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.custom-button {
+  padding: 0 !important;
+}
+</style>
