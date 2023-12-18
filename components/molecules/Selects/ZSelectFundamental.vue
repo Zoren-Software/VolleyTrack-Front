@@ -6,7 +6,7 @@
     :options="items"
     :loading="loading"
     multiple
-    @click="getTeams(true)"
+    @click="getFundamentals(true)"
     @scrollBottom="loadMore"
     @updateSearch="newSearch"
   />
@@ -57,18 +57,18 @@ export default {
       this.variablesGetFundamentals.filter.usersIds = newVal.map((item) =>
         Number(item.value)
       );
-      this.getTeams();
+      this.getFundamentals();
     },
     ignoreIds(newVal) {
       this.variablesGetFundamentals.filter.ignoreIds = newVal.map((item) => {
         return Number(item);
       });
-      this.getTeams();
+      this.getFundamentals();
     },
   },
 
   methods: {
-    getTeams(click = false) {
+    getFundamentals(click = false) {
       if (click) {
         this.items = [];
         this.variablesGetFundamentals.page = 1;
@@ -125,14 +125,14 @@ export default {
     },
     newSearch(newSearchValue) {
       this.variablesGetFundamentals.filter.search = `%${newSearchValue}%`;
-      this.getTeams();
+      this.getFundamentals();
     },
     loadMore() {
       if (!this.hasMoreItems) {
         return;
       }
       this.variablesGetFundamentals.page += 1;
-      this.getTeams();
+      this.getFundamentals();
     },
   },
 };
