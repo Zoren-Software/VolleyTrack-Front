@@ -233,24 +233,21 @@ export default {
     },
 
     addTeams() {
-      const transformedteams = this.teams.map((item) => {
-        return {
-          id: item.value,
-          team: item.text,
-        };
-      });
+      // TODO - Fazendo esta função, pois seleciona apenas 1 time
+      const teamObj = {
+        id: this.teams.value,
+        team: this.teams.text,
+      };
 
-      transformedteams.forEach((newTeam) => {
-        const isAlreadyAdded = this.form.teams.some(
-          (existingTeam) => existingTeam.id === newTeam.id
-        );
+      const isAlreadyAdded = this.form.teams.some(
+        (existingTeam) => existingTeam.id === teamObj.id
+      );
 
-        if (!isAlreadyAdded) {
-          this.form.teams.push(newTeam);
-        }
-      });
+      if (!isAlreadyAdded) {
+        this.form.teams.push(teamObj);
+      }
 
-      this.teams = [];
+      this.teams = null;
     },
 
     addFundamentals() {

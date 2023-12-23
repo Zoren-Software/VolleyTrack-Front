@@ -91,6 +91,7 @@
               <ZSelectTeam
                 class="mb-3"
                 label="Times"
+                multiple
                 v-model="teams"
                 :ignoreIds="form.teams.map((item) => item.id)"
               />

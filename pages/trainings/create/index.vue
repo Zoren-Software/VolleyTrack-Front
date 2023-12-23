@@ -48,6 +48,8 @@ export default {
           ${TRAININGCREATE}
         `;
 
+        console.log(form);
+
         const birthDate =
           form.birthDate && typeof form.birthDate === "string"
             ? form.birthDate.split("/").reverse().join("-")
@@ -70,7 +72,7 @@ export default {
 
         const { data } = await mutate();
 
-        confirmSuccess("Usuário salvo com sucesso!", () => {
+        confirmSuccess("Treino salvo com sucesso!", () => {
           this.errors = this.errorsDefault();
 
           this.$router.push("/players");
@@ -96,9 +98,9 @@ export default {
           // criar um título para essas validacões que seram mostradas
           const footer = errorMessages.join("<br>");
 
-          confirmError("Ocorreu um erro ao salvar o usuário!", footer);
+          confirmError("Ocorreu um erro ao salvar o treino!", footer);
         } else {
-          confirmError("Ocorreu um erro ao salvar o usuário!");
+          confirmError("Ocorreu um erro ao salvar o treino!");
         }
       }
       this.loading = false;
