@@ -1,9 +1,6 @@
 <template>
   <va-card class="my-3 mr-3">
     <va-form ref="myForm" class="flex flex-col gap-6 mb-2">
-      <pre>
-        {{ form }}
-      </pre>
       <va-stepper v-model="step" :steps="steps" controls-hidden>
         <template #controls="{ nextStep, prevStep }">
           <va-button color="primary" @click="prevStep()" v-if="prevStepButton"
@@ -74,8 +71,11 @@
                 <ZSelectSpecificFundamental
                   class="mb-3"
                   label="Fundamentos Específicos"
+                  :disabled="!form.fundamentals.length"
                   v-model="specificFundamentals"
                   :ignoreIds="form.specificFundamentals.map((item) => item.id)"
+                  :fundamentalsIds="form.fundamentals.map((item) => item.id)"
+                  :messages="messageSpecificFundamental()"
                 />
               </template>
             </ZListRelationSpecificFundamentals>
@@ -330,6 +330,14 @@ export default {
       );
 
       confirmSuccess("Fundamento Específico removido com sucesso!");
+    },
+
+    messageSpecificFundamental() {
+      if (!this.form.fundamentals.length) {
+        return "Selecione um Fundamento para habilitar este campo";
+      }
+
+      return "";
     },
 
     async save() {
