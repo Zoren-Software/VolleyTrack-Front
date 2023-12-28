@@ -91,8 +91,12 @@
               <ZSelectTeam
                 class="mb-3"
                 label="Times"
+                :disabled="form.teams.length >= 1"
                 v-model="teams"
                 :ignoreIds="form.teams.map((item) => item.id)"
+                :messages="
+                  form.teams.length >= 1 ? 'Você já selecionou um time' : ''
+                "
               />
             </template>
           </ZListRelationTeams>
@@ -234,20 +238,14 @@ export default {
 
     addTeams() {
       // TODO - Fazendo esta função, pois seleciona apenas 1 time
-      const teamObj = {
+      const newTeam = {
         id: this.teams.value,
         team: this.teams.text,
       };
 
-      const isAlreadyAdded = this.form.teams.some(
-        (existingTeam) => existingTeam.id === teamObj.id
-      );
+      this.form.teams.push(newTeam);
 
-      if (!isAlreadyAdded) {
-        this.form.teams.push(teamObj);
-      }
-
-      this.teams = null;
+      this.teams = [];
     },
 
     addFundamentals() {

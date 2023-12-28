@@ -43,7 +43,7 @@ export default {
   emits: ["add", "delete"],
   props: {
     items: {
-      type: Array,
+      type: Array || Object,
       required: true,
     },
   },
