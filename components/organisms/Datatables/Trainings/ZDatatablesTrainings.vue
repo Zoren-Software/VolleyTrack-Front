@@ -29,6 +29,7 @@
           <div class="item mr-2">
             <ZSelectTeam
               label="Times"
+              multiple
               v-model="variablesGetTrainings.filter.teamsIds"
             />
           </div>
