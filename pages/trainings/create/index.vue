@@ -11,6 +11,7 @@
 import ZTrainingForm from "~/components/organisms/Forms/Training/ZTrainingForm";
 import TRAININGCREATE from "~/graphql/training/mutation/trainingCreate.graphql";
 import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
+import moment from "moment";
 
 export default {
   components: {
@@ -48,24 +49,23 @@ export default {
           ${TRAININGCREATE}
         `;
 
-        console.log(form);
-
-        const birthDate =
-          form.birthDate && typeof form.birthDate === "string"
-            ? form.birthDate.split("/").reverse().join("-")
-            : null;
+        const dateStart =
+          moment(form.dateValue).format("YYYY-MM-DD") +
+          " " +
+          moment(form.timeStartValue).format("HH:mm:ss");
+        const dateEnd =
+          moment(form.dateValue).format("YYYY-MM-DD") +
+          " " +
+          moment(form.timeEndValue).format("HH:mm:ss");
 
         const variables = {
           name: form.name,
-          email: form.email,
-          password: form.password,
-          cpf: form.cpf == "" ? null : form.cpf,
-          rg: form.rg == "" ? null : form.rg,
-          phone: form.phone == "" ? null : form.phone,
-          birthDate: birthDate,
-          roleId: form.roles.map((item) => item.id),
-          positionId: form.positions.map((item) => item.id),
-          teamId: form.teams.map((item) => item.id),
+          description: form.description,
+          teamId: form.teams.map((item) => item.id)[0],
+          fundamentalId: form.fundamentals.map((item) => item.id),
+          specificFundamentalId: form.fundamentals.map((item) => item.id),
+          dateStart,
+          dateEnd,
         };
 
         const { mutate } = await useMutation(query, { variables });

@@ -1,8 +1,20 @@
-mutation trainingDelete(
-  $id: [ID!]!
+mutation trainingCreate(
+  $teamId: Int!
+  $fundamentalId: [Int]
+  $specificFundamentalId: [Int]
+  $name: String!
+  $description: String
+  $dateStart: String!
+  $dateEnd: String!
 ) {
-  trainingDelete(
-    id: $id
+  trainingCreate(
+    teamId: $teamId
+    fundamentalId: $fundamentalId
+    specificFundamentalId: $specificFundamentalId
+    name: $name
+    description: $description
+    dateStart: $dateStart
+    dateEnd: $dateEnd
   ) {
     id
     name
@@ -11,8 +23,38 @@ mutation trainingDelete(
       id
       name
       email
+      userId
+      emailVerifiedAt
+      createdAt
+      updatedAt
     }
     teamId
+    team {
+      id
+      name
+      userId
+      createdAt
+      updatedAt
+    }
+    confirmationsTraining {
+      id
+      userId
+      playerId
+      trainingId
+      status
+      presence
+      teamId
+      createdAt
+      updatedAt
+    }
+    confirmationTrainingMetrics {
+      confirmed
+      pending
+      rejected
+      confirmedPercentage
+      pendingPercentage
+      rejectedPercentage
+    }
     status
     dateStart
     dateEnd
