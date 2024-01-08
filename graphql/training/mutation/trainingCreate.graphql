@@ -1,5 +1,5 @@
 mutation trainingCreate(
-  $teamId: Int!
+  $teamId: Int
   $fundamentalId: [Int]
   $specificFundamentalId: [Int]
   $name: String!

@@ -31,12 +31,6 @@ export default {
     errorsDefault() {
       return {
         name: [],
-        email: [],
-        password: [],
-        cpf: [],
-        rg: [],
-        phone: [],
-        roleId: [],
         teamId: [],
       };
     },
@@ -75,7 +69,7 @@ export default {
         confirmSuccess("Treino salvo com sucesso!", () => {
           this.errors = this.errorsDefault();
 
-          this.$router.push("/players");
+          this.$router.push("/trainings");
         });
       } catch (error) {
         console.error(error);

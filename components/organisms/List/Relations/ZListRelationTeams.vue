@@ -46,6 +46,14 @@ export default {
       type: Array || Object,
       required: true,
     },
+    error: {
+      type: Boolean,
+      default: false,
+    },
+    errorMessages: {
+      type: String,
+      default: "",
+    },
   },
   data() {
     return {

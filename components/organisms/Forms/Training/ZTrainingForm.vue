@@ -18,7 +18,6 @@
             label="Nome"
             id="name"
             class="mb-3"
-            :error="errorFields.includes('name')"
             :error-messages="errors.name || []"
           />
 
