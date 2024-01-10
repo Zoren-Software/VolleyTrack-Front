@@ -8,6 +8,18 @@ query training(
     name
     userId
     teamId
+    fundamentals {
+        id
+        name
+    }
+    specificFundamentals {
+        id
+        name
+    }
+    team {
+        id
+        name
+    }
     status
     dateStart
     dateEnd
