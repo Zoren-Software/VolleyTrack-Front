@@ -86,6 +86,18 @@ export default {
   },
 
   methods: {
+    formatFn(date) {
+      return `${date.getDate()} - ${
+        monthNames[date.getMonth()]
+      } - ${date.getFullYear()}`;
+    },
+    parseFn(text) {
+      const [day, monthName, year] = text.split(" - ");
+
+      const month = monthNames.findIndex((m) => m === monthName);
+
+      return new Date(year, month, day);
+    },
     updateDate(value) {
       this.$emit("update:date", value);
     },

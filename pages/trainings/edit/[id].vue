@@ -6,13 +6,14 @@
     :errorFields="errorFields"
     :errors="errors"
   />
+  {{ data }}
 </template>
 
 <script>
 import ZTrainingForm from "~/components/organisms/Forms/Training/ZTrainingForm";
-import PLAYER from "~/graphql/user/query/user.graphql";
+import TRAINING from "~/graphql/training/query/training.graphql";
 import USEREDIT from "~/graphql/user/mutation/userEdit.graphql";
-import { transformUserData } from "~/utils/forms/userForm";
+import { transformTrainingData } from "~/utils/forms/trainingForm";
 import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
 
 export default {
@@ -45,7 +46,7 @@ export default {
       this.loading = true;
 
       const query = gql`
-        ${PLAYER}
+        ${TRAINING}
       `;
 
       const consult = {
@@ -59,14 +60,14 @@ export default {
       const { onResult } = useQuery(query, consult);
 
       onResult((result) => {
-        if (result?.data?.user) {
-          this.data = transformUserData(result.data.user);
+        if (result?.data?.training) {
+          this.data = transformTrainingData(result.data.training);
         }
       });
 
       if (value) {
-        if (value?.user) {
-          this.data = transformUserData(value.user);
+        if (value?.training) {
+          this.data = transformTrainingData(value.training);
         }
       }
       this.loading = false;
@@ -81,33 +82,19 @@ export default {
           ${USEREDIT}
         `;
 
-        const birthDate =
-          form.birthDate && typeof form.birthDate === "string"
-            ? form.birthDate.split("/").reverse().join("-")
-            : null;
-
         const variables = {
           id: form.id,
           name: form.name,
-          email: form.email,
-          password: form.password,
-          cpf: form.cpf,
-          rg: form.rg,
-          phone: form.phone,
-          birthDate: birthDate,
-          roleId: form.roles.map((item) => item.id),
-          positionId: form.positions.map((item) => item.id),
-          teamId: form.teams.map((item) => item.id),
         };
 
         const { mutate } = await useMutation(query, { variables });
 
         const { data } = await mutate();
 
-        confirmSuccess("Usuário salvo com sucesso!", () => {
+        confirmSuccess("Treino salvo com sucesso!", () => {
           this.errors = this.errorsDefault();
 
-          this.$router.push("/players");
+          this.$router.push("/trainings");
         });
       } catch (error) {
         console.error(error);
@@ -130,9 +117,9 @@ export default {
           // criar um título para essas validacões que seram mostradas
           const footer = errorMessages.join("<br>");
 
-          confirmError("Ocorreu um erro ao salvar o usuário!", footer);
+          confirmError("Ocorreu um erro ao salvar o treino!", footer);
         } else {
-          confirmError("Ocorreu um erro ao salvar o usuário!");
+          confirmError("Ocorreu um erro ao salvar o treino!");
         }
       }
       this.loading = false;

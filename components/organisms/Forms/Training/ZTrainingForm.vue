@@ -20,7 +20,6 @@
             class="mb-3"
             :error-messages="errors.name || []"
           />
-
           <ZDateTimeRangePicker
             :date="form.dateValue"
             :timeStart="form.timeStartValue"
@@ -217,7 +216,7 @@ export default {
       }
     },
     data(val) {
-      this.form = { ...val, birthDate: val.information.birthDate };
+      this.form = { ...val };
     },
   },
 
