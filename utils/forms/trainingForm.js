@@ -9,7 +9,6 @@ function convertDate(dateString) {
 }
 
 export function transformTrainingData(training) {
-  console.log(training)
   return {
     ...training,
     dateValue: convertDate(training.dateStart),
