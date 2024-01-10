@@ -55,7 +55,7 @@ export default {
         const variables = {
           name: form.name,
           description: form.description,
-          teamId: form.teams.map((item) => item.id)[0],
+          teamId: parseInt(form.teams.map((item) => item.id)[0]),
           fundamentalId: form.fundamentals.map((item) => item.id),
           specificFundamentalId: form.fundamentals.map((item) => item.id),
           dateStart,

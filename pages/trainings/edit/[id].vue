@@ -6,13 +6,13 @@
     :errorFields="errorFields"
     :errors="errors"
   />
-  {{ data }}
 </template>
 
 <script>
+import moment from "moment";
 import ZTrainingForm from "~/components/organisms/Forms/Training/ZTrainingForm";
 import TRAINING from "~/graphql/training/query/training.graphql";
-import USEREDIT from "~/graphql/user/mutation/userEdit.graphql";
+import TRAININGEDIT from "~/graphql/training/mutation/trainingEdit.graphql";
 import { transformTrainingData } from "~/utils/forms/trainingForm";
 import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
 
@@ -79,12 +79,27 @@ export default {
         this.error = false;
 
         const query = gql`
-          ${USEREDIT}
+          ${TRAININGEDIT}
         `;
 
+        const dateStart =
+          moment(form.dateValue).format("YYYY-MM-DD") +
+          " " +
+          moment(form.timeStartValue).format("HH:mm:ss");
+        const dateEnd =
+          moment(form.dateValue).format("YYYY-MM-DD") +
+          " " +
+          moment(form.timeEndValue).format("HH:mm:ss");
+
         const variables = {
-          id: form.id,
+          id: parseInt(form.id),
           name: form.name,
+          description: form.description,
+          teamId: parseInt(form.teams.map((item) => item.id)[0]),
+          fundamentalId: form.fundamentals.map((item) => item.id),
+          specificFundamentalId: form.fundamentals.map((item) => item.id),
+          dateStart,
+          dateEnd,
         };
 
         const { mutate } = await useMutation(query, { variables });
