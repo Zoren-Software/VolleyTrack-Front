@@ -3,11 +3,9 @@
     style="width: 100%"
     v-model="value"
     v-bind="$attrs"
-    :label="label"
     :options="options"
     searchable
     searchPlaceholderText="Pesquisar"
-    :max-visible-options="2"
     selected-top-shown
     clearable
     clearable-icon="cancel"
@@ -24,10 +22,6 @@ export default {
   props: {
     options: {
       type: Array,
-      required: true,
-    },
-    label: {
-      type: String,
       required: true,
     },
   },

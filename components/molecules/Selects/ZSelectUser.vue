@@ -5,19 +5,45 @@
     :label="label"
     :options="items"
     :loading="loading"
-    @click="getTeams(true)"
+    multiple
+    @click="getUsers(true)"
     @scrollBottom="loadMore"
     @updateSearch="newSearch"
-  />
+  >
+    <template #option="{ option, index, selectOption }">
+      <VaButton
+        size="small"
+        preset="primary"
+        text-color="#000000"
+        class="responsive-option"
+        @click="selectOption(option)"
+      >
+        <ZUser :data="option" />
+      </VaButton>
+    </template>
+    <template #content="{ value }">
+      <va-chip
+        v-if="value.length >= 1"
+        v-for="chip in value.slice(0, 3)"
+        :key="chip.value"
+        class="mr-2"
+        size="small"
+      >
+        {{ chip.name }}
+      </va-chip>
+    </template>
+  </ZSelect>
 </template>
 
 <script>
 import ZSelect from "~/components/atoms/Select/ZSelect";
-import TEAMS from "~/graphql/team/query/teams.graphql";
+import USERS from "~/graphql/user/query/users.graphql";
+import ZUser from "~/components/molecules/Selects/Slots/ZUser";
 
 export default {
   components: {
     ZSelect,
+    ZUser,
   },
   props: {
     label: {
@@ -39,51 +65,35 @@ export default {
       value: [],
       loading: false,
       items: [],
-      variablesGetTeams: {
+      variablesGetUsers: {
         page: 1,
         perPage: 10,
         filter: {
           search: "%%",
-          positionsIds: this.positionsIds,
           ignoreIds: this.ignoreIds,
         },
       },
     };
   },
 
-  watch: {
-    positionsIds(newVal) {
-      this.variablesGetTeams.filter.positionsIds = newVal.map((item) =>
-        Number(item.value)
-      );
-      this.getTeams();
-    },
-    ignoreIds(newVal) {
-      this.variablesGetTeams.filter.ignoreIds = newVal.map((item) => {
-        return Number(item);
-      });
-      this.getTeams();
-    },
-  },
-
   methods: {
-    getTeams(click = false) {
+    getUsers(click = false) {
       if (click) {
         this.items = [];
-        this.variablesGetTeams.page = 1;
+        this.variablesGetUsers.page = 1;
       }
       this.loading = true;
 
       setTimeout(() => {
         const query = gql`
-          ${TEAMS}
+          ${USERS}
         `;
 
         const {
           result: { value },
-        } = useQuery(query, this.variablesGetTeams);
+        } = useQuery(query, this.variablesGetUsers);
 
-        const { onResult } = useQuery(query, this.variablesGetTeams);
+        const { onResult } = useQuery(query, this.variablesGetUsers);
 
         onResult((result) => {
           this.handleResult(result.data);
@@ -98,13 +108,14 @@ export default {
     },
 
     handleResult(result) {
-      if (result?.teams?.data.length > 0) {
-        this.paginatorInfo = result.teams.paginatorInfo;
+      if (result?.users?.data.length > 0) {
+        this.paginatorInfo = result.users.paginatorInfo;
 
-        const newItems = result.teams.data.map((item) => {
+        const newItems = result.users.data.map((item) => {
           return {
             text: item.name,
             value: Number(item.id),
+            ...item,
           };
         });
 
@@ -117,22 +128,33 @@ export default {
         });
 
         this.items = uniqueItems;
-        this.hasMoreItems = result.teams.paginatorInfo.hasMorePages;
+        this.hasMoreItems = result.users.paginatorInfo.hasMorePages;
       } else {
         this.hasMoreItems = false;
       }
     },
-    newSearch(newSearchValue) {
-      this.variablesGetTeams.filter.search = `%${newSearchValue}%`;
-      this.getTeams();
+    async newSearch(newSearchValue) {
+      this.variablesGetUsers.filter.search = await `%${newSearchValue}%`;
+      await this.getUsers();
     },
     loadMore() {
       if (!this.hasMoreItems) {
         return;
       }
-      this.variablesGetTeams.page += 1;
-      this.getTeams();
+      this.variablesGetUsers.page += 1;
+      this.getUsers();
     },
   },
 };
 </script>
+
+<style scoped>
+.responsive-option {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.5rem;
+  padding-left: 1rem;
+  padding-bottom: 4rem;
+}
+</style>

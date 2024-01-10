@@ -1,0 +1,29 @@
+query specificFundamentals(
+    $filter: SpecificFundamentalSearchInput,
+    $first: Int,
+    $page: Int
+) {
+  specificFundamentals(
+    filter: $filter,
+    first: $first,
+    page: $page
+  ) {
+    paginatorInfo {
+      count
+      currentPage
+      firstItem
+      hasMorePages
+      lastItem
+      lastPage
+      perPage
+      total
+    }
+    data {
+      id
+      name
+      userId
+      createdAt
+      updatedAt
+    }
+  }
+}

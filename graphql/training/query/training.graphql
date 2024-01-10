@@ -1,0 +1,30 @@
+query training(
+    $id: ID!
+) {
+  training(
+    id: $id,
+  ){
+    id
+    name
+    userId
+    teamId
+    fundamentals {
+        id
+        name
+    }
+    specificFundamentals {
+        id
+        name
+    }
+    team {
+        id
+        name
+    }
+    status
+    dateStart
+    dateEnd
+    description
+    createdAt
+    updatedAt
+  }
+}

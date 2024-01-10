@@ -1,9 +1,9 @@
-query users(
-    $filter: UserSearchInput, 
+query trainings(
+    $filter: TrainingSearchInput
     $first: Int, 
     $page: Int
 ) {
-  users(
+  trainings(
     filter: $filter,
     first: $first,
     page: $page
@@ -21,30 +21,23 @@ query users(
     data {
       id
       name
-      email
-      emailVerifiedAt
-      createdAt
-      updatedAt
-      positions {
-        id
-        name
-      }
-      teams {
-        id
-        name
-      }
+      userId
       user {
         id
         name
         email
       }
-      information {
+      teamId
+      team {
         id
-        cpf
-        rg
-        phone
-        birthDate
+        name
       }
+      status
+      dateStart
+      dateEnd
+      description
+      createdAt
+      updatedAt
     }
   }
 }

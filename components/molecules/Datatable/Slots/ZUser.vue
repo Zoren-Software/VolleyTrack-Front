@@ -1,12 +1,12 @@
 <template>
-  <div class="row justify-start">
-    <div class="flex flex-col xs2">
+  <div v-if="data" class="row justify-start">
+    <div v-if="data.id" class="flex flex-col xs2">
       <div class="item mt-2">
         <va-avatar v-if="data.id" class="mr-6">{{ firstLatter }}</va-avatar>
         <va-icon v-else name="account_circle" />
       </div>
     </div>
-    <div class="flex flex-col xs2">
+    <div v-if="data.id" class="flex flex-col xs2">
       <div class="item">
         <div class="pl-2">
           <div class="flex gap-1 mb-1">
@@ -18,9 +18,17 @@
             <va-icon size="small" name="phone" color="secondary" class="mr-2" />
             <span>{{ formattedPhone }}</span>
           </div>
-          <div class="flex items-center">
+          <div v-if="showEmail" class="flex items-center">
             <va-icon size="small" name="email" color="secondary" class="mr-2" />
             <span>{{ data.email }}</span>
+          </div>
+          <div v-if="showCreatedAt" class="flex items-center">
+            <va-icon size="small" name="event" color="secondary" class="mr-2" />
+            <span>Criado em: {{ formattedCreatedAt }}</span>
+          </div>
+          <div v-if="showUpdatedAt" class="flex items-center">
+            <va-icon size="small" name="event" color="secondary" class="mr-2" />
+            <span>Atualizado em: {{ formattedUpdatedAt }}</span>
           </div>
         </div>
       </div>
@@ -30,6 +38,7 @@
 
 <script>
 import { formatPhoneOnType } from "~/utils/formatting/formatHelper";
+import moment from "moment";
 
 export default {
   props: {
@@ -37,16 +46,49 @@ export default {
       type: Object,
       required: true,
     },
+    showEmail: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
+    createdAt: {
+      type: String,
+      required: false,
+    },
+    updatedAt: {
+      type: String,
+      required: false,
+    },
+    showCreatedAt: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
+    showUpdatedAt: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
   },
   computed: {
     firstLatter() {
-      return this.data.name.charAt(0).toUpperCase();
+      return this.data.name.charAt(0).toUpperCase() ?? "";
     },
     formattedPhone() {
       return this.formatPhone(this.data.information?.phone);
     },
+    formattedCreatedAt() {
+      return this.createdAt ? this.formatDate(this.createdAt) : "";
+    },
+    formattedUpdatedAt() {
+      return this.updatedAt ? this.formatDate(this.updatedAt) : "";
+    },
   },
   methods: {
+    //formatar datas usando o moment
+    formatDate(value) {
+      return moment(value).format("DD/MM/YYYY HH:mm");
+    },
     removeNonNumericCharacters(value) {
       return value.replace(/\D/g, "");
     },

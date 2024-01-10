@@ -7,12 +7,6 @@ Look at the [Nuxt 3 documentation](https://nuxt.com/docs/getting-started/introdu
 Make sure to install the dependencies:
 
 ```bash
-# yarn
-yarn install
-
-# npm
-npm install
-
 # pnpm
 pnpm install
 ```
@@ -22,7 +16,19 @@ pnpm install
 Start the development server on http://localhost:3000
 
 ```bash
-npm run dev
+pnpm run dev
+```
+
+### Config Domain for Development
+
+Add the following to your `/etc/hosts` file:
+
+```
+# VOLLEYTRACK
+
+127.0.0.1   pma.volleytrack.local
+127.0.0.1   api.volleytrack.local
+127.0.0.1   horizon.volleytrack.local
 ```
 
 ## Production
@@ -30,13 +36,13 @@ npm run dev
 Build the application for production:
 
 ```bash
-npm run build
+pnpm run build
 ```
 
 Locally preview production build:
 
 ```bash
-npm run preview
+pnpm run preview
 ```
 
 Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.

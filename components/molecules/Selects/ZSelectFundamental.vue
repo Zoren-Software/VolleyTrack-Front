@@ -5,7 +5,8 @@
     :label="label"
     :options="items"
     :loading="loading"
-    @click="getTeams(true)"
+    multiple
+    @click="getFundamentals(true)"
     @scrollBottom="loadMore"
     @updateSearch="newSearch"
   />
@@ -13,7 +14,7 @@
 
 <script>
 import ZSelect from "~/components/atoms/Select/ZSelect";
-import TEAMS from "~/graphql/team/query/teams.graphql";
+import FUNDAMENTALS from "~/graphql/fundamental/query/fundamentals.graphql";
 
 export default {
   components: {
@@ -24,7 +25,7 @@ export default {
       type: String,
       required: true,
     },
-    positionsIds: {
+    userIds: {
       type: Array,
       required: false,
     },
@@ -39,12 +40,12 @@ export default {
       value: [],
       loading: false,
       items: [],
-      variablesGetTeams: {
+      variablesGetFundamentals: {
         page: 1,
         perPage: 10,
         filter: {
           search: "%%",
-          positionsIds: this.positionsIds,
+          userIds: this.userIds,
           ignoreIds: this.ignoreIds,
         },
       },
@@ -52,38 +53,38 @@ export default {
   },
 
   watch: {
-    positionsIds(newVal) {
-      this.variablesGetTeams.filter.positionsIds = newVal.map((item) =>
+    userIds(newVal) {
+      this.variablesGetFundamentals.filter.usersIds = newVal.map((item) =>
         Number(item.value)
       );
-      this.getTeams();
+      this.getFundamentals();
     },
     ignoreIds(newVal) {
-      this.variablesGetTeams.filter.ignoreIds = newVal.map((item) => {
+      this.variablesGetFundamentals.filter.ignoreIds = newVal.map((item) => {
         return Number(item);
       });
-      this.getTeams();
+      this.getFundamentals();
     },
   },
 
   methods: {
-    getTeams(click = false) {
+    getFundamentals(click = false) {
       if (click) {
         this.items = [];
-        this.variablesGetTeams.page = 1;
+        this.variablesGetFundamentals.page = 1;
       }
       this.loading = true;
 
       setTimeout(() => {
         const query = gql`
-          ${TEAMS}
+          ${FUNDAMENTALS}
         `;
 
         const {
           result: { value },
-        } = useQuery(query, this.variablesGetTeams);
+        } = useQuery(query, this.variablesGetFundamentals);
 
-        const { onResult } = useQuery(query, this.variablesGetTeams);
+        const { onResult } = useQuery(query, this.variablesGetFundamentals);
 
         onResult((result) => {
           this.handleResult(result.data);
@@ -98,10 +99,10 @@ export default {
     },
 
     handleResult(result) {
-      if (result?.teams?.data.length > 0) {
-        this.paginatorInfo = result.teams.paginatorInfo;
+      if (result?.fundamentals?.data.length > 0) {
+        this.paginatorInfo = result.fundamentals.paginatorInfo;
 
-        const newItems = result.teams.data.map((item) => {
+        const newItems = result.fundamentals.data.map((item) => {
           return {
             text: item.name,
             value: Number(item.id),
@@ -117,21 +118,21 @@ export default {
         });
 
         this.items = uniqueItems;
-        this.hasMoreItems = result.teams.paginatorInfo.hasMorePages;
+        this.hasMoreItems = result.fundamentals.paginatorInfo.hasMorePages;
       } else {
         this.hasMoreItems = false;
       }
     },
     newSearch(newSearchValue) {
-      this.variablesGetTeams.filter.search = `%${newSearchValue}%`;
-      this.getTeams();
+      this.variablesGetFundamentals.filter.search = `%${newSearchValue}%`;
+      this.getFundamentals();
     },
     loadMore() {
       if (!this.hasMoreItems) {
         return;
       }
-      this.variablesGetTeams.page += 1;
-      this.getTeams();
+      this.variablesGetFundamentals.page += 1;
+      this.getFundamentals();
     },
   },
 };

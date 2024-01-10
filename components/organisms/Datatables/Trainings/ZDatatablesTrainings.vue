@@ -12,34 +12,41 @@
     :loading="loading"
     :paginatorInfo="paginatorInfo"
     :filter="true"
-    @search="searchPlayers"
-    @actionSearch="getPlayers"
+    @search="searchTrainings"
+    @actionSearch="getTrainings"
     @actionClear="clearSearch"
-    @add="addPlayer"
-    @edit="editPlayer"
-    @delete="deletePlayer"
-    @deletes="deletePlayers"
+    @add="addTraining"
+    @edit="editTraining"
+    @delete="deleteTraining"
+    @deletes="deleteTrainings"
     @update:currentPageActive="updateCurrentPageActive"
   >
     <!-- FILTER -->
     <template #filter>
-      <!-- TODO - Ajustar distribuição dos itens dentro deste componente -->
+      <!-- TODO - Pensar nos reais filtros que deveram existir aqui -->
       <div class="row">
-        <div class="flex flex-col md6">
+        <div class="flex flex-col md6 mb-2">
           <div class="item mr-2">
-            <ZSelectPosition
-              label="Posições"
-              v-model="variablesGetPlayers.filter.positionsIds"
-              :teamsIds="variablesGetPlayers.filter.teamsIds"
+            <ZSelectTeam
+              label="Times"
+              multiple
+              v-model="variablesGetTrainings.filter.teamsIds"
             />
           </div>
         </div>
-        <div class="flex flex-col md6">
-          <div class="item">
-            <ZSelectTeam
-              label="Times"
-              v-model="variablesGetPlayers.filter.teamsIds"
-              :positionsIds="variablesGetPlayers.filter.positionsIds"
+        <div class="flex flex-col md6 mb-2">
+          <div class="item mr-2">
+            <ZSelectUser
+              label="Usuário Modificação"
+              v-model="variablesGetTrainings.filter.usersIds"
+            />
+          </div>
+        </div>
+        <div class="flex flex-col md6 mb-2">
+          <div class="item mr-2">
+            <ZSelectUser
+              label="Jogadores"
+              v-model="variablesGetTrainings.filter.playersIds"
             />
           </div>
         </div>
@@ -47,17 +54,14 @@
     </template>
 
     <!-- CELL -->
-    <template #cell(player)="{ rowKey }">
-      <ZUser :data="rowKey" showEmail />
+    <template #cell(team)="{ rowKey: { team } }">
+      <ZTeam :data="team" />
     </template>
-    <template #cell(positions)="{ rowKey: { positions } }">
-      <ZPosition :data="positions" />
-    </template>
-    <template #cell(cpf)="{ rowKey: { information } }">
-      <ZCPF :cpf="information?.cpf" :rg="information?.rg" />
-    </template>
-    <template #cell(team)="{ rowKey: { teams } }">
-      <ZTeam :data="teams" />
+    <template #cell(dateStart)="{ rowKey: { dateStart, dateEnd } }">
+      <ZDateTraining
+        :dateStart="formatTrainingDate(dateStart)"
+        :dateEnd="formatTrainingDate(dateEnd)"
+      />
     </template>
     <template #cell(user)="{ rowKey: { user, createdAt, updatedAt } }">
       <ZUser
@@ -73,15 +77,16 @@
 
 <script>
 import { defineComponent } from "vue";
-import PLAYERS from "~/graphql/user/query/users.graphql";
+import moment from "moment";
+import TRAININGS from "~/graphql/training/query/trainings.graphql";
 import ZDatatableGeneric from "~/components/molecules/Datatable/ZDatatableGeneric";
 import ZSelectPosition from "~/components/molecules/Selects/ZSelectPosition";
 import ZSelectTeam from "~/components/molecules/Selects/ZSelectTeam";
+import ZSelectUser from "~/components/molecules/Selects/ZSelectUser";
 import ZUser from "~/components/molecules/Datatable/Slots/ZUser";
-import ZPosition from "~/components/molecules/Datatable/Slots/ZPosition";
-import ZCPF from "~/components/molecules/Datatable/Slots/ZCPF";
+import ZDateTraining from "~/components/molecules/Datatable/Slots/ZDateTraining";
 import ZTeam from "~/components/molecules/Datatable/Slots/ZTeam";
-import USERDELETE from "~/graphql/user/mutation/userDelete.graphql";
+import TRAININGDELETE from "~/graphql/training/mutation/trainingDelete.graphql";
 import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
 
 //import { toRaw } from "vue"; // NOTE - Para debug
@@ -89,16 +94,16 @@ import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
 export default defineComponent({
   components: {
     ZDatatableGeneric,
-    ZUser,
-    ZPosition,
-    ZCPF,
+    ZDateTraining,
     ZTeam,
+    ZUser,
     ZSelectPosition,
     ZSelectTeam,
+    ZSelectUser,
   },
 
   created() {
-    this.getPlayers();
+    this.getTrainings();
   },
 
   data() {
@@ -106,15 +111,14 @@ export default defineComponent({
 
     const columns = [
       { key: "id", name: "id", sortable: true },
-      { key: "player", name: "player", label: "Jogadores", sortable: true },
-      { key: "cpf", name: "cpf", label: "CPF e RG", sortable: true },
+      { key: "name", name: "name", label: "Treino", sortable: true },
+      { key: "team", name: "team", label: "Time", sortable: true },
       {
-        key: "positions",
-        name: "positions",
-        label: "Posições",
+        key: "dateStart",
+        name: "dateStart",
+        label: "Horário Treino",
         sortable: true,
       },
-      { key: "team", name: "team", label: "Times", sortable: true },
       {
         key: "user",
         name: "user",
@@ -132,12 +136,13 @@ export default defineComponent({
         lastPage: 1,
         total: 0,
       },
-      variablesGetPlayers: {
+      variablesGetTrainings: {
         page: 1,
         filter: {
-          search: "%%",
-          positionsIds: [],
           teamsIds: [],
+          usersIds: [],
+          playersIds: [],
+          search: "%%",
         },
         orderBy: "id",
         sortedBy: "desc",
@@ -157,18 +162,18 @@ export default defineComponent({
         (selectedItem) => selectedItem !== item
       );
     },
-    addPlayer() {
-      this.$router.push("/players/create");
+    addTraining() {
+      this.$router.push("/trainings/create");
     },
-    editPlayer(id) {
-      this.$router.push(`/players/edit/${id}`);
+    editTraining(id) {
+      this.$router.push(`/trainings/edit/${id}`);
     },
     async deleteItems(ids) {
       try {
         this.loading = true;
 
         const query = gql`
-          ${USERDELETE}
+          ${TRAININGDELETE}
         `;
 
         const variables = {
@@ -179,7 +184,7 @@ export default defineComponent({
 
         const { data } = await mutate();
 
-        confirmSuccess("Usuário(s) deletado(s) com sucesso!", () => {
+        confirmSuccess("Treino(s) deletado(s) com sucesso!", () => {
           this.items = this.items.filter((item) => !ids.includes(item.id));
         });
       } catch (error) {
@@ -202,61 +207,69 @@ export default defineComponent({
 
           const footer = errorMessages.join("<br>");
 
-          confirmError("Ocorreu um erro ao deletar o usuário!", footer);
+          confirmError("Ocorreu um erro ao deletar o treino!", footer);
         } else {
-          confirmError("Ocorreu um erro ao deletar o usuário!");
+          confirmError("Ocorreu um erro ao deletar o treino!");
         }
       }
       this.loading = false;
     },
 
-    async deletePlayer(id) {
+    formatTrainingDate(dateStart) {
+      return moment(dateStart);
+    },
+
+    async deleteTraining(id) {
       await this.deleteItems([id]);
     },
 
-    async deletePlayers(items) {
+    async deleteTrainings(items) {
       await this.deleteItems(items);
     },
 
     updateCurrentPageActive(page) {
-      this.variablesGetPlayers.page = page;
-      this.getPlayers();
+      this.variablesGetTrainings.page = page;
+      this.getTrainings();
     },
 
-    searchPlayers(search) {
-      this.variablesGetPlayers.filter.search = `%${search}%`;
+    searchTrainings(search) {
+      this.variablesGetTrainings.filter.search = `%${search}%`;
     },
 
     clearSearch() {
-      this.variablesGetPlayers.filter = {
+      this.variablesGetTrainings.filter = {
         search: "%%",
-        positionsIds: [],
         teamsIds: [],
       };
     },
 
-    getPlayers() {
+    getTrainings() {
       this.loading = true;
       this.items = [];
 
       const query = gql`
-        ${PLAYERS}
+        ${TRAININGS}
       `;
 
-      let positionsIdsValues = this.variablesGetPlayers.filter.positionsIds.map(
-        (position) => position.value
+      let teamsIdsValues = this.variablesGetTrainings.filter.teamsIds.map(
+        (team) => parseInt(team.value)
       );
 
-      let teamsIdsValues = this.variablesGetPlayers.filter.teamsIds.map(
-        (team) => team.value
+      let usersIdsValues = this.variablesGetTrainings.filter.usersIds.map(
+        (user) => parseInt(user.value)
+      );
+
+      let playersIdsValues = this.variablesGetTrainings.filter.playersIds.map(
+        (player) => parseInt(player.value)
       );
 
       const consult = {
-        ...this.variablesGetPlayers,
+        ...this.variablesGetTrainings,
         filter: {
-          ...this.variablesGetPlayers.filter,
-          positionsIds: positionsIdsValues,
+          ...this.variablesGetTrainings.filter,
           teamsIds: teamsIdsValues,
+          usersIds: usersIdsValues,
+          playersIds: playersIdsValues,
         },
       };
 
@@ -267,16 +280,16 @@ export default defineComponent({
       const { onResult } = useQuery(query, consult);
 
       onResult((result) => {
-        if (result?.data?.users?.data.length > 0) {
-          this.paginatorInfo = result.data.users.paginatorInfo;
-          this.items = result.data.users.data;
+        if (result?.data?.trainings?.data.length > 0) {
+          this.paginatorInfo = result.data.trainings.paginatorInfo;
+          this.items = result.data.trainings.data;
         }
       });
 
       if (value) {
-        if (value?.users?.data.length > 0) {
-          this.paginatorInfo = value.users.paginatorInfo;
-          this.items = value.users.data;
+        if (value?.trainings?.data.length > 0) {
+          this.paginatorInfo = value.trainings.paginatorInfo;
+          this.items = value.trainings.data;
         }
       }
       this.loading = false;

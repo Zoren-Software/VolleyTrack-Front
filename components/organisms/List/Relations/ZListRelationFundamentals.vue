@@ -43,16 +43,8 @@ export default {
   emits: ["add", "delete"],
   props: {
     items: {
-      type: Array || Object,
+      type: Array,
       required: true,
-    },
-    error: {
-      type: Boolean,
-      default: false,
-    },
-    errorMessages: {
-      type: String,
-      default: "",
     },
   },
   data() {
@@ -72,9 +64,9 @@ export default {
           sortable: true,
         },
         {
-          key: "team",
-          name: "team",
-          label: "Times",
+          key: "fundamental",
+          name: "fundamental",
+          label: "Fundamentos",
           sortable: true,
         },
       ],
