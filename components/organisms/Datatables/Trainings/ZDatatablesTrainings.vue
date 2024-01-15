@@ -37,7 +37,7 @@
         <div class="flex flex-col md6 mb-2">
           <div class="item mr-2">
             <ZSelectUser
-              label="Usuário Modificação"
+              label="Usuário Alteração"
               v-model="variablesGetTrainings.filter.usersIds"
             />
           </div>
