@@ -37,7 +37,7 @@
         <div class="flex flex-col md6 mb-2">
           <div class="item mr-2">
             <ZSelectUser
-              label="Usuário Modificação"
+              label="Usuário Alteração"
               v-model="variablesGetTeams.filter.usersIds"
             />
           </div>
@@ -126,6 +126,8 @@ export default defineComponent({
       variablesGetTeams: {
         page: 1,
         filter: {
+          usersIds: [],
+          playersIds: [],
           positionsIds: [],
           search: "%%",
         },
@@ -240,11 +242,21 @@ export default defineComponent({
         (position) => position.value
       );
 
+      let usersIdsValues = this.variablesGetTeams.filter.usersIds.map(
+        (user) => user.value
+      );
+
+      let playersIdsValues = this.variablesGetTeams.filter.playersIds.map(
+        (player) => player.value
+      );
+
       const consult = {
         ...this.variablesGetTeams,
         filter: {
           ...this.variablesGetTeams.filter,
           positionsIds: positionsIdsValues,
+          usersIds: usersIdsValues,
+          playersIds: playersIdsValues,
         },
       };
 
