@@ -1,5 +1,13 @@
 <template>
-  <div>
-    <h1>Times</h1>
-  </div>
+  <ZDatatablesTeams />
 </template>
+
+<script>
+import ZDatatablesTeams from "~/components/organisms/Datatables/Teams/ZDatatablesTeams.vue";
+
+export default {
+  components: {
+    ZDatatablesTeams,
+  },
+};
+</script>

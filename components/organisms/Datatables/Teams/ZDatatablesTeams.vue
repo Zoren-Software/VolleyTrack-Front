@@ -1,0 +1,274 @@
+<template>
+  <ZDatatableGeneric
+    buttonActionAdd
+    buttonActionDelete
+    includeActionsColumn
+    includeActionEditList
+    includeActionDeleteList
+    textAdvancedFilters
+    selectable
+    :items="items"
+    :columns="columns"
+    :loading="loading"
+    :paginatorInfo="paginatorInfo"
+    :filter="true"
+    @search="searchTrainings"
+    @actionSearch="getTeams"
+    @actionClear="clearSearch"
+    @add="addTraining"
+    @edit="editTraining"
+    @delete="deleteTraining"
+    @deletes="deleteTrainings"
+    @update:currentPageActive="updateCurrentPageActive"
+  >
+    <!-- FILTER -->
+    <template #filter>
+      <!-- TODO - Pensar nos reais filtros que deveram existir aqui -->
+      <div class="row">
+        <div class="flex flex-col md6 mb-2">
+          <div class="item mr-2">
+            <ZSelectPosition
+              label="Posições"
+              v-model="variablesGetTeams.filter.positionsIds"
+              :teamsIds="variablesGetTeams.filter.teamsIds"
+            />
+          </div>
+        </div>
+        <div class="flex flex-col md6 mb-2">
+          <div class="item mr-2">
+            <ZSelectUser
+              label="Usuário Modificação"
+              v-model="variablesGetTeams.filter.usersIds"
+            />
+          </div>
+        </div>
+        <div class="flex flex-col md6 mb-2">
+          <div class="item mr-2">
+            <ZSelectUser
+              label="Jogadores"
+              v-model="variablesGetTeams.filter.playersIds"
+            />
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <!-- CELL -->
+    <template #cell(name)="{ rowKey: { name } }">
+      {{ name }}
+    </template>
+    <template #cell(user)="{ rowKey: { user, createdAt, updatedAt } }">
+      <ZUser
+        :data="user || {}"
+        :createdAt="createdAt"
+        :updatedAt="updatedAt"
+        showUpdatedAt
+        showCreatedAt
+      />
+    </template>
+  </ZDatatableGeneric>
+</template>
+
+<script>
+import { defineComponent } from "vue";
+import moment from "moment";
+import TEAMS from "~/graphql/team/query/teams.graphql";
+import ZDatatableGeneric from "~/components/molecules/Datatable/ZDatatableGeneric";
+import ZSelectPosition from "~/components/molecules/Selects/ZSelectPosition";
+import ZSelectTeam from "~/components/molecules/Selects/ZSelectTeam";
+import ZSelectUser from "~/components/molecules/Selects/ZSelectUser";
+import ZUser from "~/components/molecules/Datatable/Slots/ZUser";
+import ZDateTraining from "~/components/molecules/Datatable/Slots/ZDateTraining";
+import ZTeam from "~/components/molecules/Datatable/Slots/ZTeam";
+import TRAININGDELETE from "~/graphql/training/mutation/trainingDelete.graphql";
+import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
+
+//import { toRaw } from "vue"; // NOTE - Para debug
+
+export default defineComponent({
+  components: {
+    ZDatatableGeneric,
+    ZDateTraining,
+    ZTeam,
+    ZUser,
+    ZSelectPosition,
+    ZSelectTeam,
+    ZSelectUser,
+  },
+
+  created() {
+    this.getTeams();
+  },
+
+  data() {
+    let loading = false;
+
+    const columns = [
+      { key: "id", name: "id", sortable: true },
+      { key: "name", name: "name", label: "Time", sortable: true },
+      {
+        key: "user",
+        name: "user",
+        label: "Usuário Alteração",
+        sortable: true,
+      },
+    ];
+
+    return {
+      items: [],
+      loading,
+      columns,
+      paginatorInfo: {
+        currentPage: 1,
+        lastPage: 1,
+        total: 0,
+      },
+      variablesGetTeams: {
+        page: 1,
+        filter: {
+          positionsIds: [],
+          search: "%%",
+        },
+        orderBy: "id",
+        sortedBy: "desc",
+      },
+      selectedItems: [],
+      selectedItemsEmitted: [],
+      selectMode: "multiple",
+      selectedColor: "primary",
+      selectModeOptions: ["single", "multiple"],
+      selectColorOptions: ["primary", "danger", "warning", "#EF467F"],
+    };
+  },
+
+  methods: {
+    unselectItem(item) {
+      this.selectedItems = this.selectedItems.filter(
+        (selectedItem) => selectedItem !== item
+      );
+    },
+    addTraining() {
+      this.$router.push("/trainings/create");
+    },
+    editTraining(id) {
+      this.$router.push(`/trainings/edit/${id}`);
+    },
+    async deleteItems(ids) {
+      try {
+        this.loading = true;
+
+        const query = gql`
+          ${TRAININGDELETE}
+        `;
+
+        const variables = {
+          id: ids,
+        };
+
+        const { mutate } = await useMutation(query, { variables });
+
+        const { data } = await mutate();
+
+        confirmSuccess("Treino(s) deletado(s) com sucesso!", () => {
+          this.items = this.items.filter((item) => !ids.includes(item.id));
+        });
+      } catch (error) {
+        console.error(error);
+        this.error = true;
+
+        if (
+          error.graphQLErrors &&
+          error.graphQLErrors[0] &&
+          error.graphQLErrors[0].extensions &&
+          error.graphQLErrors[0].extensions.validation
+        ) {
+          this.errors = error.graphQLErrors[0].extensions.validation;
+
+          const errorMessages = Object.values(this.errors).map((item) => {
+            return item[0];
+          });
+
+          this.errorFields = Object.keys(this.errors);
+
+          const footer = errorMessages.join("<br>");
+
+          confirmError("Ocorreu um erro ao deletar o treino!", footer);
+        } else {
+          confirmError("Ocorreu um erro ao deletar o treino!");
+        }
+      }
+      this.loading = false;
+    },
+
+    formatTrainingDate(dateStart) {
+      return moment(dateStart);
+    },
+
+    async deleteTraining(id) {
+      await this.deleteItems([id]);
+    },
+
+    async deleteTrainings(items) {
+      await this.deleteItems(items);
+    },
+
+    updateCurrentPageActive(page) {
+      this.variablesGetTeams.page = page;
+      this.getTeams();
+    },
+
+    searchTrainings(search) {
+      this.variablesGetTeams.filter.search = `%${search}%`;
+    },
+
+    clearSearch() {
+      this.variablesGetTeams.filter = {
+        search: "%%",
+        teamsIds: [],
+      };
+    },
+
+    getTeams() {
+      this.loading = true;
+      this.items = [];
+
+      const query = gql`
+        ${TEAMS}
+      `;
+
+      let positionsIdsValues = this.variablesGetTeams.filter.positionsIds.map(
+        (position) => position.value
+      );
+
+      const consult = {
+        ...this.variablesGetTeams,
+        filter: {
+          ...this.variablesGetTeams.filter,
+          positionsIds: positionsIdsValues,
+        },
+      };
+
+      const {
+        result: { value },
+      } = useQuery(query, consult);
+
+      const { onResult } = useQuery(query, consult);
+
+      onResult((result) => {
+        if (result?.data?.teams?.data.length > 0) {
+          this.paginatorInfo = result.data.teams.paginatorInfo;
+          this.items = result.data.teams.data;
+        }
+      });
+
+      if (value) {
+        if (value?.teams?.data.length > 0) {
+          this.paginatorInfo = value.teams.paginatorInfo;
+          this.items = value.teams.data;
+        }
+      }
+      this.loading = false;
+    },
+  },
+});
+</script>
