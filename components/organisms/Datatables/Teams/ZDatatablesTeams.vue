@@ -17,8 +17,8 @@
     @actionClear="clearSearch"
     @add="addTraining"
     @edit="editTraining"
-    @delete="deleteTraining"
-    @deletes="deleteTrainings"
+    @delete="deleteTeam"
+    @deletes="deleteTeams"
     @update:currentPageActive="updateCurrentPageActive"
   >
     <!-- FILTER -->
@@ -80,7 +80,7 @@ import ZSelectUser from "~/components/molecules/Selects/ZSelectUser";
 import ZUser from "~/components/molecules/Datatable/Slots/ZUser";
 import ZDateTraining from "~/components/molecules/Datatable/Slots/ZDateTraining";
 import ZTeam from "~/components/molecules/Datatable/Slots/ZTeam";
-import TRAININGDELETE from "~/graphql/training/mutation/trainingDelete.graphql";
+import TEAMDELETE from "~/graphql/team/mutation/teamDelete.graphql";
 import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
 
 //import { toRaw } from "vue"; // NOTE - Para debug
@@ -160,7 +160,7 @@ export default defineComponent({
         this.loading = true;
 
         const query = gql`
-          ${TRAININGDELETE}
+          ${TEAMDELETE}
         `;
 
         const variables = {
@@ -171,7 +171,7 @@ export default defineComponent({
 
         const { data } = await mutate();
 
-        confirmSuccess("Treino(s) deletado(s) com sucesso!", () => {
+        confirmSuccess("Time(s) deletado(s) com sucesso!", () => {
           this.items = this.items.filter((item) => !ids.includes(item.id));
         });
       } catch (error) {
@@ -206,11 +206,11 @@ export default defineComponent({
       return moment(dateStart);
     },
 
-    async deleteTraining(id) {
+    async deleteTeam(id) {
       await this.deleteItems([id]);
     },
 
-    async deleteTrainings(items) {
+    async deleteTeams(items) {
       await this.deleteItems(items);
     },
 
