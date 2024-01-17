@@ -55,7 +55,9 @@
 
     <!-- CELL -->
     <template #cell(team)="{ rowKey: { team } }">
-      <ZTeam :data="team" />
+      <div v-if="team">
+        <ZTeam :data="team" />
+      </div>
     </template>
     <template #cell(dateStart)="{ rowKey: { dateStart, dateEnd } }">
       <ZDateTraining
