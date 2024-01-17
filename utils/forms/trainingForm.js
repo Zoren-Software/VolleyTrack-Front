@@ -9,6 +9,17 @@ function convertDate(dateString) {
 }
 
 export function transformTrainingData(training) {
+  console.log(training)
+
+  let teams = []
+
+  if(training.teams) {
+    teams = [{
+      id: training.team.id, 
+      team: training.team.name
+    }]
+  }
+
   return {
     ...training,
     dateValue: convertDate(training.dateStart),
@@ -26,9 +37,6 @@ export function transformTrainingData(training) {
         specificFundamental: specificFundamental.name,
       };
     }),
-    teams : [{
-      id: training.team.id, 
-      team: training.team.name
-    }]
+    teams
   };
 }
