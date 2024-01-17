@@ -9,8 +9,6 @@ function convertDate(dateString) {
 }
 
 export function transformTrainingData(training) {
-  console.log(training)
-
   let teams = []
 
   if(training.teams) {
