@@ -202,14 +202,14 @@ export default defineComponent({
           this.errors = error.graphQLErrors[0].extensions.validation;
 
           const errorMessages = Object.values(this.errors).map((item) => {
-            return item[0];
+            return item;
           });
 
           this.errorFields = Object.keys(this.errors);
 
-          const footer = errorMessages.join("<br>");
+          console.log(errorMessages);
 
-          confirmError("Ocorreu um erro ao deletar o treino!", footer);
+          confirmError("Ocorreu um erro ao deletar o treino!", errorMessages);
         } else {
           confirmError("Ocorreu um erro ao deletar o treino!");
         }
