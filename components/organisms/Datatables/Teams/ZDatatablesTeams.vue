@@ -15,8 +15,8 @@
     @search="searchTrainings"
     @actionSearch="getTeams"
     @actionClear="clearSearch"
-    @add="addTraining"
-    @edit="editTraining"
+    @add="addTeam"
+    @edit="editTeam"
     @delete="deleteTeam"
     @deletes="deleteTeams"
     @update:currentPageActive="updateCurrentPageActive"
@@ -149,11 +149,11 @@ export default defineComponent({
         (selectedItem) => selectedItem !== item
       );
     },
-    addTraining() {
-      this.$router.push("/trainings/create");
+    addTeam() {
+      this.$router.push("/team/create");
     },
-    editTraining(id) {
-      this.$router.push(`/trainings/edit/${id}`);
+    editTeam(id) {
+      this.$router.push(`/team/edit/${id}`);
     },
     async deleteItems(ids) {
       try {
