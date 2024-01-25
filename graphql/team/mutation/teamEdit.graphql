@@ -1,0 +1,35 @@
+mutation teamEdit(
+  $id: ID!
+  $name: String!
+  $playerId: [ID]!
+) {
+  teamEdit(
+    id: $id
+    name: $name
+    playerId: $playerId
+  ) {
+    id
+    name
+    userId
+    user {
+      id
+      name
+      email
+      userId
+      emailVerifiedAt
+      createdAt
+      updatedAt
+    }
+    players {
+      id
+      name
+      email
+      userId
+      emailVerifiedAt
+      createdAt
+      updatedAt
+    }
+    createdAt
+    updatedAt
+  }
+}
