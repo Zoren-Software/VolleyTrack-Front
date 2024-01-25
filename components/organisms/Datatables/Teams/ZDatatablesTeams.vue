@@ -150,10 +150,10 @@ export default defineComponent({
       );
     },
     addTeam() {
-      this.$router.push("/team/create");
+      this.$router.push("/teams/create");
     },
     editTeam(id) {
-      this.$router.push(`/team/edit/${id}`);
+      this.$router.push(`/teams/edit/${id}`);
     },
     async deleteItems(ids) {
       try {
