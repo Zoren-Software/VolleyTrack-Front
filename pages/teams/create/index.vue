@@ -9,7 +9,7 @@
 
 <script>
 import ZTeamForm from "~/components/organisms/Forms/Team/ZTeamForm";
-import TRAININGCREATE from "~/graphql/training/mutation/trainingCreate.graphql";
+import TEAMCREATE from "~/graphql/team/mutation/teamCreate.graphql";
 import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
 import moment from "moment";
 
@@ -40,36 +40,22 @@ export default {
         this.error = false;
 
         const query = gql`
-          ${TRAININGCREATE}
+          ${TEAMCREATE}
         `;
-
-        const dateStart =
-          moment(form.dateValue).format("YYYY-MM-DD") +
-          " " +
-          moment(form.timeStartValue).format("HH:mm:ss");
-        const dateEnd =
-          moment(form.dateValue).format("YYYY-MM-DD") +
-          " " +
-          moment(form.timeEndValue).format("HH:mm:ss");
 
         const variables = {
           name: form.name,
-          description: form.description,
-          teamId: parseInt(form.teams.map((item) => item.id)[0]),
-          fundamentalId: form.fundamentals.map((item) => item.id),
-          specificFundamentalId: form.fundamentals.map((item) => item.id),
-          dateStart,
-          dateEnd,
+          playerId: form.users.map((item) => item.id),
         };
 
         const { mutate } = await useMutation(query, { variables });
 
         const { data } = await mutate();
 
-        confirmSuccess("Treino salvo com sucesso!", () => {
+        confirmSuccess("Time salvo com sucesso!", () => {
           this.errors = this.errorsDefault();
 
-          this.$router.push("/trainings");
+          this.$router.push("/teams");
         });
       } catch (error) {
         console.error(error);
@@ -92,9 +78,9 @@ export default {
           // criar um título para essas validacões que seram mostradas
           const footer = errorMessages.join("<br>");
 
-          confirmError("Ocorreu um erro ao salvar o treino!", footer);
+          confirmError("Ocorreu um erro ao salvar o time!", footer);
         } else {
-          confirmError("Ocorreu um erro ao salvar o treino!");
+          confirmError("Ocorreu um erro ao salvar o time!");
         }
       }
       this.loading = false;
