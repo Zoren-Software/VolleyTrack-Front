@@ -13,12 +13,12 @@
     :paginatorInfo="paginatorInfo"
     :filter="true"
     @search="searchTrainings"
-    @actionSearch="getTrainings"
+    @actionSearch="getTeams"
     @actionClear="clearSearch"
-    @add="addTraining"
-    @edit="editTraining"
-    @delete="deleteTraining"
-    @deletes="deleteTrainings"
+    @add="addTeam"
+    @edit="editTeam"
+    @delete="deleteTeam"
+    @deletes="deleteTeams"
     @update:currentPageActive="updateCurrentPageActive"
   >
     <!-- FILTER -->
@@ -27,10 +27,10 @@
       <div class="row">
         <div class="flex flex-col md6 mb-2">
           <div class="item mr-2">
-            <ZSelectTeam
-              label="Times"
-              multiple
-              v-model="variablesGetTrainings.filter.teamsIds"
+            <ZSelectPosition
+              label="Posições"
+              v-model="variablesGetTeams.filter.positionsIds"
+              :teamsIds="variablesGetTeams.filter.teamsIds"
             />
           </div>
         </div>
@@ -38,7 +38,7 @@
           <div class="item mr-2">
             <ZSelectUser
               label="Usuário Alteração"
-              v-model="variablesGetTrainings.filter.usersIds"
+              v-model="variablesGetTeams.filter.usersIds"
             />
           </div>
         </div>
@@ -46,7 +46,7 @@
           <div class="item mr-2">
             <ZSelectUser
               label="Jogadores"
-              v-model="variablesGetTrainings.filter.playersIds"
+              v-model="variablesGetTeams.filter.playersIds"
             />
           </div>
         </div>
@@ -54,16 +54,8 @@
     </template>
 
     <!-- CELL -->
-    <template #cell(team)="{ rowKey: { team } }">
-      <div v-if="team">
-        <ZTeam :data="team" />
-      </div>
-    </template>
-    <template #cell(dateStart)="{ rowKey: { dateStart, dateEnd } }">
-      <ZDateTraining
-        :dateStart="formatTrainingDate(dateStart)"
-        :dateEnd="formatTrainingDate(dateEnd)"
-      />
+    <template #cell(name)="{ rowKey: { name } }">
+      {{ name }}
     </template>
     <template #cell(user)="{ rowKey: { user, createdAt, updatedAt } }">
       <ZUser
@@ -80,7 +72,7 @@
 <script>
 import { defineComponent } from "vue";
 import moment from "moment";
-import TRAININGS from "~/graphql/training/query/trainings.graphql";
+import TEAMS from "~/graphql/team/query/teams.graphql";
 import ZDatatableGeneric from "~/components/molecules/Datatable/ZDatatableGeneric";
 import ZSelectPosition from "~/components/molecules/Selects/ZSelectPosition";
 import ZSelectTeam from "~/components/molecules/Selects/ZSelectTeam";
@@ -88,7 +80,7 @@ import ZSelectUser from "~/components/molecules/Selects/ZSelectUser";
 import ZUser from "~/components/molecules/Datatable/Slots/ZUser";
 import ZDateTraining from "~/components/molecules/Datatable/Slots/ZDateTraining";
 import ZTeam from "~/components/molecules/Datatable/Slots/ZTeam";
-import TRAININGDELETE from "~/graphql/training/mutation/trainingDelete.graphql";
+import TEAMDELETE from "~/graphql/team/mutation/teamDelete.graphql";
 import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
 
 //import { toRaw } from "vue"; // NOTE - Para debug
@@ -105,7 +97,7 @@ export default defineComponent({
   },
 
   created() {
-    this.getTrainings();
+    this.getTeams();
   },
 
   data() {
@@ -113,14 +105,7 @@ export default defineComponent({
 
     const columns = [
       { key: "id", name: "id", sortable: true },
-      { key: "name", name: "name", label: "Treino", sortable: true },
-      { key: "team", name: "team", label: "Time", sortable: true },
-      {
-        key: "dateStart",
-        name: "dateStart",
-        label: "Horário Treino",
-        sortable: true,
-      },
+      { key: "name", name: "name", label: "Time", sortable: true },
       {
         key: "user",
         name: "user",
@@ -138,12 +123,12 @@ export default defineComponent({
         lastPage: 1,
         total: 0,
       },
-      variablesGetTrainings: {
+      variablesGetTeams: {
         page: 1,
         filter: {
-          teamsIds: [],
           usersIds: [],
           playersIds: [],
+          positionsIds: [],
           search: "%%",
         },
         orderBy: "id",
@@ -164,18 +149,18 @@ export default defineComponent({
         (selectedItem) => selectedItem !== item
       );
     },
-    addTraining() {
-      this.$router.push("/trainings/create");
+    addTeam() {
+      this.$router.push("/teams/create");
     },
-    editTraining(id) {
-      this.$router.push(`/trainings/edit/${id}`);
+    editTeam(id) {
+      this.$router.push(`/teams/edit/${id}`);
     },
     async deleteItems(ids) {
       try {
         this.loading = true;
 
         const query = gql`
-          ${TRAININGDELETE}
+          ${TEAMDELETE}
         `;
 
         const variables = {
@@ -186,7 +171,7 @@ export default defineComponent({
 
         const { data } = await mutate();
 
-        confirmSuccess("Treino(s) deletado(s) com sucesso!", () => {
+        confirmSuccess("Time(s) deletado(s) com sucesso!", () => {
           this.items = this.items.filter((item) => !ids.includes(item.id));
         });
       } catch (error) {
@@ -202,14 +187,14 @@ export default defineComponent({
           this.errors = error.graphQLErrors[0].extensions.validation;
 
           const errorMessages = Object.values(this.errors).map((item) => {
-            return item;
+            return item[0];
           });
 
           this.errorFields = Object.keys(this.errors);
 
-          console.log(errorMessages);
+          const footer = errorMessages.join("<br>");
 
-          confirmError("Ocorreu um erro ao deletar o treino!", errorMessages);
+          confirmError("Ocorreu um erro ao deletar o treino!", footer);
         } else {
           confirmError("Ocorreu um erro ao deletar o treino!");
         }
@@ -221,55 +206,55 @@ export default defineComponent({
       return moment(dateStart);
     },
 
-    async deleteTraining(id) {
+    async deleteTeam(id) {
       await this.deleteItems([id]);
     },
 
-    async deleteTrainings(items) {
+    async deleteTeams(items) {
       await this.deleteItems(items);
     },
 
     updateCurrentPageActive(page) {
-      this.variablesGetTrainings.page = page;
-      this.getTrainings();
+      this.variablesGetTeams.page = page;
+      this.getTeams();
     },
 
     searchTrainings(search) {
-      this.variablesGetTrainings.filter.search = `%${search}%`;
+      this.variablesGetTeams.filter.search = `%${search}%`;
     },
 
     clearSearch() {
-      this.variablesGetTrainings.filter = {
+      this.variablesGetTeams.filter = {
         search: "%%",
         teamsIds: [],
       };
     },
 
-    getTrainings() {
+    getTeams() {
       this.loading = true;
       this.items = [];
 
       const query = gql`
-        ${TRAININGS}
+        ${TEAMS}
       `;
 
-      let teamsIdsValues = this.variablesGetTrainings.filter.teamsIds.map(
-        (team) => parseInt(team.value)
+      let positionsIdsValues = this.variablesGetTeams.filter.positionsIds.map(
+        (position) => position.value
       );
 
-      let usersIdsValues = this.variablesGetTrainings.filter.usersIds.map(
-        (user) => parseInt(user.value)
+      let usersIdsValues = this.variablesGetTeams.filter.usersIds.map(
+        (user) => user.value
       );
 
-      let playersIdsValues = this.variablesGetTrainings.filter.playersIds.map(
-        (player) => parseInt(player.value)
+      let playersIdsValues = this.variablesGetTeams.filter.playersIds.map(
+        (player) => player.value
       );
 
       const consult = {
-        ...this.variablesGetTrainings,
+        ...this.variablesGetTeams,
         filter: {
-          ...this.variablesGetTrainings.filter,
-          teamsIds: teamsIdsValues,
+          ...this.variablesGetTeams.filter,
+          positionsIds: positionsIdsValues,
           usersIds: usersIdsValues,
           playersIds: playersIdsValues,
         },
@@ -282,16 +267,16 @@ export default defineComponent({
       const { onResult } = useQuery(query, consult);
 
       onResult((result) => {
-        if (result?.data?.trainings?.data.length > 0) {
-          this.paginatorInfo = result.data.trainings.paginatorInfo;
-          this.items = result.data.trainings.data;
+        if (result?.data?.teams?.data.length > 0) {
+          this.paginatorInfo = result.data.teams.paginatorInfo;
+          this.items = result.data.teams.data;
         }
       });
 
       if (value) {
-        if (value?.trainings?.data.length > 0) {
-          this.paginatorInfo = value.trainings.paginatorInfo;
-          this.items = value.trainings.data;
+        if (value?.teams?.data.length > 0) {
+          this.paginatorInfo = value.teams.paginatorInfo;
+          this.items = value.teams.data;
         }
       }
       this.loading = false;

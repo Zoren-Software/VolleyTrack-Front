@@ -1,5 +1,5 @@
 <template>
-  <ZBadge v-if="data[0]" :text="willTeams(data)" overlap>
+  <ZBadge v-if="data[0] && data.length > 0" :text="willTeams(data)" overlap>
     <ZButton size="small" color="primary"> {{ data[0].name }}</ZButton>
   </ZBadge>
   <ZButton v-if="data.name" size="small" color="primary">
