@@ -1,0 +1,28 @@
+query fundamentals(
+    $id: ID!,
+) {
+  config(id: $id) {
+    id
+    userId
+    user {
+      id
+      name
+      email
+      userId
+      emailVerifiedAt
+      createdAt
+      updatedAt
+    }
+    languageId
+    language {
+      id
+      name
+      slug
+      createdAt
+      updatedAt
+    }
+    nameTenant
+    createdAt
+    updatedAt
+  }
+}

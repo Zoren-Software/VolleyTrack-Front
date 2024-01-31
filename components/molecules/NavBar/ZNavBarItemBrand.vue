@@ -1,21 +1,62 @@
 <template>
   <ZNavBarItem class="logo">
     <va-icon name="sports_volleyball" />
-    <span class="ml-2">{{ applicationName }}</span>
+    <span class="ml-2">{{ applicationName }} | {{ items.nameTenant }}</span>
   </ZNavBarItem>
 </template>
 
 <script>
 import ZNavBarItem from "~/components/atoms/NavBar/ZNavBarItem";
+import CONFIG from "~/graphql/config/query/config.graphql";
+
 const runtimeConfig = useRuntimeConfig();
 const applicationName = runtimeConfig.public.nameApplication;
 
 export default {
+  mounted() {
+    this.getConfig();
+  },
   data: () => ({
     applicationName,
+    loading: false,
+    items: {},
   }),
   components: {
     ZNavBarItem,
+  },
+
+  methods: {
+    getConfig() {
+      this.loading = true;
+
+      const query = gql`
+        ${CONFIG}
+      `;
+
+      const consult = {
+        id: 1,
+      };
+
+      const {
+        result: { value },
+      } = useQuery(query, consult);
+
+      const { onResult } = useQuery(query, consult);
+
+      onResult((result) => {
+        console.log("result", result.data.config);
+        if (result?.data?.config) {
+          this.items = result.data.config;
+        }
+      });
+
+      if (value) {
+        if (value?.data) {
+          this.items = value.data.config;
+        }
+      }
+      this.loading = false;
+    },
   },
 };
 </script>
