@@ -1,4 +1,4 @@
-query fundamentals(
+query config(
     $id: ID!,
 ) {
   config(id: $id) {

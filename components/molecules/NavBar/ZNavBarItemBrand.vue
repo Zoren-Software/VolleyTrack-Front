@@ -7,7 +7,7 @@
 
 <script>
 import ZNavBarItem from "~/components/atoms/NavBar/ZNavBarItem";
-import CONFIG from "~/graphql/config/query/config.graphql";
+import SETTING from "~/graphql/settings/query/setting.graphql";
 
 const runtimeConfig = useRuntimeConfig();
 const applicationName = runtimeConfig.public.nameApplication;
@@ -30,7 +30,7 @@ export default {
       this.loading = true;
 
       const query = gql`
-        ${CONFIG}
+        ${SETTING}
       `;
 
       const consult = {
