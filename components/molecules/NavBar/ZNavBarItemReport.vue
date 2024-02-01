@@ -1,14 +1,14 @@
 <template>
   <ZNavBarItem>
-    <ZPopover message="Reporte um problema ou sugestão" placement="bottom" >
+    <ZPopover message="Reporte um problema ou sugestão" placement="bottom">
       <ZButton
         href="https://github.com/Zoren-Software/VoleiClub/issues/new?assignees=&labels=bug&template=--bug--.md&title=%5B+BUG+%5D+Descri%C3%A7%C3%A3o+do+Bug"
         target="blank"
         color="background-primary"
       >
-        <ZIcon name="report" color="text-primary"/>
+        <ZIcon name="report" color="text-primary" />
       </ZButton>
-    </ZPopover> 
+    </ZPopover>
   </ZNavBarItem>
 </template>
 
@@ -23,7 +23,7 @@ export default {
     ZNavBarItem,
     ZPopover,
     ZButton,
-    ZIcon
+    ZIcon,
   },
 };
 </script>

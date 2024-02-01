@@ -1,5 +1,5 @@
 <template>
-  <va-popover 
+  <va-popover
     :message="message"
     :color="color"
     :class="class"
@@ -41,7 +41,7 @@ export default defineComponent({
       type: String,
       default: "hover",
     },
-    // NOTE - Ainda existem as opções avançadas de se passar como parâmetro: 
+    // NOTE - Ainda existem as opções avançadas de se passar como parâmetro:
     // title, body para o popover e ter o mesmo efeito de conteúdo personalizado.
   },
 });
