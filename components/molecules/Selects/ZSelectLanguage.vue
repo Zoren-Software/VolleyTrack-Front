@@ -32,7 +32,7 @@ export default {
   data() {
     return {
       hasMoreItems: true,
-      value: [],
+      value: null,
       loading: false,
       items: [],
       variablesGetLanguages: {
@@ -47,6 +47,15 @@ export default {
   },
 
   watch: {
+    value(newValue) {
+      console.log(newValue);
+      if (newValue && newValue.value) {
+        // Verifique se o valor já está nas opções, se não, carregue ou ajuste as opções
+        if (!this.items.some((item) => item.value === newValue.value)) {
+          this.getLanguages();
+        }
+      }
+    },
     ignoreIds(newVal) {
       this.variablesGetLanguages.filter.ignoreIds = newVal.map((item) => {
         return Number(item);
@@ -106,9 +115,21 @@ export default {
         });
 
         this.items = uniqueItems;
+        this.setInitialValue();
         this.hasMoreItems = result.languages.paginatorInfo.hasMorePages;
       } else {
         this.hasMoreItems = false;
+      }
+    },
+    setInitialValue() {
+      console.log(this.form);
+      if (this.form && this.form.language) {
+        const initialValue = this.items.find(
+          (item) => item.value === this.form.language.value
+        );
+        if (initialValue) {
+          this.value = initialValue;
+        }
       }
     },
     newSearch(newSearchValue) {

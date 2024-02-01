@@ -25,9 +25,6 @@ export default {
   data() {
     return {
       data: {},
-      variablesGetPlayer: {
-        id: this.$route.params.id,
-      },
       loading: false,
       error: false,
       errorFields: [],
@@ -68,15 +65,24 @@ export default {
       onResult((result) => {
         if (result?.data?.config) {
           this.data = result.data.config;
+          this.data = {
+            ...this.data,
+            languageId: this.data.language.id,
+            languageName: this.data.language.name,
+          };
         }
       });
 
       if (value) {
         if (value?.data) {
           this.data = value.data.config;
+          this.data = {
+            ...this.data,
+            languageId: this.data.language.id,
+            languageName: this.data.language.name,
+          };
         }
       }
-      console.log(this.data);
       this.loading = false;
     },
 

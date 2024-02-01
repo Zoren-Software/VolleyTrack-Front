@@ -1,7 +1,6 @@
 <template>
   <va-card class="my-3 mr-3">
     <va-form ref="myForm" class="flex flex-col gap-6 mb-2 px-4 py-4">
-      <pre>{{ form }}</pre>
       <ZTextInput
         v-model="form.nameTenant"
         name="name-tenant"
@@ -13,10 +12,11 @@
         class="mb-3"
         :error-messages="errors.nameTenant || []"
       />
+      <!-- Fazendo a linguagem vir selecionada -->
       <ZSelectLanguage
         class="mb-3"
         label="Linguagem"
-        v-model="form.language"
+        v-model="form.languageSelected"
         :ignoreIds="[form.languageId]"
         :messages="['Afetará todos os usuários da aplicação']"
       />
@@ -37,13 +37,16 @@ import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
 const { formData } = useForm("myForm");
 
 export default {
+  mounted() {
+    this.getLanguage();
+  },
   props: {
     data: {
       type: Object,
       default: () => {
         return {
           name: "",
-          languages: [],
+          language: {},
         };
       },
     },
@@ -60,7 +63,7 @@ export default {
       default: () => {
         return {
           name: [],
-          languages: [],
+          language: [],
         };
       },
     },
@@ -78,17 +81,30 @@ export default {
       languages: [],
       form: {
         ...this.data,
+        languageSelected: {
+          value: this.data.languageId,
+          text: this.data.languageName,
+        },
       },
     };
   },
 
   watch: {
     data(val) {
-      this.form = { ...val };
+      this.form = {
+        ...val,
+        languageSelected: {
+          value: val.languageId,
+          text: val.languageName,
+        },
+      };
     },
   },
 
   methods: {
+    getLanguage() {
+      this.languageSelected = this.form.language;
+    },
     errorsDefault() {
       return {
         name: [],
