@@ -1,9 +1,7 @@
 <template>
   <va-card class="my-3 mr-3">
     <va-form ref="myForm" class="flex flex-col gap-6 mb-2 px-4 py-4">
-      <pre>
-        {{ form }}
-      </pre>
+      <pre>{{ form }}</pre>
       <ZTextInput
         v-model="form.nameTenant"
         name="name-tenant"
@@ -15,6 +13,13 @@
         class="mb-3"
         :error-messages="errors.nameTenant || []"
       />
+      <ZSelectLanguage
+        class="mb-3"
+        label="Linguagem"
+        v-model="form.language"
+        :ignoreIds="[form.languageId]"
+        :messages="['Afetará todos os usuários da aplicação']"
+      />
       <va-button color="primary" @click="save()">Salvar</va-button>
     </va-form>
   </va-card>
@@ -25,6 +30,8 @@ import { useForm } from "vuestic-ui";
 import ZTextInput from "~/components/molecules/Inputs/ZTextInput";
 import ZSelectUser from "~/components/molecules/Selects/ZSelectUser";
 import ZListRelationUsers from "~/components/organisms/List/Relations/ZListRelationUsers";
+import ZSelectLanguage from "~/components/molecules/Selects/ZSelectLanguage";
+
 import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
 
 const { formData } = useForm("myForm");
@@ -62,6 +69,7 @@ export default {
     ZTextInput,
     ZSelectUser,
     ZListRelationUsers,
+    ZSelectLanguage,
   },
 
   data() {
