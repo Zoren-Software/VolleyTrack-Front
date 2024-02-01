@@ -1,0 +1,29 @@
+query languages(
+    $filter: LanguageSearchInput,
+    $first: Int,
+    $page: Int
+) {
+  languages(
+    filter: $filter,
+    first: $first,
+    page: $page
+  ) {
+    paginatorInfo {
+      count
+      currentPage
+      firstItem
+      hasMorePages
+      lastItem
+      lastPage
+      perPage
+      total
+    }
+    data {
+      id
+      name
+      slug
+      createdAt
+      updatedAt
+    }
+  }
+}

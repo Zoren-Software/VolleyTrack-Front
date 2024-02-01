@@ -1,6 +1,6 @@
 <template>
   <div style="margin-top: 9vh">
-    <va-navbar color="background-primary" style="position: fixed; z-index: 999">
+    <va-navbar color="background-primary" style="position: fixed">
       <template #left>
         <ZNavBarItemLogo
           :minimized="minimized"

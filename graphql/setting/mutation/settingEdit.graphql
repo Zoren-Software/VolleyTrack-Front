@@ -1,0 +1,32 @@
+mutation configEdit(
+  $nameTenant: String!
+  $languageId: ID!
+) {
+  configEdit(
+    nameTenant: $nameTenant
+    languageId: $languageId
+  ) {
+    id
+    userId
+    user {
+      id
+      name
+      email
+      userId
+      emailVerifiedAt
+      createdAt
+      updatedAt
+    }
+    languageId
+    language {
+      id
+      name
+      slug
+      createdAt
+      updatedAt
+    }
+    nameTenant
+    createdAt
+    updatedAt
+  }
+}
