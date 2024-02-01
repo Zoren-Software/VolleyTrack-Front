@@ -1,0 +1,15 @@
+query notifications(
+    $read: Boolean,
+    $first: Int,
+    $page: Int
+) {
+  notifications(
+    read: $read,
+    first: $first,
+    page: $page
+  ) {
+    paginatorInfo {
+      total
+    }
+  }
+}
