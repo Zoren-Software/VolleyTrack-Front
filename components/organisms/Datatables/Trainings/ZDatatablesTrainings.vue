@@ -207,8 +207,6 @@ export default defineComponent({
 
           this.errorFields = Object.keys(this.errors);
 
-          console.log(errorMessages);
-
           confirmError("Ocorreu um erro ao deletar o treino!", errorMessages);
         } else {
           confirmError("Ocorreu um erro ao deletar o treino!");
