@@ -53,7 +53,11 @@ export default {
         : "background-primary";
     },
     totalNotificationsChange(value) {
-      this.totalNotifications = value;
+      if (value > 99) {
+        this.totalNotifications = "99+";
+      } else {
+        this.totalNotifications = value;
+      }
     },
     fetchNotifications() {
       const query = gql`
