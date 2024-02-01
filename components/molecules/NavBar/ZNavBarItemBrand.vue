@@ -7,7 +7,7 @@
 
 <script>
 import ZNavBarItem from "~/components/atoms/NavBar/ZNavBarItem";
-import SETTING from "~/graphql/settings/query/setting.graphql";
+import SETTING from "~/graphql/setting/query/setting.graphql";
 
 const runtimeConfig = useRuntimeConfig();
 const applicationName = runtimeConfig.public.nameApplication;

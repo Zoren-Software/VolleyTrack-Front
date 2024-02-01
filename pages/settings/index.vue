@@ -10,8 +10,8 @@
 
 <script>
 import ZSettingsForm from "~/components/organisms/Forms/Settings/ZSettingsForm";
-import SETTING from "~/graphql/settings/query/setting.graphql";
-import TEAMEDIT from "~/graphql/team/mutation/teamEdit.graphql";
+import SETTING from "~/graphql/setting/query/setting.graphql";
+import SETTINGEDIT from "~/graphql/setting/mutation/settingEdit.graphql";
 import { transformTeamData } from "~/utils/forms/teamForm";
 import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
 
@@ -34,15 +34,8 @@ export default {
   methods: {
     errorsDefault() {
       return {
-        name: [],
-        email: [],
-        password: [],
-        cpf: [],
-        rg: [],
-        phone: [],
-        birthDate: [],
-        roleId: [],
-        teamId: [],
+        nameTenant: [],
+        languageId: [],
       };
     },
     getSettings() {
@@ -92,13 +85,14 @@ export default {
         this.error = false;
 
         const query = gql`
-          ${TEAMEDIT}
+          ${SETTINGEDIT}
         `;
 
+        console.log(form);
+
         const variables = {
-          id: form.id,
-          name: form.name,
-          playerId: form.users.map((item) => item.id),
+          nameTenant: form.nameTenant,
+          languageId: form.languageSelected.value,
         };
 
         console.log(variables);
@@ -107,10 +101,10 @@ export default {
 
         const { data } = await mutate();
 
-        confirmSuccess("Time salvo com sucesso!", () => {
+        confirmSuccess("Configurações salvas com sucesso!", () => {
           this.errors = this.errorsDefault();
 
-          this.$router.push("/teams");
+          this.$router.push("/settings");
         });
       } catch (error) {
         console.error(error);
@@ -133,9 +127,9 @@ export default {
           // criar um título para essas validacões que seram mostradas
           const footer = errorMessages.join("<br>");
 
-          confirmError("Ocorreu um erro ao salvar o time!", footer);
+          confirmError("Ocorreu um erro ao salvar as configurações!", footer);
         } else {
-          confirmError("Ocorreu um erro ao salvar o time!");
+          confirmError("Ocorreu um erro ao salvar as configurações!");
         }
       }
       this.loading = false;
