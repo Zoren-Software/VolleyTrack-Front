@@ -11,7 +11,7 @@ export default {
   },
   methods: {
     color() {
-      return this.$route.path === "/settings/"
+      return this.$route.path === "/settings"
         ? "primary"
         : "background-primary";
     },
