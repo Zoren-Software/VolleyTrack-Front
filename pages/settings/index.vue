@@ -10,7 +10,7 @@
 
 <script>
 import ZSettingsForm from "~/components/organisms/Forms/Settings/ZSettingsForm";
-import SETTING from "~/graphql/team/query/team.graphql";
+import SETTING from "~/graphql/settings/query/setting.graphql";
 import TEAMEDIT from "~/graphql/team/mutation/teamEdit.graphql";
 import { transformTeamData } from "~/utils/forms/teamForm";
 import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
@@ -20,7 +20,7 @@ export default {
     ZSettingsForm,
   },
   mounted() {
-    this.getTeam();
+    this.getSettings();
   },
   data() {
     return {
@@ -48,7 +48,7 @@ export default {
         teamId: [],
       };
     },
-    getTeam() {
+    getSettings() {
       this.loading = true;
 
       const query = gql`
@@ -56,7 +56,7 @@ export default {
       `;
 
       const consult = {
-        ...this.variablesGetPlayer,
+        id: 1,
       };
 
       const {
@@ -66,16 +66,17 @@ export default {
       const { onResult } = useQuery(query, consult);
 
       onResult((result) => {
-        if (result?.data?.team) {
-          this.data = transformTeamData(result.data.team);
+        if (result?.data?.config) {
+          this.data = result.data.config;
         }
       });
 
       if (value) {
-        if (value?.team) {
-          this.data = transformTeamData(value.team);
+        if (value?.data) {
+          this.data = value.data.config;
         }
       }
+      console.log(this.data);
       this.loading = false;
     },
 

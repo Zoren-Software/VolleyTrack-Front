@@ -14,7 +14,7 @@ const applicationName = runtimeConfig.public.nameApplication;
 
 export default {
   mounted() {
-    this.getConfig();
+    this.getSettings();
   },
   data: () => ({
     applicationName,
@@ -26,7 +26,7 @@ export default {
   },
 
   methods: {
-    getConfig() {
+    getSettings() {
       this.loading = true;
 
       const query = gql`
@@ -44,7 +44,6 @@ export default {
       const { onResult } = useQuery(query, consult);
 
       onResult((result) => {
-        console.log("result", result.data.config);
         if (result?.data?.config) {
           this.items = result.data.config;
         }
