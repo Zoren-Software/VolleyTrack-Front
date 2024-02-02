@@ -1,0 +1,11 @@
+mutation notificationsRead(
+  $recentToDeleteCount: Int
+  $markAllAsRead: Boolean
+) {
+  notificationsRead(
+    recentToDeleteCount: $recentToDeleteCount
+    markAllAsRead: $markAllAsRead
+  ) {
+    message
+  }
+}
