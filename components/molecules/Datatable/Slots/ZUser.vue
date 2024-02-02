@@ -1,12 +1,12 @@
 <template>
-  <div v-if="data" class="row justify-start">
-    <div v-if="data.id" class="flex flex-col xs2">
+  <div v-if="data" class="row justify-start mt-2">
+    <div v-if="data.id" class="flex flex-col">
       <div class="item mt-2">
         <va-avatar v-if="data.id" class="mr-6">{{ firstLatter }}</va-avatar>
         <va-icon v-else name="account_circle" />
       </div>
     </div>
-    <div v-if="data.id" class="flex flex-col xs2">
+    <div v-if="data.id" class="flex flex-col">
       <div class="item">
         <div class="pl-2">
           <div class="flex gap-1 mb-1">
@@ -29,6 +29,15 @@
           <div v-if="showUpdatedAt" class="flex items-center">
             <va-icon size="small" name="event" color="secondary" class="mr-2" />
             <span>Atualizado em: {{ formattedUpdatedAt }}</span>
+          </div>
+          <div v-if="showConfirmTraining">
+            <va-icon
+              size="large"
+              name="checked"
+              color="success"
+              class="custom-css"
+            />
+            <span>Confirmado</span>
           </div>
         </div>
       </div>
@@ -69,6 +78,11 @@ export default {
       required: false,
       default: false,
     },
+    showConfirmTraining: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
   },
   computed: {
     firstLatter() {
@@ -99,3 +113,9 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.custom-css {
+  margin-right: -2.6rem;
+}
+</style>

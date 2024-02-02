@@ -1,12 +1,15 @@
 <template>
   <va-list-item class="no-style-link hover pb-3">
     <va-list-item-section>
+      <va-list-item-label class="text-center">
+        {{ parsedData.message }}
+      </va-list-item-label>
       <va-list-item-label>{{ parsedData.training.name }}</va-list-item-label>
       <va-list-item-label caption class="data-hora-treino">
         {{ formattedDate }}
       </va-list-item-label>
-      <va-list-item-label caption class="notification-item-list">
-        {{ parsedData.training.description }}
+      <va-list-item-label caption class="data-hora-treino">
+        <ZUser :data="parsedData.userAction" showEmail showConfirmTraining />
       </va-list-item-label>
     </va-list-item-section>
     <va-list-item-section icon>
@@ -16,12 +19,17 @@
 </template>
 
 <script>
+import ZUser from "~/components/molecules/Datatable/Slots/ZUser";
+
 export default {
   props: {
     notification: {
       type: Object,
       required: true,
     },
+  },
+  components: {
+    ZUser,
   },
   computed: {
     parsedData() {

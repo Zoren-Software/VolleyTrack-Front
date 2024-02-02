@@ -1,6 +1,7 @@
 <template>
   <va-list-item class="no-style-link hover pb-3">
     <va-list-item-section>
+      <va-list-item-label>Treino</va-list-item-label>
       <va-list-item-label>{{ parsedData.training.name }}</va-list-item-label>
       <va-list-item-label caption class="data-hora-treino">
         {{ formattedDate }}
