@@ -2,6 +2,9 @@
   <va-list-item class="no-style-link hover pb-3">
     <va-list-item-section>
       <va-list-item-label>{{ parsedData.training.name }}</va-list-item-label>
+      <va-list-item-label caption class="data-hora-treino">
+        {{ formattedDate }}
+      </va-list-item-label>
       <va-list-item-label caption class="notification-item-list">
         {{ parsedData.training.description }}
       </va-list-item-label>
@@ -28,6 +31,18 @@ export default {
         console.error("Erro ao analisar os dados da notificação:", e);
         return {}; // Retorna um objeto vazio em caso de erro
       }
+    },
+    formattedDate() {
+      if (!this.parsedData.training || !this.parsedData.training.date_start) {
+        return "";
+      }
+      const date = new Date(this.parsedData.training.date_start);
+      const day = date.getDate().toString().padStart(2, "0");
+      const month = (date.getMonth() + 1).toString().padStart(2, "0");
+      const year = date.getFullYear();
+      const hours = date.getHours().toString().padStart(2, "0");
+      const minutes = date.getMinutes().toString().padStart(2, "0");
+      return `${day}/${month}/${year} às ${hours}:${minutes}`;
     },
   },
 };
