@@ -66,7 +66,7 @@ export default {
 
       const consult = {
         page: 1,
-        perPage: 5,
+        first: 5,
       };
 
       const {
