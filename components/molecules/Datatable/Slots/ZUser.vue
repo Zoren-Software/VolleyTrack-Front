@@ -16,7 +16,7 @@
           </div>
           <div v-if="data.information?.phone" class="flex items-center">
             <va-icon size="small" name="phone" color="secondary" class="mr-2" />
-            <span>{{ formattedPhone }}</span>
+            <span class="va-text-custom">{{ formattedPhone }}</span>
           </div>
           <div v-if="showEmail" class="flex items-center">
             <va-icon size="small" name="email" color="secondary" class="mr-2" />
@@ -24,11 +24,15 @@
           </div>
           <div v-if="showCreatedAt" class="flex items-center">
             <va-icon size="small" name="event" color="secondary" class="mr-2" />
-            <span>Criado em: {{ formattedCreatedAt }}</span>
+            <span class="va-text-custom"
+              >Criado em: {{ formattedCreatedAt }}</span
+            >
           </div>
           <div v-if="showUpdatedAt" class="flex items-center">
             <va-icon size="small" name="event" color="secondary" class="mr-2" />
-            <span>Atualizado em: {{ formattedUpdatedAt }}</span>
+            <span class="va-text-custom"
+              >Atualizado em: {{ formattedUpdatedAt }}</span
+            >
           </div>
           <div v-if="showConfirmTraining">
             <va-icon
