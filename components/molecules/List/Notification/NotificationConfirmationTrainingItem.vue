@@ -1,5 +1,5 @@
 <template>
-  <va-list-item class="no-style-link hover pb-3">
+  <va-list-item class="cursor-pointer hover pb-3">
     <va-list-item-section>
       <va-list-item-label class="text-center">
         {{ parsedData.message }}
@@ -63,5 +63,17 @@ export default {
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 200px; /* Ajuste conforme necessário */
+}
+
+.cursor-pointer {
+  cursor: pointer;
+  transition: all 0.1s ease;
+  border-radius: 5px;
+  padding: 1rem;
+}
+
+.cursor-pointer:hover {
+  background-color: #eaeaea; /* Cor de fundo ao passar o mouse */
+  /* Outros estilos que deseja aplicar no hover podem ser adicionados aqui */
 }
 </style>
