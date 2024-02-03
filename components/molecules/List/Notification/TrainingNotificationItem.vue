@@ -1,7 +1,7 @@
 <template>
   <va-list-item class="cursor-pointer hover pb-3" @click="redirect()">
     <va-list-item-section>
-      <va-list-item-label>Treino</va-list-item-label>
+      <va-list-item-label class="va-title">Treino</va-list-item-label>
       <va-list-item-label>{{ parsedData.training.name }}</va-list-item-label>
       <va-list-item-label caption class="data-hora-treino">
         {{ formattedDate }}

@@ -1,7 +1,7 @@
 <template>
-  <va-list-item class="cursor-pointer hover pb-3">
+  <va-list-item class="cursor-pointer hover pb-3" @click="redirect()">
     <va-list-item-section>
-      <va-list-item-label class="text-center">
+      <va-list-item-label class="text-center va-title">
         {{ parsedData.message }}
       </va-list-item-label>
       <va-list-item-label>{{ parsedData.training.name }}</va-list-item-label>
@@ -51,6 +51,11 @@ export default {
       const hours = date.getHours().toString().padStart(2, "0");
       const minutes = date.getMinutes().toString().padStart(2, "0");
       return `${day}/${month}/${year} às ${hours}:${minutes}`;
+    },
+  },
+  methods: {
+    redirect() {
+      this.$router.push(`/trainings/edit/${this.parsedData.training.id}`);
     },
   },
 };

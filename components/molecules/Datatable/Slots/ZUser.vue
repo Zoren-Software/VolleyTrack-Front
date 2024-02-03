@@ -10,7 +10,7 @@
       <div class="item">
         <div class="pl-2">
           <div class="flex gap-1 mb-1">
-            <span
+            <span class="va-text-custom"
               ><b>{{ data.name }}</b></span
             >
           </div>
@@ -20,7 +20,7 @@
           </div>
           <div v-if="showEmail" class="flex items-center">
             <va-icon size="small" name="email" color="secondary" class="mr-2" />
-            <span>{{ data.email }}</span>
+            <span class="va-text-custom">{{ data.email }}</span>
           </div>
           <div v-if="showCreatedAt" class="flex items-center">
             <va-icon size="small" name="event" color="secondary" class="mr-2" />
@@ -37,7 +37,7 @@
               color="success"
               class="custom-css"
             />
-            <span>Confirmado</span>
+            <span class="va-text-success">Confirmado</span>
           </div>
         </div>
       </div>
@@ -115,6 +115,9 @@ export default {
 </script>
 
 <style scoped>
+.va-text-custom {
+  color: #34495e;
+}
 .custom-css {
   margin-right: -2.6rem;
 }
