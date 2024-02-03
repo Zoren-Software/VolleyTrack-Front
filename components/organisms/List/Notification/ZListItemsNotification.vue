@@ -1,6 +1,9 @@
 <template>
   <va-list id="notification-dropdown">
     <va-list-label> Notificações </va-list-label>
+    <p class="va-text-success va-title va-text-center" v-if="items.length == 0">
+      Nenhuma notificação até o momento
+    </p>
     <component
       v-for="item in items"
       :is="getNotificationComponent(item.type)"
