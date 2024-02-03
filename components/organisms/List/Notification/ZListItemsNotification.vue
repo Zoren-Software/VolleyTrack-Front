@@ -24,7 +24,7 @@ import ZListItemNotification from "~/components/molecules/List/ZListItemNotifica
 import TrainingNotificationItem from "~/components/molecules/List/Notification/TrainingNotificationItem";
 import NotificationConfirmationTrainingItem from "~/components/molecules/List/Notification/NotificationConfirmationTrainingItem";
 import NOTIFICATIONS from "~/graphql/notification/query/notifications.graphql";
-import NOTIFICATIONS_READ_LIMIT from "~/graphql/notification/mutation/notificationsRead.graphql";
+import NOTIFICATIONSREAD from "~/graphql/notification/mutation/notificationsRead.graphql";
 import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
 
 export default {
@@ -102,7 +102,7 @@ export default {
       this.items = [];
 
       const query = gql`
-        ${NOTIFICATIONS_READ_LIMIT}
+        ${NOTIFICATIONSREAD}
       `;
 
       const variables = {
