@@ -97,10 +97,6 @@ export default {
         if (result?.data?.notifications?.data.length > 0) {
           this.paginatorInfo = result.data.notifications.paginatorInfo;
           this.items = result.data.notifications.data;
-          console.log(
-            this.paginatorInfo.total,
-            "TOTAL NOTIFICACOES CONSULTINHA 1"
-          );
           this.$emit("updateTotalNotifications", this.paginatorInfo.total);
         }
       });
