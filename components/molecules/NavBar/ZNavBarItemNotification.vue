@@ -15,6 +15,7 @@
         </template>
         <ZListItemsNotification
           @updateTotalNotifications="totalNotificationsChange"
+          @oneLessNotification="oneLessNotification"
         />
       </va-button-dropdown>
     </va-navbar-item>
@@ -44,7 +45,7 @@ export default {
     ZListItemsNotification,
   },
   mounted() {
-    this.fetchNotifications();
+    this.notificationsTotal();
   },
   methods: {
     color() {
@@ -52,6 +53,7 @@ export default {
         ? "primary"
         : "background-primary";
     },
+
     totalNotificationsChange(value) {
       if (value > 99) {
         this.totalNotifications = "99+";
@@ -59,7 +61,14 @@ export default {
         this.totalNotifications = value;
       }
     },
-    fetchNotifications() {
+
+    oneLessNotification(TESTE) {
+      if (this.totalNotifications > 0) {
+        this.totalNotificationsChange(this.totalNotifications - 1);
+      }
+    },
+
+    notificationsTotal() {
       const query = gql`
         ${NOTIFICATIONSTOTAL}
       `;

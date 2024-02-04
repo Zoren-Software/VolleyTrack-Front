@@ -9,6 +9,7 @@
       :is="getNotificationComponent(item.type)"
       :key="item.id"
       :notification="item"
+      @readNotification="readNotificationClear"
     />
   </va-list>
   <div class="mt-3 mb-3">
@@ -17,7 +18,16 @@
   <va-button to="/notifications" size="small" class="mr-6 mb-2 mr-5">
     Ver todas as notificações
   </va-button>
-  <va-button size="small" class="mr-6 mb-2" @click="clear()">
+  <va-button
+    size="small"
+    class="mr-6 mb-2"
+    @click="
+      clear({
+        recentToDeleteCount: 5,
+        markAllAsRead: false,
+      })
+    "
+  >
     Limpar
   </va-button>
 </template>
@@ -32,7 +42,7 @@ import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
 
 export default {
   mounted() {
-    this.getNotifications();
+    this.getNotifications({});
   },
   components: {
     ZListItemNotification,
@@ -44,9 +54,10 @@ export default {
       loading: false,
       items: [],
       errors: this.errorsDefault(),
+      paginatorInfo: {},
     };
   },
-  emits: ["updateTotalNotifications"],
+  emits: ["updateTotalNotifications", "oneLessNotification"],
 
   methods: {
     getNotificationComponent(type) {
@@ -61,7 +72,7 @@ export default {
       // Aqui você pode adicionar mais condições para outros tipos de notificações
       return ZListItemNotification; // Componente padrão para notificações desconhecidas
     },
-    getNotifications(fetchPolicyOptions = {}) {
+    async getNotifications(fetchPolicyOptions = {}) {
       this.loading = true;
       this.items = [];
 
@@ -79,13 +90,17 @@ export default {
       } = useQuery(query, consult);
 
       const { onResult } = useQuery(query, consult, {
-        fetchPolicy: fetchPolicyOptions.fetchPolicy || "cache-first", // Usa 'network-only' quando especificado, senão 'cache-first'
+        fetchPolicy: fetchPolicyOptions.fetchPolicy || "cache-first", // Usa 'network-only' quando quer buscar nova consulta, senão 'cache-first'
       });
 
-      onResult((result) => {
+      await onResult((result) => {
         if (result?.data?.notifications?.data.length > 0) {
           this.paginatorInfo = result.data.notifications.paginatorInfo;
           this.items = result.data.notifications.data;
+          console.log(
+            this.paginatorInfo.total,
+            "TOTAL NOTIFICACOES CONSULTINHA 1"
+          );
           this.$emit("updateTotalNotifications", this.paginatorInfo.total);
         }
       });
@@ -94,24 +109,20 @@ export default {
         if (value?.notifications?.data.length > 0) {
           this.paginatorInfo = value.notifications.paginatorInfo;
           this.items = value.notifications.data;
-          console.log(value.notifications);
           this.$emit("updateTotalNotifications", this.paginatorInfo.total);
         }
       }
       this.loading = false;
     },
 
-    async clear() {
+    async clear(options = {}) {
       this.items = [];
 
       const query = gql`
         ${NOTIFICATIONSREAD}
       `;
 
-      const variables = {
-        recentToDeleteCount: 5,
-        markAllAsRead: false,
-      };
+      const variables = options;
 
       const { mutate } = await useMutation(query, { variables });
 
@@ -121,7 +132,13 @@ export default {
         this.errors = this.errorsDefault();
       });
 
-      this.getNotifications({ fetchPolicy: "network-only" });
+      await this.getNotifications({ fetchPolicy: "network-only" });
+    },
+
+    async readNotificationClear(id) {
+      await this.clear({ id });
+      console.log("EMITINDO VALOR");
+      this.$emit("oneLessNotification", true);
     },
 
     errorsDefault() {

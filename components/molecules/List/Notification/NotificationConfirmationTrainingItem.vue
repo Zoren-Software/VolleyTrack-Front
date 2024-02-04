@@ -31,6 +31,7 @@ export default {
   components: {
     ZUser,
   },
+  emits: ["readNotification"],
   computed: {
     parsedData() {
       try {
@@ -56,6 +57,7 @@ export default {
   methods: {
     redirect() {
       this.$router.push(`/trainings/edit/${this.parsedData.training.id}`);
+      this.$emit("readNotification", this.notification.id);
     },
   },
 };
