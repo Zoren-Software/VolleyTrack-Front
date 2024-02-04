@@ -4,21 +4,13 @@
     :preset="value ? 'primary' : 'secondary'"
   >
     <va-list-item-section>
-      <va-list-item-label>
-        {{ action.title }}
-      </va-list-item-label>
-      <va-list-item-label 
-        caption 
-        class="notification-item-list"
-      >
+      <va-list-item-label> {{ action.title }} </va-list-item-label>
+      <va-list-item-label caption class="notification-item-list">
         {{ action.description }}
       </va-list-item-label>
     </va-list-item-section>
     <va-list-item-section icon>
-      <va-icon
-        name="remove_red_eye"
-        color="primary"
-      />
+      <va-icon name="remove_red_eye" color="primary" />
     </va-list-item-section>
   </va-list-item>
 </template>
@@ -52,12 +44,11 @@ export default {
   border-radius: 5px; /* raio de arredondamento */
 }
 
-.notification-item-list{
+.notification-item-list {
   /* limitar número de caracteres */
-  white-space: nowrap; 
-  overflow: hidden; 
-  text-overflow: ellipsis; 
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   max-width: 11rem;
 }
-
 </style>

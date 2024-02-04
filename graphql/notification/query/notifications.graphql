@@ -1,0 +1,32 @@
+query notifications(
+    $read: Boolean,
+    $first: Int,
+    $page: Int
+) {
+  notifications(
+    read: $read,
+    first: $first,
+    page: $page
+  ) {
+    paginatorInfo {
+      count
+      currentPage
+      firstItem
+      hasMorePages
+      lastItem
+      lastPage
+      perPage
+      total
+    }
+    data {
+      id
+      type
+      notifiableType
+      notifiableId
+      data
+      readAt
+      createdAt
+      updatedAt
+    }
+  }
+}

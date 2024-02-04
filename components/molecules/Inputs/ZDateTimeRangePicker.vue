@@ -69,7 +69,10 @@ export default {
     },
     timeStartValue: {
       get() {
-        return this.timeStart || ""; // Garante que o valor não seja null
+        // Convertendo a string para Date se necessário
+        return this.timeStart instanceof Date
+          ? this.timeStart
+          : new Date(this.timeStart);
       },
       set(value) {
         this.updateTimeStart(value);
@@ -77,7 +80,10 @@ export default {
     },
     timeEndValue: {
       get() {
-        return this.timeEnd || ""; // Garante que o valor não seja null
+        // Convertendo a string para Date se necessário
+        return this.timeEnd instanceof Date
+          ? this.timeEnd
+          : new Date(this.timeEnd);
       },
       set(value) {
         this.updateTimeEnd(value);
@@ -102,10 +108,32 @@ export default {
       this.$emit("update:date", value);
     },
     updateTimeStart(value) {
-      this.$emit("update:timeStart", value);
+      // Certifique-se de que o valor é um objeto Date antes de emitir
+      const timeValue = value instanceof Date ? value : new Date(value);
+      this.$emit("update:timeStart", timeValue);
     },
     updateTimeEnd(value) {
-      this.$emit("update:timeEnd", value);
+      // Certifique-se de que o valor é um objeto Date antes de emitir
+      const timeValue = value instanceof Date ? value : new Date(value);
+      this.$emit("update:timeEnd", timeValue);
+    },
+  },
+
+  watch: {
+    date(newVal) {
+      if (typeof newVal === "string") {
+        this.updateDate(new Date(newVal));
+      }
+    },
+    timeStart(newVal) {
+      if (typeof newVal === "string") {
+        this.updateTimeStart(new Date(newVal));
+      }
+    },
+    timeEnd(newVal) {
+      if (typeof newVal === "string") {
+        this.updateTimeEnd(new Date(newVal));
+      }
     },
   },
 };

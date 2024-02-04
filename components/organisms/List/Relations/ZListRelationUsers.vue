@@ -99,15 +99,15 @@ export default {
           sortable: true,
         },
         {
-          key: "userInformation",
-          name: "cpf",
-          label: "CPF e RG",
-          sortable: true,
-        },
-        {
           key: "positions",
           name: "positions",
           label: "Posições",
+          sortable: true,
+        },
+        {
+          key: "userInformation",
+          name: "cpf",
+          label: "CPF e RG",
           sortable: true,
         },
       ],

@@ -1,34 +1,47 @@
 <template>
-  <div v-if="data" class="row justify-start">
-    <div v-if="data.id" class="flex flex-col xs2">
+  <div v-if="data" class="row justify-start mt-2">
+    <div v-if="data.id" class="flex flex-col">
       <div class="item mt-2">
         <va-avatar v-if="data.id" class="mr-6">{{ firstLatter }}</va-avatar>
         <va-icon v-else name="account_circle" />
       </div>
     </div>
-    <div v-if="data.id" class="flex flex-col xs2">
+    <div v-if="data.id" class="flex flex-col">
       <div class="item">
         <div class="pl-2">
           <div class="flex gap-1 mb-1">
-            <span
+            <span class="va-text-custom"
               ><b>{{ data.name }}</b></span
             >
           </div>
           <div v-if="data.information?.phone" class="flex items-center">
             <va-icon size="small" name="phone" color="secondary" class="mr-2" />
-            <span>{{ formattedPhone }}</span>
+            <span class="va-text-custom">{{ formattedPhone }}</span>
           </div>
           <div v-if="showEmail" class="flex items-center">
             <va-icon size="small" name="email" color="secondary" class="mr-2" />
-            <span>{{ data.email }}</span>
+            <span class="va-text-custom">{{ data.email }}</span>
           </div>
           <div v-if="showCreatedAt" class="flex items-center">
             <va-icon size="small" name="event" color="secondary" class="mr-2" />
-            <span>Criado em: {{ formattedCreatedAt }}</span>
+            <span class="va-text-custom"
+              >Criado em: {{ formattedCreatedAt }}</span
+            >
           </div>
           <div v-if="showUpdatedAt" class="flex items-center">
             <va-icon size="small" name="event" color="secondary" class="mr-2" />
-            <span>Atualizado em: {{ formattedUpdatedAt }}</span>
+            <span class="va-text-custom"
+              >Atualizado em: {{ formattedUpdatedAt }}</span
+            >
+          </div>
+          <div v-if="showConfirmTraining">
+            <va-icon
+              size="large"
+              name="checked"
+              color="success"
+              class="custom-css"
+            />
+            <span class="va-text-success">Confirmado</span>
           </div>
         </div>
       </div>
@@ -69,6 +82,11 @@ export default {
       required: false,
       default: false,
     },
+    showConfirmTraining: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
   },
   computed: {
     firstLatter() {
@@ -99,3 +117,12 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.va-text-custom {
+  color: #34495e;
+}
+.custom-css {
+  margin-right: -2.6rem;
+}
+</style>
