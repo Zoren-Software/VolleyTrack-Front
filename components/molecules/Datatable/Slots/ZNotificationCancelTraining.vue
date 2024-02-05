@@ -8,9 +8,6 @@
       <va-list-item-label caption class="data-hora-treino">
         {{ formattedDate }}
       </va-list-item-label>
-      <va-list-item-label caption class="data-hora-treino">
-        <ZUser :data="parsedData.userAction" showEmail showCancelTraining />
-      </va-list-item-label>
     </va-list-item-section>
   </va-list-item>
 </template>

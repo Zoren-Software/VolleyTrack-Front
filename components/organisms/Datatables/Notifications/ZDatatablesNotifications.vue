@@ -17,6 +17,12 @@
     @deletes="readNotifications"
     @update:currentPageActive="updateCurrentPageActive"
   >
+    <!-- ACTIONS -->
+    <template #extra-actions-top>
+      <ZButton color="danger" class="mr-3" @click="readAllNotifications"
+        >Ler Todas</ZButton
+      >
+    </template>
     <!-- FILTER -->
     <template #filter>
       <!-- TODO - Ajustar distribuição dos itens dentro deste componente -->
@@ -32,12 +38,19 @@
         :notification="rowKey"
       />
     </template>
-
-    <!-- ACTIONS -->
-    <template #extra-actions-top>
-      <ZButton color="danger" class="mr-3" @click="readAllNotifications"
-        >Ler Todas</ZButton
-      >
+    <template #cell(userAction)="{ rowKey }">
+      <ZUser
+        :data="parseData(rowKey.data).userAction"
+        showEmail
+        :showConfirmTraining="
+          rowKey.type ===
+          'App\\Notifications\\Training\\ConfirmationTrainingNotification'
+        "
+        :showCancelTraining="
+          rowKey.type ===
+          'App\\Notifications\\Training\\CancelTrainingNotification'
+        "
+      />
     </template>
   </ZDatatableGeneric>
 </template>
@@ -81,6 +94,12 @@ export default defineComponent({
         label: "Notificações",
         sortable: true,
       },
+      {
+        key: "userAction",
+        name: "userAction",
+        label: "Usuário",
+        sortable: true,
+      },
     ];
 
     return {
@@ -112,6 +131,16 @@ export default defineComponent({
   },
 
   methods: {
+    parseData(rowKeyData) {
+      try {
+        return JSON.parse(rowKeyData);
+      } catch (error) {
+        console.error("Erro ao converter dados para JSON", error);
+        // Retorne um valor padrão ou lide com o erro conforme necessário
+        return {};
+      }
+    },
+
     unselectItem(item) {
       this.selectedItems = this.selectedItems.filter(
         (selectedItem) => selectedItem !== item
