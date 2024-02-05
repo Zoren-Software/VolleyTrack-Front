@@ -134,7 +134,7 @@ export default defineComponent({
 
         const { data } = await mutate();
 
-        confirmSuccess("Notificação(ões) deletada(s) com sucesso!", () => {
+        confirmSuccess("Notificação(ões) lida(s) com sucesso!", () => {
           this.items = [];
         });
       } catch (error) {
