@@ -51,6 +51,7 @@ import NOTIFICATIONREAD from "~/graphql/notification/mutation/notificationsRead.
 import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
 import ZTrainingNotification from "~/components/molecules/Datatable/Slots/ZTrainingNotification";
 import ZNotificationConfirmationTraining from "~/components/molecules/Datatable/Slots/ZNotificationConfirmationTraining";
+import ZNotificationCancelTraining from "~/components/molecules/Datatable/Slots/ZNotificationCancelTraining";
 import ZListItemNotification from "~/components/molecules/List/ZListItemNotification";
 import ZButton from "~/components/atoms/Buttons/ZButton";
 
@@ -60,6 +61,7 @@ export default defineComponent({
     ZUser,
     ZTrainingNotification,
     ZNotificationConfirmationTraining,
+    ZNotificationCancelTraining,
     ZListItemNotification,
     ZButton,
   },
@@ -238,9 +240,11 @@ export default defineComponent({
         return ZTrainingNotification;
       } else if (
         type ===
-        "App\\Notifications\\Training\\NotificationConfirmationTrainingNotification"
+        "App\\Notifications\\Training\\ConfirmationTrainingNotification"
       ) {
         return ZNotificationConfirmationTraining;
+      } else if ("App\\Notifications\\Training\\CancelTrainingNotification") {
+        return ZNotificationCancelTraining;
       }
       // Aqui você pode adicionar mais condições para outros tipos de notificações
       return ZListItemNotification; // Componente padrão para notificações desconhecidas

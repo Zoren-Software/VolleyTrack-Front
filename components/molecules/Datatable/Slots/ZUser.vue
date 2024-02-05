@@ -39,9 +39,18 @@
               size="large"
               name="checked"
               color="success"
-              class="custom-css"
+              class="custom-css pr-1"
             />
             <span class="va-text-success">Confirmado</span>
+          </div>
+          <div v-if="showCancelTraining">
+            <va-icon
+              size="large"
+              name="closed"
+              color="danger"
+              class="custom-css pr-4"
+            />
+            <span class="va-text-danger">Cancelado</span>
           </div>
         </div>
       </div>
@@ -83,6 +92,11 @@ export default {
       default: false,
     },
     showConfirmTraining: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
+    showCancelTraining: {
       type: Boolean,
       required: false,
       default: false,
