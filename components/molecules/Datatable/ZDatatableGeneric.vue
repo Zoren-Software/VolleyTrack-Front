@@ -5,10 +5,15 @@
         <ZDataTableActionButtons
           :buttonActionAdd="buttonActionAdd"
           :buttonActionDelete="buttonActionDelete"
+          :selectedItemsEmitted="selectedItemsEmitted"
+          :textButtonDelete="textButtonDelete"
           @add="actionAdd"
           @delete="actionDeletes"
-          :selectedItemsEmitted="selectedItemsEmitted"
-        />
+        >
+          <template #extra-actions-top>
+            <slot name="extra-actions-top"></slot>
+          </template>
+        </ZDataTableActionButtons>
       </div>
     </div>
   </div>
@@ -165,6 +170,10 @@ export default defineComponent({
     filter: {
       type: Boolean,
       default: false,
+    },
+    textButtonDelete: {
+      type: String,
+      default: "Deletar",
     },
   },
   data() {

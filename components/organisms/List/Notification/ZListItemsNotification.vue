@@ -132,7 +132,7 @@ export default {
     },
 
     async readNotificationClear(id) {
-      await this.clear({ id });
+      await this.clear({ id: [id] });
       console.log("EMITINDO VALOR");
       this.$emit("oneLessNotification", true);
     },

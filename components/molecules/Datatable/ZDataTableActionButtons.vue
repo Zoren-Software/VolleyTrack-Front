@@ -1,14 +1,18 @@
 <template>
-  <ZButton v-if="buttonActionAdd" color="primary" class="mr-3" @click="add"
-    >Adicionar</ZButton
-  >
-  <ZButton
-    v-if="buttonActionDelete"
-    color="danger"
-    :disabled="!(selectedItemsEmitted.length > 1)"
-    @click="actionDelete"
-    >Deletar</ZButton
-  >
+  <div class="display-flex items-center">
+    <ZButton v-if="buttonActionAdd" color="primary" class="mr-3" @click="add"
+      >Adicionar</ZButton
+    >
+    <ZButton
+      v-if="buttonActionDelete"
+      color="danger"
+      class="mr-3"
+      :disabled="!(selectedItemsEmitted.length > 1)"
+      @click="actionDelete"
+      >{{ textButtonDelete }}</ZButton
+    >
+    <slot name="extra-actions-top"></slot>
+  </div>
 </template>
 
 <script>
@@ -33,6 +37,10 @@ export default {
       type: Array,
       default: () => [],
     },
+    textButtonDelete: {
+      type: String,
+      default: "Deletar",
+    },
   },
   methods: {
     add() {
@@ -55,3 +63,9 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.display-flex {
+  display: flex;
+}
+</style>
