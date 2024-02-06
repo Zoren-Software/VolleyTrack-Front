@@ -19,7 +19,7 @@
   </div>
   <ZFilter v-if="filter">
     <div class="row">
-      <div class="flex flex-col md6 py-1">
+      <div v-if="optionSearch" class="flex flex-col md6 py-1">
         <div class="item">
           <ZDataTableInputSearch
             v-model="search"
@@ -174,6 +174,10 @@ export default defineComponent({
     textButtonDelete: {
       type: String,
       default: "Deletar",
+    },
+    optionSearch: {
+      type: Boolean,
+      default: true,
     },
   },
   data() {

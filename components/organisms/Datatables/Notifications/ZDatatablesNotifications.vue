@@ -2,16 +2,17 @@
   <ZDatatableGeneric
     buttonActionDelete
     includeActionsColumn
-    includeActionDeleteList
+    :includeActionDeleteList="!readSearch"
     selectable
     :items="items"
     :columns="columns"
     :loading="loading"
     :paginatorInfo="paginatorInfo"
     :filter="true"
+    :optionSearch="false"
     textButtonDelete="Ler"
     @search="searchNotification"
-    @actionSearch="getNotifications"
+    @actionSearch="getNotifications({ fetchPolicy: 'network-only' })"
     @actionClear="clearSearch"
     @delete="readNotification"
     @deletes="readNotifications"
@@ -27,7 +28,15 @@
     <template #filter>
       <!-- TODO - Ajustar distribuição dos itens dentro deste componente -->
       <div class="row">
-        <div class="flex flex-col md6"></div>
+        <div class="flex flex-col md6">
+          <div class="item mr-2">
+            <va-switch
+              v-model="read"
+              true-inner-label="Lidas"
+              false-inner-label="Não lidas"
+            />
+          </div>
+        </div>
       </div>
     </template>
 
@@ -39,18 +48,20 @@
       />
     </template>
     <template #cell(userAction)="{ rowKey }">
-      <ZUser
-        :data="parseData(rowKey.data).userAction"
-        showEmail
-        :showConfirmTraining="
-          rowKey.type ===
-          'App\\Notifications\\Training\\ConfirmationTrainingNotification'
-        "
-        :showCancelTraining="
-          rowKey.type ===
-          'App\\Notifications\\Training\\CancelTrainingNotification'
-        "
-      />
+      <div v-if="parseData(rowKey.data).userAction">
+        <ZUser
+          :data="parseData(rowKey.data).userAction"
+          showEmail
+          :showConfirmTraining="
+            rowKey.type ===
+            'App\\Notifications\\Training\\ConfirmationTrainingNotification'
+          "
+          :showCancelTraining="
+            rowKey.type ===
+            'App\\Notifications\\Training\\CancelTrainingNotification'
+          "
+        />
+      </div>
     </template>
   </ZDatatableGeneric>
 </template>
@@ -80,7 +91,7 @@ export default defineComponent({
   },
 
   mounted() {
-    this.getNotifications();
+    this.getNotifications({ fetchPolicy: "network-only" });
   },
 
   data() {
@@ -103,6 +114,8 @@ export default defineComponent({
     ];
 
     return {
+      read: false,
+      readSearch: false,
       items: [],
       loading,
       columns,
@@ -213,6 +226,8 @@ export default defineComponent({
         confirmSuccess("Notificação(ões) lida(s) com sucesso!", () => {
           this.items = this.items.filter((item) => !ids.includes(item.id));
         });
+
+        this.getNotifications({ fetchPolicy: "network-only" });
       } catch (error) {
         console.error(error);
         this.error = true;
@@ -251,7 +266,7 @@ export default defineComponent({
 
     updateCurrentPageActive(page) {
       this.variablesGetNotifications.page = page;
-      this.getNotifications();
+      this.getNotifications({ fetchPolicy: "network-only" });
     },
 
     searchNotification(search) {
@@ -262,6 +277,7 @@ export default defineComponent({
       this.variablesGetNotifications.filter = {
         search: "%%",
       };
+      this.read = false;
     },
 
     getNotificationComponent(type) {
@@ -279,7 +295,7 @@ export default defineComponent({
       return ZListItemNotification; // Componente padrão para notificações desconhecidas
     },
 
-    getNotifications() {
+    getNotifications(fetchPolicyOptions = {}) {
       this.loading = true;
       this.items = [];
 
@@ -287,8 +303,10 @@ export default defineComponent({
         ${NOTIFICATIONS}
       `;
 
+      this.readSearch = this.read;
+
       const consult = {
-        read: false,
+        read: this.read,
         first: 10,
         page: this.variablesGetNotifications.page,
       };
@@ -297,7 +315,9 @@ export default defineComponent({
         result: { value },
       } = useQuery(query, consult);
 
-      const { onResult } = useQuery(query, consult);
+      const { onResult } = useQuery(query, consult, {
+        fetchPolicy: fetchPolicyOptions.fetchPolicy || "cache-first", // Usa 'network-only' quando quer buscar nova consulta, senão 'cache-first'
+      });
 
       onResult((result) => {
         if (result?.data?.notifications?.data.length > 0) {
