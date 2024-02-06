@@ -16,7 +16,7 @@
           minimized ? 'xs11 sm11 md11 lg11 xl11' : 'xs10',
         ]"
       >
-        <div class="item">
+        <div class="item margin-menu">
           <NuxtPage />
         </div>
       </div>
@@ -44,3 +44,9 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.margin-menu {
+  margin-top: 6rem;
+}
+</style>

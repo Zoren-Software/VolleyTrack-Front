@@ -1,5 +1,5 @@
 <template>
-  <div class="row justify-start mt-3">
+  <div class="row justify-start">
     <div class="flex flex-col xs2">
       <div class="item">
         <ZDataTableActionButtons
