@@ -11,3 +11,8 @@ export default {
   },
 };
 </script>
+<script setup>
+useHead({
+  titleTemplate: "Times",
+});
+</script>

@@ -106,3 +106,9 @@ export default {
   },
 };
 </script>
+
+<script setup>
+useHead({
+  titleTemplate: "Criar Jogador",
+});
+</script>

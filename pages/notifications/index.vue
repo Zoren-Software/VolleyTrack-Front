@@ -11,3 +11,9 @@ export default {
   },
 };
 </script>
+
+<script setup>
+useHead({
+  titleTemplate: "Notificações",
+});
+</script>

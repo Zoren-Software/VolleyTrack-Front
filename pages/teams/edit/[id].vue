@@ -136,3 +136,9 @@ export default {
   },
 };
 </script>
+
+<script setup>
+useHead({
+  titleTemplate: "Editar Time",
+});
+</script>

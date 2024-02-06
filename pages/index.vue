@@ -29,3 +29,9 @@ export default {
   },
 };
 </script>
+
+<script setup>
+useHead({
+  titleTemplate: "Home",
+});
+</script>
