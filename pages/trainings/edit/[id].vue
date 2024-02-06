@@ -142,3 +142,9 @@ export default {
   },
 };
 </script>
+
+<script setup>
+useHead({
+  titleTemplate: "Editar Treino",
+});
+</script>

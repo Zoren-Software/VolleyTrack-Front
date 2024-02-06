@@ -143,3 +143,9 @@ export default {
   },
 };
 </script>
+
+<script setup>
+  useHead({
+    titleTemplate: "Minha Conta",
+  });
+</script>

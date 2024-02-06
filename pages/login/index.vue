@@ -8,4 +8,8 @@ import ZLoginForm from "~/components/organisms/Forms/Login/ZLoginForm";
 definePageMeta({
   layout: "login",
 });
+
+useHead({
+  titleTemplate: "Login",
+});
 </script>
