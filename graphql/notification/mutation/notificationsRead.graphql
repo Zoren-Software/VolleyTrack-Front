@@ -1,5 +1,5 @@
 mutation notificationsRead(
-  $id: String
+  $id: [String!]
   $recentToDeleteCount: Int
   $markAllAsRead: Boolean
 ) {

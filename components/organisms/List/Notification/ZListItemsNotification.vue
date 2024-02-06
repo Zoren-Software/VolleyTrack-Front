@@ -36,6 +36,7 @@
 import ZListItemNotification from "~/components/molecules/List/ZListItemNotification";
 import TrainingNotificationItem from "~/components/molecules/List/Notification/TrainingNotificationItem";
 import NotificationConfirmationTrainingItem from "~/components/molecules/List/Notification/NotificationConfirmationTrainingItem";
+import NotificationCancelTrainingItem from "~/components/molecules/List/Notification/NotificationCancelTrainingItem";
 import NOTIFICATIONS from "~/graphql/notification/query/notifications.graphql";
 import NOTIFICATIONSREAD from "~/graphql/notification/mutation/notificationsRead.graphql";
 import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
@@ -48,6 +49,7 @@ export default {
     ZListItemNotification,
     TrainingNotificationItem,
     NotificationConfirmationTrainingItem,
+    NotificationCancelTrainingItem,
   },
   data() {
     return {
@@ -65,9 +67,11 @@ export default {
         return TrainingNotificationItem;
       } else if (
         type ===
-        "App\\Notifications\\Training\\NotificationConfirmationTrainingNotification"
+        "App\\Notifications\\Training\\ConfirmationTrainingNotification"
       ) {
         return NotificationConfirmationTrainingItem;
+      } else if ("App\\Notifications\\Training\\CancelTrainingNotification") {
+        return NotificationCancelTrainingItem;
       }
       // Aqui você pode adicionar mais condições para outros tipos de notificações
       return ZListItemNotification; // Componente padrão para notificações desconhecidas
@@ -97,10 +101,6 @@ export default {
         if (result?.data?.notifications?.data.length > 0) {
           this.paginatorInfo = result.data.notifications.paginatorInfo;
           this.items = result.data.notifications.data;
-          console.log(
-            this.paginatorInfo.total,
-            "TOTAL NOTIFICACOES CONSULTINHA 1"
-          );
           this.$emit("updateTotalNotifications", this.paginatorInfo.total);
         }
       });
@@ -136,8 +136,7 @@ export default {
     },
 
     async readNotificationClear(id) {
-      await this.clear({ id });
-      console.log("EMITINDO VALOR");
+      await this.clear({ id: [id] });
       this.$emit("oneLessNotification", true);
     },
 

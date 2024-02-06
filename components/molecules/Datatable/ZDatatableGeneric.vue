@@ -5,16 +5,21 @@
         <ZDataTableActionButtons
           :buttonActionAdd="buttonActionAdd"
           :buttonActionDelete="buttonActionDelete"
+          :selectedItemsEmitted="selectedItemsEmitted"
+          :textButtonDelete="textButtonDelete"
           @add="actionAdd"
           @delete="actionDeletes"
-          :selectedItemsEmitted="selectedItemsEmitted"
-        />
+        >
+          <template #extra-actions-top>
+            <slot name="extra-actions-top"></slot>
+          </template>
+        </ZDataTableActionButtons>
       </div>
     </div>
   </div>
   <ZFilter v-if="filter">
     <div class="row">
-      <div class="flex flex-col md6 py-1">
+      <div v-if="optionSearch" class="flex flex-col md6 py-1">
         <div class="item">
           <ZDataTableInputSearch
             v-model="search"
@@ -165,6 +170,14 @@ export default defineComponent({
     filter: {
       type: Boolean,
       default: false,
+    },
+    textButtonDelete: {
+      type: String,
+      default: "Deletar",
+    },
+    optionSearch: {
+      type: Boolean,
+      default: true,
     },
   },
   data() {
