@@ -182,6 +182,8 @@ export default defineComponent({
         confirmSuccess("Usuário(s) deletado(s) com sucesso!", () => {
           this.items = this.items.filter((item) => !ids.includes(item.id));
         });
+
+        this.getPlayers({ fetchPolicy: "network-only" });
       } catch (error) {
         console.error(error);
         this.error = true;
@@ -235,7 +237,7 @@ export default defineComponent({
       };
     },
 
-    getPlayers() {
+    getPlayers(fetchPolicyOptions = {}) {
       this.loading = true;
       this.items = [];
 
@@ -262,7 +264,9 @@ export default defineComponent({
 
       const {
         result: { value },
-      } = useQuery(query, consult);
+      } = useQuery(query, consult, {
+        fetchPolicy: fetchPolicyOptions.fetchPolicy || "cache-first", // Usa 'network-only' quando quer buscar nova consulta, senão 'cache-first'
+      });
 
       const { onResult } = useQuery(query, consult);
 
