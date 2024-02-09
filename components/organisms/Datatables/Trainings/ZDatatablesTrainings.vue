@@ -189,6 +189,8 @@ export default defineComponent({
         confirmSuccess("Treino(s) deletado(s) com sucesso!", () => {
           this.items = this.items.filter((item) => !ids.includes(item.id));
         });
+
+        this.getTrainings({ fetchPolicy: "network-only" });
       } catch (error) {
         console.error(error);
         this.error = true;
@@ -243,7 +245,7 @@ export default defineComponent({
       };
     },
 
-    getTrainings() {
+    getTrainings(fetchPolicyOptions = {}) {
       this.loading = true;
       this.items = [];
 
@@ -277,7 +279,9 @@ export default defineComponent({
         result: { value },
       } = useQuery(query, consult);
 
-      const { onResult } = useQuery(query, consult);
+      const { onResult } = useQuery(query, consult, {
+        fetchPolicy: fetchPolicyOptions.fetchPolicy || "cache-first", // Usa 'network-only' quando quer buscar nova consulta, senão 'cache-first'
+      });
 
       onResult((result) => {
         if (result?.data?.trainings?.data.length > 0) {

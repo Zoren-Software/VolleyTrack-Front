@@ -1,13 +1,5 @@
 <template>
-  <div
-    style="
-      height: 100%;
-      position: fixed;
-      width: 100%;
-      margin-top: 5.2rem;
-      z-index: 999;
-    "
-  >
+  <div style="height: 100%; position: fixed; width: 100%; margin-top: 5.2rem">
     <va-sidebar :hoverable="toggle" color="background-primary">
       <ZSidebarItem
         v-for="item in titles"

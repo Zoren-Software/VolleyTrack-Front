@@ -174,6 +174,8 @@ export default defineComponent({
         confirmSuccess("Time(s) deletado(s) com sucesso!", () => {
           this.items = this.items.filter((item) => !ids.includes(item.id));
         });
+
+        this.getTeams({ fetchPolicy: "network-only" });
       } catch (error) {
         console.error(error);
         this.error = true;
@@ -230,7 +232,7 @@ export default defineComponent({
       };
     },
 
-    getTeams() {
+    getTeams(fetchPolicyOptions = {}) {
       this.loading = true;
       this.items = [];
 
@@ -262,7 +264,9 @@ export default defineComponent({
 
       const {
         result: { value },
-      } = useQuery(query, consult);
+      } = useQuery(query, consult, {
+        fetchPolicy: fetchPolicyOptions.fetchPolicy || "cache-first", // Usa 'network-only' quando quer buscar nova consulta, senão 'cache-first'
+      });
 
       const { onResult } = useQuery(query, consult);
 
