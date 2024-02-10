@@ -50,6 +50,30 @@
             />
           </div>
         </div>
+        <div class="flex flex-col md3 mb-2">
+          <div class="item mr-2">
+            <VaDateInput
+              v-model="variablesGetTrainings.filter.dateStart"
+              name="dateStart"
+              label="Inicio Data Treino"
+              id="date-training"
+              style="width: 100%"
+              class="mb-3"
+            />
+          </div>
+        </div>
+        <div class="flex flex-col md3 mb-2">
+          <div class="item mr-2">
+            <VaDateInput
+              v-model="variablesGetTrainings.filter.dateEnd"
+              name="dateEnd"
+              label="Fim Data Treino"
+              id="date-training"
+              style="width: 100%"
+              class="mb-3"
+            />
+          </div>
+        </div>
       </div>
     </template>
 
@@ -145,6 +169,8 @@ export default defineComponent({
           usersIds: [],
           playersIds: [],
           search: "%%",
+          dateStart: null,
+          dateEnd: null,
         },
         orderBy: "id",
         sortedBy: "desc",
@@ -240,8 +266,12 @@ export default defineComponent({
 
     clearSearch() {
       this.variablesGetTrainings.filter = {
-        search: "%%",
         teamsIds: [],
+        usersIds: [],
+        playersIds: [],
+        search: "%%",
+        dateStart: null, // data de hoje
+        dateEnd: null, // data de hoje
       };
     },
 
@@ -265,6 +295,18 @@ export default defineComponent({
         (player) => parseInt(player.value)
       );
 
+      let dateEnd = this.variablesGetTrainings.filter.dateEnd;
+
+      if (dateEnd) {
+        dateEnd = moment(dateEnd).format("YYYY-MM-DD 23:59:59");
+      }
+
+      let dateStart = this.variablesGetTrainings.filter.dateStart;
+
+      if (dateStart) {
+        dateStart = moment(dateStart).format("YYYY-MM-DD 00:00:00");
+      }
+
       const consult = {
         ...this.variablesGetTrainings,
         filter: {
@@ -272,6 +314,8 @@ export default defineComponent({
           teamsIds: teamsIdsValues,
           usersIds: usersIdsValues,
           playersIds: playersIdsValues,
+          dateStart,
+          dateEnd,
         },
       };
 
