@@ -74,7 +74,6 @@
             />
           </div>
         </div>
-        {{ variablesGetTrainings.filter }}
       </div>
     </template>
 
@@ -170,8 +169,8 @@ export default defineComponent({
           usersIds: [],
           playersIds: [],
           search: "%%",
-          dateStart: moment().toISOString(),
-          dateEnd: moment().toISOString(),
+          dateStart: null,
+          dateEnd: null,
         },
         orderBy: "id",
         sortedBy: "desc",
@@ -271,8 +270,8 @@ export default defineComponent({
         usersIds: [],
         playersIds: [],
         search: "%%",
-        dateStart: moment().format("YYYY-MM-DD"), // data de hoje
-        dateEnd: moment().format("YYYY-MM-DD"), // data de hoje
+        dateStart: null, // data de hoje
+        dateEnd: null, // data de hoje
       };
     },
 
