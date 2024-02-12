@@ -1,5 +1,5 @@
 <template>
-  <div style="height: 100%; position: fixed; width: 100%; margin-top: 5.2rem">
+  <div class="sidebar-custom">
     <va-sidebar :hoverable="toggle" color="background-primary">
       <ZSidebarItem
         v-for="item in titles"
@@ -74,3 +74,11 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.sidebar-custom {
+  height: 100%;
+  position: fixed;
+  margin-top: 5.2rem;
+}
+</style>
