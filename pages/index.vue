@@ -1,4 +1,11 @@
 <template>
+  <div>
+    <h1>
+      <!-- Mostrar aqui o token do usuario vindo de localstorage -->
+      {{ token }}
+      <pre>{{ JSON.stringify(user, null, 2) }}</pre>
+    </h1>
+  </div>
   <ZDashboard
     :totalUsers="totalUsers"
     :totalTeams="totalTeams"
@@ -18,9 +25,14 @@ export default {
   },
   mounted() {
     this.getInformations();
+    this.token = localStorage.getItem("userToken") ?? "sem token";
+    this.user = JSON.parse(localStorage.getItem("user"));
   },
+
   data() {
     return {
+      token: "",
+      user: {},
       loading: false,
       totalUsers: 0,
       totalTeams: 0,
