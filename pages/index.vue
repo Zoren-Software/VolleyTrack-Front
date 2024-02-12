@@ -1,96 +1,239 @@
 <template>
-  <div style="display: none">
-    <h1>
-      <!-- Mostrar aqui o token do usuario vindo de localstorage -->
-      {{ token }}
-      <pre>{{ JSON.stringify(user, null, 2) }}</pre>
-    </h1>
-  </div>
-  <div>
-    <h4 class="va-h4">Primeiros Passos no VolleyTrack</h4>
-    <p class="va-text-secondary py-3">
-      Bem-vindo ao VolleyTrack, a plataforma que transforma a gestão de equipes
-      de vôlei.
-      <br />
-      <span class="va-text-success">Inicie seu caminho para o sucesso</span>
-      organizando suas informações essenciais de maneira simples e eficiente.
-      <br />
-      Vamos começar?
-    </p>
-    <div class="row">
-      <div class="flex flex-col pr-3 md4">
-        <div class="item">
-          <ZCardRegisters
-            stripe
-            stripe-color="success"
-            title="Registro de Jogadores"
-            color="secondary"
-            textButton="Adicionar Jogadores"
-          >
-            <p>
-              Adicione detalhes dos jogadores para formar uma base sólida para
-              sua equipe.
-            </p>
-          </ZCardRegisters>
-        </div>
-      </div>
-      <div class="flex flex-col pr-3 md4">
-        <div class="item">
-          <ZCardRegisters
-            stripe
-            stripe-color="success"
-            title="Registro de Times"
-            color="secondary"
-            textButton="Adicionar Times"
-          >
-            <p>
-              Organize seus times de maneira eficaz, registrando cada detalhe
-              importante.
-            </p>
-          </ZCardRegisters>
-        </div>
-      </div>
-      <div class="flex flex-col pr-3 md4">
-        <div class="item">
-          <ZCardRegisters
-            stripe
-            stripe-color="success"
-            title="Registro de Treinos"
-            color="secondary"
-            textButton="Adicionar Treinos"
-          >
-            <p>
-              Planeje e registre treinos para maximizar o desempenho e a
-              preparação da equipe.
-            </p>
-          </ZCardRegisters>
-        </div>
-      </div>
-    </div>
-  </div>
+  <ZDashboard
+    :totalUsers="totalUsers"
+    :totalTeams="totalTeams"
+    :totalTrainings="totalTrainings"
+  />
 </template>
 
 <script>
-import ZCard from "~/components/molecules/Cards/ZCard";
-import ZButton from "~/components/atoms/Buttons/ZButton";
-import ZCardRegisters from "~/components/organisms/Cards/ZCardRegisters.vue";
+import ZDashboard from "~/components/organisms/Dashboard/ZDashboard.vue";
+import PLAYERSTOTAL from "~/graphql/user/query/usersTotal.graphql";
+import TEAMSTOTAL from "~/graphql/team/query/teamsTotal.graphql";
+import TRAININGSTOTAL from "~/graphql/training/query/trainingsTotal.graphql";
 
 export default {
   components: {
-    ZCard,
-    ZButton,
-    ZCardRegisters,
-  },
-
-  data() {
-    return {
-      token: "",
-      user: {},
-    };
+    ZDashboard,
   },
   mounted() {
-    this.token = localStorage.getItem("userToken") ?? "sem token";
-    this.user = JSON.parse(localStorage.getItem("user"));
+    this.getInformations();
+  },
+  data() {
+    return {
+      loading: false,
+      totalUsers: 0,
+      totalTeams: 0,
+      totalTrainings: 0,
+      paginatorInfo: {},
+      variablesGetPlayers: {
+        page: 1,
+        filter: {
+          search: "%%",
+          positionsIds: [],
+          teamsIds: [],
+        },
+        orderBy: "id",
+        sortedBy: "desc",
+      },
+      variablesGetTeams: {
+        page: 1,
+        filter: {
+          usersIds: [],
+          playersIds: [],
+          positionsIds: [],
+          search: "%%",
+        },
+        orderBy: "id",
+        sortedBy: "desc",
+      },
+      variablesGetTrainings: {
+        page: 1,
+        filter: {
+          teamsIds: [],
+          usersIds: [],
+          playersIds: [],
+          search: "%%",
+          dateStart: null,
+          dateEnd: null,
+        },
+        orderBy: "id",
+        sortedBy: "desc",
+      },
+    };
+  },
+  methods: {
+    getInformations() {
+      this.getPlayers({ fetchPolicy: "network-only" });
+      this.getTeams({ fetchPolicy: "network-only" });
+      this.getTrainings({ fetchPolicy: "network-only" });
+    },
+
+    getPlayers(fetchPolicyOptions = {}) {
+      this.loading = true;
+      this.items = [];
+
+      const query = gql`
+        ${PLAYERSTOTAL}
+      `;
+
+      let positionsIdsValues = this.variablesGetPlayers.filter.positionsIds.map(
+        (position) => position.value
+      );
+
+      let teamsIdsValues = this.variablesGetPlayers.filter.teamsIds.map(
+        (team) => team.value
+      );
+
+      const consult = {
+        ...this.variablesGetPlayers,
+        filter: {
+          ...this.variablesGetPlayers.filter,
+          positionsIds: positionsIdsValues,
+          teamsIds: teamsIdsValues,
+        },
+      };
+
+      const {
+        result: { value },
+      } = useQuery(query, consult, {
+        fetchPolicy: fetchPolicyOptions.fetchPolicy || "cache-first", // Usa 'network-only' quando quer buscar nova consulta, senão 'cache-first'
+      });
+
+      const { onResult } = useQuery(query, consult);
+
+      onResult((result) => {
+        if (result?.data?.users?.paginatorInfo) {
+          this.totalUsers = result?.data?.users?.paginatorInfo?.total;
+        }
+      });
+
+      if (value) {
+        console.log(value?.users?.paginatorInfo.total);
+        if (value?.users?.paginatorInfo.total) {
+          this.totalUsers = value?.users?.paginatorInfo.total;
+        }
+      }
+      this.loading = false;
+    },
+    getTeams(fetchPolicyOptions = {}) {
+      this.loading = true;
+      this.items = [];
+
+      const query = gql`
+        ${TEAMSTOTAL}
+      `;
+
+      let positionsIdsValues = this.variablesGetTeams.filter.positionsIds.map(
+        (position) => position.value
+      );
+
+      let usersIdsValues = this.variablesGetTeams.filter.usersIds.map(
+        (user) => user.value
+      );
+
+      let playersIdsValues = this.variablesGetTeams.filter.playersIds.map(
+        (player) => player.value
+      );
+
+      const consult = {
+        ...this.variablesGetTeams,
+        filter: {
+          ...this.variablesGetTeams.filter,
+          positionsIds: positionsIdsValues,
+          usersIds: usersIdsValues,
+          playersIds: playersIdsValues,
+        },
+      };
+
+      const {
+        result: { value },
+      } = useQuery(query, consult, {
+        fetchPolicy: fetchPolicyOptions.fetchPolicy || "cache-first", // Usa 'network-only' quando quer buscar nova consulta, senão 'cache-first'
+      });
+
+      const { onResult } = useQuery(query, consult);
+
+      onResult((result) => {
+        if (result?.data?.teams?.paginatorInfo) {
+          this.totalTeams = result?.data?.teams?.paginatorInfo?.total;
+        }
+      });
+
+      if (value) {
+        console.log(value?.teams?.paginatorInfo.total);
+        if (value?.teams?.paginatorInfo.total) {
+          this.totalTeams = value?.teams?.paginatorInfo.total;
+        }
+      }
+      this.loading = false;
+    },
+    getTrainings(fetchPolicyOptions = {}) {
+      this.loading = true;
+      this.items = [];
+
+      const query = gql`
+        ${TRAININGSTOTAL}
+      `;
+
+      let teamsIdsValues = this.variablesGetTrainings.filter.teamsIds.map(
+        (team) => parseInt(team.value)
+      );
+
+      let usersIdsValues = this.variablesGetTrainings.filter.usersIds.map(
+        (user) => parseInt(user.value)
+      );
+
+      let playersIdsValues = this.variablesGetTrainings.filter.playersIds.map(
+        (player) => parseInt(player.value)
+      );
+
+      let dateEnd = this.variablesGetTrainings.filter.dateEnd;
+
+      if (dateEnd) {
+        dateEnd = moment(dateEnd).format("YYYY-MM-DD 23:59:59");
+      }
+
+      let dateStart = this.variablesGetTrainings.filter.dateStart;
+
+      if (dateStart) {
+        dateStart = moment(dateStart).format("YYYY-MM-DD 00:00:00");
+      }
+
+      const consult = {
+        ...this.variablesGetTrainings,
+        filter: {
+          ...this.variablesGetTrainings.filter,
+          teamsIds: teamsIdsValues,
+          usersIds: usersIdsValues,
+          playersIds: playersIdsValues,
+          dateStart,
+          dateEnd,
+        },
+      };
+
+      const {
+        result: { value },
+      } = useQuery(query, consult);
+
+      const { onResult } = useQuery(query, consult, {
+        fetchPolicy: fetchPolicyOptions.fetchPolicy || "cache-first", // Usa 'network-only' quando quer buscar nova consulta, senão 'cache-first'
+      });
+
+      onResult((result) => {
+        if (result?.data?.trainings?.paginatorInfo) {
+          this.totalTrainings = result?.data?.trainings?.paginatorInfo?.total;
+        }
+      });
+
+      if (value) {
+        console.log(value?.trainings?.paginatorInfo.total);
+        if (value?.trainings?.paginatorInfo.total) {
+          this.totalTrainings = value?.trainings?.paginatorInfo.total;
+        }
+      }
+      this.loading = false;
+    },
   },
 };
 </script>

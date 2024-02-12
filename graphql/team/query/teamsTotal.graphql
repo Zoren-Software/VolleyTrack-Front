@@ -1,0 +1,11 @@
+query teams($filter: TeamSearchInput, $first: Int, $page: Int) {
+  teams(
+    filter: $filter,
+    first: $first,
+    page: $page
+  ) {
+    paginatorInfo {
+      total
+    }
+  }
+}
