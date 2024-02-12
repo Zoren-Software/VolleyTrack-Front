@@ -25,7 +25,7 @@
                 :stepDisabled="0"
                 @click="redirectCreatePlayers()"
                 stripe
-                title="Total de Jogadores"
+                title="Registrar Jogadores"
                 textButton="Adicionar Jogadores"
                 icon="person"
               >
@@ -43,7 +43,7 @@
                 :stepDisabled="1"
                 @click="redirectCreateTeams()"
                 stripe
-                title="Total de Times"
+                title="Registrar Times"
                 textButton="Adicionar Times"
                 icon="group"
               >
@@ -61,7 +61,7 @@
                 :stepDisabled="2"
                 @click="redirectCreateTrainings()"
                 stripe
-                title="Total de Treinos"
+                title="Registrar Treinos"
                 textButton="Adicionar Treinos"
                 icon="fitness_center"
               >

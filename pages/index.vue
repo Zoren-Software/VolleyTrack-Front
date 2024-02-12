@@ -11,10 +11,16 @@
     :totalTeams="totalTeams"
     :totalTrainings="totalTrainings"
   />
+  <ZDashboardInitial
+    :totalUsers="totalUsers"
+    :totalTeams="totalTeams"
+    :totalTrainings="totalTrainings"
+  />
 </template>
 
 <script>
 import ZGettingStartedGuide from "~/components/organisms/Dashboard/ZGettingStartedGuide.vue";
+import ZDashboardInitial from "~/components/organisms/Dashboard/ZDashboardInitial.vue";
 import PLAYERSTOTAL from "~/graphql/user/query/usersTotal.graphql";
 import TEAMSTOTAL from "~/graphql/team/query/teamsTotal.graphql";
 import TRAININGSTOTAL from "~/graphql/training/query/trainingsTotal.graphql";
@@ -22,6 +28,7 @@ import TRAININGSTOTAL from "~/graphql/training/query/trainingsTotal.graphql";
 export default {
   components: {
     ZGettingStartedGuide,
+    ZDashboardInitial,
   },
   mounted() {
     this.getInformations();
