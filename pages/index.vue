@@ -6,7 +6,7 @@
       <pre>{{ JSON.stringify(user, null, 2) }}</pre>
     </h1>
   </div>
-  <ZDashboard
+  <ZGettingStartedGuide
     :totalUsers="totalUsers"
     :totalTeams="totalTeams"
     :totalTrainings="totalTrainings"
@@ -14,14 +14,14 @@
 </template>
 
 <script>
-import ZDashboard from "~/components/organisms/Dashboard/ZDashboard.vue";
+import ZGettingStartedGuide from "~/components/organisms/Dashboard/ZGettingStartedGuide.vue";
 import PLAYERSTOTAL from "~/graphql/user/query/usersTotal.graphql";
 import TEAMSTOTAL from "~/graphql/team/query/teamsTotal.graphql";
 import TRAININGSTOTAL from "~/graphql/training/query/trainingsTotal.graphql";
 
 export default {
   components: {
-    ZDashboard,
+    ZGettingStartedGuide,
   },
   mounted() {
     this.getInformations();
