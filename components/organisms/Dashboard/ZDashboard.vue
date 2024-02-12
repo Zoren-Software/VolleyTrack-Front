@@ -1,118 +1,129 @@
 <template>
-  <div style="display: none">
-    <h1>
-      <!-- Mostrar aqui o token do usuario vindo de localstorage -->
-      {{ token }}
-      <pre>{{ JSON.stringify(user, null, 2) }}</pre>
-    </h1>
-  </div>
   <div>
-    <h4 class="va-h4">Primeiros Passos no VolleyTrack</h4>
-    <p class="va-text-secondary py-3">
-      Bem-vindo ao VolleyTrack, a plataforma que transforma a gestão de equipes
-      de vôlei.
-      <br />
-      <span class="va-text-success">Inicie seu caminho para o sucesso</span>
-      organizando suas informações essenciais de maneira simples e eficiente.
-      <br />
-      <br />
-      Vamos começar?
-    </p>
-    <div class="row">
-      <div class="flex flex-col pr-3 md4">
-        <div class="item">
-          <ZCardRegisters
-            :step="step"
-            :stepDisabled="0"
-            @click="redirectCreatePlayers()"
-            stripe
-            title="Total de Jogadores"
-            textButton="Adicionar Jogadores"
-            icon="person"
-          >
-            <p>
-              Adicione detalhes dos jogadores para formar uma base sólida para
-              sua equipe.
-            </p>
-          </ZCardRegisters>
-        </div>
-      </div>
-      <div class="flex flex-col pr-3 md4">
-        <div class="item">
-          <ZCardRegisters
-            :step="step"
-            :stepDisabled="1"
-            @click="redirectCreateTeams()"
-            stripe
-            title="Total de Times"
-            textButton="Adicionar Times"
-            icon="group"
-          >
-            <p>
-              Organize seus times de maneira eficaz, registrando cada detalhe
-              importante.
-            </p>
-          </ZCardRegisters>
-        </div>
-      </div>
-      <div class="flex flex-col pr-3 md4">
-        <div class="item">
-          <ZCardRegisters
-            :step="step"
-            :stepDisabled="2"
-            @click="redirectCreateTrainings()"
-            stripe
-            title="Total de Treinos"
-            textButton="Adicionar Treinos"
-            icon="fitness_center"
-          >
-            <p>
-              Planeje e registre treinos para maximizar o desempenho e a
-              preparação da equipe.
-            </p>
-          </ZCardRegisters>
-        </div>
-      </div>
-    </div>
-    <div class="row">
-      <div class="flex flex-col md12">
-        <div class="item stepper-custom">
-          <VaStepper
-            v-model="step"
-            :steps="steps"
-            color="danger"
-            linear
-            navigationDisabled
-            controls-hidden
-          >
-            <template #divider>
-              <div class="divider gradient" />
-            </template>
-            <template
-              v-for="(step, i) in steps"
-              :key="i"
-              #[`step-button-${i}`]="{ setStep, isActive, isCompleted }"
+    <VaAccordion v-model="valueAccordion" class="max-w-sm" multiple>
+      <VaCollapse header="Guia de Primeiros Passos">
+        <template #content>
+          <h4 class="va-h4">Primeiros Passos no VolleyTrack</h4>
+          <p class="va-text-secondary py-3">
+            Bem-vindo ao VolleyTrack, a plataforma que transforma a gestão de
+            equipes de vôlei.
+            <br />
+            <span class="va-text-success"
+              >Inicie seu caminho para o sucesso</span
             >
-              <div
-                class="step-button"
-                :class="{
-                  'step-button--active': isActive,
-                  'step-button--completed': isCompleted,
-                }"
-                @click="
-                  () => {
-                    setStep(i);
-                    updateStepIcon(i);
-                  }
-                "
-              >
-                <VaIcon :name="step.icon" />
+            organizando suas informações essenciais de maneira simples e
+            eficiente.
+            <br />
+            <br />
+            Vamos começar?
+          </p>
+          <p class="va-text-secondary py-3">
+            Para prosseguir, siga os passos abaixo:
+          </p>
+          <div class="row">
+            <div class="flex flex-col pr-3 md4">
+              <div class="item">
+                <ZCardRegisters
+                  :step="step"
+                  :stepDisabled="0"
+                  @click="redirectCreatePlayers()"
+                  stripe
+                  title="Total de Jogadores"
+                  textButton="Adicionar Jogadores"
+                  icon="person"
+                >
+                  <p>
+                    Adicione detalhes dos jogadores para formar uma base sólida
+                    para sua equipe.
+                  </p>
+                </ZCardRegisters>
               </div>
-            </template>
-          </VaStepper>
-        </div>
-      </div>
-    </div>
+            </div>
+            <div class="flex flex-col pr-3 md4">
+              <div class="item">
+                <ZCardRegisters
+                  :step="step"
+                  :stepDisabled="1"
+                  @click="redirectCreateTeams()"
+                  stripe
+                  title="Total de Times"
+                  textButton="Adicionar Times"
+                  icon="group"
+                >
+                  <p>
+                    Organize seus times de maneira eficaz, registrando cada
+                    detalhe importante.
+                  </p>
+                </ZCardRegisters>
+              </div>
+            </div>
+            <div class="flex flex-col pr-3 md4">
+              <div class="item">
+                <ZCardRegisters
+                  :step="step"
+                  :stepDisabled="2"
+                  @click="redirectCreateTrainings()"
+                  stripe
+                  title="Total de Treinos"
+                  textButton="Adicionar Treinos"
+                  icon="fitness_center"
+                >
+                  <p>
+                    Planeje e registre treinos para maximizar o desempenho e a
+                    preparação da equipe.
+                  </p>
+                </ZCardRegisters>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="flex flex-col md12">
+              <div class="item stepper-custom">
+                <VaStepper
+                  v-model="step"
+                  :steps="steps"
+                  color="danger"
+                  linear
+                  navigationDisabled
+                  controls-hidden
+                >
+                  <template #divider>
+                    <div class="divider gradient" />
+                  </template>
+                  <template
+                    v-for="(step, i) in steps"
+                    :key="i"
+                    #[`step-button-${i}`]="{ setStep, isActive, isCompleted }"
+                  >
+                    <div
+                      class="step-button"
+                      :class="{
+                        'step-button--active': isActive,
+                        'step-button--completed': isCompleted,
+                      }"
+                      @click="
+                        () => {
+                          setStep(i);
+                          updateStepIcon(i);
+                        }
+                      "
+                    >
+                      <VaIcon :name="step.icon" />
+                    </div>
+                  </template>
+                </VaStepper>
+              </div>
+            </div>
+          </div>
+          <p
+            class="va-text-secondary text-center py-3 px-3 va-text-center"
+            v-if="step == 3"
+          >
+            Registros iniciais finalizados!
+          </p>
+        </template>
+      </VaCollapse>
+    </VaAccordion>
   </div>
 </template>
 
@@ -157,6 +168,9 @@ export default {
 
 <script setup>
 let step = ref(0);
+
+let valueAccordion = ref([false]);
+
 const props = defineProps({
   totalUsers: {
     type: Number,
@@ -171,6 +185,14 @@ const props = defineProps({
     default: 0,
   },
 });
+watch(step, (newValue) => {
+  if (newValue === 3) {
+    valueAccordion = [false];
+  } else {
+    valueAccordion = [true];
+  }
+});
+
 watch(
   () => [props.totalUsers, props.totalTeams, props.totalTrainings],
   ([users, teams, trainings]) => {
