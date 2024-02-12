@@ -6,14 +6,24 @@
     :color="colorStep()"
   >
     <div class="row">
-      <div class="flex flex-col md8">
+      <div class="flex flex-col md8" v-if="!isSlotEmpty">
         <div class="item">
           <slot />
         </div>
       </div>
-      <div class="flex flex-col pr-3 md4">
+      <div class="flex flex-col pr-3 md5" v-if="isSlotEmpty">
         <div class="item px-4">
           <va-icon :name="icon" size="5rem" />
+        </div>
+      </div>
+      <div class="flex flex-col pr-3 md4" v-else>
+        <div class="item px-4">
+          <va-icon :name="icon" size="5rem" />
+        </div>
+      </div>
+      <div class="flex flex-col pr-3 md7 pl-5 border-custom" v-if="isSlotEmpty">
+        <div class="item">
+          <h3 class="va-h3">{{ total }} {{ textTotal }}</h3>
         </div>
       </div>
     </div>
@@ -67,6 +77,18 @@ export default {
       type: Number,
       default: 0,
     },
+    total: {
+      type: Number,
+      default: 0,
+    },
+    textTotal: {
+      type: String,
+      default: "Registros",
+    },
+    isSlotEmpty: {
+      type: Boolean,
+      default: false,
+    },
   },
   methods: {
     colorStripStep() {
@@ -90,3 +112,9 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.border-custom {
+  border-left: 2px solid var(--va-primary);
+}
+</style>

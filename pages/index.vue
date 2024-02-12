@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div style="display: none">
     <h1>
       <!-- Mostrar aqui o token do usuario vindo de localstorage -->
       {{ token }}

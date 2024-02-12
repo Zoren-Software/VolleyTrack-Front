@@ -1,20 +1,19 @@
 <template>
-  <div class="row">
+  <div class="row" v-if="step == 3">
     <div class="flex flex-col pr-3 md4">
       <div class="item">
         <ZCardRegisters
           :step="step"
           :stepDisabled="0"
-          @click="redirectCreatePlayers()"
+          :total="totalUsers"
+          :isSlotEmpty="true"
+          @click="redirectPlayers()"
           stripe
+          textTotal="Jogadores"
           title="Total de Jogadores"
-          textButton="Adicionar Jogadores"
+          textButton="Listagem de Jogadores"
           icon="person"
         >
-          <p>
-            Adicione detalhes dos jogadores para formar uma base sólida para sua
-            equipe.
-          </p>
         </ZCardRegisters>
       </div>
     </div>
@@ -23,16 +22,15 @@
         <ZCardRegisters
           :step="step"
           :stepDisabled="1"
-          @click="redirectCreateTeams()"
+          :total="totalTeams"
+          :isSlotEmpty="true"
+          @click="redirectTeams()"
           stripe
+          textTotal="Times"
           title="Total de Times"
-          textButton="Adicionar Times"
+          textButton="Listagem de Times"
           icon="group"
         >
-          <p>
-            Organize seus times de maneira eficaz, registrando cada detalhe
-            importante.
-          </p>
         </ZCardRegisters>
       </div>
     </div>
@@ -41,16 +39,15 @@
         <ZCardRegisters
           :step="step"
           :stepDisabled="2"
-          @click="redirectCreateTrainings()"
+          :total="totalTrainings"
+          :isSlotEmpty="true"
+          @click="redirectTrainings()"
           stripe
+          textTotal="Treinos"
           title="Total de Treinos"
-          textButton="Adicionar Treinos"
+          textButton="Listagem de Treinos"
           icon="fitness_center"
         >
-          <p>
-            Planeje e registre treinos para maximizar o desempenho e a
-            preparação da equipe.
-          </p>
         </ZCardRegisters>
       </div>
     </div>
@@ -83,14 +80,14 @@ export default {
   },
 
   methods: {
-    redirectCreatePlayers() {
-      this.$router.push("/players/create");
+    redirectPlayers() {
+      this.$router.push("/players");
     },
-    redirectCreateTeams() {
-      this.$router.push("/teams/create");
+    redirectTeams() {
+      this.$router.push("/teams");
     },
-    redirectCreateTrainings() {
-      this.$router.push("/trainings/create");
+    redirectTrainings() {
+      this.$router.push("/trainings");
     },
   },
 };
@@ -159,14 +156,6 @@ let steps = [
     completedIcon: "check",
   },
 ];
-
-const updateStepIcon = (currentStep) => {
-  steps.forEach((step, index) => {
-    if (index < currentStep) {
-      step.icon = step.completedIcon;
-    }
-  });
-};
 
 watch(step, (newValue, oldValue) => {
   if (newValue > oldValue) {
