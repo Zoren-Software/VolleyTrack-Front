@@ -1,0 +1,15 @@
+query users(
+    $filter: UserSearchInput, 
+    $first: Int, 
+    $page: Int
+) {
+  users(
+    filter: $filter,
+    first: $first,
+    page: $page
+  ) {
+    paginatorInfo {
+      total
+    }
+  }
+}

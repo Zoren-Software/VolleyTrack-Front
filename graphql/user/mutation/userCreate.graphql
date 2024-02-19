@@ -8,7 +8,7 @@ mutation userCreate(
   $roleId: [Int!]!
   $positionId: [Int]
   $teamId: [Int]
-  $password: String!
+  $password: String
 ) {
   userCreate(
     name: $name

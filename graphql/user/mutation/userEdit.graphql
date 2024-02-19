@@ -9,7 +9,7 @@ mutation userEdit(
   $roleId: [Int!]!
   $positionId: [Int]
   $teamId: [Int]
-  $password: String!
+  $password: String
 ) {
   userEdit(
     id: $id

@@ -1,0 +1,15 @@
+query trainings(
+    $filter: TrainingSearchInput
+    $first: Int, 
+    $page: Int
+) {
+  trainings(
+    filter: $filter,
+    first: $first,
+    page: $page
+  ) {
+    paginatorInfo {
+      total
+    }
+  }
+}
