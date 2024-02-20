@@ -58,12 +58,14 @@
   >
     <template #cell(actions)="{ rowKey: { id } }">
       <ZDataTableActions
+        v-if="!disableActionDelete"
         :id="Number(id)"
         :includeActionEditList="includeActionEditList"
         :includeActionDeleteList="includeActionDeleteList"
         @edit="actionEdit"
         @delete="actionDelete(id)"
       />
+      <slot name="cell(actions)" :id="id"></slot>
     </template>
     <template #bodyAppend v-if="paginatorInfo.firstItem > 0">
       <tr>
@@ -178,6 +180,10 @@ export default defineComponent({
     optionSearch: {
       type: Boolean,
       default: true,
+    },
+    disableActionDelete: {
+      type: Boolean,
+      default: false,
     },
   },
   data() {

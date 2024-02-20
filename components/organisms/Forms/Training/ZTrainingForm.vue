@@ -99,6 +99,18 @@
             </template>
           </ZListRelationTeams>
         </template>
+        <template #step-content-3>
+          <ZListRelationConfirmationTrainings
+            @actionConfirm="actionConfirm"
+            @actionReject="actionReject"
+            @actionConfirmPresence="actionConfirmPresence"
+            :items="form.confirmationsTraining"
+          >
+            <template #filter>
+              <ZSelectUser class="mb-3" label="Jogadores" v-model="users" />
+            </template>
+          </ZListRelationConfirmationTrainings>
+        </template>
       </va-stepper>
     </va-form>
   </va-card>
@@ -116,6 +128,8 @@ import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
 import ZDateTimeRangePicker from "~/components/molecules/Inputs/ZDateTimeRangePicker.vue";
 import ZSelectFundamental from "~/components/molecules/Selects/ZSelectFundamental.vue";
 import ZSelectSpecificFundamental from "~/components/molecules/Selects/ZSelectSpecificFundamental.vue";
+import ZListRelationConfirmationTrainings from "~/components/organisms/List/Relations/ZListRelationConfirmationTrainings";
+import ZSelectUser from "~/components/molecules/Selects/ZSelectUser";
 
 const { formData } = useForm("myForm");
 
@@ -170,6 +184,8 @@ export default {
     ZDateTimeRangePicker,
     ZSelectFundamental,
     ZSelectSpecificFundamental,
+    ZListRelationConfirmationTrainings,
+    ZSelectUser,
   },
 
   data() {
@@ -189,7 +205,8 @@ export default {
       steps: [
         { label: "Informações Essenciais" },
         { label: "Fundamentos Treinados" },
-        { label: "Times" },
+        { label: "Time" },
+        { label: "Lista de Presença" },
       ],
       positions: [],
       teams: [],
@@ -198,6 +215,7 @@ export default {
       },
       fundamentals: [],
       specificFundamentals: [],
+      users: [],
     };
   },
 
@@ -234,8 +252,20 @@ export default {
       };
     },
 
+    actionConfirm(id) {
+      //TODO - Fazendo essas funções de ações
+      console.log(id);
+    },
+    actionReject(id) {
+      //TODO - Fazendo essas funções de ações
+      console.log(id);
+    },
+    actionConfirmPresence(id) {
+      //TODO - Fazendo essas funções de ações
+      console.log(id);
+    },
+
     addTeams() {
-      // TODO - Fazendo esta função, pois seleciona apenas 1 time
       const newTeam = {
         id: this.teams.value,
         team: this.teams.text,
