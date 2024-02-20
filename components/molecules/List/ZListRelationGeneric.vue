@@ -2,6 +2,7 @@
   <div class="d-flex align-items-center justify-content-between">
     <slot name="filter" />
     <ZButton
+      v-if="!disableRelation"
       class="mb-3 ml-2 custom-button"
       color="primary"
       icon="add"
@@ -16,7 +17,14 @@
 
 <script>
 import ZButton from "~/components/atoms/Buttons/ZButton";
+
 export default {
+  props: {
+    disableRelation: {
+      type: Boolean,
+      default: false,
+    },
+  },
   components: {
     ZButton,
   },
