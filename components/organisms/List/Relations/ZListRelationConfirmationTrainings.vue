@@ -5,7 +5,7 @@
     </template>
     <template #list>
       <va-list>
-        <va-list-label> Relacionados </va-list-label>
+        <va-list-label> Jogadores Relacionados </va-list-label>
         <ZDatatableGeneric
           selectable
           includeActionsColumn
@@ -25,6 +25,7 @@
           </template>
           <template #cell(actions)="{ rowKey: { id } }">
             <ZButton
+              v-if="isBeforeTrainingDate"
               color="success"
               icon-right
               class="mr-2"
@@ -33,6 +34,7 @@
               Confirmar
             </ZButton>
             <ZButton
+              v-if="isBeforeTrainingDate"
               color="danger"
               icon-right
               class="mr-2"
@@ -41,6 +43,7 @@
               Rejeitar
             </ZButton>
             <ZButton
+              v-if="!isBeforeTrainingDate"
               color="primary"
               icon-right
               class="mr-2"
@@ -99,6 +102,10 @@ export default {
       type: String,
       default: "",
     },
+    trainingDate: {
+      type: Date,
+      default: "",
+    },
   },
   data() {
     return {
@@ -146,6 +153,11 @@ export default {
     },
     actionConfirmPresence(item) {
       this.$emit("actionConfirmPresence", item);
+    },
+  },
+  computed: {
+    isBeforeTrainingDate() {
+      return new Date(this.trainingDate) > new Date();
     },
   },
 };

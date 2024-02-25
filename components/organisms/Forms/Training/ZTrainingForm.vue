@@ -105,6 +105,7 @@
             @actionReject="actionReject"
             @actionConfirmPresence="actionConfirmPresence"
             :items="form.confirmationsTraining"
+            :trainingDate="form.dateValue"
           >
             <template #filter>
               <ZSelectUser class="mb-3" label="Jogadores" v-model="users" />
