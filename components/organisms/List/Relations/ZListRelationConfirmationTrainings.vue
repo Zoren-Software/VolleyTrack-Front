@@ -23,33 +23,30 @@
           <template #cell(user)="{ rowKey: { player } }">
             <ZUser :data="player" show-email />
           </template>
-          <template #cell(actions)="{ rowKey: { id } }">
+          <template
+            #cell(actions)="{ rowKey: { id, player, status, presence } }"
+          >
             <ZButton
-              v-if="isBeforeTrainingDate"
-              color="success"
-              icon-right
-              class="mr-2"
-              @click="actionConfirm(id)"
-            >
-              Confirmar
-            </ZButton>
-            <ZButton
-              v-if="isBeforeTrainingDate"
+              v-if="
+                !isBeforeTrainingDate && hasAdminOrTechnicianRole() && !presence
+              "
               color="danger"
-              icon-right
-              class="mr-2"
-              @click="actionReject(id)"
-            >
-              Rejeitar
-            </ZButton>
-            <ZButton
-              v-if="!isBeforeTrainingDate"
-              color="primary"
               icon-right
               class="mr-2"
               @click="actionConfirmPresence(id)"
             >
-              Confirmar Presença
+              Não compareceu
+            </ZButton>
+            <ZButton
+              v-if="
+                !isBeforeTrainingDate && hasAdminOrTechnicianRole() && presence
+              "
+              color="success"
+              icon-right
+              class="mr-2"
+              @click="actionConfirmPresence(id)"
+            >
+              Compareceu
             </ZButton>
           </template>
           <template
@@ -60,6 +57,50 @@
             }"
           >
             <ZPosition :data="positions" />
+          </template>
+          <template
+            #cell(presenceIntention)="{
+              rowKey: { id, player, status, presence },
+            }"
+          >
+            <ZButton
+              v-if="
+                (isBeforeTrainingDate && hasAdminOrTechnicianRole()) ||
+                (isBeforeTrainingDate &&
+                  user.id === player.id &&
+                  hasPlayerRole())
+              "
+              color="success"
+              icon-right
+              class="mr-2"
+              @click="actionConfirm(id)"
+            >
+              Confirmar
+            </ZButton>
+            <ZButton
+              v-else
+              :color="defineColorStatus(status)"
+              disabled
+              icon-right
+              class="mr-2"
+              @click="actionConfirm(id)"
+            >
+              {{ transformText(status) }}
+            </ZButton>
+            <ZButton
+              v-if="
+                (isBeforeTrainingDate && hasAdminOrTechnicianRole()) ||
+                (isBeforeTrainingDate &&
+                  user.id === player.id &&
+                  hasPlayerRole())
+              "
+              color="danger"
+              icon-right
+              class="mr-2"
+              @click="actionReject(id)"
+            >
+              Rejeitar
+            </ZButton>
           </template>
         </ZDatatableGeneric>
       </va-list>
@@ -73,6 +114,7 @@ import ZDatatableGeneric from "~/components/molecules/Datatable/ZDatatableGeneri
 import ZUser from "~/components/molecules/Datatable/Slots/ZUser";
 import ZPosition from "~/components/molecules/Datatable/Slots/ZPosition";
 import ZButton from "~/components/atoms/Buttons/ZButton";
+import ME from "~/graphql/user/query/me.graphql";
 
 export default {
   components: {
@@ -107,6 +149,9 @@ export default {
       default: "",
     },
   },
+  mounted() {
+    this.getUser();
+  },
   data() {
     return {
       loading: false,
@@ -135,7 +180,14 @@ export default {
           label: "Posições",
           sortable: true,
         },
+        {
+          key: "presenceIntention",
+          name: "presenceIntention",
+          label: "Intenção de Presença",
+          sortable: true,
+        },
       ],
+      user: {},
     };
   },
   methods: {
@@ -153,6 +205,55 @@ export default {
     },
     actionConfirmPresence(item) {
       this.$emit("actionConfirmPresence", item);
+    },
+    async getUser() {
+      if (localStorage.getItem("user")) {
+        this.user = await JSON.parse(localStorage.getItem("user"));
+      } else {
+        const query = gql`
+          ${ME}
+        `;
+        const {
+          data: { value },
+        } = await useAsyncQuery(query, {});
+
+        if (value?.me) {
+          this.user = value.me;
+          localStorage.setItem("user", JSON.stringify(this.user));
+        }
+      }
+    },
+    hasAdminOrTechnicianRole() {
+      return (
+        this.user &&
+        this.user.roles &&
+        this.user.roles.some(
+          (role) => role.name === "Técnico" || role.name === "Administrador"
+        )
+      );
+    },
+    hasPlayerRole() {
+      return (
+        this.user &&
+        this.user.roles &&
+        this.user.roles.some((role) => role.name === "Jogador")
+      );
+    },
+    // preciso de uma função que faça o texto Uppercase ficar apenas com a primeira letra maiúscula
+    transformText(text) {
+      return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
+    },
+    defineColorStatus(status) {
+      switch (status) {
+        case "PENDING":
+          return "secondary";
+        case "REJECTED":
+          return "danger";
+        case "CONFIRMED":
+          return "success";
+        default:
+          return "primary";
+      }
     },
   },
   computed: {

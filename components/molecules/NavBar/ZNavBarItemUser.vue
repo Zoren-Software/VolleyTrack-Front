@@ -11,6 +11,7 @@
       </template>
       <ZListItemsUser :actionsUser="actionsUser" @action="actionHandler" />
     </va-button-dropdown>
+    <div v-for="role in user.roles">{{ role.name }}</div>
   </va-navbar-item>
 </template>
 
@@ -19,6 +20,7 @@ import ZButtonDropdown from "~/components/atoms/Buttons/ZButtonDropdown";
 import ZAvatar from "~/components/atoms/Avatar/ZAvatar";
 import ZIcon from "~/components/atoms/Icons/ZIcon";
 import ZListItemsUser from "~/components/molecules/List/ZListItemsUser";
+import ME from "~/graphql/user/query/me.graphql";
 
 export default {
   name: "ZNavbarItemUser",
