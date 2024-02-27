@@ -19,9 +19,9 @@
           <!-- FILTER -->
 
           <!-- CELL -->
-          <template #cell(teams)="teste">
+          <template #cell(teams)="team">
             <!-- TODO - Personalizar depois -->
-            {{ teste }}
+            {{ team }}
           </template>
         </ZDatatableGeneric>
       </va-list>

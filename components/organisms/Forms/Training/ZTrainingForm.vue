@@ -241,6 +241,11 @@ export default {
     data(val) {
       this.form = { ...val };
     },
+    "data.team": function (newVal) {
+      if (newVal) {
+        this.form.teams = [{ id: newVal.id, team: newVal.name }];
+      }
+    },
   },
 
   methods: {
