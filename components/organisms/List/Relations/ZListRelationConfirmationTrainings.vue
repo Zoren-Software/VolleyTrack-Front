@@ -54,6 +54,20 @@
             >
               Compareceu
             </ZButton>
+            <VaIcon
+              v-if="!presence && !isBeforeTrainingDate"
+              class="mr-2"
+              color="danger"
+              name="close"
+              :size="44"
+            />
+            <VaIcon
+              v-if="presence && !isBeforeTrainingDate"
+              class="mr-2"
+              color="success"
+              name="checked"
+              :size="44"
+            />
           </template>
           <template
             #cell(positions)="{
@@ -66,7 +80,7 @@
           </template>
           <template
             #cell(presenceIntention)="{
-              rowKey: { id, player, status, presence },
+              rowKey: { id, player, status, trainingId },
             }"
           >
             <ZButton
@@ -79,7 +93,7 @@
               color="success"
               icon-right
               class="mr-2"
-              @click="actionConfirm(id)"
+              @click="actionConfirm(id, player.id, trainingId)"
             >
               Confirmar
             </ZButton>
@@ -89,7 +103,7 @@
               disabled
               icon-right
               class="mr-2"
-              @click="actionConfirm(id)"
+              @click="actionConfirm(id, player.id, trainingId)"
             >
               {{ transformText(status) }}
             </ZButton>
@@ -103,10 +117,31 @@
               color="danger"
               icon-right
               class="mr-2"
-              @click="actionReject(id)"
+              @click="actionReject(id, player.id, trainingId)"
             >
               Rejeitar
             </ZButton>
+            <VaIcon
+              v-if="status == 'REJECTED'"
+              class="mr-2"
+              color="danger"
+              name="close"
+              :size="44"
+            />
+            <VaIcon
+              v-if="status == 'CONFIRMED'"
+              class="mr-2"
+              color="success"
+              name="checked"
+              :size="44"
+            />
+            <VaIcon
+              v-if="status == 'PENDING'"
+              class="mr-2"
+              color="secondary"
+              name="pending"
+              :size="44"
+            />
           </template>
         </ZDatatableGeneric>
       </va-list>
@@ -203,11 +238,11 @@ export default {
     actionDelete(item) {
       this.$emit("delete", item);
     },
-    actionConfirm(item) {
-      this.$emit("actionConfirm", item);
+    actionConfirm(id, playerId, trainingId) {
+      this.$emit("actionConfirm", id, playerId, trainingId);
     },
-    actionReject(item) {
-      this.$emit("actionReject", item);
+    actionReject(id, playerId, trainingId) {
+      this.$emit("actionReject", id, playerId, trainingId);
     },
     actionConfirmPresence(id, playerId, trainingId, presence) {
       this.$emit("actionConfirmPresence", id, playerId, trainingId, presence);

@@ -132,6 +132,7 @@ import ZSelectSpecificFundamental from "~/components/molecules/Selects/ZSelectSp
 import ZListRelationConfirmationTrainings from "~/components/organisms/List/Relations/ZListRelationConfirmationTrainings";
 import ZSelectUser from "~/components/molecules/Selects/ZSelectUser";
 import CONFIRMPRESENCE from "~/graphql/training/mutation/confirmPresence.graphql";
+import CONFIRMTRAINING from "~/graphql/training/mutation/confirmTraining.graphql";
 
 const { formData } = useForm("myForm");
 
@@ -220,7 +221,6 @@ export default {
       fundamentals: [],
       specificFundamentals: [],
       users: [],
-      loading: false,
     };
   },
 
@@ -256,19 +256,56 @@ export default {
         specificFundamentals: [],
       };
     },
+    async actionReject(id, playerId, trainingId) {
+      try {
+        const query = gql`
+          ${CONFIRMTRAINING}
+        `;
 
-    actionConfirm(id) {
-      //TODO - Fazendo essas funções de ações
-      console.log(id);
-    },
-    actionReject(id) {
-      //TODO - Fazendo essas funções de ações
-      console.log(id);
+        const variables = {
+          id: parseInt(id),
+          playerId: parseInt(playerId),
+          trainingId: parseInt(trainingId),
+          status: "REJECTED",
+        };
+
+        const { mutate } = await useMutation(query, { variables });
+
+        const { data } = await mutate();
+
+        confirmSuccess("Negando intenção de presença com sucesso!", () => {
+          this.items = [];
+        });
+
+        this.$emit("refresh");
+      } catch (error) {
+        console.error(error);
+        this.error = true;
+
+        if (
+          error.graphQLErrors &&
+          error.graphQLErrors[0] &&
+          error.graphQLErrors[0].extensions &&
+          error.graphQLErrors[0].extensions.validation
+        ) {
+          this.errors = error.graphQLErrors[0].extensions.validation;
+
+          const errorMessages = Object.values(this.errors).map((item) => {
+            return item[0];
+          });
+
+          this.errorFields = Object.keys(this.errors);
+
+          const footer = errorMessages.join("<br>");
+
+          confirmError("Ocorreu um erro ao ler todas as notificações!", footer);
+        } else {
+          confirmError("Ocorreu um erro ao ler todas as notificações!");
+        }
+      }
     },
     async actionConfirmPresence(id, playerId, trainingId, presence) {
       try {
-        this.loading = true;
-
         const query = gql`
           ${CONFIRMPRESENCE}
         `;
@@ -285,6 +322,55 @@ export default {
         const { data } = await mutate();
 
         confirmSuccess("Presença confirmada com sucesso!", () => {
+          this.items = [];
+        });
+
+        this.$emit("refresh");
+      } catch (error) {
+        console.error(error);
+        this.error = true;
+
+        if (
+          error.graphQLErrors &&
+          error.graphQLErrors[0] &&
+          error.graphQLErrors[0].extensions &&
+          error.graphQLErrors[0].extensions.validation
+        ) {
+          this.errors = error.graphQLErrors[0].extensions.validation;
+
+          const errorMessages = Object.values(this.errors).map((item) => {
+            return item[0];
+          });
+
+          this.errorFields = Object.keys(this.errors);
+
+          const footer = errorMessages.join("<br>");
+
+          confirmError("Ocorreu um erro ao ler todas as notificações!", footer);
+        } else {
+          confirmError("Ocorreu um erro ao ler todas as notificações!");
+        }
+      }
+    },
+    async actionConfirm(id, playerId, trainingId) {
+      console.log(id, playerId, trainingId);
+      try {
+        const query = gql`
+          ${CONFIRMTRAINING}
+        `;
+
+        const variables = {
+          id: parseInt(id),
+          playerId: parseInt(playerId),
+          trainingId: parseInt(trainingId),
+          status: "CONFIRMED",
+        };
+
+        const { mutate } = await useMutation(query, { variables });
+
+        const { data } = await mutate();
+
+        confirmSuccess("Intenção de presença confirmada com sucesso!", () => {
           this.items = [];
         });
 
