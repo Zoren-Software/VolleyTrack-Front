@@ -24,7 +24,9 @@
             <ZUser :data="player" show-email />
           </template>
           <template
-            #cell(actions)="{ rowKey: { id, player, status, presence } }"
+            #cell(actions)="{
+              rowKey: { id, player, status, presence, trainingId },
+            }"
           >
             <ZButton
               v-if="
@@ -33,7 +35,9 @@
               color="danger"
               icon-right
               class="mr-2"
-              @click="actionConfirmPresence(id)"
+              @click="
+                actionConfirmPresence(id, player.id, trainingId, !presence)
+              "
             >
               Não compareceu
             </ZButton>
@@ -44,7 +48,9 @@
               color="success"
               icon-right
               class="mr-2"
-              @click="actionConfirmPresence(id)"
+              @click="
+                actionConfirmPresence(id, player.id, trainingId, !presence)
+              "
             >
               Compareceu
             </ZButton>
@@ -203,8 +209,8 @@ export default {
     actionReject(item) {
       this.$emit("actionReject", item);
     },
-    actionConfirmPresence(item) {
-      this.$emit("actionConfirmPresence", item);
+    actionConfirmPresence(id, playerId, trainingId, presence) {
+      this.$emit("actionConfirmPresence", id, playerId, trainingId, presence);
     },
     async getUser() {
       if (localStorage.getItem("user")) {

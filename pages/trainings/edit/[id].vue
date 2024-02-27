@@ -2,6 +2,7 @@
   <ZTrainingForm
     :data="data"
     @save="edit"
+    @refresh="getTraining({ fetchPolicy: 'network-only' })"
     :loading="loading"
     :errorFields="errorFields"
     :errors="errors"
@@ -21,7 +22,7 @@ export default {
     ZTrainingForm,
   },
   mounted() {
-    this.getTraining();
+    this.getTraining({ fetchPolicy: "network-only" });
   },
   data() {
     return {
@@ -42,7 +43,7 @@ export default {
         teamId: [],
       };
     },
-    getTraining() {
+    getTraining(fetchPolicyOptions = {}) {
       this.loading = true;
 
       const query = gql`
@@ -57,7 +58,9 @@ export default {
         result: { value },
       } = useQuery(query, consult);
 
-      const { onResult } = useQuery(query, consult);
+      const { onResult } = useQuery(query, consult, {
+        fetchPolicy: fetchPolicyOptions.fetchPolicy || "cache-first", // Usa 'network-only' quando quer buscar nova consulta, senão 'cache-first'
+      });
 
       onResult((result) => {
         if (result?.data?.training) {

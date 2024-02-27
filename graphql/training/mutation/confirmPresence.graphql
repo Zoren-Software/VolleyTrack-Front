@@ -1,0 +1,15 @@
+mutation confirmPresence(
+  $id: Int
+  $playerId: Int
+  $trainingId: Int
+  $presence: Boolean
+) {
+  confirmPresence(
+    id: $id
+    playerId: $playerId
+    trainingId: $trainingId
+    presence: $presence
+  ) {
+    id
+  }
+}
