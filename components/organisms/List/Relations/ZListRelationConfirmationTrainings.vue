@@ -24,26 +24,11 @@
             <ZUser :data="player" show-email />
           </template>
           <template
-            #cell(actions)="{
-              rowKey: { id, player, status, presence, trainingId },
-            }"
+            #cell(actions)="{ rowKey: { id, player, presence, trainingId } }"
           >
             <ZButton
               v-if="
                 !isBeforeTrainingDate && hasAdminOrTechnicianRole() && !presence
-              "
-              color="danger"
-              icon-right
-              class="mr-2"
-              @click="
-                actionConfirmPresence(id, player.id, trainingId, !presence)
-              "
-            >
-              Não compareceu
-            </ZButton>
-            <ZButton
-              v-if="
-                !isBeforeTrainingDate && hasAdminOrTechnicianRole() && presence
               "
               color="success"
               icon-right
@@ -54,6 +39,30 @@
             >
               Compareceu
             </ZButton>
+            <ZButton
+              v-if="
+                !isBeforeTrainingDate && hasAdminOrTechnicianRole() && presence
+              "
+              color="danger"
+              icon-right
+              class="mr-2"
+              @click="
+                actionConfirmPresence(id, player.id, trainingId, !presence)
+              "
+            >
+              Não Compareceu
+            </ZButton>
+          </template>
+          <template
+            #cell(positions)="{
+              rowKey: {
+                player: { positions },
+              },
+            }"
+          >
+            <ZPosition :data="positions" />
+          </template>
+          <template #cell(presence)="{ rowKey: { presence } }">
             <VaIcon
               v-if="!presence && !isBeforeTrainingDate"
               class="mr-2"
@@ -68,15 +77,6 @@
               name="checked"
               :size="44"
             />
-          </template>
-          <template
-            #cell(positions)="{
-              rowKey: {
-                player: { positions },
-              },
-            }"
-          >
-            <ZPosition :data="positions" />
           </template>
           <template
             #cell(presenceIntention)="{
@@ -225,6 +225,12 @@ export default {
           key: "presenceIntention",
           name: "presenceIntention",
           label: "Intenção de Presença",
+          sortable: true,
+        },
+        {
+          key: "presence",
+          name: "presence",
+          label: "Presença",
           sortable: true,
         },
       ],
