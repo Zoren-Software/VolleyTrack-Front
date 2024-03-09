@@ -286,7 +286,6 @@ export default {
         this.user.roles.some((role) => role.name === "Jogador")
       );
     },
-    // preciso de uma função que faça o texto Uppercase ficar apenas com a primeira letra maiúscula
     transformText(text) {
       return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
     },
