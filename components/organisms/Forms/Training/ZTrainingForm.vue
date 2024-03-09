@@ -99,6 +99,19 @@
             </template>
           </ZListRelationTeams>
         </template>
+        <template #step-content-3>
+          <ZListRelationConfirmationTrainings
+            @actionConfirm="actionConfirm"
+            @actionReject="actionReject"
+            @actionConfirmPresence="actionConfirmPresence"
+            :items="form.confirmationsTraining"
+            :trainingDate="form.dateValue"
+          >
+            <template #filter>
+              <ZSelectUser class="mb-3" label="Jogadores" v-model="users" />
+            </template>
+          </ZListRelationConfirmationTrainings>
+        </template>
       </va-stepper>
     </va-form>
   </va-card>
@@ -116,6 +129,10 @@ import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
 import ZDateTimeRangePicker from "~/components/molecules/Inputs/ZDateTimeRangePicker.vue";
 import ZSelectFundamental from "~/components/molecules/Selects/ZSelectFundamental.vue";
 import ZSelectSpecificFundamental from "~/components/molecules/Selects/ZSelectSpecificFundamental.vue";
+import ZListRelationConfirmationTrainings from "~/components/organisms/List/Relations/ZListRelationConfirmationTrainings";
+import ZSelectUser from "~/components/molecules/Selects/ZSelectUser";
+import CONFIRMPRESENCE from "~/graphql/training/mutation/confirmPresence.graphql";
+import CONFIRMTRAINING from "~/graphql/training/mutation/confirmTraining.graphql";
 
 const { formData } = useForm("myForm");
 
@@ -170,7 +187,11 @@ export default {
     ZDateTimeRangePicker,
     ZSelectFundamental,
     ZSelectSpecificFundamental,
+    ZListRelationConfirmationTrainings,
+    ZSelectUser,
   },
+
+  emits: ["refresh"],
 
   data() {
     return {
@@ -189,7 +210,8 @@ export default {
       steps: [
         { label: "Informações Essenciais" },
         { label: "Fundamentos Treinados" },
-        { label: "Times" },
+        { label: "Time" },
+        { label: "Lista de Presença" },
       ],
       positions: [],
       teams: [],
@@ -198,6 +220,7 @@ export default {
       },
       fundamentals: [],
       specificFundamentals: [],
+      users: [],
     };
   },
 
@@ -218,6 +241,11 @@ export default {
     data(val) {
       this.form = { ...val };
     },
+    "data.team": function (newVal) {
+      if (newVal) {
+        this.form.teams = [{ id: newVal.id, team: newVal.name }];
+      }
+    },
   },
 
   methods: {
@@ -233,9 +261,153 @@ export default {
         specificFundamentals: [],
       };
     },
+    async actionReject(id, playerId, trainingId) {
+      try {
+        const query = gql`
+          ${CONFIRMTRAINING}
+        `;
+
+        const variables = {
+          id: parseInt(id),
+          playerId: parseInt(playerId),
+          trainingId: parseInt(trainingId),
+          status: "REJECTED",
+        };
+
+        const { mutate } = await useMutation(query, { variables });
+
+        const { data } = await mutate();
+
+        confirmSuccess("Negando intenção de presença com sucesso!", () => {
+          this.items = [];
+        });
+
+        this.$emit("refresh");
+      } catch (error) {
+        console.error(error);
+        this.error = true;
+
+        if (
+          error.graphQLErrors &&
+          error.graphQLErrors[0] &&
+          error.graphQLErrors[0].extensions &&
+          error.graphQLErrors[0].extensions.validation
+        ) {
+          this.errors = error.graphQLErrors[0].extensions.validation;
+
+          const errorMessages = Object.values(this.errors).map((item) => {
+            return item[0];
+          });
+
+          this.errorFields = Object.keys(this.errors);
+
+          const footer = errorMessages.join("<br>");
+
+          confirmError("Ocorreu um erro ao ler todas as notificações!", footer);
+        } else {
+          confirmError("Ocorreu um erro ao ler todas as notificações!");
+        }
+      }
+    },
+    async actionConfirmPresence(id, playerId, trainingId, presence) {
+      try {
+        const query = gql`
+          ${CONFIRMPRESENCE}
+        `;
+
+        const variables = {
+          id: parseInt(id),
+          playerId: parseInt(playerId),
+          trainingId: parseInt(trainingId),
+          presence,
+        };
+
+        const { mutate } = await useMutation(query, { variables });
+
+        const { data } = await mutate();
+
+        confirmSuccess("Presença confirmada com sucesso!", () => {
+          this.items = [];
+        });
+
+        this.$emit("refresh");
+      } catch (error) {
+        console.error(error);
+        this.error = true;
+
+        if (
+          error.graphQLErrors &&
+          error.graphQLErrors[0] &&
+          error.graphQLErrors[0].extensions &&
+          error.graphQLErrors[0].extensions.validation
+        ) {
+          this.errors = error.graphQLErrors[0].extensions.validation;
+
+          const errorMessages = Object.values(this.errors).map((item) => {
+            return item[0];
+          });
+
+          this.errorFields = Object.keys(this.errors);
+
+          const footer = errorMessages.join("<br>");
+
+          confirmError("Ocorreu um erro ao ler todas as notificações!", footer);
+        } else {
+          confirmError("Ocorreu um erro ao ler todas as notificações!");
+        }
+      }
+    },
+    async actionConfirm(id, playerId, trainingId) {
+      console.log(id, playerId, trainingId);
+      try {
+        const query = gql`
+          ${CONFIRMTRAINING}
+        `;
+
+        const variables = {
+          id: parseInt(id),
+          playerId: parseInt(playerId),
+          trainingId: parseInt(trainingId),
+          status: "CONFIRMED",
+        };
+
+        const { mutate } = await useMutation(query, { variables });
+
+        const { data } = await mutate();
+
+        confirmSuccess("Intenção de presença confirmada com sucesso!", () => {
+          this.items = [];
+        });
+
+        this.$emit("refresh");
+      } catch (error) {
+        console.error(error);
+        this.error = true;
+
+        if (
+          error.graphQLErrors &&
+          error.graphQLErrors[0] &&
+          error.graphQLErrors[0].extensions &&
+          error.graphQLErrors[0].extensions.validation
+        ) {
+          this.errors = error.graphQLErrors[0].extensions.validation;
+
+          const errorMessages = Object.values(this.errors).map((item) => {
+            return item[0];
+          });
+
+          this.errorFields = Object.keys(this.errors);
+
+          const footer = errorMessages.join("<br>");
+
+          confirmError("Ocorreu um erro ao ler todas as notificações!", footer);
+        } else {
+          confirmError("Ocorreu um erro ao ler todas as notificações!");
+        }
+      }
+    },
 
     addTeams() {
-      // TODO - Fazendo esta função, pois seleciona apenas 1 time
       const newTeam = {
         id: this.teams.value,
         team: this.teams.text,

@@ -20,6 +20,58 @@ query training(
         id
         name
     }
+    confirmationsTraining {
+      id
+      userId
+      player {
+        id
+        name
+        email
+        userId
+        information {
+            id
+            userId
+            cpf
+            rg
+            phone
+            birthDate
+            createdAt
+            updatedAt
+        }
+        teams {
+            id
+            name
+            userId
+            createdAt
+            updatedAt
+        }
+        positions {
+            id
+            name
+            userId
+            createdAt
+            updatedAt
+        }
+        emailVerifiedAt
+        createdAt
+        updatedAt
+      }
+      playerId
+      trainingId
+      status
+      presence
+      teamId
+      createdAt
+      updatedAt
+    }
+    confirmationTrainingMetrics {
+      confirmed
+      pending
+      rejected
+      confirmedPercentage
+      pendingPercentage
+      rejectedPercentage
+    }
     status
     dateStart
     dateEnd

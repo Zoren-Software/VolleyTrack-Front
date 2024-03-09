@@ -1,0 +1,15 @@
+mutation confirmTraining(
+  $id: Int
+  $playerId: Int
+  $trainingId: Int
+  $status: ConfirmationTrainingStatus
+) {
+  confirmTraining(
+    id: $id
+    playerId: $playerId
+    trainingId: $trainingId
+    status: $status
+  ) {
+    id
+  }
+}

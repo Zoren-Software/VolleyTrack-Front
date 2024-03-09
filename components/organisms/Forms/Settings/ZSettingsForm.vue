@@ -29,7 +29,6 @@
 import { useForm } from "vuestic-ui";
 import ZTextInput from "~/components/molecules/Inputs/ZTextInput";
 import ZSelectUser from "~/components/molecules/Selects/ZSelectUser";
-import ZListRelationUsers from "~/components/organisms/List/Relations/ZListRelationUsers";
 import ZSelectLanguage from "~/components/molecules/Selects/ZSelectLanguage";
 
 import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
@@ -71,7 +70,6 @@ export default {
   components: {
     ZTextInput,
     ZSelectUser,
-    ZListRelationUsers,
     ZSelectLanguage,
   },
 
