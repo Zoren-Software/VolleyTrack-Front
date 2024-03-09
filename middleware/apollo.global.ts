@@ -1,6 +1,7 @@
 import { defineNuxtPlugin } from '#app'
 import { ApolloClient, InMemoryCache, HttpLink } from '@apollo/client/core'
 import { setContext } from '@apollo/client/link/context'
+import { onError } from '@apollo/client/link/error'
 
 export default defineNuxtPlugin(nuxtAppMain => {
   
@@ -21,8 +22,23 @@ export default defineNuxtPlugin(nuxtAppMain => {
     }
   })
 
+  // NOTE - Adicionar link de tratamento de erro
+  const errorLink = onError(({ graphQLErrors, networkError, operation, forward }) => {
+    if (graphQLErrors) {
+      for (let err of graphQLErrors) {
+        console.log(err.message)
+        if (err.message === 'Unauthenticated.') {
+          localStorage.removeItem("user");
+          localStorage.removeItem("userToken");
+          localStorage.removeItem('apollo:default.token') // Limpar o token
+          window.location.href = '/login'
+        }
+      }
+    }
+  })
+
   const apolloClient = new ApolloClient({
-    link: authLink.concat(httpLink),
+    link: errorLink.concat(authLink).concat(httpLink),
     cache: new InMemoryCache(),
   })
 
