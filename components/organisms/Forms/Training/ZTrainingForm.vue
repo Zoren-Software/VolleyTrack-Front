@@ -372,7 +372,6 @@ export default {
       }
     },
     async actionConfirm(id, playerId, trainingId) {
-      console.log(id, playerId, trainingId);
       try {
         const query = gql`
           ${CONFIRMTRAINING}
