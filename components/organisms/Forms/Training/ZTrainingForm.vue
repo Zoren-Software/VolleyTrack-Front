@@ -108,17 +108,37 @@
             :trainingDate="form.dateValue"
           >
             <template #head>
-              <ZCardViewMetricsPresenceIntention
-                class="mr-2"
-                title="Métricas do treino, intenção de presença"
-                :strip="false"
-                :data="form.confirmationTrainingMetrics"
-              />
-              <ZCardViewMetricsRealPresence
-                title="Métricas do treino, presença real"
-                :strip="false"
-                :data="form.confirmationTrainingMetrics"
-              />
+              <div class="row">
+                <div class="flex flex-col md6">
+                  <div class="item">
+                    <ZCardViewMetricsPresenceIntention
+                      class="mr-2"
+                      title="Métricas do treino, intenção de presença"
+                      :strip="false"
+                      :data="form.confirmationTrainingMetrics"
+                    />
+                  </div>
+                </div>
+                <div class="flex flex-col md6">
+                  <div class="item">
+                    <ZCardViewMetricsRealPresence
+                      title="Métricas do treino, presença real"
+                      :strip="false"
+                      :data="form.confirmationTrainingMetrics"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="flex flex-col md12">
+                  <div class="item">
+                    <ZProgressBarMetricsTraining
+                      :metrics="form.confirmationTrainingMetrics"
+                      :data="form"
+                    />
+                  </div>
+                </div>
+              </div>
             </template>
           </ZListRelationConfirmationTrainings>
         </template>
@@ -142,6 +162,7 @@ import ZSelectSpecificFundamental from "~/components/molecules/Selects/ZSelectSp
 import ZListRelationConfirmationTrainings from "~/components/organisms/List/Relations/ZListRelationConfirmationTrainings";
 import ZCardViewMetricsRealPresence from "~/components/molecules/Cards/ZCardViewMetricsRealPresence";
 import ZCardViewMetricsPresenceIntention from "~/components/molecules/Cards/ZCardViewMetricsPresenceIntention";
+import ZProgressBarMetricsTraining from "~/components/molecules/ProgressBar/ZProgressBarMetricsTraining";
 import ZSelectUser from "~/components/molecules/Selects/ZSelectUser";
 import CONFIRMTRAINING from "~/graphql/training/mutation/confirmTraining.graphql";
 import CONFIRMPRESENCE from "~/graphql/training/mutation/confirmPresence.graphql";
@@ -203,6 +224,7 @@ export default {
     ZSelectUser,
     ZCardViewMetricsPresenceIntention,
     ZCardViewMetricsRealPresence,
+    ZProgressBarMetricsTraining,
   },
 
   emits: ["refresh"],

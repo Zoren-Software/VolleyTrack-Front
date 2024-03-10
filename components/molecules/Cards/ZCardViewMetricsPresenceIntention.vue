@@ -6,14 +6,14 @@
     :color="color"
   >
     <div class="row">
-      <div class="flex flex-col md9">
+      <div class="flex flex-col md10">
         <div class="item">
           <h2 class="mt-2">Confirmados: {{ data.confirmed }}</h2>
           <h2>Pendentes: {{ data.pending }}</h2>
           <h2>Rejeitados: {{ data.rejected }}</h2>
         </div>
       </div>
-      <div class="flex flex-col md3">
+      <div class="flex flex-col md2">
         <div class="item">
           <h2 class="mt-2">{{ data.confirmedPercentage }}%</h2>
           <h2>{{ data.pendingPercentage }}%</h2>

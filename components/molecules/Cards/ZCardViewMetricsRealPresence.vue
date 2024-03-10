@@ -12,7 +12,7 @@
           <h2>Ausentes: {{ data.absence }}</h2>
         </div>
       </div>
-      <div class="flex flex-col md6">
+      <div class="flex flex-col md3">
         <div class="item">
           <h2>{{ data.presencePercentage }}%</h2>
           <h2>{{ data.absencePercentage }}%</h2>
