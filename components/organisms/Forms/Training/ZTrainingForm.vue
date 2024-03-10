@@ -144,6 +144,7 @@ import ZCardViewMetricsRealPresence from "~/components/molecules/Cards/ZCardView
 import ZCardViewMetricsPresenceIntention from "~/components/molecules/Cards/ZCardViewMetricsPresenceIntention";
 import ZSelectUser from "~/components/molecules/Selects/ZSelectUser";
 import CONFIRMTRAINING from "~/graphql/training/mutation/confirmTraining.graphql";
+import CONFIRMPRESENCE from "~/graphql/training/mutation/confirmPresence.graphql";
 
 const { formData } = useForm("myForm");
 
