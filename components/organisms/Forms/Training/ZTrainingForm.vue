@@ -107,8 +107,18 @@
             :items="form.confirmationsTraining"
             :trainingDate="form.dateValue"
           >
-            <template #filter>
-              <ZSelectUser class="mb-3" label="Jogadores" v-model="users" />
+            <template #head>
+              <ZCardViewMetricsPresenceIntention
+                class="mr-2"
+                title="Métricas do treino, intenção de presença"
+                :strip="false"
+                :data="form.confirmationTrainingMetrics"
+              />
+              <ZCardViewMetricsRealPresence
+                title="Métricas do treino, presença real"
+                :strip="false"
+                :data="form.confirmationTrainingMetrics"
+              />
             </template>
           </ZListRelationConfirmationTrainings>
         </template>
@@ -130,8 +140,9 @@ import ZDateTimeRangePicker from "~/components/molecules/Inputs/ZDateTimeRangePi
 import ZSelectFundamental from "~/components/molecules/Selects/ZSelectFundamental.vue";
 import ZSelectSpecificFundamental from "~/components/molecules/Selects/ZSelectSpecificFundamental.vue";
 import ZListRelationConfirmationTrainings from "~/components/organisms/List/Relations/ZListRelationConfirmationTrainings";
+import ZCardViewMetricsRealPresence from "~/components/molecules/Cards/ZCardViewMetricsRealPresence";
+import ZCardViewMetricsPresenceIntention from "~/components/molecules/Cards/ZCardViewMetricsPresenceIntention";
 import ZSelectUser from "~/components/molecules/Selects/ZSelectUser";
-import CONFIRMPRESENCE from "~/graphql/training/mutation/confirmPresence.graphql";
 import CONFIRMTRAINING from "~/graphql/training/mutation/confirmTraining.graphql";
 
 const { formData } = useForm("myForm");
@@ -189,6 +200,8 @@ export default {
     ZSelectSpecificFundamental,
     ZListRelationConfirmationTrainings,
     ZSelectUser,
+    ZCardViewMetricsPresenceIntention,
+    ZCardViewMetricsRealPresence,
   },
 
   emits: ["refresh"],
