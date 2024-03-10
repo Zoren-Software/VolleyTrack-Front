@@ -1,5 +1,6 @@
 <template>
-  <div class="d-flex align-items-center justify-content-between">
+  <!-- Aqui continha uma classe d-flex se algum layout quebrar deve ser reposto por parâmetros -->
+  <div class="align-items-center justify-content-between">
     <slot name="filter" />
     <ZButton
       v-if="!disableRelation"

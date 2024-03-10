@@ -1,6 +1,7 @@
 <template>
   <ZListRelationGeneric @add="add" disableRelation>
     <template #filter>
+      <slot name="head" />
       <slot name="filter" />
     </template>
     <template #list>

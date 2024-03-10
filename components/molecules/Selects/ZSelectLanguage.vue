@@ -122,7 +122,6 @@ export default {
       }
     },
     setInitialValue() {
-      console.log(this.form);
       if (this.form && this.form.language) {
         const initialValue = this.items.find(
           (item) => item.value === this.form.language.value

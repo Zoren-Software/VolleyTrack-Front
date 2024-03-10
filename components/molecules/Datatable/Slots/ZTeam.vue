@@ -3,8 +3,8 @@
     <ZButton size="small" color="primary"> {{ data[0].name }}</ZButton>
   </ZBadge>
   <ZButton v-if="data.name" size="small" color="primary">
-    {{ data.name }}</ZButton
-  >
+    {{ data.name }}
+  </ZButton>
 </template>
 
 <script>

@@ -32,6 +32,19 @@ query trainings(
         id
         name
       }
+      confirmationTrainingMetrics {
+        confirmed
+        pending
+        rejected
+        total
+        confirmedPercentage
+        pendingPercentage
+        rejectedPercentage
+        presence
+        absence
+        presencePercentage
+        absencePercentage
+      }
       status
       dateStart
       dateEnd
