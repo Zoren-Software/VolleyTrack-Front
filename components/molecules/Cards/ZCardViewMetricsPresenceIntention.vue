@@ -24,7 +24,7 @@
         <div class="item">
           <h2>
             Total Pessoas no Time:
-            {{ data.confirmed + data.pending + data.rejected }}
+            {{ data.total }}
           </h2>
         </div>
       </div>

@@ -8,24 +8,14 @@
     <div class="row">
       <div class="flex flex-col md9">
         <div class="item">
-          <h2 class="mt-2">Confirmados: {{ data.confirmed }}</h2>
-          <h2>Pendentes: {{ data.pending }}</h2>
-          <h2>Rejeitados: {{ data.rejected }}</h2>
+          <h2>Presentes: {{ data.presence }}</h2>
+          <h2>Ausentes: {{ data.absence }}</h2>
         </div>
       </div>
-      <div class="flex flex-col md3">
+      <div class="flex flex-col md6">
         <div class="item">
-          <h2 class="mt-2">{{ data.confirmedPercentage }}%</h2>
-          <h2>{{ data.pendingPercentage }}%</h2>
-          <h2>{{ data.rejectedPercentage }}%</h2>
-        </div>
-      </div>
-      <div class="flex flex-col md12 mt-3">
-        <div class="item">
-          <h2>
-            Total Pessoas no Time:
-            {{ data.confirmed + data.pending + data.rejected }}
-          </h2>
+          <h2>{{ data.presencePercentage }}%</h2>
+          <h2>{{ data.absencePercentage }}%</h2>
         </div>
       </div>
     </div>
