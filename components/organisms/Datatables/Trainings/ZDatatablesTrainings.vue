@@ -78,6 +78,14 @@
     </template>
 
     <!-- CELL -->
+    <template
+      #cell(name)="{ rowKey: { name, dateStart, confirmationTrainingMetrics } }"
+    >
+      <ZTraining
+        :data="{ name, dateStart }"
+        :metrics="confirmationTrainingMetrics"
+      />
+    </template>
     <template #cell(team)="{ rowKey: { team } }">
       <div v-if="team">
         <ZTeam :data="team" />
@@ -112,6 +120,7 @@ import ZSelectUser from "~/components/molecules/Selects/ZSelectUser";
 import ZUser from "~/components/molecules/Datatable/Slots/ZUser";
 import ZDateTraining from "~/components/molecules/Datatable/Slots/ZDateTraining";
 import ZTeam from "~/components/molecules/Datatable/Slots/ZTeam";
+import ZTraining from "~/components/molecules/Datatable/Slots/ZTraining";
 import TRAININGDELETE from "~/graphql/training/mutation/trainingDelete.graphql";
 import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
 
@@ -126,6 +135,7 @@ export default defineComponent({
     ZSelectPosition,
     ZSelectTeam,
     ZSelectUser,
+    ZTraining,
   },
 
   created() {
