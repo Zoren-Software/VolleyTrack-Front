@@ -58,8 +58,8 @@ export default {
       error: false,
       errorMessage: [],
       loading: false,
-      email: "admin@volleytrack.com",
-      password: "password",
+      email: "",
+      password: "",
     };
   },
 
