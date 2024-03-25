@@ -6,7 +6,7 @@ import { onError } from '@apollo/client/link/error'
 export default defineNuxtPlugin(nuxtAppMain => {
   
   const getTenant = () => (window ? window.location.hostname.split('.')[0] : '')
-  const getApiUrl = () => (window ? window.origin.replace(getTenant(), 'api').replace(':3000', '') : '')
+  const getApiUrl = () => (window ? window.origin.replace(getTenant(), 'graphql').replace(':3000', '') : '')
 
   const httpLink = new HttpLink({ uri: `${getApiUrl()}/graphql`, })
 
