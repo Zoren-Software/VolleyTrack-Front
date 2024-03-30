@@ -1,0 +1,18 @@
+mutation teamDelete(
+  $id: [ID!]!
+) {
+  teamDelete(
+    id: $id
+  ) {
+    id
+    name
+    userId
+    user {
+      id
+      name
+      email
+    }
+    createdAt
+    updatedAt
+  }
+}

@@ -1,0 +1,50 @@
+query users(
+    $filter: UserSearchInput, 
+    $first: Int, 
+    $page: Int
+) {
+  users(
+    filter: $filter,
+    first: $first,
+    page: $page
+  ) {
+    paginatorInfo {
+      count
+      currentPage
+      firstItem
+      hasMorePages
+      lastItem
+      lastPage
+      perPage
+      total
+    }
+    data {
+      id
+      name
+      email
+      emailVerifiedAt
+      createdAt
+      updatedAt
+      positions {
+        id
+        name
+      }
+      teams {
+        id
+        name
+      }
+      user {
+        id
+        name
+        email
+      }
+      information {
+        id
+        cpf
+        rg
+        phone
+        birthDate
+      }
+    }
+  }
+}

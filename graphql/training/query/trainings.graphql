@@ -1,0 +1,56 @@
+query trainings(
+    $filter: TrainingSearchInput
+    $first: Int, 
+    $page: Int
+) {
+  trainings(
+    filter: $filter,
+    first: $first,
+    page: $page
+  ) {
+    paginatorInfo {
+      count
+      currentPage
+      firstItem
+      hasMorePages
+      lastItem
+      lastPage
+      perPage
+      total
+    }
+    data {
+      id
+      name
+      userId
+      user {
+        id
+        name
+        email
+      }
+      teamId
+      team {
+        id
+        name
+      }
+      confirmationTrainingMetrics {
+        confirmed
+        pending
+        rejected
+        total
+        confirmedPercentage
+        pendingPercentage
+        rejectedPercentage
+        presence
+        absence
+        presencePercentage
+        absencePercentage
+      }
+      status
+      dateStart
+      dateEnd
+      description
+      createdAt
+      updatedAt
+    }
+  }
+}

@@ -1,13 +1,31 @@
 {
   "private": true,
+  "version": "1.0.0",
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "lint": "eslint .",
+    "lint-fix": "eslint . --fix"
   },
   "devDependencies": {
-    "nuxt": "^3.2.0"
+    "@nuxt/eslint-config": "^0.1.1",
+    "@nuxtjs/apollo": "5.0.0-alpha.6",
+    "eslint": "^8.57.0",
+    "nuxt": "^3.10.3",
+    "sass": "^1.71.1"
+  },
+  "dependencies": {
+    "@vuestic/nuxt": "^1.0.19",
+    "clipboard": "^2.0.11",
+    "dotenv": "^16.4.5",
+    "material-design-icons-iconfont": "^6.7.0",
+    "moment": "^2.30.1",
+    "vue": "^3.4.20",
+    "vue-sweetalert2": "^5.0.5",
+    "vue-the-mask": "^0.11.1",
+    "vuestic-ui": "^1.9.3"
   }
 }
