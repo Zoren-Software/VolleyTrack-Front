@@ -1,12 +1,13 @@
 <template>
   <va-card stripe stripe-color="primary" class="mx-5">
-    <va-card-title> Login </va-card-title>
+    <va-card-title> Set Password </va-card-title>
     <va-form @keyup.enter="login">
       <div class="row justify-center px-3 pb-4">
         <div class="flex flex-col">
           <div class="item">
             <ZEmailInput
               v-model="email"
+              disabled
               label="E-mail"
               id="email"
               placeholder="E-mail"
@@ -17,15 +18,25 @@
       <div class="row justify-center px-3 pb-4">
         <div class="flex flex-col">
           <div class="item">
-            <ZPasswordInput
+            <!-- <ZPasswordInput
               v-model="password"
               label="Password"
               id="password"
               placeholder="Senha"
+              :confirmPasswordInput="true"
               :error="error"
               :error-messages="errorMessage"
               :success="success"
               :messages="successMessage"
+            /> -->
+            <ZPasswordInputWithConfirmPassword
+              v-model="password"
+              confirmPasswordInput
+              name="password"
+              passwordLabel="Senha Provisória"
+              :error-messages="errorMessage"
+              id="password"
+              class="mb-3"
             />
           </div>
         </div>
@@ -37,7 +48,7 @@
           color="primary"
           @click="login"
         >
-          Login
+          Registrar Senha
         </ZButton>
       </div>
     </va-form>
@@ -48,6 +59,7 @@
 import LOGIN from "~/graphql/user/mutation/login.graphql";
 import ZInput from "~/components/atoms/Inputs/ZInput";
 import ZPasswordInput from "~/components/molecules/Inputs/ZPasswordInput";
+import ZPasswordInputWithConfirmPassword from "~/components/molecules/Inputs/ZPasswordInputWithConfirmPassword";
 import ZEmailInput from "~/components/molecules/Inputs/ZEmailInput";
 import ZButton from "~/components/atoms/Buttons/ZButton";
 
@@ -55,6 +67,7 @@ export default {
   components: {
     ZInput,
     ZPasswordInput,
+    ZPasswordInputWithConfirmPassword,
     ZButton,
     ZEmailInput,
   },
