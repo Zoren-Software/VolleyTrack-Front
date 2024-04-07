@@ -1,7 +1,7 @@
 <template>
   <va-card stripe stripe-color="primary" class="mx-5">
     <va-card-title> Set Password </va-card-title>
-    <va-form @keyup.enter="login">
+    <va-form @keyup.enter="registerPassword">
       <div class="row justify-center px-3 pb-4">
         <div class="flex flex-col">
           <div class="item">
@@ -18,17 +18,6 @@
       <div class="row justify-center px-3 pb-4">
         <div class="flex flex-col">
           <div class="item">
-            <!-- <ZPasswordInput
-              v-model="password"
-              label="Password"
-              id="password"
-              placeholder="Senha"
-              :confirmPasswordInput="true"
-              :error="error"
-              :error-messages="errorMessage"
-              :success="success"
-              :messages="successMessage"
-            /> -->
             <ZPasswordInputWithConfirmPassword
               v-model="password"
               confirmPasswordInput
@@ -46,7 +35,7 @@
           :block="true"
           :loading="loading"
           color="primary"
-          @click="login"
+          @click="registerPassword"
         >
           Registrar Senha
         </ZButton>
@@ -79,13 +68,14 @@ export default {
       error: false,
       errorMessage: [],
       loading: false,
-      email: "",
+      // pegar atributo da rota get
+      email: this.$route.params.email,
       password: "",
     };
   },
 
   methods: {
-    async login() {
+    async registerPassword() {
       try {
         this.loading = true;
         const { onLogin } = useApollo();

@@ -1,9 +1,11 @@
 export default defineNuxtRouteMiddleware((to, from, next) => {
     const token = localStorage.getItem('apollo:default.token');
     
-    // Permitir acesso à rota /set-password mesmo sem token
-    if (to.path === '/set-password') {
-      return;
+    // Verifica se a rota atual é /set-password e se há um email e um token na URL
+    const isSetPasswordRoute = to.path.startsWith('/set-password/') && to.params.email && to.params.token;
+
+    if (isSetPasswordRoute) {
+        return;
     }
   
     if (to.path !== '/login' && token == null) {
