@@ -1,7 +1,7 @@
 <template>
   <va-card stripe stripe-color="primary" class="mx-5">
     <va-card-title> Set Password </va-card-title>
-    <va-form @keyup.enter="registerPassword">
+    <va-form>
       <div class="row justify-center px-3 pb-4">
         <div class="flex flex-col">
           <div class="item">
@@ -26,6 +26,7 @@
               :error-messages="errorMessage"
               id="password"
               class="mb-3"
+              @validForm="emitValidFormEvent"
             />
           </div>
         </div>
@@ -33,6 +34,7 @@
       <div class="row justify-center px-3 pb-3">
         <ZButton
           :block="true"
+          :disabled="buttonDisabled"
           :loading="loading"
           color="primary"
           @click="registerPassword"
@@ -45,7 +47,8 @@
 </template>
 
 <script>
-import LOGIN from "~/graphql/user/mutation/login.graphql";
+// TODO - fazer o endpoint de troca de senha aqui
+import USERSETPASSWORD from "~/graphql/user/mutation/userSetPassword.graphql";
 import ZInput from "~/components/atoms/Inputs/ZInput";
 import ZPasswordInput from "~/components/molecules/Inputs/ZPasswordInput";
 import ZPasswordInputWithConfirmPassword from "~/components/molecules/Inputs/ZPasswordInputWithConfirmPassword";
@@ -71,43 +74,46 @@ export default {
       // pegar atributo da rota get
       email: this.$route.params.email,
       password: "",
+      buttonDisabled: true,
     };
   },
 
   methods: {
     async registerPassword() {
       try {
-        this.loading = true;
-        const { onLogin } = useApollo();
+        //this.loading = true;
 
         const query = gql`
-          ${LOGIN}
+          ${USERSETPASSWORD}
         `;
         const variables = {
           email: this.email,
           password: this.password,
+          passwordConfirmation: this.password,
+          token: this.$route.params.token,
         };
 
         const { mutate } = await useMutation(query, { variables });
 
+        this.loading = false;
+
         const {
           data: {
-            login: { token },
+            userSetPassword: { token },
           },
         } = await mutate();
 
-        if (token) {
-          this.success = true;
-          this.successMessage = ["Login realizado com sucesso"];
-          localStorage.setItem("userToken", token);
-          onLogin(token);
-          this.$router.push("/");
-        }
+        this.$router.push("/login");
       } catch (error) {
         this.error = true;
-        this.errorMessage = error.message;
+        console.log(error);
+        this.errorMessage = error;
       }
       this.loading = false;
+    },
+
+    emitValidFormEvent() {
+      this.buttonDisabled = false;
     },
   },
 };
