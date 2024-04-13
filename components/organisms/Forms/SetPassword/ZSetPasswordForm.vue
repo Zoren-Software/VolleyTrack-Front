@@ -54,6 +54,7 @@ import ZPasswordInput from "~/components/molecules/Inputs/ZPasswordInput";
 import ZPasswordInputWithConfirmPassword from "~/components/molecules/Inputs/ZPasswordInputWithConfirmPassword";
 import ZEmailInput from "~/components/molecules/Inputs/ZEmailInput";
 import ZButton from "~/components/atoms/Buttons/ZButton";
+import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
 
 export default {
   components: {
@@ -99,15 +100,25 @@ export default {
 
         const {
           data: {
-            userSetPassword: { token },
+            userSetPassword: { userId },
           },
         } = await mutate();
 
-        this.$router.push("/login");
+        console.log();
+
+        if (userId) {
+          confirmSuccess("Senha alterada com sucesso!", () => {
+            this.$router.push("/login");
+          });
+        } else {
+          confirmError("Erro ao alterar senha!");
+        }
+
+        //this.$router.push("/login");
       } catch (error) {
         this.error = true;
         console.log(error);
-        this.errorMessage = error;
+        this.errorMessage[0] = error;
       }
       this.loading = false;
     },
