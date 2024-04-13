@@ -82,7 +82,7 @@ export default {
   methods: {
     async registerPassword() {
       try {
-        //this.loading = true;
+        this.loading = true;
 
         const query = gql`
           ${USERSETPASSWORD}
@@ -104,8 +104,6 @@ export default {
           },
         } = await mutate();
 
-        console.log();
-
         if (userId) {
           confirmSuccess("Senha alterada com sucesso!", () => {
             this.$router.push("/login");
@@ -113,8 +111,6 @@ export default {
         } else {
           confirmError("Erro ao alterar senha!");
         }
-
-        //this.$router.push("/login");
       } catch (error) {
         this.error = true;
         console.log(error);
