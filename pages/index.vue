@@ -110,6 +110,7 @@ export default {
           ...this.variablesGetPlayers.filter,
           positionsIds: positionsIdsValues,
           teamsIds: teamsIdsValues,
+          rolesIds: [3],
         },
       };
 
@@ -128,7 +129,6 @@ export default {
       });
 
       if (value) {
-        console.log(value?.users?.paginatorInfo.total);
         if (value?.users?.paginatorInfo.total) {
           this.totalUsers = value?.users?.paginatorInfo.total;
         }
@@ -180,7 +180,6 @@ export default {
       });
 
       if (value) {
-        console.log(value?.teams?.paginatorInfo.total);
         if (value?.teams?.paginatorInfo.total) {
           this.totalTeams = value?.teams?.paginatorInfo.total;
         }
@@ -246,7 +245,6 @@ export default {
       });
 
       if (value) {
-        console.log(value?.trainings?.paginatorInfo.total);
         if (value?.trainings?.paginatorInfo.total) {
           this.totalTrainings = value?.trainings?.paginatorInfo.total;
         }
