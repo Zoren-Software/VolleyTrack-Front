@@ -163,9 +163,18 @@ export default {
 </script>
 
 <script setup>
-let step = ref(0);
+const step = computed(() => {
+  if (props.totalTrainings >= 1) {
+    return 3;
+  } else if (props.totalTeams >= 1) {
+    return 2;
+  } else if (props.totalUsers >= 1) {
+    return 1;
+  }
+  return 0;
+});
 
-let valueAccordion = ref([false]);
+let valueAccordion = ref([true]);
 
 const props = defineProps({
   totalUsers: {

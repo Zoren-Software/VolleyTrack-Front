@@ -1,12 +1,13 @@
 <template>
   <va-card stripe stripe-color="primary" class="mx-5">
-    <va-card-title> Login </va-card-title>
-    <va-form @keyup.enter="login">
+    <va-card-title> Set Password </va-card-title>
+    <va-form>
       <div class="row justify-center px-3 pb-4">
         <div class="flex flex-col">
           <div class="item">
             <ZEmailInput
               v-model="email"
+              disabled
               label="E-mail"
               id="email"
               placeholder="E-mail"
@@ -17,15 +18,15 @@
       <div class="row justify-center px-3 pb-4">
         <div class="flex flex-col">
           <div class="item">
-            <ZPasswordInput
+            <ZPasswordInputWithConfirmPassword
               v-model="password"
-              label="Password"
-              id="password"
-              placeholder="Senha"
-              :error="error"
+              confirmPasswordInput
+              name="password"
+              passwordLabel="Senha Provisória"
               :error-messages="errorMessage"
-              :success="success"
-              :messages="successMessage"
+              id="password"
+              class="mb-3"
+              @validForm="emitValidFormEvent"
             />
           </div>
         </div>
@@ -33,11 +34,12 @@
       <div class="row justify-center px-3 pb-3">
         <ZButton
           :block="true"
+          :disabled="buttonDisabled"
           :loading="loading"
           color="primary"
-          @click="login"
+          @click="registerPassword"
         >
-          Login
+          Registrar Senha
         </ZButton>
       </div>
     </va-form>
@@ -45,16 +47,20 @@
 </template>
 
 <script>
-import LOGIN from "~/graphql/user/mutation/login.graphql";
+// TODO - fazer o endpoint de troca de senha aqui
+import USERSETPASSWORD from "~/graphql/user/mutation/userSetPassword.graphql";
 import ZInput from "~/components/atoms/Inputs/ZInput";
 import ZPasswordInput from "~/components/molecules/Inputs/ZPasswordInput";
+import ZPasswordInputWithConfirmPassword from "~/components/molecules/Inputs/ZPasswordInputWithConfirmPassword";
 import ZEmailInput from "~/components/molecules/Inputs/ZEmailInput";
 import ZButton from "~/components/atoms/Buttons/ZButton";
+import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
 
 export default {
   components: {
     ZInput,
     ZPasswordInput,
+    ZPasswordInputWithConfirmPassword,
     ZButton,
     ZEmailInput,
   },
@@ -66,45 +72,55 @@ export default {
       error: false,
       errorMessage: [],
       loading: false,
-      email: "",
+      // pegar atributo da rota get
+      email: this.$route.params.email,
       password: "",
+      buttonDisabled: true,
     };
   },
 
   methods: {
-    async login() {
+    async registerPassword() {
       try {
         this.loading = true;
-        const { onLogin } = useApollo();
 
         const query = gql`
-          ${LOGIN}
+          ${USERSETPASSWORD}
         `;
         const variables = {
           email: this.email,
           password: this.password,
+          passwordConfirmation: this.password,
+          token: this.$route.params.token,
         };
 
         const { mutate } = await useMutation(query, { variables });
 
+        this.loading = false;
+
         const {
           data: {
-            login: { token },
+            userSetPassword: { userId },
           },
         } = await mutate();
 
-        if (token) {
-          this.success = true;
-          this.successMessage = ["Login realizado com sucesso"];
-          localStorage.setItem("userToken", token);
-          onLogin(token);
-          this.$router.push("/");
+        if (userId) {
+          confirmSuccess("Senha alterada com sucesso!", () => {
+            this.$router.push("/login");
+          });
+        } else {
+          confirmError("Erro ao alterar senha!");
         }
       } catch (error) {
         this.error = true;
-        this.errorMessage = error.message;
+        console.log(error);
+        this.errorMessage[0] = error;
       }
       this.loading = false;
+    },
+
+    emitValidFormEvent() {
+      this.buttonDisabled = false;
     },
   },
 };

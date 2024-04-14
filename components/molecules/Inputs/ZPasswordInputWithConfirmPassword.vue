@@ -52,6 +52,16 @@ export default {
     ZPasswordInput,
     ZInput,
   },
+  mounted() {
+    watch(
+      () => this.isFormValid,
+      (isValid) => {
+        if (isValid) {
+          this.emitValidFormEvent();
+        }
+      }
+    );
+  },
   props: {
     id: {
       type: String,
@@ -94,6 +104,11 @@ export default {
     confirmPassword: "",
   }),
   computed: {
+    isFormValid() {
+      return (
+        this.password.length >= 6 && this.password === this.confirmPassword
+      );
+    },
     passwordRules() {
       return [
         ...this.rules,
@@ -120,6 +135,9 @@ export default {
       } else {
         this.$emit("update:modelValue", this.password);
       }
+    },
+    emitValidFormEvent() {
+      this.$emit("validForm");
     },
   },
 };
