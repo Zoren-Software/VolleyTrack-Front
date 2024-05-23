@@ -42,6 +42,17 @@
       </div>
     </va-form>
   </va-card>
+  <div class="ml-4 mt-2">
+    <div class="row justify-start px-3">
+      <div class="flex flex-col">
+        <div class="item">
+          <VaButton preset="plain" class="mr-6 mb-2" @click="resetPassword">
+            Esqueceu a senha?
+          </VaButton>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script>
@@ -105,6 +116,10 @@ export default {
         this.errorMessage = error.message;
       }
       this.loading = false;
+    },
+
+    resetPassword() {
+      this.$router.push("/reset-password");
     },
   },
 };
