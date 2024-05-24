@@ -46,7 +46,11 @@
     <div class="row justify-start px-3">
       <div class="flex flex-col">
         <div class="item">
-          <VaButton preset="plain" class="mr-6 mb-2" @click="resetPassword">
+          <VaButton
+            preset="plain"
+            class="ml-3 mr-6 mt-2"
+            @click="resetPassword"
+          >
             Esqueceu a senha?
           </VaButton>
         </div>
@@ -118,9 +122,8 @@ export default {
       this.loading = false;
     },
 
-    resetPassword() {
-      this.$router.push("/reset-password");
-    },
+    // TODO - Fazendo aqui
+    resetPassword() {},
   },
 };
 </script>
