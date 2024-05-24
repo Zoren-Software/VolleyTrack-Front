@@ -22,6 +22,7 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
+      tawkto: '', // can be overridden by NUXT_PUBLIC_TAWKTO environment variable
       nameApplication: '', // can be overridden by NUXT_PUBLIC_NAME_APPLICATION environment variable
     }
   },
