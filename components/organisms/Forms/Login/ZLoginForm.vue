@@ -11,7 +11,7 @@
               id="email"
               placeholder="E-mail"
               :error-messages="errorMessageEmail"
-              :error="error"
+              :error="errorEmail"
             />
           </div>
         </div>
@@ -24,7 +24,7 @@
               label="Password"
               id="password"
               placeholder="Senha"
-              :error="error"
+              :error="errorPassword"
               :error-messages="errorMessage"
               :success="success"
               :messages="successMessage"
@@ -82,7 +82,8 @@ export default {
     return {
       success: false,
       successMessage: [],
-      error: false,
+      errorPassword: false,
+      errorEmail: false,
       errorMessage: "",
       errorMessageEmail: "",
       loading: false,
@@ -102,14 +103,15 @@ export default {
         `;
 
         if (this.email == "") {
+          this.errorEmail = true;
           this.error = true;
-          this.errorMessageEmail = "E-mail é obrigatório";
+          this.errorMessageEmail = "E-mail é obrigatório para fazer login";
           this.loading = false;
           this.success = false;
 
           if (this.password == "") {
-            this.error = true;
-            this.errorMessage = "A senha é obrigatória";
+            this.errorPassword = true;
+            this.errorMessage = "A senha é obrigatória para fazer login";
             this.loading = false;
             this.success = false;
           }
@@ -152,8 +154,8 @@ export default {
         `;
 
         if (this.email == "") {
-          this.error = true;
-          this.errorMessageEmail = "E-mail é obrigatório";
+          this.errorEmail = true;
+          this.errorMessageEmail = "E-mail é obrigatório para resetar a senha";
           this.loading = false;
           this.success = false;
           return;
@@ -175,7 +177,7 @@ export default {
           confirmSuccess(message);
         }
       } catch (error) {
-        this.error = true;
+        this.errorPassword = true;
         this.errorMessage = error.message;
       }
       this.loading = false;
