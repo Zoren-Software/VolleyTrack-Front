@@ -25,7 +25,7 @@
               id="password"
               placeholder="Senha"
               :error="errorPassword"
-              :error-messages="errorMessage"
+              :error-messages="errorMessagePassword"
               :success="success"
               :messages="successMessage"
             />
@@ -84,7 +84,7 @@ export default {
       successMessage: [],
       errorPassword: false,
       errorEmail: false,
-      errorMessage: "",
+      errorMessagePassword: "",
       errorMessageEmail: "",
       loading: false,
       email: "",
@@ -111,7 +111,8 @@ export default {
 
           if (this.password == "") {
             this.errorPassword = true;
-            this.errorMessage = "A senha é obrigatória para fazer login";
+            this.errorMessagePassword =
+              "A senha é obrigatória para fazer login";
             this.loading = false;
             this.success = false;
           }
@@ -119,7 +120,7 @@ export default {
         }
         if (this.password == "") {
           this.errorPassword = true;
-          this.errorMessage = "A senha é obrigatória para fazer login";
+          this.errorMessagePassword = "A senha é obrigatória para fazer login";
           this.loading = false;
           this.success = false;
           return;
@@ -146,8 +147,13 @@ export default {
           this.$router.push("/");
         }
       } catch (error) {
-        this.error = true;
-        this.errorMessage = error.message;
+        this.errorPassword = true;
+        if (error.message == "The provided credentials are incorrect.") {
+          this.errorMessagePassword =
+            "Usuário ou senha inválidos, tente novamente";
+        } else {
+          this.errorMessagePassword = error.message;
+        }
       }
       this.loading = false;
     },
