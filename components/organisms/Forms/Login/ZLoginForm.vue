@@ -117,6 +117,13 @@ export default {
           }
           return;
         }
+        if (this.password == "") {
+          this.errorPassword = true;
+          this.errorMessage = "A senha é obrigatória para fazer login";
+          this.loading = false;
+          this.success = false;
+          return;
+        }
 
         const variables = {
           email: this.email,
