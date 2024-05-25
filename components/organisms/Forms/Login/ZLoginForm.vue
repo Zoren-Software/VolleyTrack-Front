@@ -68,7 +68,7 @@ import ZInput from "~/components/atoms/Inputs/ZInput";
 import ZPasswordInput from "~/components/molecules/Inputs/ZPasswordInput";
 import ZEmailInput from "~/components/molecules/Inputs/ZEmailInput";
 import ZButton from "~/components/atoms/Buttons/ZButton";
-import { warn } from "vue";
+import { confirmSuccess } from "~/utils/sweetAlert2/swalHelper";
 
 export default {
   components: {
@@ -107,7 +107,6 @@ export default {
           this.loading = false;
           this.success = false;
 
-          console.log(this.password);
           if (this.password == "") {
             this.error = true;
             this.errorMessage = "A senha é obrigatória";
@@ -173,7 +172,7 @@ export default {
         } = await mutate();
 
         if (status === "success") {
-          // TODO - Fazer aqui modal bonitinho
+          confirmSuccess(message);
         }
       } catch (error) {
         this.error = true;
