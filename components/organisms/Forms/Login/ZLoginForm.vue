@@ -10,6 +10,8 @@
               label="E-mail"
               id="email"
               placeholder="E-mail"
+              :error-messages="errorMessageEmail"
+              :error="error"
             />
           </div>
         </div>
@@ -61,10 +63,12 @@
 
 <script>
 import LOGIN from "~/graphql/user/mutation/login.graphql";
+import FORGOT_PASSWORD from "~/graphql/user/mutation/forgotPassword.graphql";
 import ZInput from "~/components/atoms/Inputs/ZInput";
 import ZPasswordInput from "~/components/molecules/Inputs/ZPasswordInput";
 import ZEmailInput from "~/components/molecules/Inputs/ZEmailInput";
 import ZButton from "~/components/atoms/Buttons/ZButton";
+import { warn } from "vue";
 
 export default {
   components: {
@@ -79,7 +83,8 @@ export default {
       success: false,
       successMessage: [],
       error: false,
-      errorMessage: [],
+      errorMessage: "",
+      errorMessageEmail: "",
       loading: false,
       email: "",
       password: "",
@@ -95,6 +100,23 @@ export default {
         const query = gql`
           ${LOGIN}
         `;
+
+        if (this.email == "") {
+          this.error = true;
+          this.errorMessageEmail = "E-mail é obrigatório";
+          this.loading = false;
+          this.success = false;
+
+          console.log(this.password);
+          if (this.password == "") {
+            this.error = true;
+            this.errorMessage = "A senha é obrigatória";
+            this.loading = false;
+            this.success = false;
+          }
+          return;
+        }
+
         const variables = {
           email: this.email,
           password: this.password,
@@ -122,8 +144,43 @@ export default {
       this.loading = false;
     },
 
-    // TODO - Fazendo aqui
-    resetPassword() {},
+    async resetPassword() {
+      try {
+        this.loading = true;
+
+        const query = gql`
+          ${FORGOT_PASSWORD}
+        `;
+
+        if (this.email == "") {
+          this.error = true;
+          this.errorMessageEmail = "E-mail é obrigatório";
+          this.loading = false;
+          this.success = false;
+          return;
+        }
+
+        const variables = {
+          email: this.email,
+        };
+
+        const { mutate } = await useMutation(query, { variables });
+
+        const {
+          data: {
+            forgotPassword: { status, message },
+          },
+        } = await mutate();
+
+        if (status === "success") {
+          // TODO - Fazer aqui modal bonitinho
+        }
+      } catch (error) {
+        this.error = true;
+        this.errorMessage = error.message;
+      }
+      this.loading = false;
+    },
   },
 };
 </script>
