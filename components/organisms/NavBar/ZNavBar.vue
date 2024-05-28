@@ -11,7 +11,8 @@
       <ZNavBarItemBrand />
     </template>
     <template #right>
-      <ZNavBarItemReport />
+      <!-- NOTE - Comentado para utilizar em outro momento, foi adicionado o Tawk to -->
+      <!-- <ZNavBarItemReport /> -->
       <ZNavBarItemNotification />
       <ZNavBarItemUser :user="user" :firstLatter="firstLatter" />
       <ZNavBarItemSettings />

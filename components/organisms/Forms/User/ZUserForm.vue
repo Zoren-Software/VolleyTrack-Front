@@ -27,7 +27,7 @@
             id="email"
             class="mb-3"
             :error="errorFields.includes('email')"
-            :error-messages="errors.email || []"
+            :error-messages="errors.email || ''"
           />
           <ZPasswordInputWithConfirmPassword
             v-model="form.password"
@@ -37,7 +37,7 @@
             :password-messages="messages.password"
             :error-messages="errors.password || []"
             :error="errorFields.includes('password')"
-            :user-login="Number(user.id)"
+            :user-login="(user ?? { id: 0 }).id ? Number(user.id) : 0"
             :form-id="Number(form.id)"
             id="password"
             class="mb-3"
