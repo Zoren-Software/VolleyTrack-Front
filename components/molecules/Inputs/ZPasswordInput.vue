@@ -8,6 +8,8 @@
       :label="passwordLabel"
       :rules="passwordRules"
       @input="validatePassword"
+      :error-messages="errorMessages"
+      :error="error"
     >
       <template #appendInner>
         <va-icon
@@ -54,6 +56,14 @@ export default {
       default: () => [
         (value) => (value && value.length > 0) || "Este campo é obrigatório",
       ],
+    },
+    errorMessages: {
+      type: String,
+      default: "",
+    },
+    error: {
+      type: Boolean,
+      default: false,
     },
   },
   data: () => ({

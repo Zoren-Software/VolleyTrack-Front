@@ -10,6 +10,8 @@
               label="E-mail"
               id="email"
               placeholder="E-mail"
+              :error-messages="errorMessageEmail"
+              :error="errorEmail"
             />
           </div>
         </div>
@@ -22,8 +24,8 @@
               label="Password"
               id="password"
               placeholder="Senha"
-              :error="error"
-              :error-messages="errorMessage"
+              :error="errorPassword"
+              :error-messages="errorMessagePassword"
               :success="success"
               :messages="successMessage"
             />
@@ -42,14 +44,31 @@
       </div>
     </va-form>
   </va-card>
+  <div class="ml-4 mt-2">
+    <div class="row justify-start px-3">
+      <div class="flex flex-col">
+        <div class="item">
+          <VaButton
+            preset="plain"
+            class="ml-3 mr-6 mt-2"
+            @click="resetPassword"
+          >
+            Esqueceu a senha?
+          </VaButton>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script>
 import LOGIN from "~/graphql/user/mutation/login.graphql";
+import FORGOT_PASSWORD from "~/graphql/user/mutation/forgotPassword.graphql";
 import ZInput from "~/components/atoms/Inputs/ZInput";
 import ZPasswordInput from "~/components/molecules/Inputs/ZPasswordInput";
 import ZEmailInput from "~/components/molecules/Inputs/ZEmailInput";
 import ZButton from "~/components/atoms/Buttons/ZButton";
+import { confirmSuccess } from "~/utils/sweetAlert2/swalHelper";
 
 export default {
   components: {
@@ -63,8 +82,10 @@ export default {
     return {
       success: false,
       successMessage: [],
-      error: false,
-      errorMessage: [],
+      errorPassword: false,
+      errorEmail: false,
+      errorMessagePassword: "",
+      errorMessageEmail: "",
       loading: false,
       email: "",
       password: "",
@@ -80,6 +101,31 @@ export default {
         const query = gql`
           ${LOGIN}
         `;
+
+        if (this.email == "") {
+          this.errorEmail = true;
+          this.error = true;
+          this.errorMessageEmail = "E-mail é obrigatório para fazer login";
+          this.loading = false;
+          this.success = false;
+
+          if (this.password == "") {
+            this.errorPassword = true;
+            this.errorMessagePassword =
+              "A senha é obrigatória para fazer login";
+            this.loading = false;
+            this.success = false;
+          }
+          return;
+        }
+        if (this.password == "") {
+          this.errorPassword = true;
+          this.errorMessagePassword = "A senha é obrigatória para fazer login";
+          this.loading = false;
+          this.success = false;
+          return;
+        }
+
         const variables = {
           email: this.email,
           password: this.password,
@@ -101,7 +147,50 @@ export default {
           this.$router.push("/");
         }
       } catch (error) {
-        this.error = true;
+        this.errorPassword = true;
+        if (error.message == "The provided credentials are incorrect.") {
+          this.errorMessagePassword =
+            "Usuário ou senha inválidos, tente novamente";
+        } else {
+          this.errorMessagePassword = error.message;
+        }
+      }
+      this.loading = false;
+    },
+
+    async resetPassword() {
+      try {
+        this.loading = true;
+
+        const query = gql`
+          ${FORGOT_PASSWORD}
+        `;
+
+        if (this.email == "") {
+          this.errorEmail = true;
+          this.errorMessageEmail = "E-mail é obrigatório para resetar a senha";
+          this.loading = false;
+          this.success = false;
+          return;
+        }
+
+        const variables = {
+          email: this.email,
+        };
+
+        const { mutate } = await useMutation(query, { variables });
+
+        const {
+          data: {
+            forgotPassword: { status, message },
+          },
+        } = await mutate();
+
+        if (status === "success") {
+          confirmSuccess(message);
+        }
+      } catch (error) {
+        this.errorPassword = true;
         this.errorMessage = error.message;
       }
       this.loading = false;
