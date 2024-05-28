@@ -32,7 +32,7 @@ export default {
       required: true,
     },
     errorMessages: {
-      type: String,
+      type: [Array, String],
       default: "",
     },
     error: {
