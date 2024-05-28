@@ -46,7 +46,7 @@ export default {
       default: () => [],
     },
     errorMessages: {
-      type: String,
+      type: [String, Array],
       default: "",
     },
     error: {
