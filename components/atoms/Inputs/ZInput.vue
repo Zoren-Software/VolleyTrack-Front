@@ -6,8 +6,11 @@
     :label="label"
     :rules="rules"
     :type="type"
+    immediate-validation
     :messages="messages"
     v-model="internalValue"
+    :error-messages="errorMessages"
+    :error="error"
   >
     <template v-for="(_, slotName) in $slots" #[slotName]="scope">
       <slot :name="slotName" v-bind="scope"></slot>
@@ -41,6 +44,14 @@ export default {
     messages: {
       type: Array,
       default: () => [],
+    },
+    errorMessages: {
+      type: String,
+      default: "",
+    },
+    error: {
+      type: Boolean,
+      default: false,
     },
   },
   computed: {

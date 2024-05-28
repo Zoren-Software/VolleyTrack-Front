@@ -6,6 +6,8 @@
     :rules="rules"
     :success="emailValid"
     type="email"
+    :error-messages="errorMessages"
+    :error="error"
   />
 </template>
 
@@ -28,6 +30,14 @@ export default {
     id: {
       type: String,
       required: true,
+    },
+    errorMessages: {
+      type: String,
+      default: "",
+    },
+    error: {
+      type: Boolean,
+      default: false,
     },
   },
 
