@@ -43,14 +43,13 @@ export default {
           ${TRAININGCREATE}
         `;
 
+        // Converter a data para o formato YYYY-MM-DD antes de usar moment
+        const dateValue = new Date(form.dateValue).toISOString().split("T")[0];
         const dateStart =
-          moment(form.dateValue).format("YYYY-MM-DD") +
-          " " +
-          moment(form.timeStartValue).format("HH:mm:ss");
+          dateValue + " " + moment(form.timeStartValue).format("HH:mm:ss");
+
         const dateEnd =
-          moment(form.dateValue).format("YYYY-MM-DD") +
-          " " +
-          moment(form.timeEndValue).format("HH:mm:ss");
+          dateValue + " " + moment(form.timeEndValue).format("HH:mm:ss");
 
         const variables = {
           name: form.name,
