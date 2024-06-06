@@ -17,18 +17,22 @@ export function formatRG(rg) {
 }
 
 export function formatPhoneOnType(phone) {
-  if (phone.length === 0) {
-    return "";
-  } else if (phone.length <= 2) {
-    return phone.replace(/^(\d{0,2})/, "($1");
-  } else if (phone.length <= 6) {
-    return phone.replace(/^(\d{2})(\d{0,4})/, "($1) $2");
-  } else if (phone.length <= 10) {
-    return phone.replace(/^(\d{2})(\d{4})(\d{0,4})/, "($1) $2-$3");
+  if(phone) {
+    if (phone.length === 0) {
+      return "";
+    } else if (phone.length <= 2) {
+      return phone.replace(/^(\d{0,2})/, "($1");
+    } else if (phone.length <= 6) {
+      return phone.replace(/^(\d{2})(\d{0,4})/, "($1) $2");
+    } else if (phone.length <= 10) {
+      return phone.replace(/^(\d{2})(\d{4})(\d{0,4})/, "($1) $2-$3");
+    } else {
+      return phone.replace(
+        /^(\d{2})(\d{1})(\d{4})(\d{0,4})/,
+        "($1) $2 $3-$4"
+      );
+    }
   } else {
-    return phone.replace(
-      /^(\d{2})(\d{1})(\d{4})(\d{0,4})/,
-      "($1) $2 $3-$4"
-    );
+    return "";
   }
 }

@@ -36,7 +36,10 @@ export default {
   },
   methods: {
     removeNonNumericCharacters(value) {
-      return value.replace(/\D/g, "");
+      if (value) {
+        return value.replace(/\D/g, "");
+      }
+      return value;
     },
     formatPhone(value) {
       const onlyNumbers = this.removeNonNumericCharacters(value);
