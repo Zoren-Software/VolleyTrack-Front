@@ -225,7 +225,10 @@ export default {
       }
     },
     data(val) {
-      this.form = { ...val, birthDate: val.information.birthDate };
+      if (val.information) {
+        val.birthDate = val.information.birthDate ?? null;
+      }
+      this.form = { ...val };
     },
   },
 
