@@ -66,6 +66,11 @@ export default {
           teamId: form.teams.map((item) => item.id),
         };
 
+        // NOTE - se o password for vazio, não enviar
+        if (variables.password === "") {
+          delete variables.password;
+        }
+
         const { mutate } = await useMutation(query, { variables });
 
         const { data } = await mutate();
