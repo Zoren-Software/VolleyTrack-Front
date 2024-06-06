@@ -13,24 +13,6 @@
 
 <script>
 export default {
-  data() {
-    return {
-      monthNames: [
-        "Janeiro",
-        "Fevereiro",
-        "Março",
-        "Abril",
-        "Maio",
-        "Junho",
-        "Julho",
-        "Agosto",
-        "Setembro",
-        "Outubro",
-        "Novembro",
-        "Dezembro",
-      ],
-    };
-  },
   props: {
     id: {
       type: String,
