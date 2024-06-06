@@ -88,10 +88,9 @@ export default {
           ${USEREDIT}
         `;
 
-        const birthDate =
-          form.birthDate && typeof form.birthDate === "string"
-            ? form.birthDate.split("/").reverse().join("-")
-            : null;
+        const birthDate = form.birthDate
+          ? new Date(form.birthDate).toISOString().split("T")[0]
+          : null;
 
         const variables = {
           id: form.id,

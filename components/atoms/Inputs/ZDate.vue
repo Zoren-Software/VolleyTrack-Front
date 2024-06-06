@@ -6,6 +6,8 @@
     :label="label"
     v-model="internalValue"
     class="mb-3"
+    :format="formatFn"
+    :parse="parseDate"
   />
 </template>
 
@@ -22,7 +24,7 @@ export default {
     },
     modelValue: {
       type: String,
-      default: () => "",
+      default: "",
     },
     rules: {
       type: Array,
@@ -40,29 +42,40 @@ export default {
   computed: {
     internalValue: {
       get() {
-        return this.modelValue;
+        if (!this.modelValue) return null;
+        const date = new Date(this.modelValue);
+        return new Date(date.getTime() + date.getTimezoneOffset() * 60000);
       },
       set(value) {
-        this.$emit("update:modelValue", this.formatDate(value));
+        const isoString = value
+          ? new Date(
+              value.getTime() - value.getTimezoneOffset() * 60000
+            ).toISOString()
+          : "";
+        this.$emit("update:modelValue", isoString);
       },
     },
   },
   methods: {
-    formatDate(date) {
-      if (typeof date === "string") {
-        // Se a data já estiver em formato de string, substitua '-' por '/'
-        return date.replace(/-/g, "/");
-      } else if (date instanceof Date) {
-        // Se for um objeto Date, formate manualmente para 'YYYY/MM/DD'
-        const year = date.getFullYear();
-        const month = (date.getMonth() + 1).toString().padStart(2, "0"); // +1 porque getMonth() começa em 0
-        const day = date.getDate().toString().padStart(2, "0");
-
-        return `${day}/${month}/${year}`;
-      } else {
-        // Se não for uma data válida, retorna um valor padrão ou lança um erro
-        return ""; // ou throw new Error("Invalid date format");
+    formatFn(date) {
+      // Ajuste de fuso horário
+      const adjustedDate = new Date(
+        date.getTime() + date.getTimezoneOffset() * 60000
+      );
+      const day = adjustedDate.getDate().toString().padStart(2, "0");
+      const month = (adjustedDate.getMonth() + 1).toString().padStart(2, "0");
+      const year = adjustedDate.getFullYear();
+      return `${day}/${month}/${year}`;
+    },
+    parseDate(text) {
+      const [day, month, year] = text.split("/").map(Number);
+      if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+        const date = new Date(year, month - 1, day);
+        // Ajuste para garantir que a hora esteja correta no fuso horário local
+        return new Date(date.getTime() - date.getTimezoneOffset() * 60000);
       }
+      console.error("Invalid date format");
+      return "";
     },
   },
 };
