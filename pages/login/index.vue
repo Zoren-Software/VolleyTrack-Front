@@ -1,10 +1,8 @@
 <template>
-  <div class="login-container">
-    <div class="logo-wrapper">
-      <img src="/images/logo/logo-volleytrack.png" alt="logo" class="logo" />
-    </div>
-    <ZLoginForm />
+  <div class="logo-wrapper">
+    <img src="/images/logo/logo-volleytrack.png" alt="logo" class="logo" />
   </div>
+  <ZLoginForm />
 </template>
 
 <script setup>
@@ -20,14 +18,6 @@ useHead({
 </script>
 
 <style scoped>
-.login-container {
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  text-align: center;
-}
-
 .logo-wrapper {
   display: inline-block;
   padding: 10px;
@@ -52,10 +42,40 @@ useHead({
 }
 
 .logo {
-  width: 245px;
   height: auto;
   display: block;
   position: relative;
   z-index: 2;
+}
+
+@media (min-width: 2013px) {
+  .logo {
+    margin-left: 3rem;
+    width: 15rem;
+    margin-right: auto;
+  }
+}
+
+@media (max-width: 2013px) {
+  .logo {
+    width: 15rem;
+    margin-left: 3rem;
+    margin-right: auto;
+  }
+}
+
+@media (max-width: 1435px) {
+  .logo {
+    width: 15rem;
+    margin-left: 2rem;
+    margin-right: auto;
+  }
+}
+@media (max-width: 991px) {
+  .logo {
+    width: 12rem;
+    margin-left: 2rem;
+    margin-right: auto;
+  }
 }
 </style>
