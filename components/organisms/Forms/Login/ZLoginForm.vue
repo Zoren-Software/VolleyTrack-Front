@@ -1,5 +1,5 @@
 <template>
-  <va-card stripe stripe-color="primary" class="mx-5">
+  <va-card stripe stripe-color="primary" class="mx-5" style="z-index: 99">
     <va-card-title> Login </va-card-title>
     <va-form @keyup.enter="login">
       <div class="row justify-center px-3 pb-4">
