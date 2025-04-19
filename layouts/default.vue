@@ -2,7 +2,6 @@
   <va-card color="background-border" class="pb-3" style="height: 100%">
     <ZNavBar
       @toggle-minimize="valueToggle"
-      :menu-settings="menuSettings"
       @menu-settings-minimize="onMenuSettingsMinimize"
     />
 
@@ -31,67 +30,26 @@
     </div>
 
     <!-- Sidebar flutuante à direita -->
-    <VaSidebar
-      v-model="enabledSettings"
-      :minimized="minimizedSettings"
-      class="settings-sidebar"
-      animated="right"
-    >
-      <VaSidebarItem
-        v-for="item in menuSettings"
-        :key="item.title"
-        :active="item.active"
-      >
-        <VaSidebarItemContent
-          @click="handleMenuItemClick(item)"
-          style="cursor: pointer"
-        >
-          <VaIcon :name="item.icon" />
-          <VaSidebarItemTitle>
-            {{ item.title }}
-          </VaSidebarItemTitle>
-        </VaSidebarItemContent>
-      </VaSidebarItem>
-    </VaSidebar>
+    <ZSidebarSettings v-model="enabledSettings" />
   </va-card>
 </template>
 
 <script>
 import ZSidebar from "~/components/molecules/Sidebar/ZSidebar";
+import ZSidebarSettings from "~/components/molecules/Sidebar/ZSidebarSettings";
 import ZNavBar from "~/components/organisms/NavBar/ZNavBar";
 
 export default {
   components: {
     ZSidebar,
     ZNavBar,
+    ZSidebarSettings,
   },
   data() {
     return {
       minimized: false,
       enabledSettings: false,
       minimizedSettings: false, // ✅ adiciona isso aqui
-
-      menuSettings: [
-        {
-          title: "Configurações da Conta",
-          icon: "settings",
-          to: "/settings",
-          active: false,
-        },
-        {
-          title: "Configurações de Notificação",
-          icon: "notifications",
-          to: "/notifications",
-          active: false,
-        },
-        {
-          title: "Fechar Configurações",
-          icon: "close",
-          action: () => {
-            this.enabledSettings = false;
-          },
-        },
-      ],
     };
   },
   methods: {

@@ -41,13 +41,6 @@ export default {
     ZNavBarItemSettings,
   },
 
-  props: {
-    menuSettings: {
-      type: Array,
-      required: true,
-    },
-  },
-
   emits: ["menuSettingsMinimize"],
 
   data() {
