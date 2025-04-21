@@ -1,7 +1,7 @@
 <template>
   <VaSidebar
     :model-value="modelValue"
-    @update:modelValue="(val) => $emit('update:modelValue', val)"
+    @update:modelValue="$emit('update:modelValue', $event)"
     class="settings-sidebar"
     animated="right"
   >
@@ -20,12 +20,18 @@
         </VaSidebarItemTitle>
       </VaSidebarItemContent>
     </VaSidebarItem>
+    <ZNotificationSettingsForm v-model="openNotificationModal" />
   </VaSidebar>
 </template>
 
 <script>
+import ZNotificationSettingsForm from "~/components/organisms/Settings/ZNotificationSettingsForm.vue";
+
 export default {
   name: "ZSidebarSettings",
+  components: {
+    ZNotificationSettingsForm,
+  },
   props: {
     modelValue: {
       type: Boolean,
@@ -35,6 +41,7 @@ export default {
   emits: ["update:modelValue"],
   data() {
     return {
+      openNotificationModal: false,
       menuSettings: [
         {
           title: "Configurações da Conta",
@@ -45,14 +52,16 @@ export default {
         {
           title: "Configurações de Notificação",
           icon: "notifications",
-          to: "/notifications",
           active: false,
+          action: () => {
+            this.openNotificationModal = true;
+          },
         },
         {
           title: "Fechar Configurações",
           icon: "close",
           action: () => {
-            this.enabledSettings = false;
+            this.$emit("update:modelValue", false);
           },
         },
       ],
@@ -62,7 +71,6 @@ export default {
     handleMenuItemClick(item) {
       if (item.action) {
         item.action.call(this);
-        this.$emit("update:modelValue", false);
       } else if (item.to) {
         this.$router.push(item.to);
         this.$emit("update:modelValue", false);
