@@ -1,0 +1,41 @@
+mutation notificationSettingEdit(
+  $id: ID
+  $notificationTypeId: Int
+  $viaEmail: Boolean
+  $viaSystem: Boolean
+) {
+  notificationSettingEdit(
+    id: $id
+    notificationTypeId: $notificationTypeId
+    viaEmail: $viaEmail
+    viaSystem: $viaSystem
+  ) {
+    id
+    userId
+    notificationTypeId
+    user {
+      id
+      name
+      email
+      userId
+      emailVerifiedAt
+      createdAt
+      updatedAt
+    }
+    viaEmail
+    viaSystem
+    isActive
+    notificationType {
+      id
+      key
+      description
+      allowEmail
+      allowSystem
+      isActive
+      createdAt
+      updatedAt
+    }
+    createdAt
+    updatedAt
+  }
+}
