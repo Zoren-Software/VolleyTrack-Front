@@ -103,8 +103,6 @@ export default {
 
     async salvarConfiguracoes() {
       try {
-        console.log("Salvar configurações de notificação:", this.form);
-
         this.loading = true;
         this.errorFields = [];
         this.errors = {};
