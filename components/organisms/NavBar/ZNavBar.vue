@@ -15,7 +15,7 @@
       <!-- <ZNavBarItemReport /> -->
       <ZNavBarItemNotification />
       <ZNavBarItemUser :user="user" :firstLatter="firstLatter" />
-      <ZNavBarItemSettings />
+      <ZNavBarItemSettings @menu-settings-minimize="onMenuSettingsMinimize" />
     </template>
   </va-navbar>
 </template>
@@ -41,7 +41,7 @@ export default {
     ZNavBarItemSettings,
   },
 
-  emits: ["toggleMinimize"],
+  emits: ["menuSettingsMinimize"],
 
   data() {
     return {
@@ -142,9 +142,17 @@ export default {
   },
 
   methods: {
-    toggleMinimize() {
-      this.minimized = !this.minimized;
-      this.$emit("toggleMinimize", this.minimized);
+    onMenuSettingsMinimize(value) {
+      this.minimized = value;
+      console.log("emit 2");
+      this.$emit("menuSettingsMinimize", this.minimized);
+    },
+    toggleMinimize(value) {
+      this.$emit("toggleMinimize", value);
+    },
+    onMenuSettingsMinimize(value) {
+      this.minimized = value;
+      this.$emit("menuSettingsMinimize", this.minimized);
     },
 
     async getUser() {
