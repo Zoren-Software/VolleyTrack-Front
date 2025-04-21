@@ -5,6 +5,7 @@
     :title="title"
     ok-text="Salvar"
     cancel-text="Cancelar"
+    @ok="$emit('submit')"
   >
     <template #default>
       <form @submit.prevent="$emit('submit')">
