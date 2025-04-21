@@ -23,6 +23,7 @@
           v-if="item.notificationType.allowEmail"
           v-model="form[item.notificationType.key].viaEmail"
           label="Receber por e-mail"
+          class="mb-2 sm:mb-0 mr-5 mt-3"
         />
         <VaCheckbox
           v-if="item.notificationType.allowSystem"
