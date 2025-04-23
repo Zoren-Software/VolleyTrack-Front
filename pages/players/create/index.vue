@@ -10,7 +10,11 @@
 <script>
 import ZUserForm from "~/components/organisms/Forms/User/ZUserForm";
 import USERCREATE from "~/graphql/user/mutation/userCreate.graphql";
-import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
+import {
+  confirmSuccess,
+  confirmError,
+  confirmAskSendEmailNotification,
+} from "~/utils/sweetAlert2/swalHelper";
 
 export default {
   components: {
@@ -40,6 +44,17 @@ export default {
       };
     },
     async create(form) {
+      confirmAskSendEmailNotification(
+        async () => {
+          await this.submitCreate(form, true);
+        },
+        async () => {
+          await this.submitCreate(form, false);
+        }
+      );
+    },
+
+    async submitCreate(form, sendEmailNotification) {
       try {
         this.loading = true;
         this.error = false;
@@ -55,57 +70,42 @@ export default {
         const variables = {
           name: form.name,
           email: form.email,
-          password: form.password,
-          cpf: form.cpf == "" ? null : form.cpf,
-          rg: form.rg == "" ? null : form.rg,
-          phone: form.phone == "" ? null : form.phone,
-          birthDate: birthDate,
+          password: form.password === "" ? undefined : form.password,
+          cpf: form.cpf || null,
+          rg: form.rg || null,
+          phone: form.phone || null,
+          birthDate,
           roleId: form.roles.map((item) => item.id),
           positionId: form.positions.map((item) => item.id),
           teamId: form.teams.map((item) => item.id),
+          sendEmailNotification,
         };
 
-        // NOTE - se o password for vazio, não enviar
-        if (variables.password === "") {
-          delete variables.password;
-        }
-
         const { mutate } = await useMutation(query, { variables });
-
-        const { data } = await mutate();
+        await mutate();
 
         confirmSuccess("Usuário salvo com sucesso!", () => {
           this.errors = this.errorsDefault();
-
           this.$router.push("/players");
         });
       } catch (error) {
         console.error(error);
         this.error = true;
 
-        if (
-          error.graphQLErrors &&
-          error.graphQLErrors[0] &&
-          error.graphQLErrors[0].extensions &&
-          error.graphQLErrors[0].extensions.validation
-        ) {
+        if (error?.graphQLErrors?.[0]?.extensions?.validation) {
           this.errors = error.graphQLErrors[0].extensions.validation;
-
-          const errorMessages = Object.values(this.errors).map((item) => {
-            return item[0];
-          });
-
           this.errorFields = Object.keys(this.errors);
 
-          // criar um título para essas validacões que seram mostradas
-          const footer = errorMessages.join("<br>");
-
-          confirmError("Ocorreu um erro ao salvar o usuário!", footer);
+          const footer = Object.values(this.errors)
+            .map((v) => v[0])
+            .join("<br>");
+          confirmError("Erro ao salvar o usuário!", footer);
         } else {
-          confirmError("Ocorreu um erro ao salvar o usuário!");
+          confirmError("Erro ao salvar o usuário!");
         }
+      } finally {
+        this.loading = false;
       }
-      this.loading = false;
     },
   },
 };
