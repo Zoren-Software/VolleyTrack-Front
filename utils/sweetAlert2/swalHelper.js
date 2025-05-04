@@ -110,3 +110,20 @@ export function confirmError(text, footer) {
     footer: footerHtml,
   });
 }
+
+export function confirmAskSendEmailNotification(onConfirm, onCancel) {
+  confirmAction(
+    {
+      title: "Deseja enviar um e-mail de ativação para o usuário?",
+      text: "O usuário receberá um link para ativar a conta.",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Sim, enviar",
+      confirmButtonColor: "#154EC1",
+      cancelButtonText: "Não, apenas salvar",
+      cancelButtonColor: "#E42222",
+    },
+    onConfirm,
+    onCancel
+  );
+}

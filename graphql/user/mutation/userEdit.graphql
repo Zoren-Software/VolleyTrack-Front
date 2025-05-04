@@ -10,6 +10,7 @@ mutation userEdit(
   $positionId: [Int]
   $teamId: [Int]
   $password: String
+  $sendEmailNotification: Boolean
 ) {
   userEdit(
     id: $id
@@ -23,6 +24,7 @@ mutation userEdit(
     positionId: $positionId
     teamId: $teamId
     password: $password
+    sendEmailNotification: $sendEmailNotification
   ) {
     id
     name
