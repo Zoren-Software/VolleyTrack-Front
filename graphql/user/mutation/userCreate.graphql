@@ -9,6 +9,7 @@ mutation userCreate(
   $positionId: [Int]
   $teamId: [Int]
   $password: String
+  $sendEmailNotification: Boolean
 ) {
   userCreate(
     name: $name
@@ -21,6 +22,7 @@ mutation userCreate(
     positionId: $positionId
     teamId: $teamId
     password: $password
+    sendEmailNotification: $sendEmailNotification
   ) {
     id
     name
