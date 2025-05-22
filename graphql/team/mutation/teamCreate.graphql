@@ -1,14 +1,20 @@
 mutation teamCreate(
   $name: String!
   $playerId: [ID]!
+  $teamCategoryId: ID
+  $teamLevelId: ID
 ) {
   teamCreate(
     name: $name
     playerId: $playerId
+    teamCategoryId: $teamCategoryId
+    teamLevelId: $teamLevelId
   ) {
     id
     name
     userId
+    teamCategoryId
+    teamLevelId
     user {
       id
       name

@@ -8,5 +8,13 @@ export function transformTeamData(team) {
         user: user
       };
     }),
+    teamCategory: {
+      id: Number(team.teamCategoryId),
+      text: team.teamCategory.name,
+    },
+    teamLevel: {
+      id: Number(team.teamLevelId),
+      text: team.teamLevel.name,
+    },
   };
 }

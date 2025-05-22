@@ -171,7 +171,6 @@ export default {
     ZEmailInput,
     ZPhoneInput,
     ZTextInput,
-    ZInput,
     ZCPFInput,
     ZRGInput,
     ZDate,

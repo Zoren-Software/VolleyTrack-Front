@@ -1,0 +1,24 @@
+query teamLevels($filter: TeamLevelSearchInput, $first: Int, $page: Int) {
+  teamLevels(
+    filter: $filter,
+    first: $first,
+    page: $page
+  ) {
+    paginatorInfo {
+      count
+      currentPage
+      firstItem
+      hasMorePages
+      lastItem
+      lastPage
+      perPage
+      total
+    }
+    data {
+      id
+      name
+      createdAt
+      updatedAt
+    }
+  }
+}
