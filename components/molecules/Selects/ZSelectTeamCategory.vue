@@ -13,7 +13,7 @@
 
 <script>
 import ZSelect from "~/components/atoms/Select/ZSelect";
-import TEAMS from "~/graphql/team/query/teams.graphql";
+import TEAM_CATEGORIES from "~/graphql/teamCategories/query/teamCategories.graphql";
 
 export default {
   components: {
@@ -23,10 +23,6 @@ export default {
     label: {
       type: String,
       required: true,
-    },
-    positionsIds: {
-      type: Array,
-      required: false,
     },
     ignoreIds: {
       type: Array,
@@ -44,7 +40,6 @@ export default {
         perPage: 10,
         filter: {
           search: "%%",
-          positionsIds: this.positionsIds,
           ignoreIds: this.ignoreIds,
         },
       },
@@ -52,12 +47,6 @@ export default {
   },
 
   watch: {
-    positionsIds(newVal) {
-      this.variablesGetTeams.filter.positionsIds = newVal.map((item) =>
-        Number(item.value)
-      );
-      this.getTeams();
-    },
     ignoreIds(newVal) {
       this.variablesGetTeams.filter.ignoreIds = newVal.map((item) => {
         return Number(item);
@@ -76,7 +65,7 @@ export default {
 
       setTimeout(() => {
         const query = gql`
-          ${TEAMS}
+          ${TEAM_CATEGORIES}
         `;
 
         const {
@@ -98,10 +87,10 @@ export default {
     },
 
     handleResult(result) {
-      if (result?.teams?.data.length > 0) {
-        this.paginatorInfo = result.teams.paginatorInfo;
+      if (result?.teamCategories?.data.length > 0) {
+        this.paginatorInfo = result.teamCategories.paginatorInfo;
 
-        const newItems = result.teams.data.map((item) => {
+        const newItems = result.teamCategories.data.map((item) => {
           return {
             text: item.name,
             value: Number(item.id),
@@ -117,7 +106,7 @@ export default {
         });
 
         this.items = uniqueItems;
-        this.hasMoreItems = result.teams.paginatorInfo.hasMorePages;
+        this.hasMoreItems = result.teamCategories.paginatorInfo.hasMorePages;
       } else {
         this.hasMoreItems = false;
       }

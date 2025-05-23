@@ -2,15 +2,21 @@ mutation teamEdit(
   $id: ID!
   $name: String!
   $playerId: [ID]!
+  $teamCategoryId: ID
+  $teamLevelId: ID
 ) {
   teamEdit(
     id: $id
     name: $name
     playerId: $playerId
+    teamCategoryId: $teamCategoryId
+    teamLevelId: $teamLevelId
   ) {
     id
     name
     userId
+    teamCategoryId
+    teamLevelId
     user {
       id
       name

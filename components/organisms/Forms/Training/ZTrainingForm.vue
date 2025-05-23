@@ -13,30 +13,30 @@
         </template>
         <template #step-content-0>
           <ZTextInput
+            id="name"
             v-model="form.name"
             name="name"
             label="Nome"
-            id="name"
             class="mb-3"
             :error-messages="errors.name || []"
           />
           <ZDateTimeRangePicker
-            :date="form.dateValue"
-            :timeStart="form.timeStartValue"
-            :timeEnd="form.timeEndValue"
-            @update:date="form.dateValue = $event"
-            @update:timeStart="form.timeStartValue = $event"
-            @update:timeEnd="form.timeEndValue = $event"
             id="dateTimeRange"
             label="Data Inicio"
             clearable
+            :date="form.dateValue"
+            :time-start="form.timeStartValue"
+            :time-end="form.timeEndValue"
+            @update:date="form.dateValue = $event"
+            @update:time-start="form.timeStartValue = $event"
+            @update:time-end="form.timeEndValue = $event"
           />
           <VaTextarea
-            style="width: 100%"
+            id="name"
             v-model="form.description"
+            style="width: 100%"
             name="description"
             label="Descrição do Treino"
-            id="name"
             class="mb-3"
             :error="errorFields.includes('description')"
             :error-messages="errors.description || []"
@@ -51,10 +51,10 @@
             >
               <template #filter>
                 <ZSelectFundamental
+                  v-model="fundamentals"
                   class="mb-3"
                   label="Fundamentos"
-                  v-model="fundamentals"
-                  :ignoreIds="form.fundamentals.map((item) => item.id)"
+                  :ignore-ids="form.fundamentals.map((item) => item.id)"
                 />
               </template>
             </ZListRelationFundamentals>
@@ -67,12 +67,12 @@
             >
               <template #filter>
                 <ZSelectSpecificFundamental
+                  v-model="specificFundamentals"
                   class="mb-3"
                   label="Fundamentos Específicos"
                   :disabled="!form.fundamentals.length"
-                  v-model="specificFundamentals"
-                  :ignoreIds="form.specificFundamentals.map((item) => item.id)"
-                  :fundamentalsIds="form.fundamentals.map((item) => item.id)"
+                  :ignore-ids="form.specificFundamentals.map((item) => item.id)"
+                  :fundamentals-ids="form.fundamentals.map((item) => item.id)"
                   :messages="messageSpecificFundamental()"
                 />
               </template>
@@ -87,11 +87,11 @@
           >
             <template #filter>
               <ZSelectTeam
+                v-model="teams"
                 class="mb-3"
                 label="Times"
                 :disabled="form.teams.length >= 1"
-                v-model="teams"
-                :ignoreIds="form.teams.map((item) => item.id)"
+                :ignore-ids="form.teams.map((item) => item.id)"
                 :messages="
                   form.teams.length >= 1 ? 'Você já selecionou um time' : ''
                 "
@@ -101,11 +101,11 @@
         </template>
         <template #step-content-3>
           <ZListRelationConfirmationTrainings
-            @actionConfirm="actionConfirm"
-            @actionReject="actionReject"
-            @actionConfirmPresence="actionConfirmPresence"
             :items="form.confirmationsTraining"
-            :trainingDate="form.dateValue"
+            :training-date="form.dateValue"
+            @action-confirm="actionConfirm"
+            @action-reject="actionReject"
+            @action-confirm-presence="actionConfirmPresence"
           >
             <template #head>
               <div class="row">
@@ -150,7 +150,6 @@
 <script>
 import { useForm } from "vuestic-ui";
 import ZTextInput from "~/components/molecules/Inputs/ZTextInput";
-import ZDate from "~/components/atoms/Inputs/ZDate";
 import ZSelectTeam from "~/components/molecules/Selects/ZSelectTeam";
 import ZListRelationFundamentals from "~/components/organisms/List/Relations/ZListRelationFundamentals";
 import ZListRelationSpecificFundamentals from "~/components/organisms/List/Relations/ZListRelationSpecificFundamentals";
@@ -163,7 +162,6 @@ import ZListRelationConfirmationTrainings from "~/components/organisms/List/Rela
 import ZCardViewMetricsRealPresence from "~/components/molecules/Cards/ZCardViewMetricsRealPresence";
 import ZCardViewMetricsPresenceIntention from "~/components/molecules/Cards/ZCardViewMetricsPresenceIntention";
 import ZProgressBarMetricsTraining from "~/components/molecules/ProgressBar/ZProgressBarMetricsTraining";
-import ZSelectUser from "~/components/molecules/Selects/ZSelectUser";
 import CONFIRMTRAINING from "~/graphql/training/mutation/confirmTraining.graphql";
 import CONFIRMPRESENCE from "~/graphql/training/mutation/confirmPresence.graphql";
 
@@ -212,7 +210,6 @@ export default {
   },
   components: {
     ZTextInput,
-    ZDate,
     ZSelectTeam,
     ZListRelationFundamentals,
     ZListRelationSpecificFundamentals,
@@ -221,7 +218,6 @@ export default {
     ZSelectFundamental,
     ZSelectSpecificFundamental,
     ZListRelationConfirmationTrainings,
-    ZSelectUser,
     ZCardViewMetricsPresenceIntention,
     ZCardViewMetricsRealPresence,
     ZProgressBarMetricsTraining,
