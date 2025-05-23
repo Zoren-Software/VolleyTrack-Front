@@ -3,25 +3,50 @@
     <va-form ref="myForm" class="flex flex-col gap-6 mb-2">
       <va-stepper v-model="step" :steps="steps" controls-hidden>
         <template #controls="{ nextStep, prevStep }">
-          <va-button color="primary" @click="prevStep()" v-if="prevStepButton"
-            >Anterior</va-button
+          <va-button v-if="prevStepButton" color="primary" @click="prevStep()">
+            Anterior
+          </va-button>
+          <va-button
+            v-if="nextStepButton"
+            color="primary"
+            :disabled="step === 1"
+            @click="nextStep()"
           >
-          <va-button color="primary" @click="nextStep()" v-if="nextStepButton"
-            >Próximo</va-button
+            Próximo
+          </va-button>
+          <va-button
+            v-if="step === 1"
+            color="primary"
+            :disabled="!nextStepButton"
+            @click="save()"
           >
-          <va-button color="primary" @click="save()">Salvar</va-button>
+            Salvar
+          </va-button>
         </template>
         <template #step-content-0>
           <ZTextInput
+            id="name"
             v-model="form.name"
             name="name"
             label="Nome"
-            id="name"
             class="mb-3"
             :error-messages="errors.name || []"
           />
+          <ZSelectTeamCategory
+            v-model="form.teamCategory"
+            name="teamCategoryId"
+            label="Categoria"
+            class="mb-3"
+            :error-messages="errors.teamCategory || []"
+          />
+          <ZSelectTeamLevel
+            v-model="form.teamLevel"
+            name="teamLevelId"
+            label="Nível"
+            class="mb-3"
+            :error-messages="errors.teamLevel || []"
+          />
         </template>
-
         <template #step-content-1>
           <ZListRelationUsers
             :items="form.users"
@@ -30,10 +55,10 @@
           >
             <template #filter>
               <ZSelectUser
-                class="mb-3"
-                label="Jogadores"
                 v-model="users"
                 :ignoreIds="form.users.map((item) => item.id)"
+                class="mb-3"
+                label="Jogadores"
               />
             </template>
           </ZListRelationUsers>
@@ -48,7 +73,9 @@ import { useForm } from "vuestic-ui";
 import ZTextInput from "~/components/molecules/Inputs/ZTextInput";
 import ZSelectUser from "~/components/molecules/Selects/ZSelectUser";
 import ZListRelationUsers from "~/components/organisms/List/Relations/ZListRelationUsers";
-import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
+import ZSelectTeamCategory from "~/components/molecules/Selects/ZSelectTeamCategory";
+import ZSelectTeamLevel from "~/components/molecules/Selects/ZSelectTeamLevel.vue";
+import { confirmSuccess } from "~/utils/sweetAlert2/swalHelper";
 
 const { formData } = useForm("myForm");
 
@@ -85,6 +112,8 @@ export default {
     ZTextInput,
     ZSelectUser,
     ZListRelationUsers,
+    ZSelectTeamCategory,
+    ZSelectTeamLevel,
   },
 
   data() {
@@ -163,6 +192,7 @@ export default {
     },
 
     async save() {
+      console.log(this.form);
       this.$emit("save", this.form);
     },
   },

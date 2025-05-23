@@ -1,0 +1,27 @@
+query teamCategories($filter: TeamCategorySearchInput, $first: Int, $page: Int) {
+  teamCategories(
+    filter: $filter,
+    first: $first,
+    page: $page
+  ) {
+    paginatorInfo {
+      count
+      currentPage
+      firstItem
+      hasMorePages
+      lastItem
+      lastPage
+      perPage
+      total
+    }
+    data {
+      id
+      name
+      description
+      minAge
+      maxAge
+      createdAt
+      updatedAt
+    }
+  }
+}

@@ -38,14 +38,9 @@ export default {
     errorsDefault() {
       return {
         name: [],
-        email: [],
-        password: [],
-        cpf: [],
-        rg: [],
-        phone: [],
-        birthDate: [],
-        roleId: [],
-        teamId: [],
+        teamCategoryId: [],
+        teamLevelId: [],
+        users: [],
       };
     },
     getTeam() {
@@ -92,9 +87,9 @@ export default {
           id: form.id,
           name: form.name,
           playerId: form.users.map((item) => item.id),
+          teamCategoryId: form.teamCategory.value,
+          teamLevelId: form.teamLevel.value,
         };
-
-        console.log(variables);
 
         const { mutate } = await useMutation(query, { variables });
 
