@@ -46,8 +46,8 @@ export default {
         const variables = {
           name: form.name,
           playerId: form.users.map((item) => item.id),
-          teamCategoryId: form.teamCategoryId.value,
-          teamLevelId: form.teamLevelId.value,
+          teamCategoryId: form.teamCategory.value,
+          teamLevelId: form.teamLevel.value,
         };
 
         const { mutate } = await useMutation(query, { variables });

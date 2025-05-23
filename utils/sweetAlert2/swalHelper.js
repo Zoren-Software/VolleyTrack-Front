@@ -89,17 +89,21 @@ export function confirmError(text, footer) {
     });
   }
 
-  const listItems = footer.map(item => {
-    if (Array.isArray(item)) {
-      const subListItems = item.map(subItem => `<li style="margin-bottom: 5px;">${subItem}</li>`).join(""); // Adiciona .join("") aqui
-      const subListHtml = `<ul style="text-align: center; color: red; list-style-position: inside; margin: 0; padding: 0;">${subListItems}</ul>`;
-      return subListHtml;
-    } else {
-      return `<li style="margin-bottom: 5px;">${item}</li>`;
-    }
-  }).join("");
+  let footerHtml = ''
 
-  const footerHtml = `<ul style="text-align: center; color: red; list-style-position: inside; margin: 0; padding: 0;">${listItems}</ul>`;
+  if (footer) {
+    const listItems = footer.map(item => {
+      if (Array.isArray(item)) {
+        const subListItems = item.map(subItem => `<li style="margin-bottom: 5px;">${subItem}</li>`).join(""); // Adiciona .join("") aqui
+        const subListHtml = `<ul style="text-align: center; color: red; list-style-position: inside; margin: 0; padding: 0;">${subListItems}</ul>`;
+        return subListHtml;
+      } else {
+        return `<li style="margin-bottom: 5px;">${item}</li>`;
+      }
+      }).join("");
+      footerHtml = `<ul style="text-align: center; color: red; list-style-position: inside; margin: 0; padding: 0;">${listItems}</ul>`;
+  } 
+
 
   confirmAction({
     icon: "error",
