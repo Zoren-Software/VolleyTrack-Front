@@ -27,6 +27,13 @@ Make sure to install the dependencies:
 pnpm install
 ```
 
+Node version: v20.11.1
+
+```
+node --version
+v20.11.1
+```
+
 ## Development Server
 
 Start the development server on http://test.volleytrack.localhost:3000
