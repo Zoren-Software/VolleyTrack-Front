@@ -1,5 +1,5 @@
 <template>
-  <ZListRelationGeneric @add="add">
+  <ZListRelationGeneric @add="add" :disable-relation="true">
     <template #filter>
       <slot name="filter" />
     </template>
@@ -7,12 +7,12 @@
       <div class="row">
         <div class="flex flex-col md6">
           <div class="item">
-            <ZSelectUser
+            <!-- <ZSelectUser
               v-model="players"
               class="mb-3"
               label="Jogadores"
               :ignore-ids="items.map((item) => item.id)"
-            />
+            /> -->
           </div>
         </div>
       </div>
@@ -24,9 +24,6 @@
             <va-list>
               <va-list-label> Jogadores Relacionados </va-list-label>
               <ZDatatableGeneric
-                selectable
-                includeActionsColumn
-                includeActionDeleteList
                 :items="playersItems"
                 :columns="playersColumns"
                 :loading="loading"
@@ -37,13 +34,7 @@
                 <template #cell(player)="{ rowKey }">
                   <ZUser v-if="rowKey?.user" :data="rowKey.user" show-email />
                 </template>
-                <template #cell(cpf)="{ rowKey }">
-                  <ZCPF
-                    v-if="rowKey?.user?.information"
-                    :cpf="rowKey.user.information?.cpf"
-                    :rg="rowKey.user.information?.rg"
-                  />
-                </template>
+
                 <template #cell(positions)="{ rowKey }">
                   <ZPosition
                     v-if="rowKey?.user?.positions"
@@ -71,18 +62,14 @@
 import ZListRelationGeneric from "~/components/molecules/List/ZListRelationGeneric";
 import ZDatatableGeneric from "~/components/molecules/Datatable/ZDatatableGeneric";
 import ZUser from "~/components/molecules/Datatable/Slots/ZUser";
-import ZCPF from "~/components/molecules/Datatable/Slots/ZCPF";
 import ZPosition from "~/components/molecules/Datatable/Slots/ZPosition";
-import ZSelectUser from "~/components/molecules/Selects/ZSelectUser";
 
 export default {
   components: {
     ZListRelationGeneric,
     ZDatatableGeneric,
     ZUser,
-    ZCPF,
     ZPosition,
-    ZSelectUser,
   },
   emits: ["add", "delete"],
   props: {
@@ -110,27 +97,9 @@ export default {
       },
       playersColumns: [
         {
-          key: "id",
-          name: "id",
-          label: "Id",
-          sortable: true,
-        },
-        {
           key: "user",
           name: "player",
           label: "Jogador",
-          sortable: true,
-        },
-        {
-          key: "positions",
-          name: "positions",
-          label: "Posições",
-          sortable: true,
-        },
-        {
-          key: "userInformation",
-          name: "cpf",
-          label: "CPF e RG",
           sortable: true,
         },
       ],
