@@ -142,6 +142,14 @@
             </template>
           </ZListRelationConfirmationTrainings>
         </template>
+        <template #step-content-4>
+          <ZListRelationPlayersWithScouts
+            :items="[...(form.players || []), ...(form.scouts || [])]"
+            @add="addPlayers"
+            @delete="actionDeletePlayer"
+          >
+          </ZListRelationPlayersWithScouts>
+        </template>
       </va-stepper>
     </va-form>
   </va-card>
@@ -164,6 +172,8 @@ import ZCardViewMetricsPresenceIntention from "~/components/molecules/Cards/ZCar
 import ZProgressBarMetricsTraining from "~/components/molecules/ProgressBar/ZProgressBarMetricsTraining";
 import CONFIRMTRAINING from "~/graphql/training/mutation/confirmTraining.graphql";
 import CONFIRMPRESENCE from "~/graphql/training/mutation/confirmPresence.graphql";
+import ZListRelationPlayersWithScouts from "~/components/molecules/Datatable/ZListRelationPlayersWithScouts";
+import ZSelectUser from "~/components/molecules/Selects/ZSelectUser";
 
 const { formData } = useForm("myForm");
 
@@ -181,6 +191,7 @@ export default {
           teams: [],
           fundamentals: [],
           specificFundamentals: [],
+          players: [],
         };
       },
     },
@@ -221,9 +232,11 @@ export default {
     ZCardViewMetricsPresenceIntention,
     ZCardViewMetricsRealPresence,
     ZProgressBarMetricsTraining,
+    ZListRelationPlayersWithScouts,
+    ZSelectUser,
   },
 
-  emits: ["refresh"],
+  emits: ["refresh", "update:errors", "update:errorFields"],
 
   data() {
     return {
@@ -244,15 +257,20 @@ export default {
         { label: "Fundamentos Treinados" },
         { label: "Time" },
         { label: "Lista de Presença" },
+        { label: "Jogadores e Scouts" },
       ],
       positions: [],
       teams: [],
       form: {
         ...this.data,
+        players: this.data.players || [],
+        scouts: this.data.scouts || [],
       },
       fundamentals: [],
       specificFundamentals: [],
       users: [],
+      players: [],
+      scouts: [],
     };
   },
 
@@ -271,7 +289,11 @@ export default {
       }
     },
     data(val) {
-      this.form = { ...val };
+      this.form = {
+        ...val,
+        players: val.players || [],
+        scouts: val.scouts || [],
+      };
     },
     "data.team": function (newVal) {
       if (newVal) {
@@ -281,6 +303,29 @@ export default {
   },
 
   methods: {
+    handleGraphQLError(error) {
+      if (
+        error.graphQLErrors &&
+        error.graphQLErrors[0] &&
+        error.graphQLErrors[0].extensions &&
+        error.graphQLErrors[0].extensions.validation
+      ) {
+        const validationErrors = error.graphQLErrors[0].extensions.validation;
+        this.$emit("update:errors", validationErrors);
+
+        const errorMessages = Object.values(validationErrors).map((item) => {
+          return item[0];
+        });
+
+        this.$emit("update:errorFields", Object.keys(validationErrors));
+
+        const footer = errorMessages.join("<br>");
+
+        confirmError("Ocorreu um erro ao ler todas as notificações!", footer);
+      } else {
+        confirmError("Ocorreu um erro ao ler todas as notificações!");
+      }
+    },
     errorsDefault() {
       return {
         name: [],
@@ -291,6 +336,8 @@ export default {
         teams: [],
         fundamentals: [],
         specificFundamentals: [],
+        players: [],
+        scouts: [],
       };
     },
     async actionReject(id, playerId, trainingId) {
@@ -526,6 +573,70 @@ export default {
       );
 
       confirmSuccess("Fundamento Específico removido com sucesso!");
+    },
+
+    addPlayers() {
+      const transformedPlayers = this.players.map((item) => {
+        return {
+          id: item.value,
+          user: {
+            id: item.value,
+            name: item.text,
+            email: item.email,
+            information: item.information,
+            positions: item.positions,
+          },
+        };
+      });
+
+      transformedPlayers.forEach((newPlayer) => {
+        const isAlreadyAdded = this.form.players.some(
+          (existingPlayer) => existingPlayer.id === newPlayer.id
+        );
+
+        if (!isAlreadyAdded) {
+          this.form.players.push(newPlayer);
+        }
+      });
+
+      this.players = [];
+    },
+
+    addScouts() {
+      const transformedScouts = this.scouts.map((item) => {
+        return {
+          id: item.value,
+          name: item.text,
+        };
+      });
+
+      transformedScouts.forEach((newScout) => {
+        const isAlreadyAdded = this.form.scouts.some(
+          (existingScout) => existingScout.id === newScout.id
+        );
+
+        if (!isAlreadyAdded) {
+          this.form.scouts.push(newScout);
+        }
+      });
+
+      this.scouts = [];
+    },
+
+    actionDeletePlayer(id) {
+      this.form.players = this.form.players.filter((player) => {
+        return player.id !== id;
+      });
+
+      confirmSuccess("Jogador removido com sucesso!");
+    },
+
+    actionDeleteScout(id) {
+      this.form.scouts = this.form.scouts.filter((scout) => {
+        return scout.id !== id;
+      });
+
+      confirmSuccess("Scout removido com sucesso!");
     },
 
     messageSpecificFundamental() {
