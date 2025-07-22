@@ -13,16 +13,7 @@
           :class="{ 'player-selected': selectedPlayer?.id === player.id }"
           @click="selectPlayer(player)"
         >
-          <ZAvatar
-            :src="player.avatar"
-            :fallback-text="getInitials(player.name)"
-            size="medium"
-            class="player-avatar"
-          />
-          <div class="player-info">
-            <span class="player-name">{{ player.name }}</span>
-            <span class="player-position">{{ player.position }}</span>
-          </div>
+          <ZUser :data="player" />
         </div>
       </div>
     </div>
@@ -33,7 +24,7 @@
       <div class="player-header">
         <ZAvatar
           :src="selectedPlayer.avatar"
-          :fallback-text="getInitials(selectedPlayer.name)"
+          :fallback-text="selectedPlayer.name.charAt(0).toUpperCase()"
           size="large"
           class="header-avatar"
         />
@@ -103,6 +94,7 @@ import ZAvatar from "~/components/atoms/Avatar/ZAvatar.vue";
 import ZButton from "~/components/atoms/Buttons/ZButton.vue";
 import ZFundamentalCard from "~/components/molecules/Cards/ZFundamentalCard.vue";
 import ZEvaluationSummary from "~/components/molecules/Cards/ZEvaluationSummary.vue";
+import ZUser from "~/components/molecules/Selects/Slots/ZUser.vue";
 
 // Props
 const props = defineProps({
@@ -126,25 +118,25 @@ const players = ref([
     id: 1,
     name: "Maicon Cerutti",
     position: "Levantador",
-    avatar: "",
+    email: "maicon@example.com",
   },
   {
     id: 2,
     name: "Lucas Almeida",
     position: "Ponteiro",
-    avatar: "",
+    email: "lucas@example.com",
   },
   {
     id: 3,
     name: "Ana Paula",
     position: "Central",
-    avatar: "",
+    email: "ana@example.com",
   },
   {
     id: 4,
     name: "Juliana Prado",
     position: "Oposto",
-    avatar: "",
+    email: "juliana@example.com",
   },
 ]);
 
@@ -219,15 +211,6 @@ const evaluations = ref({});
 const selectPlayer = (player) => {
   selectedPlayer.value = player;
   observations.value = "";
-};
-
-const getInitials = (name) => {
-  return name
-    .split(" ")
-    .map((word) => word.charAt(0))
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
 };
 
 const getEvaluation = (fundamentalId) => {
@@ -354,27 +337,6 @@ const saveEvaluation = async () => {
 .player-selected {
   background-color: #e3f2fd;
   border-left: 4px solid #2196f3;
-}
-
-.player-avatar {
-  margin-right: 12px;
-}
-
-.player-info {
-  display: flex;
-  flex-direction: column;
-  padding-left: 8px;
-}
-
-.player-name {
-  font-weight: 500;
-  color: #333;
-  margin-bottom: 2px;
-}
-
-.player-position {
-  font-size: 0.875rem;
-  color: #666;
 }
 
 .main-content {
