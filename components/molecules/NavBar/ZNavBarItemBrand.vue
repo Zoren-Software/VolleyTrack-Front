@@ -1,6 +1,8 @@
 <template>
   <ZNavBarItem class="logo">
-    <va-icon name="sports_volleyball" />
+    <div class="icon-container">
+      <va-icon name="sports_volleyball" color="#E9742B" size="20px" />
+    </div>
     <span class="ml-2">{{ applicationName }} | {{ items.nameTenant }}</span>
   </ZNavBarItem>
 </template>
@@ -64,5 +66,16 @@ export default {
 .logo {
   font-weight: 600;
   font-size: 1.5rem;
+}
+
+.icon-container {
+  background-color: #FFF4EC;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #FFE3D1; /* Borda sutil opcional */
 }
 </style>

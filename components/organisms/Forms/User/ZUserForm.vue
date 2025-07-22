@@ -1,124 +1,136 @@
 <template>
-  <va-card class="my-3 mr-3">
-    <va-form ref="myForm" class="flex flex-col gap-6 mb-2">
-      <va-stepper v-model="step" :steps="steps" controls-hidden>
-        <template #controls="{ nextStep, prevStep }">
-          <va-button color="primary" @click="prevStep()" v-if="prevStepButton"
-            >Anterior</va-button
-          >
-          <va-button color="primary" @click="nextStep()" v-if="nextStepButton"
-            >Próximo</va-button
-          >
-          <va-button color="primary" @click="save()">Salvar</va-button>
-        </template>
-        <template #step-content-0>
-          <ZTextInput
-            v-model="form.name"
-            name="name"
-            label="Nome"
-            id="name"
-            class="mb-3"
-            :error="errorFields.includes('name')"
-            :error-messages="errors.name || []"
-          />
-          <ZEmailInput
-            v-model="form.email"
-            label="E-mail"
-            id="email"
-            class="mb-3"
-            :error="errorFields.includes('email')"
-            :error-messages="errors.email || ''"
-          />
-          <ZPasswordInputWithConfirmPassword
-            v-model="form.password"
-            confirmPasswordInput
-            name="password"
-            passwordLabel="Senha Provisória"
-            :password-messages="messages.password"
-            :error-messages="errors.password || []"
-            :error="errorFields.includes('password')"
-            :user-login="(user ?? { id: 0 }).id ? Number(user.id) : 0"
-            :form-id="Number(form.id)"
-            id="password"
-            class="mb-3"
-          />
-        </template>
-        <template #step-content-1>
-          <ZDate
-            v-model="form.birthDate"
-            id="birthDate"
-            label="Data de Nascimento"
-            v-model:view="yearView"
-            clearable
-          />
-          <ZPhoneInput v-model="form.phone" />
-          <ZCPFInput v-model="form.cpf" />
-          <ZRGInput v-model="form.rg" />
-        </template>
-        <template #step-content-2>
-          <ZSelectRole
-            class="mb-3"
-            label="Permissões"
-            v-model="form.roles"
-            :ignoreIds="form.roles.map((item) => item.id)"
-            :error="errorFields.includes('roleId')"
-            :error-messages="errors.roleId || []"
-          />
-        </template>
-        <template #step-content-3>
-          <ZListRelationPositions
-            :items="form.positions"
-            @add="addPositions"
-            @delete="actionDeletePosition"
-          >
-            <template #filter>
-              <ZSelectPosition
-                class="mb-3"
-                label="Posições"
-                v-model="positions"
-                :ignoreIds="form.positions.map((item) => item.id)"
+  <div class="user-form">
+    <!-- Card: Informações Essenciais -->
+    <va-card class="card">
+      <div class="card-header">
+        <div class="icon-circle">
+          <i class="icon-essential"></i>
+        </div>
+        <h3 class="card-title">Informações Essenciais</h3>
+      </div>
+      <va-form ref="myForm" class="form-grid">
+        <ZTextInput
+          v-model="form.name"
+          name="name"
+          label="Nome Completo"
+          id="name"
+          class="form-field"
+          :error="errorFields.includes('name')"
+          :error-messages="errors.name || []"
+        />
+        <ZEmailInput
+          v-model="form.email"
+          label="E-mail"
+          id="email"
+          class="form-field"
+          :error="errorFields.includes('email')"
+          :error-messages="errors.email || ''"
+        />
+        <ZPasswordInput
+          v-model="form.password"
+          name="password"
+          label="Nova Senha"
+          id="password"
+          class="form-field"
+          :error="errorFields.includes('password')"
+          :error-messages="errors.password || []"
+        />
+        <ZPasswordInput
+          v-model="form.confirmPassword"
+          name="confirmPassword"
+          label="Confirmar Nova Senha"
+          id="confirmPassword"
+          class="form-field"
+          :error="errorFields.includes('confirmPassword')"
+          :error-messages="errors.confirmPassword || []"
+        />
+      </va-form>
+    </va-card>
+
+    <!-- Card: Informações Pessoais -->
+    <va-card class="card">
+      <div class="card-header">
+        <div class="icon-circle">
+          <i class="icon-personal"></i>
+        </div>
+        <h3 class="card-title">Informações Pessoais</h3>
+      </div>
+      <va-form class="form-grid">
+        <ZDate
+          v-model="form.birthDate"
+          id="birthDate"
+          label="Data de Nascimento"
+          class="form-field"
+          clearable
+        />
+        <ZPhoneInput v-model="form.phone" label="Celular" class="form-field" />
+        <ZCPFInput v-model="form.cpf" label="CPF" class="form-field" />
+        <ZRGInput v-model="form.rg" label="RG" class="form-field" />
+      </va-form>
+    </va-card>
+
+    <!-- Card: Permissão no Sistema -->
+    <va-card class="card">
+      <div class="card-header">
+        <div class="icon-circle">
+          <i class="icon-permissions"></i>
+        </div>
+        <h3 class="card-title">Permissão no Sistema</h3>
+      </div>
+      <div class="permissions-grid">
+        <div
+          v-for="role in rolesOptions"
+          :key="role.id"
+          :class="['permission-card', { selected: Array.isArray(form.roles) && form.roles.includes(role.id) }]"
+          @click="selectRole(role.id)"
+        >
+          <div class="permission-icon">
+            <div 
+              style="
+                background-color: #FFF4EC; 
+                border-radius: 50%; 
+                width: 40px; 
+                height: 40px; 
+                display: flex; 
+                align-items: center; 
+                justify-content: center; 
+                border: 1px solid #FFE3D1;">
+              <va-icon 
+                :name="role.iconName" 
+                color="#E9742B" 
+                size="20px" 
               />
-            </template>
-          </ZListRelationPositions>
-        </template>
-        <template #step-content-4>
-          <ZListRelationTeams
-            :items="form.teams"
-            @add="addTeams"
-            @delete="actionDeleteTeam"
-          >
-            <template #filter>
-              <ZSelectTeam
-                class="mb-3"
-                label="Times"
-                multiple
-                v-model="teams"
-                :ignoreIds="form.teams.map((item) => item.id)"
-              />
-            </template>
-          </ZListRelationTeams>
-        </template>
-      </va-stepper>
-    </va-form>
-  </va-card>
+            </div>
+          </div>
+          <div class="permission-info">
+            <h4 class="permission-title">{{ role.title }}</h4>
+            <p class="permission-description">{{ role.description }}</p>
+          </div>
+          <div v-if="Array.isArray(form.roles) && form.roles.includes(role.id)" class="permission-check">
+            <i class="icon-check"></i>
+          </div>
+        </div>
+      </div>
+    </va-card>
+
+    <!-- Botão de Salvar -->
+    <div class="action-buttons">
+      <va-button color="primary" class="save-button" @click="save()">Salvar</va-button>
+    </div>
+  </div>
 </template>
 
 <script>
 import { useForm } from "vuestic-ui";
-import ZPasswordInputWithConfirmPassword from "~/components/molecules/Inputs/ZPasswordInputWithConfirmPassword";
+import ZPasswordInput from "~/components/molecules/Inputs/ZPasswordInput";
 import ZTextInput from "~/components/molecules/Inputs/ZTextInput";
-import ZInput from "~/components/atoms/Inputs/ZInput";
-import ZDate from "~/components/atoms/Inputs/ZDate";
 import ZEmailInput from "~/components/molecules/Inputs/ZEmailInput";
 import ZPhoneInput from "~/components/molecules/Inputs/ZPhoneInput";
 import ZCPFInput from "~/components/molecules/Inputs/ZCPFInput";
 import ZRGInput from "~/components/molecules/Inputs/ZRGInput";
+import ZDate from "~/components/atoms/Inputs/ZDate";
 import ZSelectRole from "~/components/molecules/Selects/ZSelectRole";
-import ZSelectPosition from "~/components/molecules/Selects/ZSelectPosition";
-import ZSelectTeam from "~/components/molecules/Selects/ZSelectTeam";
-import ZListRelationPositions from "~/components/organisms/List/Relations/ZListRelationPositions";
-import ZListRelationTeams from "~/components/organisms/List/Relations/ZListRelationTeams";
-import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
+import { confirmSuccess } from "~/utils/sweetAlert2/swalHelper";
 
 const { formData } = useForm("myForm");
 
@@ -131,13 +143,12 @@ export default {
           name: "",
           email: "",
           password: "",
+          confirmPassword: "",
           cpf: "",
           rg: "",
           phone: "",
           birthDate: null,
           roles: [],
-          positions: [],
-          teams: [],
         };
       },
     },
@@ -156,18 +167,18 @@ export default {
           name: [],
           email: [],
           password: [],
+          confirmPassword: [],
           cpf: [],
           rg: [],
           phone: [],
           birthDate: null,
           roleId: [],
-          teamId: [],
         };
       },
     },
   },
   components: {
-    ZPasswordInputWithConfirmPassword,
+    ZPasswordInput,
     ZEmailInput,
     ZPhoneInput,
     ZTextInput,
@@ -175,10 +186,6 @@ export default {
     ZRGInput,
     ZDate,
     ZSelectRole,
-    ZSelectPosition,
-    ZSelectTeam,
-    ZListRelationPositions,
-    ZListRelationTeams,
   },
 
   data() {
@@ -187,42 +194,39 @@ export default {
       user: localStorage.getItem("user")
         ? JSON.parse(localStorage.getItem("user"))
         : null,
-      step: 0,
-      nextStepButton: true,
-      prevStepButton: false,
-      messages: {
-        password: ["No primeiro login do usuário ele deverá alterar a senha."],
-      },
-      yearView: { type: "year" },
-      steps: [
-        { label: "Informações Essenciais" },
-        { label: "Informações Pessoais" },
-        { label: "Permissão" },
-        { label: "Posição" },
-        { label: "Times" },
-      ],
-      positions: [],
-      teams: [],
       form: {
         ...this.data,
       },
+      rolesOptions: [
+        {
+          id: 1,
+          title: "Administrador",
+          description: "Acesso completo",
+          iconName: "shield",
+        },
+        {
+          id: 2,
+          title: "Técnico",
+          description: "Gerenciar treinos",
+          iconName: "layers",
+        },
+        {
+          id: 3,
+          title: "Jogador",
+          description: "Acesso limitado",
+          iconName: "person",
+        },
+        {
+          id: 4,
+          title: "Exemplo Vôlei",
+          description: "Permissão de exemplo",
+          iconName: "sports_volleyball",
+        },
+      ],
     };
   },
 
   watch: {
-    step(val) {
-      if (val === 4) {
-        this.nextStepButton = false;
-      } else {
-        this.nextStepButton = true;
-      }
-
-      if (val === 0) {
-        this.prevStepButton = false;
-      } else {
-        this.prevStepButton = true;
-      }
-    },
     data(val) {
       if (val.information) {
         val.birthDate = val.information.birthDate ?? null;
@@ -232,78 +236,128 @@ export default {
   },
 
   methods: {
-    errorsDefault() {
-      return {
-        name: [],
-        email: [],
-        password: [],
-        cpf: [],
-        birthDate: null,
-        phone: [],
-        roleId: [],
-        teamId: [],
-      };
-    },
-    addPositions() {
-      const transformedPositions = this.positions.map((item) => {
-        return {
-          id: item.value,
-          position: item.text,
-        };
-      });
-
-      transformedPositions.forEach((newPosition) => {
-        const isAlreadyAdded = this.form.positions.some(
-          (existingPosition) => existingPosition.id === newPosition.id
-        );
-
-        if (!isAlreadyAdded) {
-          this.form.positions.push(newPosition);
-        }
-      });
-
-      this.positions = [];
-    },
-
-    addTeams() {
-      const transformedteams = this.teams.map((item) => {
-        return {
-          id: item.value,
-          team: item.text,
-        };
-      });
-
-      transformedteams.forEach((newTeam) => {
-        const isAlreadyAdded = this.form.teams.some(
-          (existingTeam) => existingTeam.id === newTeam.id
-        );
-
-        if (!isAlreadyAdded) {
-          this.form.teams.push(newTeam);
-        }
-      });
-
-      this.teams = [];
-    },
-
-    actionDeletePosition(id) {
-      this.form.positions = this.form.positions.filter((position) => {
-        return position.id !== id;
-      });
-
-      confirmSuccess("Posição removida com sucesso!");
-    },
-
-    actionDeleteTeam(id) {
-      this.form.teams = this.form.teams.filter((team) => {
-        return team.id !== id;
-      });
-
-      confirmSuccess("Time removido com sucesso!");
-    },
     async save() {
       this.$emit("save", this.form);
+    },
+    selectRole(roleId) {
+      if (!Array.isArray(this.form.roles)) {
+        this.form.roles = [];
+      }
+      if (this.form.roles.includes(roleId)) {
+        this.form.roles = this.form.roles.filter((id) => id !== roleId);
+      } else {
+        this.form.roles.push(roleId);
+      }
     },
   },
 };
 </script>
+
+<style scoped>
+.user-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.card {
+  background-color: #FFFFFF;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.icon-circle {
+  background-color: #E9742B;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-title {
+  font-weight: bold;
+  color: #333333;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.form-field {
+  border: 1px solid #DEE2E6;
+  border-radius: 4px;
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.save-button {
+  background-color: #E9742B;
+  border-radius: 8px;
+  color: #FFFFFF;
+}
+
+.permissions-grid {
+  display: flex;
+  gap: 16px;
+}
+
+.permission-card {
+  background-color: #FFFFFF;
+  border: 1px solid #E0E0E0;
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  cursor: pointer;
+  transition: border-color 0.3s, background-color 0.3s;
+}
+
+.permission-card.selected {
+  background-color: #E7F1FF;
+  border-color: #7AB8FF;
+}
+
+.permission-icon {
+  background-color: #FFFFFF;
+  border: 2px solid #FF7A00;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.permission-info {
+  flex-grow: 1;
+}
+
+.permission-title {
+  font-weight: bold;
+  color: #1A1A1A;
+}
+
+.permission-description {
+  color: #9CA3AF;
+}
+
+.permission-check {
+  color: #007BFF;
+}
+</style>
