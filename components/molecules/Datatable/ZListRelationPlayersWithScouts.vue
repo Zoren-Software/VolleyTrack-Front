@@ -17,59 +17,19 @@
         </div>
       </div>
 
-      <div class="row">
-        <!-- Coluna da Esquerda - Jogadores -->
-        <div class="flex flex-col md6">
-          <div class="item">
-            <va-list>
-              <va-list-label> Jogadores Relacionados </va-list-label>
-              <ZDatatableGeneric
-                :items="playersItems"
-                :columns="playersColumns"
-                :loading="loading"
-                :paginatorInfo="paginatorInfo"
-                @delete="actionDeletePlayer"
-              >
-                <!-- CELL -->
-                <template #cell(player)="{ rowKey }">
-                  <ZUser v-if="rowKey?.user" :data="rowKey.user" show-email />
-                </template>
-
-                <template #cell(positions)="{ rowKey }">
-                  <ZPosition
-                    v-if="rowKey?.user?.positions"
-                    :data="rowKey.user.positions"
-                  />
-                </template>
-              </ZDatatableGeneric>
-            </va-list>
-          </div>
-        </div>
-
-        <!-- Coluna da Direita - Espaço para próximo componente -->
-        <div class="flex flex-col md6">
-          <div class="item">
-            <!-- Aqui você pode adicionar o próximo componente -->
-            <slot name="right-column" />
-          </div>
-        </div>
-      </div>
+      <ZTechnicalScout @save-evaluation="handleSaveEvaluation" />
     </template>
   </ZListRelationGeneric>
 </template>
 
 <script>
 import ZListRelationGeneric from "~/components/molecules/List/ZListRelationGeneric";
-import ZDatatableGeneric from "~/components/molecules/Datatable/ZDatatableGeneric";
-import ZUser from "~/components/molecules/Datatable/Slots/ZUser";
-import ZPosition from "~/components/molecules/Datatable/Slots/ZPosition";
+import ZTechnicalScout from "~/components/organisms/Scout/ZTechnicalScout.vue";
 
 export default {
   components: {
     ZListRelationGeneric,
-    ZDatatableGeneric,
-    ZUser,
-    ZPosition,
+    ZTechnicalScout,
   },
   emits: ["add", "delete"],
   props: {
@@ -116,6 +76,31 @@ export default {
     },
     actionDeletePlayer(item) {
       this.$emit("delete", item);
+    },
+    handleSaveEvaluation(evaluationData) {
+      console.log("Avaliação salva:", evaluationData);
+
+      // Aqui você pode implementar a lógica para salvar no backend
+      // Por exemplo, fazer uma chamada para a API
+
+      // Exemplo de dados que serão salvos:
+      // {
+      //   playerId: 1,
+      //   playerName: "Maicon Souza",
+      //   evaluations: {
+      //     saque: { a: 5, b: 3, c: 1 },
+      //     recepcao: { a: 4, b: 2, c: 0 },
+      //     ataque: { a: 6, b: 2, c: 2 },
+      //     bloqueio: { a: 3, b: 4, c: 1 },
+      //     defesa: { a: 4, b: 3, c: 1 },
+      //     levantamento: { a: 5, b: 2, c: 0 }
+      //   },
+      //   observations: "Jogador com excelente técnica de saque...",
+      //   timestamp: "2024-01-15T10:30:00.000Z"
+      // }
+
+      // Exemplo de notificação de sucesso
+      alert("Avaliação salva com sucesso!");
     },
   },
 };
