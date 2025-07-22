@@ -57,14 +57,14 @@
       <!-- Fundamentos com Melhor e Pior Performance -->
       <div class="performance-highlights" v-if="totalEvaluations > 0">
         <div class="highlight-item best">
-          <va-icon name="trophy" color="success" />
+          <va-icon name="emoji_events" color="success" />
           <div class="highlight-content">
             <div class="highlight-label">Melhor Fundamentos</div>
             <div class="highlight-value">{{ bestFundamental }}</div>
           </div>
         </div>
         <div class="highlight-item worst">
-          <va-icon name="exclamation-triangle" color="warning" />
+          <va-icon name="warning" color="warning" />
           <div class="highlight-content">
             <div class="highlight-label">Precisa Melhorar</div>
             <div class="highlight-value">{{ worstFundamental }}</div>
@@ -72,7 +72,7 @@
         </div>
       </div>
       <div class="no-evaluations" v-else>
-        <va-icon name="info" color="info" />
+        <va-icon name="info_outline" color="info" />
         <p>
           Nenhuma avaliação registrada ainda. Comece avaliando os fundamentos
           acima.

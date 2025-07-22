@@ -153,7 +153,7 @@ const fundamentals = ref([
   {
     id: "saque",
     name: "Saque",
-    icon: "fiber_smart_record",
+    icon: "sports_handball",
     legend: {
       a: "Ponto direto",
       b: "Saque regular (adversário fez passe)",
@@ -173,7 +173,7 @@ const fundamentals = ref([
   {
     id: "ataque",
     name: "Ataque",
-    icon: "bolt",
+    icon: "electric_bolt",
     legend: {
       a: "Ponto direto",
       b: "Ataque regular (adversário defendeu)",
