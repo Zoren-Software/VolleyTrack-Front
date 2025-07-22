@@ -56,7 +56,7 @@
 
       <!-- Resumo da Avaliação -->
       <div class="summary-section">
-        <ZEvaluationSummary :evaluations="getCurrentPlayerEvaluations()" />
+        <ZEvaluationSummary :evaluations="currentPlayerEvaluations" />
       </div>
 
       <!-- Observações Técnicas -->
@@ -163,7 +163,7 @@ const fundamentals = ref([
   {
     id: "recepcao",
     name: "Recepção",
-    icon: "sports_volleyball",
+    icon: "scuba_diving",
     legend: {
       a: "Passe perfeito.",
       b: "Passe regular (fora do centro)",
@@ -263,6 +263,10 @@ const getCurrentPlayerEvaluations = () => {
 
   return playerEvaluations;
 };
+
+const currentPlayerEvaluations = computed(() => {
+  return getCurrentPlayerEvaluations();
+});
 
 const saveEvaluation = async () => {
   if (!selectedPlayer.value) return;

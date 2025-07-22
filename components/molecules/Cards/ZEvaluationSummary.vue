@@ -1,5 +1,9 @@
 <template>
-  <ZCard title="Resumo da Avaliação" class="evaluation-summary">
+  <ZCard
+    title="Resumo da Avaliação"
+    class="evaluation-summary"
+    color="backgroundPrimary"
+  >
     <div class="summary-content">
       <!-- Estatísticas Gerais -->
       <div class="general-stats">
@@ -51,7 +55,7 @@
       </div>
 
       <!-- Fundamentos com Melhor e Pior Performance -->
-      <div class="performance-highlights">
+      <div class="performance-highlights" v-if="totalEvaluations > 0">
         <div class="highlight-item best">
           <va-icon name="trophy" color="success" />
           <div class="highlight-content">
@@ -66,6 +70,13 @@
             <div class="highlight-value">{{ worstFundamental }}</div>
           </div>
         </div>
+      </div>
+      <div class="no-evaluations" v-else>
+        <va-icon name="info" color="info" />
+        <p>
+          Nenhuma avaliação registrada ainda. Comece avaliando os fundamentos
+          acima.
+        </p>
       </div>
     </div>
   </ZCard>
@@ -151,39 +162,47 @@ const fundamentalsData = computed(() => {
 
     return {
       ...fundamental,
-      ...eval,
+      ...evaluation,
       total,
-      aPercentage: total > 0 ? (eval.a / total) * 100 : 0,
-      bPercentage: total > 0 ? (eval.b / total) * 100 : 0,
-      cPercentage: total > 0 ? (eval.c / total) * 100 : 0,
+      aPercentage: total > 0 ? (evaluation.a / total) * 100 : 0,
+      bPercentage: total > 0 ? (evaluation.b / total) * 100 : 0,
+      cPercentage: total > 0 ? (evaluation.c / total) * 100 : 0,
     };
   });
 });
 
 const bestFundamental = computed(() => {
-  if (fundamentalsData.value.length === 0) return "N/A";
+  const fundamentalsWithEvaluations = fundamentalsData.value.filter(
+    (fundamental) => fundamental.total > 0
+  );
 
-  const best = fundamentalsData.value.reduce((prev, current) => {
-    const prevEfficiency = prev.total > 0 ? (prev.a / prev.total) * 100 : 0;
-    const currentEfficiency =
-      current.total > 0 ? (current.a / current.total) * 100 : 0;
+  if (fundamentalsWithEvaluations.length === 0) return "N/A";
+
+  const best = fundamentalsWithEvaluations.reduce((prev, current) => {
+    const prevEfficiency = (prev.a / prev.total) * 100;
+    const currentEfficiency = (current.a / current.total) * 100;
     return currentEfficiency > prevEfficiency ? current : prev;
   });
 
-  return best.name;
+  const efficiency = Math.round((best.a / best.total) * 100);
+  return `${best.name} (${efficiency}%)`;
 });
 
 const worstFundamental = computed(() => {
-  if (fundamentalsData.value.length === 0) return "N/A";
+  const fundamentalsWithEvaluations = fundamentalsData.value.filter(
+    (fundamental) => fundamental.total > 0
+  );
 
-  const worst = fundamentalsData.value.reduce((prev, current) => {
-    const prevErrorRate = prev.total > 0 ? (prev.c / prev.total) * 100 : 0;
-    const currentErrorRate =
-      current.total > 0 ? (current.c / current.total) * 100 : 0;
+  if (fundamentalsWithEvaluations.length === 0) return "N/A";
+
+  const worst = fundamentalsWithEvaluations.reduce((prev, current) => {
+    const prevErrorRate = (prev.c / prev.total) * 100;
+    const currentErrorRate = (current.c / current.total) * 100;
     return currentErrorRate > prevErrorRate ? current : prev;
   });
 
-  return worst.name;
+  const errorRate = Math.round((worst.c / worst.total) * 100);
+  return `${worst.name} (${errorRate}%)`;
 });
 </script>
 
@@ -325,6 +344,21 @@ const worstFundamental = computed(() => {
   font-size: 1rem;
   font-weight: 600;
   color: #333;
+}
+
+.no-evaluations {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 24px;
+  text-align: center;
+  color: #666;
+}
+
+.no-evaluations p {
+  margin: 0;
+  font-size: 0.875rem;
 }
 
 /* Responsividade */

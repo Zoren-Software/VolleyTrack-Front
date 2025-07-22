@@ -1,5 +1,5 @@
 <template>
-  <ZCard :title="fundamental.name" class="fundamental-card">
+  <ZCard title="" class="fundamental-card" color="backgroundPrimary">
     <div class="fundamental-content">
       <!-- Ícone e Nome -->
       <div class="fundamental-header">
