@@ -22,16 +22,7 @@
     <div class="main-content" v-if="selectedPlayer">
       <!-- Cabeçalho do Jogador -->
       <div class="player-header">
-        <ZAvatar
-          :src="selectedPlayer.avatar"
-          :fallback-text="selectedPlayer.name.charAt(0).toUpperCase()"
-          size="large"
-          class="header-avatar"
-        />
-        <div class="header-info">
-          <h1 class="player-name">{{ selectedPlayer.name }}</h1>
-          <span class="player-position">{{ selectedPlayer.position }}</span>
-        </div>
+        <ZUser :data="selectedPlayer" />
       </div>
 
       <!-- Cards dos Fundamentos -->
@@ -353,23 +344,6 @@ const saveEvaluation = async () => {
   background-color: white;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.header-avatar {
-  margin-right: 20px;
-}
-
-.header-info .player-name {
-  font-size: 2rem;
-  font-weight: 600;
-  margin-bottom: 4px;
-  padding-left: 10px;
-}
-
-.header-info .player-position {
-  font-size: 1.125rem;
-  color: #666;
-  padding-left: 10px;
 }
 
 .fundamentals-grid {
