@@ -13,6 +13,19 @@
         <NuxtLink v-for="item in navItems" :key="item.title" :to="item.link" :class="['nav-link', { active: item.active }]">
           {{ item.title }}
         </NuxtLink>
+        <div 
+          class="dropdown"
+          @mouseover="openDropdown"
+          @mouseleave="closeDropdown"
+        >
+          <span class="nav-link dropdown-toggle">
+            Configurações
+          </span>
+          <div v-if="dropdownOpen" class="dropdown-menu">
+            <NuxtLink to="/settings" class="dropdown-item">Configuração de Conta</NuxtLink>
+            <NuxtLink to="/settings/notifications" class="dropdown-item">Configuração de Notificações</NuxtLink>
+          </div>
+        </div>
       </nav>
     </div>
     <div class="top-bar-right">
@@ -38,8 +51,8 @@ export default {
         { title: "Jogadores", link: "/players", active: false },
         { title: "Times", link: "/teams", active: false },
         { title: "Treinos", link: "/trainings", active: false },
-        { title: "Configurações", link: "/settings", active: false },
       ],
+      dropdownOpen: false,
     };
   },
   watch: {
@@ -55,6 +68,12 @@ export default {
       this.navItems.forEach((item) => {
         item.active = this.$route.path.startsWith(item.link);
       });
+    },
+    openDropdown() {
+      this.dropdownOpen = true;
+    },
+    closeDropdown() {
+      this.dropdownOpen = false;
     },
   },
 };
@@ -111,6 +130,7 @@ export default {
 .nav-links {
   display: flex;
   gap: 16px;
+  position: relative;
 }
 
 .nav-link {
@@ -126,6 +146,39 @@ export default {
 
 .nav-link:hover {
   color: #B0C4DE;
+}
+
+.nav-link.dropdown-toggle {
+  position: relative;
+}
+
+.dropdown {
+  position: relative;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: #ffffff;
+  border-radius: 4px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 8px 0;
+  z-index: 10;
+  white-space: nowrap; /* Evita quebra de texto */
+}
+
+.dropdown-item {
+  display: block;
+  padding: 10px 12px;
+  color: #333333;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.dropdown-item:hover {
+  background-color: #f6f7f9;
+  color: #e9742b;
 }
 
 .top-bar-right {
