@@ -80,18 +80,22 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
-import ZAvatar from "~/components/atoms/Avatar/ZAvatar.vue";
+import { ref, computed, onMounted } from "vue";
 import ZButton from "~/components/atoms/Buttons/ZButton.vue";
 import ZFundamentalCard from "~/components/molecules/Cards/ZFundamentalCard.vue";
 import ZEvaluationSummary from "~/components/molecules/Cards/ZEvaluationSummary.vue";
 import ZUser from "~/components/molecules/Selects/Slots/ZUser.vue";
+import TRAINING from "~/graphql/training/query/training.graphql";
 
 // Props
 const props = defineProps({
   initialPlayers: {
     type: Array,
     default: () => [],
+  },
+  trainingId: {
+    type: String,
+    required: false,
   },
 });
 
@@ -102,6 +106,60 @@ const emit = defineEmits(["save-evaluation"]);
 const selectedPlayer = ref(null);
 const observations = ref("");
 const saving = ref(false);
+
+const getTraining = (fetchPolicyOptions = {}) => {
+  if (!props.trainingId) return;
+
+  const query = gql`
+    ${TRAINING}
+  `;
+
+  const consult = {
+    id: props.trainingId,
+  };
+
+  const {
+    result: { value },
+  } = useQuery(query, consult);
+
+  const { onResult } = useQuery(query, consult, {
+    fetchPolicy: fetchPolicyOptions.fetchPolicy || "cache-first",
+  });
+
+  onResult((result) => {
+    if (result?.data?.training) {
+      // Transformar confirmationsTraining em players
+      const trainingPlayers =
+        result.data.training.confirmationsTraining?.map((confirmation) => ({
+          id: confirmation.player.id,
+          name: confirmation.player.name,
+          email: confirmation.player.email,
+          position: confirmation.player.positions?.[0]?.name || "N/A",
+        })) || [];
+
+      players.value = trainingPlayers;
+    }
+  });
+
+  if (value) {
+    if (value?.training) {
+      const trainingPlayers =
+        value.training.confirmationsTraining?.map((confirmation) => ({
+          id: confirmation.player.id,
+          name: confirmation.player.name,
+          email: confirmation.player.email,
+          position: confirmation.player.positions?.[0]?.name || "N/A",
+        })) || [];
+
+      players.value = trainingPlayers;
+    }
+  }
+};
+
+// Chamar getTraining quando o componente for montado
+onMounted(() => {
+  getTraining({ fetchPolicy: "network-only" });
+});
 
 // Dados dos jogadores
 const players = ref([

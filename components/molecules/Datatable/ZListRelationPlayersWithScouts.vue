@@ -4,20 +4,10 @@
       <slot name="filter" />
     </template>
     <template #list>
-      <div class="row">
-        <div class="flex flex-col md6">
-          <div class="item">
-            <!-- <ZSelectUser
-              v-model="players"
-              class="mb-3"
-              label="Jogadores"
-              :ignore-ids="items.map((item) => item.id)"
-            /> -->
-          </div>
-        </div>
-      </div>
-
-      <ZTechnicalScout @save-evaluation="handleSaveEvaluation" />
+      <ZTechnicalScout
+        @save-evaluation="handleSaveEvaluation"
+        :training-id="trainingId"
+      />
     </template>
   </ZListRelationGeneric>
 </template>
@@ -33,6 +23,10 @@ export default {
   },
   emits: ["add", "delete"],
   props: {
+    trainingId: {
+      type: String,
+      required: true,
+    },
     items: {
       type: Array,
       required: true,

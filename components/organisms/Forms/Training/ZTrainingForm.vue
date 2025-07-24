@@ -144,6 +144,7 @@
         </template>
         <template #step-content-4>
           <ZListRelationPlayersWithScouts
+            :training-id="form.id"
             :items="[...(form.players || []), ...(form.scouts || [])]"
             @add="addPlayers"
             @delete="actionDeletePlayer"
@@ -173,7 +174,6 @@ import ZProgressBarMetricsTraining from "~/components/molecules/ProgressBar/ZPro
 import CONFIRMTRAINING from "~/graphql/training/mutation/confirmTraining.graphql";
 import CONFIRMPRESENCE from "~/graphql/training/mutation/confirmPresence.graphql";
 import ZListRelationPlayersWithScouts from "~/components/molecules/Datatable/ZListRelationPlayersWithScouts";
-import ZSelectUser from "~/components/molecules/Selects/ZSelectUser";
 
 const { formData } = useForm("myForm");
 
@@ -233,7 +233,6 @@ export default {
     ZCardViewMetricsRealPresence,
     ZProgressBarMetricsTraining,
     ZListRelationPlayersWithScouts,
-    ZSelectUser,
   },
 
   emits: ["refresh", "update:errors", "update:errorFields"],
