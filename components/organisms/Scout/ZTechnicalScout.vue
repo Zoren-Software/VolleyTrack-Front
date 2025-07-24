@@ -138,6 +138,11 @@ const getTraining = (fetchPolicyOptions = {}) => {
         })) || [];
 
       players.value = trainingPlayers;
+
+      // Carregar dados de scout salvos
+      if (result.data.training.scoutFundamentalsTraining) {
+        loadSavedScoutData(result.data.training.scoutFundamentalsTraining);
+      }
     }
   });
 
@@ -152,8 +157,60 @@ const getTraining = (fetchPolicyOptions = {}) => {
         })) || [];
 
       players.value = trainingPlayers;
+
+      // Carregar dados de scout salvos
+      if (value.training.scoutFundamentalsTraining) {
+        loadSavedScoutData(value.training.scoutFundamentalsTraining);
+      }
     }
   }
+};
+
+// Função para carregar dados de scout salvos
+const loadSavedScoutData = (scoutData) => {
+  scoutData.forEach((scout) => {
+    const playerId = scout.playerId;
+
+    // Mapear os dados de scout para o formato esperado pelos componentes
+    const playerEvaluations = {
+      saque: {
+        a: scout.scoutsServe?.[0]?.total_a || 0,
+        b: scout.scoutsServe?.[0]?.total_b || 0,
+        c: scout.scoutsServe?.[0]?.total_c || 0,
+      },
+      recepcao: {
+        a: scout.scoutsReception?.[0]?.total_a || 0,
+        b: scout.scoutsReception?.[0]?.total_b || 0,
+        c: scout.scoutsReception?.[0]?.total_c || 0,
+      },
+      ataque: {
+        a: scout.scoutsAttack?.[0]?.total_a || 0,
+        b: scout.scoutsAttack?.[0]?.total_b || 0,
+        c: scout.scoutsAttack?.[0]?.total_c || 0,
+      },
+      bloqueio: {
+        a: scout.scoutsBlock?.[0]?.total_a || 0,
+        b: scout.scoutsBlock?.[0]?.total_b || 0,
+        c: scout.scoutsBlock?.[0]?.total_c || 0,
+      },
+      defesa: {
+        a: scout.scoutsDefense?.[0]?.total_a || 0,
+        b: scout.scoutsDefense?.[0]?.total_b || 0,
+        c: scout.scoutsDefense?.[0]?.total_c || 0,
+      },
+      levantamento: {
+        a: scout.scoutsSetAssist?.[0]?.total_a || 0,
+        b: scout.scoutsSetAssist?.[0]?.total_b || 0,
+        c: scout.scoutsSetAssist?.[0]?.total_c || 0,
+      },
+    };
+
+    // Salvar as avaliações no estado local
+    fundamentals.value.forEach((fundamental) => {
+      const key = `${playerId}-${fundamental.id}`;
+      evaluations.value[key] = playerEvaluations[fundamental.id];
+    });
+  });
 };
 
 // Chamar getTraining quando o componente for montado
@@ -241,7 +298,10 @@ const getEvaluation = (fundamentalId) => {
   if (!selectedPlayer.value) return { a: 0, b: 0, c: 0 };
 
   const key = `${selectedPlayer.value.id}-${fundamentalId}`;
-  return evaluations.value[key] || { a: 0, b: 0, c: 0 };
+  const evaluation = evaluations.value[key];
+
+  // Retorna os dados salvos ou valores padrão
+  return evaluation || { a: 0, b: 0, c: 0 };
 };
 
 const updateEvaluation = (fundamentalId, type, value) => {
@@ -299,7 +359,19 @@ const saveEvaluation = async () => {
       };
     });
 
-    emit("save-evaluation", evaluationData);
+    // Preparar dados no formato da API
+    const apiData = {
+      trainingId: props.trainingId,
+      playerId: selectedPlayer.value.id,
+      scoutsServe: [evaluationData.evaluations.saque],
+      scoutsReception: [evaluationData.evaluations.recepcao],
+      scoutsAttack: [evaluationData.evaluations.ataque],
+      scoutsBlock: [evaluationData.evaluations.bloqueio],
+      scoutsDefense: [evaluationData.evaluations.defesa],
+      scoutsSetAssist: [evaluationData.evaluations.levantamento],
+    };
+
+    emit("save-evaluation", { ...evaluationData, apiData });
 
     // Limpar observações após salvar
     observations.value = "";
