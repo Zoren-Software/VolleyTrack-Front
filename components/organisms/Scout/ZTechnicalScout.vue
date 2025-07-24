@@ -162,32 +162,7 @@ onMounted(() => {
 });
 
 // Dados dos jogadores
-const players = ref([
-  {
-    id: 1,
-    name: "Maicon Cerutti",
-    position: "Levantador",
-    email: "maicon@example.com",
-  },
-  {
-    id: 2,
-    name: "Lucas Almeida",
-    position: "Ponteiro",
-    email: "lucas@example.com",
-  },
-  {
-    id: 3,
-    name: "Ana Paula",
-    position: "Central",
-    email: "ana@example.com",
-  },
-  {
-    id: 4,
-    name: "Juliana Prado",
-    position: "Oposto",
-    email: "juliana@example.com",
-  },
-]);
+const players = ref([]);
 
 // Dados dos fundamentos
 const fundamentals = ref([
