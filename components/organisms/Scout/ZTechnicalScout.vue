@@ -86,6 +86,7 @@ import ZFundamentalCard from "~/components/molecules/Cards/ZFundamentalCard.vue"
 import ZEvaluationSummary from "~/components/molecules/Cards/ZEvaluationSummary.vue";
 import ZUser from "~/components/molecules/Selects/Slots/ZUser.vue";
 import TRAINING from "~/graphql/training/query/training.graphql";
+import SCOUTFUNDAMENTALTRAININGEDIT from "~/graphql/team/mutation/scoutFundamentalTrainingEdit.graphql";
 
 // Props
 const props = defineProps({
@@ -106,6 +107,8 @@ const emit = defineEmits(["save-evaluation"]);
 const selectedPlayer = ref(null);
 const observations = ref("");
 const saving = ref(false);
+const currentScoutId = ref(null);
+const data = ref({});
 
 const getTraining = (fetchPolicyOptions = {}) => {
   if (!props.trainingId) return;
@@ -128,6 +131,9 @@ const getTraining = (fetchPolicyOptions = {}) => {
 
   onResult((result) => {
     if (result?.data?.training) {
+      // Armazenar dados completos do treino
+      data.value = result.data.training;
+
       // Transformar confirmationsTraining em players
       const trainingPlayers =
         result.data.training.confirmationsTraining?.map((confirmation) => ({
@@ -148,6 +154,9 @@ const getTraining = (fetchPolicyOptions = {}) => {
 
   if (value) {
     if (value?.training) {
+      // Armazenar dados completos do treino
+      data.value = value.training;
+
       const trainingPlayers =
         value.training.confirmationsTraining?.map((confirmation) => ({
           id: confirmation.player.id,
@@ -168,8 +177,11 @@ const getTraining = (fetchPolicyOptions = {}) => {
 
 // Função para carregar dados de scout salvos
 const loadSavedScoutData = (scoutData) => {
+  console.log("Carregando dados de scout:", scoutData);
+
   scoutData.forEach((scout) => {
     const playerId = scout.playerId;
+    console.log(`Carregando scout para jogador ID: ${playerId}`);
 
     // Mapear os dados de scout para o formato esperado pelos componentes
     const playerEvaluations = {
@@ -205,11 +217,25 @@ const loadSavedScoutData = (scoutData) => {
       },
     };
 
+    console.log(
+      `Avaliações carregadas para jogador ${playerId}:`,
+      playerEvaluations
+    );
+
     // Salvar as avaliações no estado local
     fundamentals.value.forEach((fundamental) => {
       const key = `${playerId}-${fundamental.id}`;
       evaluations.value[key] = playerEvaluations[fundamental.id];
     });
+
+    // Armazenar o ID do scout para o jogador selecionado
+    if (
+      selectedPlayer.value &&
+      parseInt(selectedPlayer.value.id) === parseInt(playerId)
+    ) {
+      currentScoutId.value = scout.id;
+      console.log(`ID do scout definido para jogador ${playerId}: ${scout.id}`);
+    }
   });
 };
 
@@ -292,6 +318,20 @@ const evaluations = ref({});
 const selectPlayer = (player) => {
   selectedPlayer.value = player;
   observations.value = "";
+
+  // Buscar o ID do scout para o jogador selecionado
+  if (props.trainingId && data.value?.scoutFundamentalsTraining) {
+    const playerScout = data.value.scoutFundamentalsTraining.find(
+      (scout) => parseInt(scout.playerId) === parseInt(player.id)
+    );
+    currentScoutId.value = playerScout?.id || null;
+
+    if (!playerScout) {
+      console.log(
+        `Scout não encontrado para o jogador ${player.name} (ID: ${player.id})`
+      );
+    }
+  }
 };
 
 const getEvaluation = (fundamentalId) => {
@@ -304,7 +344,7 @@ const getEvaluation = (fundamentalId) => {
   return evaluation || { a: 0, b: 0, c: 0 };
 };
 
-const updateEvaluation = (fundamentalId, type, value) => {
+const updateEvaluation = async (fundamentalId, type, value) => {
   if (!selectedPlayer.value) return;
 
   const key = `${selectedPlayer.value.id}-${fundamentalId}`;
@@ -313,6 +353,86 @@ const updateEvaluation = (fundamentalId, type, value) => {
   }
 
   evaluations.value[key][type] = Math.max(0, value);
+
+  // Salvar automaticamente após a alteração
+  await saveScoutEvaluation();
+};
+
+const saveScoutEvaluation = async () => {
+  if (!selectedPlayer.value || !props.trainingId) return;
+
+  try {
+    const query = gql`
+      ${SCOUTFUNDAMENTALTRAININGEDIT}
+    `;
+
+    // Obter todas as avaliações do jogador selecionado
+    const playerEvaluations = {};
+    fundamentals.value.forEach((fundamental) => {
+      const key = `${selectedPlayer.value.id}-${fundamental.id}`;
+      playerEvaluations[fundamental.id] = evaluations.value[key] || {
+        a: 0,
+        b: 0,
+        c: 0,
+      };
+    });
+
+    // Verificar se já existe um scout para este jogador
+    // console.log("Jogador selecionado ID:", selectedPlayer.value.id);
+    // console.log(
+    //   "ScoutFundamentalsTraining:",
+    //   data.value?.scoutFundamentalsTraining
+    // );
+
+    const existingScout = data.value?.scoutFundamentalsTraining?.find(
+      (scout) => parseInt(scout.playerId) === parseInt(selectedPlayer.value.id)
+    );
+
+    // console.log("Scout encontrado:", existingScout);
+
+    // Se não existe scout, não podemos editar - os dados devem existir automaticamente
+    if (!existingScout) {
+      // console.log(
+      //   "Scout não encontrado para este jogador. Os dados devem ser criados automaticamente."
+      // );
+      return;
+    }
+
+    const variables = {
+      id: existingScout.id, // Usar o ID real do scout existente
+      playerId: parseInt(selectedPlayer.value.id),
+      trainingId: parseInt(props.trainingId),
+      positionId: parseInt(existingScout.player.positions[0]?.id) || 1, // Usar o positionId do jogador
+      attackTotalA: playerEvaluations.ataque.a,
+      attackTotalB: playerEvaluations.ataque.b,
+      attackTotalC: playerEvaluations.ataque.c,
+      blockTotalA: playerEvaluations.bloqueio.a,
+      blockTotalB: playerEvaluations.bloqueio.b,
+      blockTotalC: playerEvaluations.bloqueio.c,
+      defenseTotalA: playerEvaluations.defesa.a,
+      defenseTotalB: playerEvaluations.defesa.b,
+      defenseTotalC: playerEvaluations.defesa.c,
+      receptionTotalA: playerEvaluations.recepcao.a,
+      receptionTotalB: playerEvaluations.recepcao.b,
+      receptionTotalC: playerEvaluations.recepcao.c,
+      serveTotalA: playerEvaluations.saque.a,
+      serveTotalB: playerEvaluations.saque.b,
+      serveTotalC: playerEvaluations.saque.c,
+      setAssistTotalA: playerEvaluations.levantamento.a,
+      setAssistTotalB: playerEvaluations.levantamento.b,
+      setAssistTotalC: playerEvaluations.levantamento.c,
+    };
+
+    //console.log("Variáveis para mutation:", variables);
+
+    const { mutate } = await useMutation(query, { variables });
+
+    const { data: resultData } = await mutate();
+
+    //console.log("Scout salvo com sucesso:", resultData);
+  } catch (error) {
+    console.error("Erro ao salvar scout:", error);
+  }
 };
 
 const getCurrentPlayerEvaluations = () => {

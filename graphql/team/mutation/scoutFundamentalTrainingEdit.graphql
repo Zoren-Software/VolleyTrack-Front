@@ -1,8 +1,8 @@
 mutation scoutFundamentalTrainingEdit(
   $id: ID!
-  $playerId: ID!
-  $trainingId: ID!
-  $positionId: ID!
+  $playerId: Int!
+  $trainingId: Int!
+  $positionId: Int!
   $attackTotalA: Int!
   $attackTotalB: Int!
   $attackTotalC: Int!
