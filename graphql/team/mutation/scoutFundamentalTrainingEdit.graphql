@@ -1,0 +1,142 @@
+mutation scoutFundamentalTrainingEdit(
+  $id: ID!
+  $playerId: ID!
+  $trainingId: ID!
+  $positionId: ID!
+  $attackTotalA: Int!
+  $attackTotalB: Int!
+  $attackTotalC: Int!
+  $blockTotalA: Int!
+  $blockTotalB: Int!
+  $blockTotalC: Int!
+  $defenseTotalA: Int!
+  $defenseTotalB: Int!
+  $defenseTotalC: Int!
+  $receptionTotalA: Int!
+  $receptionTotalB: Int!
+  $receptionTotalC: Int!
+  $serveTotalA: Int!
+  $serveTotalB: Int!
+  $serveTotalC: Int!
+  $setAssistTotalA: Int!
+  $setAssistTotalB: Int!
+  $setAssistTotalC: Int!
+) {
+  scoutFundamentalTrainingEdit(
+    id: $id
+    playerId: $playerId
+    trainingId: $trainingId
+    positionId: $positionId
+    attackTotalA: $attackTotalA
+    attackTotalB: $attackTotalB
+    attackTotalC: $attackTotalC
+    blockTotalA: $blockTotalA
+    blockTotalB: $blockTotalB
+    blockTotalC: $blockTotalC
+    defenseTotalA: $defenseTotalA
+    defenseTotalB: $defenseTotalB
+    defenseTotalC: $defenseTotalC
+    receptionTotalA: $receptionTotalA
+    receptionTotalB: $receptionTotalB
+    receptionTotalC: $receptionTotalC
+    serveTotalA: $serveTotalA
+    serveTotalB: $serveTotalB
+    serveTotalC: $serveTotalC
+    setAssistTotalA: $setAssistTotalA
+    setAssistTotalB: $setAssistTotalB
+    setAssistTotalC: $setAssistTotalC
+  ) {
+    id
+    userId
+    user {
+      id
+      name
+      email
+      userId
+      emailVerifiedAt
+      createdAt
+      updatedAt
+    }
+    playerId
+    player {
+      id
+      name
+      email
+      userId
+      emailVerifiedAt
+      createdAt
+      updatedAt
+    }
+    trainingId
+    training {
+      id
+      name
+      userId
+      teamId
+      status
+      dateStart
+      dateEnd
+      description
+      createdAt
+      updatedAt
+    }
+    positionId
+    position {
+      id
+      name
+      userId
+      createdAt
+      updatedAt
+    }
+    scoutsAttack {
+      id
+      scoutFundamentalTrainingId
+      total_a
+      total_b
+      total_c
+      total
+    }
+    scoutsBlock {
+      id
+      scoutFundamentalTrainingId
+      total_a
+      total_b
+      total_c
+      total
+    }
+    scoutsDefense {
+      id
+      scoutFundamentalTrainingId
+      total_a
+      total_b
+      total_c
+      total
+    }
+    scoutsReception {
+      id
+      scoutFundamentalTrainingId
+      total_a
+      total_b
+      total_c
+      total
+    }
+    scoutsServe {
+      id
+      scoutFundamentalTrainingId
+      total_a
+      total_b
+      total_c
+      total
+    }
+    scoutsSetAssist {
+      id
+      scoutFundamentalTrainingId
+      total_a
+      total_b
+      total_c
+      total
+    }
+    createdAt
+    updatedAt
+  }
+}
