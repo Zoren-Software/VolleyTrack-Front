@@ -177,11 +177,8 @@ const getTraining = (fetchPolicyOptions = {}) => {
 
 // Função para carregar dados de scout salvos
 const loadSavedScoutData = (scoutData) => {
-  console.log("Carregando dados de scout:", scoutData);
-
   scoutData.forEach((scout) => {
     const playerId = scout.playerId;
-    console.log(`Carregando scout para jogador ID: ${playerId}`);
 
     // Mapear os dados de scout para o formato esperado pelos componentes
     const playerEvaluations = {
@@ -217,11 +214,6 @@ const loadSavedScoutData = (scoutData) => {
       },
     };
 
-    console.log(
-      `Avaliações carregadas para jogador ${playerId}:`,
-      playerEvaluations
-    );
-
     // Salvar as avaliações no estado local
     fundamentals.value.forEach((fundamental) => {
       const key = `${playerId}-${fundamental.id}`;
@@ -234,7 +226,6 @@ const loadSavedScoutData = (scoutData) => {
       parseInt(selectedPlayer.value.id) === parseInt(playerId)
     ) {
       currentScoutId.value = scout.id;
-      console.log(`ID do scout definido para jogador ${playerId}: ${scout.id}`);
     }
   });
 };
@@ -325,12 +316,6 @@ const selectPlayer = (player) => {
       (scout) => parseInt(scout.playerId) === parseInt(player.id)
     );
     currentScoutId.value = playerScout?.id || null;
-
-    if (!playerScout) {
-      console.log(
-        `Scout não encontrado para o jogador ${player.name} (ID: ${player.id})`
-      );
-    }
   }
 };
 
