@@ -34,8 +34,8 @@
       </nav>
     </div>
     <div class="top-bar-right">
-      <div class="notification-icon">
-        <span class="notification-dot"></span>
+      <div class="notification-icon" @click="toggleNotifications">
+        <span class="notification-dot" v-if="hasUnreadNotifications"></span>
         <va-icon name="notifications" />
       </div>
       <va-avatar class="user-avatar" />
@@ -58,6 +58,7 @@ export default {
         { title: "Treinos", link: "/trainings" },
       ],
       dropdownOpen: false,
+      hasUnreadNotifications: true, // Simula notificações não lidas
     };
   },
   methods: {
@@ -66,6 +67,10 @@ export default {
     },
     closeDropdown() {
       this.dropdownOpen = false;
+    },
+    toggleNotifications() {
+      // Lógica para abrir ou fechar o menu de notificações
+      console.log("Abrir notificações");
     },
   },
 };
@@ -181,6 +186,7 @@ export default {
 
 .notification-icon {
   position: relative;
+  cursor: pointer;
 }
 
 .notification-dot {
