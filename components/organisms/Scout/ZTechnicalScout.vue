@@ -32,18 +32,17 @@
           :key="fundamental.id"
           :fundamental="fundamental"
           :evaluation="getEvaluation(fundamental.id)"
+          :feedback="
+            fundamentalFeedbacks[selectedPlayer.id]?.[fundamental.id] || ''
+          "
           @update-evaluation="updateEvaluation"
+          @update-feedback="updateFundamentalFeedback"
         />
-      </div>
-
-      <!-- Resumo da Avaliação -->
-      <div class="summary-section">
-        <ZEvaluationSummary :evaluations="currentPlayerEvaluations" />
       </div>
 
       <!-- Observações Técnicas -->
       <div class="observations-section">
-        <h3 class="section-title">Observações Técnicas</h3>
+        <h3 class="section-title">Observações Técnicas Gerais</h3>
         <va-textarea
           v-model="observations"
           placeholder="Digite suas observações técnicas sobre o jogador..."
@@ -52,19 +51,20 @@
         />
       </div>
 
-      <!-- Botão Salvar -->
-      <div class="save-section">
-        <ZButton
-          color="success"
-          size="large"
-          @click="saveEvaluation"
-          :loading="saving"
-        >
-          <template #default>
-            <va-icon name="save" class="mr-2" />
-            Salvar Avaliação
-          </template>
-        </ZButton>
+      <!-- Feedback -->
+      <div class="feedback-section">
+        <h3 class="section-title">Feedback</h3>
+        <va-textarea
+          v-model="feedback"
+          placeholder="Digite seu feedback sobre o desempenho do jogador..."
+          :rows="4"
+          class="feedback-textarea"
+        />
+      </div>
+
+      <!-- Resumo da Avaliação -->
+      <div class="summary-section">
+        <ZEvaluationSummary :evaluations="currentPlayerEvaluations" />
       </div>
     </div>
 
@@ -106,9 +106,13 @@ const emit = defineEmits(["save-evaluation"]);
 // Reactive data
 const selectedPlayer = ref(null);
 const observations = ref("");
+const feedback = ref("");
 const saving = ref(false);
 const currentScoutId = ref(null);
 const data = ref({});
+const playerObservations = ref({}); // Armazenar observações por jogador
+const playerFeedback = ref({}); // Armazenar feedback por jogador
+const fundamentalFeedbacks = ref({}); // Armazenar feedbacks dos fundamentais por jogador
 
 const getTraining = (fetchPolicyOptions = {}) => {
   if (!props.trainingId) return;
@@ -227,6 +231,10 @@ const loadSavedScoutData = (scoutData) => {
     ) {
       currentScoutId.value = scout.id;
     }
+
+    // Carregar observações salvas (se existirem na API)
+    // TODO: Implementar quando a API suportar observações
+    // playerObservations.value[playerId] = scout.observations || "";
   });
 };
 
@@ -307,8 +315,25 @@ const evaluations = ref({});
 
 // Methods
 const selectPlayer = (player) => {
+  // Salvar observações e feedback do jogador anterior
+  if (selectedPlayer.value) {
+    playerObservations.value[selectedPlayer.value.id] = observations.value;
+    playerFeedback.value[selectedPlayer.value.id] = feedback.value;
+    fundamentalFeedbacks.value[selectedPlayer.value.id] = {
+      ...fundamentalFeedbacks.value[selectedPlayer.value.id],
+    };
+  }
+
   selectedPlayer.value = player;
-  observations.value = "";
+
+  // Carregar observações e feedback do jogador selecionado
+  observations.value = playerObservations.value[player.id] || "";
+  feedback.value = playerFeedback.value[player.id] || "";
+
+  // Carregar feedbacks dos fundamentais do jogador selecionado
+  if (!fundamentalFeedbacks.value[player.id]) {
+    fundamentalFeedbacks.value[player.id] = {};
+  }
 
   // Buscar o ID do scout para o jogador selecionado
   if (props.trainingId && data.value?.scoutFundamentalsTraining) {
@@ -343,6 +368,18 @@ const updateEvaluation = async (fundamentalId, type, value) => {
   await saveScoutEvaluation();
 };
 
+const updateFundamentalFeedback = async (fundamentalId, feedback) => {
+  if (!selectedPlayer.value) return;
+
+  if (!fundamentalFeedbacks.value[selectedPlayer.value.id]) {
+    fundamentalFeedbacks.value[selectedPlayer.value.id] = {};
+  }
+  fundamentalFeedbacks.value[selectedPlayer.value.id][fundamentalId] = feedback;
+
+  // Salvar automaticamente
+  await saveScoutEvaluation();
+};
+
 const saveScoutEvaluation = async () => {
   if (!selectedPlayer.value || !props.trainingId) return;
 
@@ -350,6 +387,15 @@ const saveScoutEvaluation = async () => {
     const query = gql`
       ${SCOUTFUNDAMENTALTRAININGEDIT}
     `;
+
+    // Salvar observações e feedback do jogador atual
+    playerObservations.value[selectedPlayer.value.id] = observations.value;
+    playerFeedback.value[selectedPlayer.value.id] = feedback.value;
+
+    // Salvar feedbacks dos fundamentais do jogador atual
+    if (!fundamentalFeedbacks.value[selectedPlayer.value.id]) {
+      fundamentalFeedbacks.value[selectedPlayer.value.id] = {};
+    }
 
     // Obter todas as avaliações do jogador selecionado
     const playerEvaluations = {};
@@ -575,6 +621,14 @@ const saveEvaluation = async () => {
   margin-bottom: 24px;
 }
 
+.feedback-section {
+  background-color: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 24px;
+}
+
 .section-title {
   margin: 0 0 16px 0;
   font-size: 1.25rem;
@@ -583,6 +637,10 @@ const saveEvaluation = async () => {
 }
 
 .observations-textarea {
+  width: 100%;
+}
+
+.feedback-textarea {
   width: 100%;
 }
 

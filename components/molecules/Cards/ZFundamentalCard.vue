@@ -100,12 +100,23 @@
         <span class="total-label">Total:</span>
         <span class="total-value">{{ totalEvaluations }}</span>
       </div>
+
+      <!-- Feedback do Fundamental -->
+      <div class="feedback-section">
+        <va-textarea
+          v-model="fundamentalFeedback"
+          placeholder="Feedback específico para este fundamental..."
+          :rows="2"
+          class="feedback-textarea"
+          @input="updateFeedback"
+        />
+      </div>
     </div>
   </ZCard>
 </template>
 
 <script setup>
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import ZCard from "~/components/atoms/Cards/ZCard.vue";
 import ZButton from "~/components/atoms/Buttons/ZButton.vue";
 
@@ -119,15 +130,22 @@ const props = defineProps({
     type: Object,
     default: () => ({ a: 0, b: 0, c: 0 }),
   },
+  feedback: {
+    type: String,
+    default: "",
+  },
 });
 
 // Emits
-const emit = defineEmits(["update-evaluation"]);
+const emit = defineEmits(["update-evaluation", "update-feedback"]);
 
 // Computed
 const totalEvaluations = computed(() => {
   return props.evaluation.a + props.evaluation.b + props.evaluation.c;
 });
+
+// Reactive data
+const fundamentalFeedback = ref(props.feedback);
 
 // Methods
 const incrementCounter = (type) => {
@@ -138,6 +156,10 @@ const incrementCounter = (type) => {
 const decrementCounter = (type) => {
   const newValue = Math.max(0, props.evaluation[type] - 1);
   emit("update-evaluation", props.fundamental.id, type, newValue);
+};
+
+const updateFeedback = () => {
+  emit("update-feedback", props.fundamental.id, fundamentalFeedback.value);
 };
 </script>
 
@@ -265,6 +287,22 @@ const decrementCounter = (type) => {
   font-size: 1.25rem;
   font-weight: 600;
   color: #2196f3;
+}
+
+.feedback-section {
+  margin-top: 12px;
+}
+
+.feedback-title {
+  margin: 0 0 8px 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.feedback-textarea {
+  width: 100%;
+  font-size: 0.875rem;
 }
 
 /* Responsividade */
