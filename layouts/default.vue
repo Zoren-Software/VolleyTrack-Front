@@ -10,7 +10,12 @@
     </div>
     <div class="top-bar-center">
       <nav class="nav-links">
-        <NuxtLink v-for="item in navItems" :key="item.title" :to="item.link" :class="['nav-link', { active: item.active }]">
+        <NuxtLink
+          v-for="item in navItems"
+          :key="item.title"
+          :to="item.link"
+          :class="['nav-link', { active: $route.path === item.link }]"
+        >
           {{ item.title }}
         </NuxtLink>
         <div 
@@ -46,29 +51,16 @@ export default {
   data() {
     return {
       navItems: [
-        { title: "Início", link: "/", active: false },
-        { title: "Dashboard", link: "/dashboard", active: false },
-        { title: "Jogadores", link: "/players", active: false },
-        { title: "Times", link: "/teams", active: false },
-        { title: "Treinos", link: "/trainings", active: false },
+        { title: "Início", link: "/" },
+        { title: "Dashboard", link: "/dashboard" },
+        { title: "Jogadores", link: "/players" },
+        { title: "Times", link: "/teams" },
+        { title: "Treinos", link: "/trainings" },
       ],
       dropdownOpen: false,
     };
   },
-  watch: {
-    $route() {
-      this.updateActiveLinks();
-    },
-  },
-  created() {
-    this.updateActiveLinks();
-  },
   methods: {
-    updateActiveLinks() {
-      this.navItems.forEach((item) => {
-        item.active = this.$route.path.startsWith(item.link);
-      });
-    },
     openDropdown() {
       this.dropdownOpen = true;
     },
@@ -141,7 +133,7 @@ export default {
 }
 
 .nav-link.active {
-  color: #E9742B;
+  color: #E9742B; /* Cor laranja para a rota ativa */
 }
 
 .nav-link:hover {

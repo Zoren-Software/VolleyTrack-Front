@@ -120,6 +120,7 @@ export default {
 .welcome-section {
   margin-bottom: 40px;
   max-width: 800px;
+  line-height: 1.5; /* Aumenta o espaçamento entre as linhas */
 }
 
 .welcome-title {
@@ -141,6 +142,7 @@ export default {
   margin-bottom: 40px;
   max-width: 600px;
   width: 100%;
+  line-height: 1.5; /* Aumenta o espaçamento entre as linhas */
 }
 
 .progress-title {
@@ -185,6 +187,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  line-height: 1.5; /* Aumenta o espaçamento entre as linhas */
 }
 
 .step-card.completed {
