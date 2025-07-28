@@ -118,6 +118,7 @@ const playerFeedback = ref({}); // Armazenar feedback por jogador
 const fundamentalFeedbacks = ref({}); // Armazenar feedbacks dos fundamentais por jogador
 const feedbackDebounceTimers = ref({}); // Timers para debounce dos feedbacks
 const generalFieldsDebounceTimers = ref({}); // Timers para debounce dos campos gerais
+const evaluationDebounceTimers = ref({}); // Timers para debounce das avaliações
 
 const getTraining = (fetchPolicyOptions = {}) => {
   if (!props.trainingId) return;
@@ -280,6 +281,11 @@ onUnmounted(() => {
     clearTimeout(timer);
   });
   generalFieldsDebounceTimers.value = {};
+
+  Object.values(evaluationDebounceTimers.value).forEach((timer) => {
+    clearTimeout(timer);
+  });
+  evaluationDebounceTimers.value = {};
 });
 
 // Dados dos jogadores
@@ -366,6 +372,12 @@ const selectPlayer = (player) => {
   });
   generalFieldsDebounceTimers.value = {};
 
+  // Limpar todos os timers das avaliações
+  Object.values(evaluationDebounceTimers.value).forEach((timer) => {
+    clearTimeout(timer);
+  });
+  evaluationDebounceTimers.value = {};
+
   // Salvar observações e feedback do jogador anterior
   if (selectedPlayer.value) {
     playerObservations.value[selectedPlayer.value.id] = observations.value;
@@ -422,8 +434,28 @@ const updateEvaluation = async (fundamentalId, type, value) => {
 
   evaluations.value[key][type] = Math.max(0, value);
 
-  // Salvar automaticamente após a alteração
-  await saveScoutEvaluation();
+  // Criar chave única para o timer
+  const timerKey = `${selectedPlayer.value.id}-${fundamentalId}`;
+
+  // Limpar timer anterior se existir
+  if (evaluationDebounceTimers.value[timerKey]) {
+    clearTimeout(evaluationDebounceTimers.value[timerKey]);
+  }
+
+  // Criar novo timer com delay de 5 segundos
+  evaluationDebounceTimers.value[timerKey] = setTimeout(async () => {
+    // Salvar automaticamente após o delay
+    await saveScoutEvaluation();
+    // Mostrar notificação de sucesso
+    showSuccessToast(
+      "Pontuação salva automaticamente!",
+      `Avaliações do ${
+        fundamentals.value.find((f) => f.id === fundamentalId)?.name
+      } foram salvas com sucesso.`
+    );
+    // Limpar o timer após executar
+    delete evaluationDebounceTimers.value[timerKey];
+  }, 5000);
 };
 
 const updateFundamentalFeedback = async (fundamentalId, feedback) => {
