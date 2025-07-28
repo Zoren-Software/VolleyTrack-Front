@@ -6,21 +6,27 @@ mutation scoutFundamentalTrainingEdit(
   $attackTotalA: Int!
   $attackTotalB: Int!
   $attackTotalC: Int!
+  $attackFeedback: String
   $blockTotalA: Int!
   $blockTotalB: Int!
   $blockTotalC: Int!
+  $blockFeedback: String
   $defenseTotalA: Int!
   $defenseTotalB: Int!
   $defenseTotalC: Int!
+  $defenseFeedback: String
   $receptionTotalA: Int!
   $receptionTotalB: Int!
   $receptionTotalC: Int!
+  $receptionFeedback: String
   $serveTotalA: Int!
   $serveTotalB: Int!
   $serveTotalC: Int!
+  $serveFeedback: String
   $setAssistTotalA: Int!
   $setAssistTotalB: Int!
   $setAssistTotalC: Int!
+  $setAssistFeedback: String
 ) {
   scoutFundamentalTrainingEdit(
     id: $id
@@ -30,21 +36,27 @@ mutation scoutFundamentalTrainingEdit(
     attackTotalA: $attackTotalA
     attackTotalB: $attackTotalB
     attackTotalC: $attackTotalC
+    attackFeedback: $attackFeedback
     blockTotalA: $blockTotalA
     blockTotalB: $blockTotalB
     blockTotalC: $blockTotalC
+    blockFeedback: $blockFeedback
     defenseTotalA: $defenseTotalA
     defenseTotalB: $defenseTotalB
     defenseTotalC: $defenseTotalC
+    defenseFeedback: $defenseFeedback
     receptionTotalA: $receptionTotalA
     receptionTotalB: $receptionTotalB
     receptionTotalC: $receptionTotalC
+    receptionFeedback: $receptionFeedback
     serveTotalA: $serveTotalA
     serveTotalB: $serveTotalB
     serveTotalC: $serveTotalC
+    serveFeedback: $serveFeedback
     setAssistTotalA: $setAssistTotalA
     setAssistTotalB: $setAssistTotalB
     setAssistTotalC: $setAssistTotalC
+    setAssistFeedback: $setAssistFeedback
   ) {
     id
     userId
@@ -95,6 +107,7 @@ mutation scoutFundamentalTrainingEdit(
       total_b
       total_c
       total
+      feedback
     }
     scoutsBlock {
       id
@@ -103,6 +116,7 @@ mutation scoutFundamentalTrainingEdit(
       total_b
       total_c
       total
+      feedback
     }
     scoutsDefense {
       id
@@ -111,6 +125,7 @@ mutation scoutFundamentalTrainingEdit(
       total_b
       total_c
       total
+      feedback
     }
     scoutsReception {
       id
@@ -119,6 +134,7 @@ mutation scoutFundamentalTrainingEdit(
       total_b
       total_c
       total
+      feedback
     }
     scoutsServe {
       id
@@ -127,6 +143,7 @@ mutation scoutFundamentalTrainingEdit(
       total_b
       total_c
       total
+      feedback
     }
     scoutsSetAssist {
       id
@@ -135,6 +152,7 @@ mutation scoutFundamentalTrainingEdit(
       total_b
       total_c
       total
+      feedback
     }
     createdAt
     updatedAt

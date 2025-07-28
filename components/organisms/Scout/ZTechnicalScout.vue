@@ -437,21 +437,39 @@ const saveScoutEvaluation = async () => {
       attackTotalA: playerEvaluations.ataque.a,
       attackTotalB: playerEvaluations.ataque.b,
       attackTotalC: playerEvaluations.ataque.c,
+      attackFeedback: String(
+        fundamentalFeedbacks.value[selectedPlayer.value.id]?.ataque || ""
+      ),
       blockTotalA: playerEvaluations.bloqueio.a,
       blockTotalB: playerEvaluations.bloqueio.b,
       blockTotalC: playerEvaluations.bloqueio.c,
+      blockFeedback: String(
+        fundamentalFeedbacks.value[selectedPlayer.value.id]?.bloqueio || ""
+      ),
       defenseTotalA: playerEvaluations.defesa.a,
       defenseTotalB: playerEvaluations.defesa.b,
       defenseTotalC: playerEvaluations.defesa.c,
+      defenseFeedback: String(
+        fundamentalFeedbacks.value[selectedPlayer.value.id]?.defesa || ""
+      ),
       receptionTotalA: playerEvaluations.recepcao.a,
       receptionTotalB: playerEvaluations.recepcao.b,
       receptionTotalC: playerEvaluations.recepcao.c,
+      receptionFeedback: String(
+        fundamentalFeedbacks.value[selectedPlayer.value.id]?.recepcao || ""
+      ),
       serveTotalA: playerEvaluations.saque.a,
       serveTotalB: playerEvaluations.saque.b,
       serveTotalC: playerEvaluations.saque.c,
+      serveFeedback: String(
+        fundamentalFeedbacks.value[selectedPlayer.value.id]?.saque || ""
+      ),
       setAssistTotalA: playerEvaluations.levantamento.a,
       setAssistTotalB: playerEvaluations.levantamento.b,
       setAssistTotalC: playerEvaluations.levantamento.c,
+      setAssistFeedback: String(
+        fundamentalFeedbacks.value[selectedPlayer.value.id]?.levantamento || ""
+      ),
     };
 
     //console.log("Variáveis para mutation:", variables);
