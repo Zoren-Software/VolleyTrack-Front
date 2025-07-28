@@ -88,7 +88,7 @@ import ZFundamentalCard from "~/components/molecules/Cards/ZFundamentalCard.vue"
 import ZEvaluationSummary from "~/components/molecules/Cards/ZEvaluationSummary.vue";
 import ZUser from "~/components/molecules/Selects/Slots/ZUser.vue";
 import TRAINING from "~/graphql/training/query/training.graphql";
-import SCOUTFUNDAMENTALTRAININGEDIT from "~/graphql/team/mutation/scoutFundamentalTrainingEdit.graphql";
+import SCOUTFUNDAMENTALTRAININGEDIT from "~/graphql/training/mutation/scoutFundamentalTrainingEdit.graphql";
 import { showSuccessToast } from "~/utils/sweetAlert2/swalHelper.js";
 
 // Props
@@ -509,7 +509,7 @@ const updateObservations = async () => {
     // Mostrar notificação de sucesso
     showSuccessToast(
       "Observações salvas automaticamente!",
-      "Observações técnicas foram salvas com sucesso."
+      "Observações técnicas gerais foram salvas com sucesso."
     );
     // Limpar o timer após executar
     delete generalFieldsDebounceTimers.value[timerKey];
