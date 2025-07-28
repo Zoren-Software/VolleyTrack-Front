@@ -81,6 +81,8 @@ query training(
       id
       userId
       playerId
+      technicalSpecificObservations
+      feedback
       player {
         id
         name

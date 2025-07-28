@@ -3,6 +3,8 @@ mutation scoutFundamentalTrainingEdit(
   $playerId: Int!
   $trainingId: Int!
   $positionId: Int!
+  $technicalSpecificObservations: String
+  $feedback: String
   $attackTotalA: Int!
   $attackTotalB: Int!
   $attackTotalC: Int!
@@ -33,6 +35,8 @@ mutation scoutFundamentalTrainingEdit(
     playerId: $playerId
     trainingId: $trainingId
     positionId: $positionId
+    technicalSpecificObservations: $technicalSpecificObservations
+    feedback: $feedback
     attackTotalA: $attackTotalA
     attackTotalB: $attackTotalB
     attackTotalC: $attackTotalC
@@ -60,6 +64,8 @@ mutation scoutFundamentalTrainingEdit(
   ) {
     id
     userId
+    technicalSpecificObservations
+    feedback
     user {
       id
       name

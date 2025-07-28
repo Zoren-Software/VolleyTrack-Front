@@ -48,6 +48,7 @@
           placeholder="Digite suas observações técnicas sobre o jogador..."
           :rows="4"
           class="observations-textarea"
+          @input="updateObservations"
         />
       </div>
 
@@ -59,6 +60,7 @@
           placeholder="Digite seu feedback sobre o desempenho do jogador..."
           :rows="4"
           class="feedback-textarea"
+          @input="updateFeedback"
         />
       </div>
 
@@ -80,7 +82,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, onUnmounted } from "vue";
 import ZButton from "~/components/atoms/Buttons/ZButton.vue";
 import ZFundamentalCard from "~/components/molecules/Cards/ZFundamentalCard.vue";
 import ZEvaluationSummary from "~/components/molecules/Cards/ZEvaluationSummary.vue";
@@ -113,6 +115,8 @@ const data = ref({});
 const playerObservations = ref({}); // Armazenar observações por jogador
 const playerFeedback = ref({}); // Armazenar feedback por jogador
 const fundamentalFeedbacks = ref({}); // Armazenar feedbacks dos fundamentais por jogador
+const feedbackDebounceTimers = ref({}); // Timers para debounce dos feedbacks
+const generalFieldsDebounceTimers = ref({}); // Timers para debounce dos campos gerais
 
 const getTraining = (fetchPolicyOptions = {}) => {
   if (!props.trainingId) return;
@@ -181,8 +185,13 @@ const getTraining = (fetchPolicyOptions = {}) => {
 
 // Função para carregar dados de scout salvos
 const loadSavedScoutData = (scoutData) => {
+  console.log("Carregando dados de scout salvos:", scoutData);
   scoutData.forEach((scout) => {
     const playerId = scout.playerId;
+    console.log(`Carregando dados para jogador ${playerId}:`, {
+      technicalSpecificObservations: scout.technicalSpecificObservations,
+      feedback: scout.feedback,
+    });
 
     // Mapear os dados de scout para o formato esperado pelos componentes
     const playerEvaluations = {
@@ -232,15 +241,44 @@ const loadSavedScoutData = (scoutData) => {
       currentScoutId.value = scout.id;
     }
 
-    // Carregar observações salvas (se existirem na API)
-    // TODO: Implementar quando a API suportar observações
-    // playerObservations.value[playerId] = scout.observations || "";
+    // Carregar observações e feedback salvos
+    if (
+      scout.technicalSpecificObservations !== null &&
+      scout.technicalSpecificObservations !== undefined
+    ) {
+      playerObservations.value[playerId] = scout.technicalSpecificObservations;
+    }
+    if (scout.feedback !== null && scout.feedback !== undefined) {
+      playerFeedback.value[playerId] = scout.feedback;
+    }
+
+    // Se o jogador selecionado for o mesmo que está sendo carregado, atualizar os campos
+    if (
+      selectedPlayer.value &&
+      parseInt(selectedPlayer.value.id) === parseInt(playerId)
+    ) {
+      observations.value = playerObservations.value[playerId] || "";
+      feedback.value = playerFeedback.value[playerId] || "";
+    }
   });
 };
 
 // Chamar getTraining quando o componente for montado
 onMounted(() => {
   getTraining({ fetchPolicy: "network-only" });
+});
+
+// Cleanup dos timers quando o componente for desmontado
+onUnmounted(() => {
+  Object.values(feedbackDebounceTimers.value).forEach((timer) => {
+    clearTimeout(timer);
+  });
+  feedbackDebounceTimers.value = {};
+
+  Object.values(generalFieldsDebounceTimers.value).forEach((timer) => {
+    clearTimeout(timer);
+  });
+  generalFieldsDebounceTimers.value = {};
 });
 
 // Dados dos jogadores
@@ -315,6 +353,18 @@ const evaluations = ref({});
 
 // Methods
 const selectPlayer = (player) => {
+  // Limpar todos os timers de debounce antes de trocar de jogador
+  Object.values(feedbackDebounceTimers.value).forEach((timer) => {
+    clearTimeout(timer);
+  });
+  feedbackDebounceTimers.value = {};
+
+  // Limpar todos os timers dos campos gerais
+  Object.values(generalFieldsDebounceTimers.value).forEach((timer) => {
+    clearTimeout(timer);
+  });
+  generalFieldsDebounceTimers.value = {};
+
   // Salvar observações e feedback do jogador anterior
   if (selectedPlayer.value) {
     playerObservations.value[selectedPlayer.value.id] = observations.value;
@@ -329,6 +379,13 @@ const selectPlayer = (player) => {
   // Carregar observações e feedback do jogador selecionado
   observations.value = playerObservations.value[player.id] || "";
   feedback.value = playerFeedback.value[player.id] || "";
+
+  console.log(`Jogador ${player.id} selecionado. Dados carregados:`, {
+    observations: observations.value,
+    feedback: feedback.value,
+    savedObservations: playerObservations.value[player.id],
+    savedFeedback: playerFeedback.value[player.id],
+  });
 
   // Carregar feedbacks dos fundamentais do jogador selecionado
   if (!fundamentalFeedbacks.value[player.id]) {
@@ -376,8 +433,67 @@ const updateFundamentalFeedback = async (fundamentalId, feedback) => {
   }
   fundamentalFeedbacks.value[selectedPlayer.value.id][fundamentalId] = feedback;
 
-  // Salvar automaticamente
-  await saveScoutEvaluation();
+  // Criar chave única para o timer
+  const timerKey = `${selectedPlayer.value.id}-${fundamentalId}`;
+
+  // Limpar timer anterior se existir
+  if (feedbackDebounceTimers.value[timerKey]) {
+    clearTimeout(feedbackDebounceTimers.value[timerKey]);
+  }
+
+  // Criar novo timer com delay de 5 segundos
+  feedbackDebounceTimers.value[timerKey] = setTimeout(async () => {
+    // Salvar automaticamente após o delay
+    await saveScoutEvaluation();
+    // Limpar o timer após executar
+    delete feedbackDebounceTimers.value[timerKey];
+  }, 5000);
+};
+
+const updateObservations = async () => {
+  if (!selectedPlayer.value) return;
+
+  // Salvar observações no estado local
+  playerObservations.value[selectedPlayer.value.id] = observations.value;
+
+  // Criar chave única para o timer
+  const timerKey = `${selectedPlayer.value.id}-observations`;
+
+  // Limpar timer anterior se existir
+  if (generalFieldsDebounceTimers.value[timerKey]) {
+    clearTimeout(generalFieldsDebounceTimers.value[timerKey]);
+  }
+
+  // Criar novo timer com delay de 5 segundos
+  generalFieldsDebounceTimers.value[timerKey] = setTimeout(async () => {
+    // Salvar automaticamente após o delay
+    await saveScoutEvaluation();
+    // Limpar o timer após executar
+    delete generalFieldsDebounceTimers.value[timerKey];
+  }, 5000);
+};
+
+const updateFeedback = async () => {
+  if (!selectedPlayer.value) return;
+
+  // Salvar feedback no estado local
+  playerFeedback.value[selectedPlayer.value.id] = feedback.value;
+
+  // Criar chave única para o timer
+  const timerKey = `${selectedPlayer.value.id}-feedback`;
+
+  // Limpar timer anterior se existir
+  if (generalFieldsDebounceTimers.value[timerKey]) {
+    clearTimeout(generalFieldsDebounceTimers.value[timerKey]);
+  }
+
+  // Criar novo timer com delay de 5 segundos
+  generalFieldsDebounceTimers.value[timerKey] = setTimeout(async () => {
+    // Salvar automaticamente após o delay
+    await saveScoutEvaluation();
+    // Limpar o timer após executar
+    delete generalFieldsDebounceTimers.value[timerKey];
+  }, 5000);
 };
 
 const saveScoutEvaluation = async () => {
@@ -434,6 +550,10 @@ const saveScoutEvaluation = async () => {
       playerId: parseInt(selectedPlayer.value.id),
       trainingId: parseInt(props.trainingId),
       positionId: parseInt(existingScout.player.positions[0]?.id) || 1, // Usar o positionId do jogador
+      technicalSpecificObservations: String(
+        playerObservations.value[selectedPlayer.value.id] || ""
+      ),
+      feedback: String(playerFeedback.value[selectedPlayer.value.id] || ""),
       attackTotalA: playerEvaluations.ataque.a,
       attackTotalB: playerEvaluations.ataque.b,
       attackTotalC: playerEvaluations.ataque.c,
