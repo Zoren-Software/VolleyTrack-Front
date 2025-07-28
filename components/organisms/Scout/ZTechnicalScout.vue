@@ -89,6 +89,7 @@ import ZEvaluationSummary from "~/components/molecules/Cards/ZEvaluationSummary.
 import ZUser from "~/components/molecules/Selects/Slots/ZUser.vue";
 import TRAINING from "~/graphql/training/query/training.graphql";
 import SCOUTFUNDAMENTALTRAININGEDIT from "~/graphql/team/mutation/scoutFundamentalTrainingEdit.graphql";
+import { showSuccessToast } from "~/utils/sweetAlert2/swalHelper.js";
 
 // Props
 const props = defineProps({
@@ -445,6 +446,11 @@ const updateFundamentalFeedback = async (fundamentalId, feedback) => {
   feedbackDebounceTimers.value[timerKey] = setTimeout(async () => {
     // Salvar automaticamente após o delay
     await saveScoutEvaluation();
+    // Mostrar notificação de sucesso
+    showSuccessToast(
+      "Feedback salvo automaticamente!",
+      "Informações do fundamento foram salvas com sucesso."
+    );
     // Limpar o timer após executar
     delete feedbackDebounceTimers.value[timerKey];
   }, 5000);
@@ -468,6 +474,11 @@ const updateObservations = async () => {
   generalFieldsDebounceTimers.value[timerKey] = setTimeout(async () => {
     // Salvar automaticamente após o delay
     await saveScoutEvaluation();
+    // Mostrar notificação de sucesso
+    showSuccessToast(
+      "Observações salvas automaticamente!",
+      "Observações técnicas foram salvas com sucesso."
+    );
     // Limpar o timer após executar
     delete generalFieldsDebounceTimers.value[timerKey];
   }, 5000);
@@ -491,6 +502,11 @@ const updateFeedback = async () => {
   generalFieldsDebounceTimers.value[timerKey] = setTimeout(async () => {
     // Salvar automaticamente após o delay
     await saveScoutEvaluation();
+    // Mostrar notificação de sucesso
+    showSuccessToast(
+      "Feedback salvo automaticamente!",
+      "Feedback geral foi salvo com sucesso."
+    );
     // Limpar o timer após executar
     delete generalFieldsDebounceTimers.value[timerKey];
   }, 5000);

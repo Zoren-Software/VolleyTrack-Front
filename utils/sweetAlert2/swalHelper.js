@@ -131,3 +131,21 @@ export function confirmAskSendEmailNotification(onConfirm, onCancel) {
     onCancel
   );
 }
+
+export function showSuccessToast(title, text) {
+  Swal.fire({
+    icon: "success",
+    title,
+    text,
+    toast: true,
+    position: "bottom-end",
+    showConfirmButton: false,
+    timer: 3000,
+    timerProgressBar: true,
+    background: "#fff",
+    color: "#333",
+    customClass: {
+      popup: "swal2-toast",
+    },
+  });
+}
