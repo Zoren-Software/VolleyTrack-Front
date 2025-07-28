@@ -1,15 +1,24 @@
 <template>
   <va-card class="my-3 mr-3">
     <va-form ref="myForm" class="flex flex-col gap-6 mb-2">
-      <va-stepper v-model="step" :steps="steps" controls-hidden>
-        <template #controls="{ nextStep, prevStep }">
+      <va-stepper v-model="step" :steps="dynamicSteps" controls-hidden>
+        <template #controls="{ prevStep }">
           <va-button color="primary" @click="prevStep()" v-if="prevStepButton"
             >Anterior</va-button
           >
-          <va-button color="primary" @click="nextStep()" v-if="nextStepButton"
+          <va-button
+            color="primary"
+            @click="handleNextStep()"
+            v-if="nextStepButton"
             >Próximo</va-button
           >
           <va-button color="primary" @click="save()">Salvar</va-button>
+          <va-button
+            color="success"
+            @click="saveAndContinue()"
+            v-if="!isTrainingSaved && (step === 2 || step === 3)"
+            >Salvar e Continuar</va-button
+          >
         </template>
         <template #step-content-0>
           <ZTextInput
@@ -235,7 +244,7 @@ export default {
     ZListRelationPlayersWithScouts,
   },
 
-  emits: ["refresh", "update:errors", "update:errorFields"],
+  emits: ["refresh", "update:errors", "update:errorFields", "saveAndContinue"],
 
   data() {
     return {
@@ -273,6 +282,37 @@ export default {
     };
   },
 
+  computed: {
+    // Verifica se o treino está salvo (tem ID)
+    isTrainingSaved() {
+      return this.form.id && this.form.id > 0;
+    },
+
+    // Verifica se pode prosseguir para as etapas 4 e 5
+    canProceedToAdvancedSteps() {
+      return this.isTrainingSaved;
+    },
+
+    // Steps dinâmicos com validação
+    dynamicSteps() {
+      return [
+        { label: "Informações Essenciais" },
+        { label: "Fundamentos Treinados" },
+        { label: "Time" },
+        {
+          label: "Lista de Presença",
+          disabled: !this.isTrainingSaved,
+          tooltip: !this.isTrainingSaved ? "Salve o treino primeiro" : "",
+        },
+        {
+          label: "Jogadores e Scouts",
+          disabled: !this.isTrainingSaved,
+          tooltip: !this.isTrainingSaved ? "Salve o treino primeiro" : "",
+        },
+      ];
+    },
+  },
+
   watch: {
     step(val) {
       if (val === 4) {
@@ -302,6 +342,73 @@ export default {
   },
 
   methods: {
+    // Valida se os campos obrigatórios estão preenchidos
+    validateRequiredFields() {
+      const requiredFields = {
+        name: "Nome do treino",
+        description: "Descrição do treino",
+        dateValue: "Data do treino",
+        timeStartValue: "Horário de início",
+        timeEndValue: "Horário de término",
+      };
+
+      const missingFields = [];
+
+      for (const [field, label] of Object.entries(requiredFields)) {
+        if (
+          !this.form[field] ||
+          (Array.isArray(this.form[field]) && this.form[field].length === 0)
+        ) {
+          missingFields.push(label);
+        }
+      }
+
+      // Validação específica para arrays
+      if (!this.form.teams || this.form.teams.length === 0) {
+        missingFields.push("Time");
+      }
+
+      if (missingFields.length > 0) {
+        confirmError(
+          "Campos obrigatórios não preenchidos!",
+          `Por favor, preencha os seguintes campos antes de salvar: ${missingFields.join(
+            ", "
+          )}`
+        );
+        return false;
+      }
+
+      return true;
+    },
+
+    // Valida se pode prosseguir para as etapas 4 e 5
+    validateAdvancedStepsAccess() {
+      if (!this.canProceedToAdvancedSteps) {
+        confirmError(
+          "Ação não permitida!",
+          "Você precisa salvar as informações básicas do treino antes de acessar as etapas de Lista de Presença e Jogadores/Scouts. Por favor, salve o treino primeiro."
+        );
+        return false;
+      }
+      return true;
+    },
+
+    // Sobrescreve o método de navegação do stepper para adicionar validação
+    handleNextStep() {
+      // Se está tentando ir para as etapas 4 ou 5, valida se o treino está salvo
+      if (this.step === 2 && !this.validateAdvancedStepsAccess()) {
+        return;
+      }
+
+      // Se está na etapa 3 e tentando ir para a 4, também valida
+      if (this.step === 3 && !this.validateAdvancedStepsAccess()) {
+        return;
+      }
+
+      // Se passou pela validação, permite a navegação
+      this.step++;
+    },
+
     handleGraphQLError(error) {
       if (
         error.graphQLErrors &&
@@ -371,13 +478,14 @@ export default {
           error.graphQLErrors[0].extensions &&
           error.graphQLErrors[0].extensions.validation
         ) {
-          this.errors = error.graphQLErrors[0].extensions.validation;
+          const validationErrors = error.graphQLErrors[0].extensions.validation;
+          this.$emit("update:errors", validationErrors);
 
-          const errorMessages = Object.values(this.errors).map((item) => {
+          const errorMessages = Object.values(validationErrors).map((item) => {
             return item[0];
           });
 
-          this.errorFields = Object.keys(this.errors);
+          this.$emit("update:errorFields", Object.keys(validationErrors));
 
           const footer = errorMessages.join("<br>");
 
@@ -419,13 +527,14 @@ export default {
           error.graphQLErrors[0].extensions &&
           error.graphQLErrors[0].extensions.validation
         ) {
-          this.errors = error.graphQLErrors[0].extensions.validation;
+          const validationErrors = error.graphQLErrors[0].extensions.validation;
+          this.$emit("update:errors", validationErrors);
 
-          const errorMessages = Object.values(this.errors).map((item) => {
+          const errorMessages = Object.values(validationErrors).map((item) => {
             return item[0];
           });
 
-          this.errorFields = Object.keys(this.errors);
+          this.$emit("update:errorFields", Object.keys(validationErrors));
 
           const footer = errorMessages.join("<br>");
 
@@ -467,13 +576,14 @@ export default {
           error.graphQLErrors[0].extensions &&
           error.graphQLErrors[0].extensions.validation
         ) {
-          this.errors = error.graphQLErrors[0].extensions.validation;
+          const validationErrors = error.graphQLErrors[0].extensions.validation;
+          this.$emit("update:errors", validationErrors);
 
-          const errorMessages = Object.values(this.errors).map((item) => {
+          const errorMessages = Object.values(validationErrors).map((item) => {
             return item[0];
           });
 
-          this.errorFields = Object.keys(this.errors);
+          this.$emit("update:errorFields", Object.keys(validationErrors));
 
           const footer = errorMessages.join("<br>");
 
@@ -647,7 +757,19 @@ export default {
     },
 
     async save() {
+      if (!this.validateRequiredFields()) {
+        return;
+      }
       this.$emit("save", this.form);
+    },
+
+    async saveAndContinue() {
+      if (!this.validateRequiredFields()) {
+        return;
+      }
+
+      // Emite o evento específico para salvar e continuar
+      this.$emit("saveAndContinue", this.form);
     },
   },
 };

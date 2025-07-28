@@ -2,10 +2,12 @@
   <ZTrainingForm
     :data="data"
     @save="edit"
+    @saveAndContinue="editAndContinue"
     @refresh="getTraining({ fetchPolicy: 'network-only' })"
     :loading="loading"
     :errorFields="errorFields"
     :errors="errors"
+    ref="trainingForm"
   />
 </template>
 
@@ -23,6 +25,22 @@ export default {
   },
   mounted() {
     this.getTraining({ fetchPolicy: "network-only" });
+  },
+
+  watch: {
+    data: {
+      handler(newData) {
+        if (newData && Object.keys(newData).length > 0) {
+          // Verifica se há um parâmetro step na URL para definir a etapa inicial
+          const urlParams = new URLSearchParams(window.location.search);
+          const stepParam = urlParams.get("step");
+          if (stepParam && this.$refs.trainingForm) {
+            this.$refs.trainingForm.step = parseInt(stepParam);
+          }
+        }
+      },
+      immediate: true,
+    },
   },
   data() {
     return {
@@ -133,6 +151,71 @@ export default {
           this.errorFields = Object.keys(this.errors);
 
           // criar um título para essas validacões que seram mostradas
+          const footer = errorMessages.join("<br>");
+
+          confirmError("Ocorreu um erro ao salvar o treino!", footer);
+        } else {
+          confirmError("Ocorreu um erro ao salvar o treino!");
+        }
+      }
+      this.loading = false;
+    },
+
+    async editAndContinue(form) {
+      try {
+        this.loading = true;
+        this.error = false;
+
+        const query = gql`
+          ${TRAININGEDIT}
+        `;
+
+        const dateStart =
+          moment(form.dateValue).format("YYYY-MM-DD") +
+          " " +
+          moment(form.timeStartValue).format("HH:mm:ss");
+        const dateEnd =
+          moment(form.dateValue).format("YYYY-MM-DD") +
+          " " +
+          moment(form.timeEndValue).format("HH:mm:ss");
+
+        const variables = {
+          id: parseInt(form.id),
+          name: form.name,
+          description: form.description,
+          teamId: parseInt(form.teams.map((item) => item.id)[0]),
+          fundamentalId: form.fundamentals.map((item) => item.id),
+          specificFundamentalId: form.fundamentals.map((item) => item.id),
+          dateStart,
+          dateEnd,
+        };
+
+        const { mutate } = await useMutation(query, { variables });
+
+        const { data } = await mutate();
+
+        // Avança para a etapa 4 (Lista de Presença)
+        if (this.$refs.trainingForm) {
+          this.$refs.trainingForm.step = 3;
+        }
+      } catch (error) {
+        console.error(error);
+        this.error = true;
+
+        if (
+          error.graphQLErrors &&
+          error.graphQLErrors[0] &&
+          error.graphQLErrors[0].extensions &&
+          error.graphQLErrors[0].extensions.validation
+        ) {
+          this.errors = error.graphQLErrors[0].extensions.validation;
+
+          const errorMessages = Object.values(this.errors).map((item) => {
+            return item[0];
+          });
+
+          this.errorFields = Object.keys(this.errors);
+
           const footer = errorMessages.join("<br>");
 
           confirmError("Ocorreu um erro ao salvar o treino!", footer);
