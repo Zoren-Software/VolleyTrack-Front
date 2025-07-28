@@ -7,6 +7,7 @@
       <ZTechnicalScout
         @save-evaluation="handleSaveEvaluation"
         :training-id="trainingId"
+        :is-inside-training-form="true"
       />
     </template>
   </ZListRelationGeneric>
@@ -21,6 +22,7 @@ export default {
     ZListRelationGeneric,
     ZTechnicalScout,
   },
+  mounted() {},
   emits: ["add", "delete"],
   props: {
     trainingId: {
@@ -72,6 +74,9 @@ export default {
       this.$emit("delete", item);
     },
     handleSaveEvaluation(evaluationData) {
+      console.log(
+        "DEBUG - ZListRelationPlayersWithScouts: handleSaveEvaluation chamado"
+      );
       console.log("Avaliação salva:", evaluationData);
 
       // Aqui você pode implementar a lógica para salvar no backend

@@ -101,6 +101,10 @@ const props = defineProps({
     type: String,
     required: false,
   },
+  isInsideTrainingForm: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 // Emits
@@ -634,6 +638,7 @@ const saveScoutEvaluation = async () => {
 
     const { data: resultData } = await mutate();
 
+    // Scout salvo com sucesso
     //console.log("Scout salvo com sucesso:", resultData);
   } catch (error) {
     console.error("Erro ao salvar scout:", error);

@@ -131,6 +131,7 @@ export default {
 
         const { data } = await mutate();
 
+        console.log("nem passei aqui");
         // Redireciona para a página de edição com o ID do treino criado e etapa 4
         this.$router.push(`/trainings/edit/${data.trainingCreate.id}?step=3`);
       } catch (error) {

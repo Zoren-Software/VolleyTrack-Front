@@ -1,7 +1,11 @@
 <template>
   <va-card class="my-3 mr-3">
     <va-form ref="myForm" class="flex flex-col gap-6 mb-2">
-      <va-stepper v-model="step" :steps="dynamicSteps" controls-hidden>
+      <va-stepper
+        v-model="controlledStep"
+        :steps="dynamicSteps"
+        controls-hidden
+      >
         <template #controls="{ prevStep }">
           <va-button color="primary" @click="prevStep()" v-if="prevStepButton"
             >Anterior</va-button
@@ -16,8 +20,14 @@
           <va-button
             color="success"
             @click="saveAndContinue()"
-            v-if="!isTrainingSaved && (step === 2 || step === 3)"
+            v-if="!isTrainingSaved && step <= 3"
             >Salvar e Continuar</va-button
+          >
+          <va-button
+            color="success"
+            @click="saveScoutsOnly()"
+            v-if="isTrainingSaved && step >= 4"
+            >Salvar Scouts</va-button
           >
         </template>
         <template #step-content-0>
@@ -244,7 +254,13 @@ export default {
     ZListRelationPlayersWithScouts,
   },
 
-  emits: ["refresh", "update:errors", "update:errorFields", "saveAndContinue"],
+  emits: [
+    "refresh",
+    "update:errors",
+    "update:errorFields",
+    "saveAndContinue",
+    "saveScouts",
+  ],
 
   data() {
     return {
@@ -252,7 +268,7 @@ export default {
       user: localStorage.getItem("user")
         ? JSON.parse(localStorage.getItem("user"))
         : null,
-      step: 0,
+      internalStep: 0, // Propriedade interna controlada
       nextStepButton: true,
       prevStepButton: false,
       yearView: { type: "year" },
@@ -293,6 +309,66 @@ export default {
       return this.isTrainingSaved;
     },
 
+    // Computed property para controlar o step de forma segura
+    controlledStep: {
+      get() {
+        return this.internalStep;
+      },
+      set(newStep) {
+        console.log(
+          "DEBUG - controlledStep: Tentativa de mudança para",
+          newStep,
+          "atual:",
+          this.internalStep
+        );
+
+        // BLOQUEIO AGESSIVO: Se estiver nas etapas avançadas (4-5) e tentar ir para etapa 0 ou 3, bloquear
+        if (this.internalStep >= 4 && (newStep === 0 || newStep === 3)) {
+          console.log(
+            "DEBUG - controlledStep: BLOQUEANDO mudança de",
+            this.internalStep,
+            "para",
+            newStep
+          );
+          return; // Não permite a mudança
+        }
+
+        // Se for uma mudança válida, permitir
+        console.log("DEBUG - controlledStep: Permitindo mudança para", newStep);
+        this.internalStep = newStep;
+      },
+    },
+
+    // Computed property para acessar o step de forma controlada
+    step: {
+      get() {
+        return this.internalStep;
+      },
+      set(newStep) {
+        console.log(
+          "DEBUG - step setter: Tentativa de mudança para",
+          newStep,
+          "atual:",
+          this.internalStep
+        );
+
+        // BLOQUEIO AGESSIVO: Se estiver nas etapas avançadas (4-5) e tentar ir para etapa 0 ou 3, bloquear
+        if (this.internalStep >= 4 && (newStep === 0 || newStep === 3)) {
+          console.log(
+            "DEBUG - step setter: BLOQUEANDO mudança de",
+            this.internalStep,
+            "para",
+            newStep
+          );
+          return; // Não permite a mudança
+        }
+
+        // Se for uma mudança válida, permitir
+        console.log("DEBUG - step setter: Permitindo mudança para", newStep);
+        this.internalStep = newStep;
+      },
+    },
+
     // Steps dinâmicos com validação
     dynamicSteps() {
       return [
@@ -314,25 +390,61 @@ export default {
   },
 
   watch: {
-    step(val) {
-      if (val === 4) {
-        this.nextStepButton = false;
-      } else {
-        this.nextStepButton = true;
-      }
+    internalStep: {
+      handler(val, oldVal) {
+        if (val !== oldVal) {
+          // BLOQUEIO AGESSIVO: Se estiver nas etapas avançadas e tentar ir para 0 ou 3, FORÇA voltar
+          if (oldVal >= 4 && (val === 0 || val === 3)) {
+            this.$nextTick(() => {
+              this.internalStep = oldVal;
+            });
+            return;
+          }
+        }
 
-      if (val === 0) {
-        this.prevStepButton = false;
-      } else {
-        this.prevStepButton = true;
-      }
+        if (val === 4) {
+          this.nextStepButton = false;
+        } else {
+          this.nextStepButton = true;
+        }
+
+        if (val === 0) {
+          this.prevStepButton = false;
+        } else {
+          this.prevStepButton = true;
+        }
+      },
+      immediate: true,
     },
     data(val) {
+      const currentStep = this.internalStep;
+
+      // Preservar o step ANTES de atualizar o form
+      const stepToPreserve = currentStep;
+
       this.form = {
         ...val,
         players: val.players || [],
         scouts: val.scouts || [],
       };
+
+      // PRESERVAÇÃO AGESSIVA: Múltiplas tentativas de preservar o step
+      const preserveStep = () => {
+        if (this.internalStep !== stepToPreserve) {
+          this.internalStep = stepToPreserve;
+        }
+      };
+
+      // Tentativa imediata
+      preserveStep();
+
+      // Tentativa no nextTick
+      this.$nextTick(preserveStep);
+
+      // Tentativa com setTimeout (última chance)
+      setTimeout(preserveStep, 0);
+      setTimeout(preserveStep, 10);
+      setTimeout(preserveStep, 50);
     },
     "data.team": function (newVal) {
       if (newVal) {
@@ -768,8 +880,20 @@ export default {
         return;
       }
 
-      // Emite o evento específico para salvar e continuar
-      this.$emit("saveAndContinue", this.form);
+      // Só emite o evento saveAndContinue se estiver nas etapas iniciais (0-3)
+      // Para evitar redirecionamentos quando estiver salvando scouts na etapa 4-5
+      if (this.step <= 3) {
+        this.$emit("saveAndContinue", this.form);
+      } else {
+        // Se estiver nas etapas 4-5, usa o método específico para scouts
+        this.$emit("saveScouts", this.form);
+      }
+    },
+
+    // Método específico para salvar scouts sem redirecionamento
+    async saveScoutsOnly() {
+      // Emite evento específico para salvar scouts sem redirecionamento
+      this.$emit("saveScouts", this.form);
     },
   },
 };
