@@ -322,17 +322,6 @@ export default {
           this.internalStep
         );
 
-        // BLOQUEIO AGESSIVO: Se estiver nas etapas avançadas (4-5) e tentar ir para etapa 0 ou 3, bloquear
-        if (this.internalStep >= 4 && (newStep === 0 || newStep === 3)) {
-          console.log(
-            "DEBUG - controlledStep: BLOQUEANDO mudança de",
-            this.internalStep,
-            "para",
-            newStep
-          );
-          return; // Não permite a mudança
-        }
-
         // Se for uma mudança válida, permitir
         console.log("DEBUG - controlledStep: Permitindo mudança para", newStep);
         this.internalStep = newStep;
@@ -351,17 +340,6 @@ export default {
           "atual:",
           this.internalStep
         );
-
-        // BLOQUEIO AGESSIVO: Se estiver nas etapas avançadas (4-5) e tentar ir para etapa 0 ou 3, bloquear
-        if (this.internalStep >= 4 && (newStep === 0 || newStep === 3)) {
-          console.log(
-            "DEBUG - step setter: BLOQUEANDO mudança de",
-            this.internalStep,
-            "para",
-            newStep
-          );
-          return; // Não permite a mudança
-        }
 
         // Se for uma mudança válida, permitir
         console.log("DEBUG - step setter: Permitindo mudança para", newStep);
@@ -393,13 +371,12 @@ export default {
     internalStep: {
       handler(val, oldVal) {
         if (val !== oldVal) {
-          // BLOQUEIO AGESSIVO: Se estiver nas etapas avançadas e tentar ir para 0 ou 3, FORÇA voltar
-          if (oldVal >= 4 && (val === 0 || val === 3)) {
-            this.$nextTick(() => {
-              this.internalStep = oldVal;
-            });
-            return;
-          }
+          console.log(
+            "DEBUG - internalStep watcher: Mudou de",
+            oldVal,
+            "para",
+            val
+          );
         }
 
         if (val === 4) {
@@ -418,6 +395,10 @@ export default {
     },
     data(val) {
       const currentStep = this.internalStep;
+      console.log(
+        "DEBUG - data watcher: Step atual antes da atualização:",
+        currentStep
+      );
 
       // Preservar o step ANTES de atualizar o form
       const stepToPreserve = currentStep;
@@ -428,9 +409,20 @@ export default {
         scouts: val.scouts || [],
       };
 
+      console.log(
+        "DEBUG - data watcher: Step após atualização do form:",
+        this.internalStep
+      );
+
       // PRESERVAÇÃO AGESSIVA: Múltiplas tentativas de preservar o step
       const preserveStep = () => {
         if (this.internalStep !== stepToPreserve) {
+          console.log(
+            "DEBUG - data watcher: Corrigindo step de",
+            this.internalStep,
+            "para",
+            stepToPreserve
+          );
           this.internalStep = stepToPreserve;
         }
       };
