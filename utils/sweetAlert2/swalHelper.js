@@ -78,32 +78,25 @@ export function confirmSuccess(title, onConfirm) {
 }
 
 export function confirmError(text, footer) {
-  if (!Array.isArray(footer)) {
-    confirmAction({
-      icon: "error",
-      title: "Erro!",
-      text,
-      showConfirmButton: true,
-      confirmButtonColor: "#154EC1",
-      footer: `<ul style="text-align: center; color: red; list-style-position: inside; margin: 0; padding: 0;">${footer}</ul>`,
-    });
-  }
-
-  let footerHtml = ''
+  let footerHtml = '';
 
   if (footer) {
-    const listItems = footer.map(item => {
-      if (Array.isArray(item)) {
-        const subListItems = item.map(subItem => `<li style="margin-bottom: 5px;">${subItem}</li>`).join(""); // Adiciona .join("") aqui
-        const subListHtml = `<ul style="text-align: center; color: red; list-style-position: inside; margin: 0; padding: 0;">${subListItems}</ul>`;
-        return subListHtml;
-      } else {
-        return `<li style="margin-bottom: 5px;">${item}</li>`;
-      }
+    if (Array.isArray(footer)) {
+      const listItems = footer.map(item => {
+        if (Array.isArray(item)) {
+          const subListItems = item.map(subItem => `<li style="margin-bottom: 5px;">${subItem}</li>`).join("");
+          const subListHtml = `<ul style="text-align: center; color: red; list-style-position: inside; margin: 0; padding: 0;">${subListItems}</ul>`;
+          return subListHtml;
+        } else {
+          return `<li style="margin-bottom: 5px;">${item}</li>`;
+        }
       }).join("");
       footerHtml = `<ul style="text-align: center; color: red; list-style-position: inside; margin: 0; padding: 0;">${listItems}</ul>`;
-  } 
-
+    } else {
+      // Se footer não é um array, trata como string
+      footerHtml = `<ul style="text-align: center; color: red; list-style-position: inside; margin: 0; padding: 0;"><li style="margin-bottom: 5px;">${footer}</li></ul>`;
+    }
+  }
 
   confirmAction({
     icon: "error",

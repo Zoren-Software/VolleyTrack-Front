@@ -352,28 +352,36 @@ export default {
   },
 
   mounted() {
-    // Ler a etapa da URL quando o componente for montado
-    this.readStepFromURL();
+    try {
+      // Ler a etapa da URL quando o componente for montado
+      this.readStepFromURL();
+    } catch (error) {
+      console.error("Erro no mounted:", error);
+    }
   },
 
   watch: {
     internalStep: {
       handler(val, oldVal) {
-        if (val !== oldVal) {
-          // Atualizar a URL com a etapa atual
-          this.updateURLWithStep(val);
-        }
+        try {
+          if (val !== oldVal) {
+            // Atualizar a URL com a etapa atual
+            this.updateURLWithStep(val);
+          }
 
-        if (val === 4) {
-          this.nextStepButton = false;
-        } else {
-          this.nextStepButton = true;
-        }
+          if (val === 4) {
+            this.nextStepButton = false;
+          } else {
+            this.nextStepButton = true;
+          }
 
-        if (val === 0) {
-          this.prevStepButton = false;
-        } else {
-          this.prevStepButton = true;
+          if (val === 0) {
+            this.prevStepButton = false;
+          } else {
+            this.prevStepButton = true;
+          }
+        } catch (error) {
+          console.error("Erro no watcher internalStep:", error);
         }
       },
       immediate: true,
@@ -860,23 +868,31 @@ export default {
 
     // Atualiza a URL com a etapa atual
     updateURLWithStep(step) {
-      const currentUrl = new URL(window.location.href);
-      currentUrl.searchParams.set("step", step.toString());
+      try {
+        const currentUrl = new URL(window.location.href);
+        currentUrl.searchParams.set("step", step.toString());
 
-      // Atualizar a URL sem recarregar a página
-      window.history.replaceState({}, "", currentUrl.toString());
+        // Atualizar a URL sem recarregar a página
+        window.history.replaceState({}, "", currentUrl.toString());
+      } catch (error) {
+        console.error("Erro ao atualizar URL:", error);
+      }
     },
 
     // Lê a etapa da URL e define o step inicial
     readStepFromURL() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const stepParam = urlParams.get("step");
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const stepParam = urlParams.get("step");
 
-      if (stepParam !== null) {
-        const step = parseInt(stepParam);
-        if (step >= 0 && step <= 4) {
-          this.internalStep = step;
+        if (stepParam !== null) {
+          const step = parseInt(stepParam);
+          if (step >= 0 && step <= 4) {
+            this.internalStep = step;
+          }
         }
+      } catch (error) {
+        console.error("Erro ao ler step da URL:", error);
       }
     },
   },
