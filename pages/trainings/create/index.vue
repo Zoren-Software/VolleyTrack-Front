@@ -1,5 +1,6 @@
 <template>
   <ZTrainingForm
+    ref="trainingForm"
     @save="create"
     @saveAndContinue="createAndContinue"
     :loading="loading"

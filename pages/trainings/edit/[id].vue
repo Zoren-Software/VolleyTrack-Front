@@ -31,14 +31,7 @@ export default {
   watch: {
     data: {
       handler(newData) {
-        if (newData && Object.keys(newData).length > 0) {
-          // Verifica se há um parâmetro step na URL para definir a etapa inicial
-          const urlParams = new URLSearchParams(window.location.search);
-          const stepParam = urlParams.get("step");
-          if (stepParam && this.$refs.trainingForm) {
-            this.$refs.trainingForm.step = parseInt(stepParam);
-          }
-        }
+        // O ZTrainingForm agora lê automaticamente a etapa da URL
       },
       immediate: true,
     },

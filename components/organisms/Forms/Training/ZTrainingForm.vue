@@ -315,15 +315,7 @@ export default {
         return this.internalStep;
       },
       set(newStep) {
-        console.log(
-          "DEBUG - controlledStep: Tentativa de mudança para",
-          newStep,
-          "atual:",
-          this.internalStep
-        );
-
         // Se for uma mudança válida, permitir
-        console.log("DEBUG - controlledStep: Permitindo mudança para", newStep);
         this.internalStep = newStep;
       },
     },
@@ -334,15 +326,7 @@ export default {
         return this.internalStep;
       },
       set(newStep) {
-        console.log(
-          "DEBUG - step setter: Tentativa de mudança para",
-          newStep,
-          "atual:",
-          this.internalStep
-        );
-
         // Se for uma mudança válida, permitir
-        console.log("DEBUG - step setter: Permitindo mudança para", newStep);
         this.internalStep = newStep;
       },
     },
@@ -367,16 +351,17 @@ export default {
     },
   },
 
+  mounted() {
+    // Ler a etapa da URL quando o componente for montado
+    this.readStepFromURL();
+  },
+
   watch: {
     internalStep: {
       handler(val, oldVal) {
         if (val !== oldVal) {
-          console.log(
-            "DEBUG - internalStep watcher: Mudou de",
-            oldVal,
-            "para",
-            val
-          );
+          // Atualizar a URL com a etapa atual
+          this.updateURLWithStep(val);
         }
 
         if (val === 4) {
@@ -395,10 +380,6 @@ export default {
     },
     data(val) {
       const currentStep = this.internalStep;
-      console.log(
-        "DEBUG - data watcher: Step atual antes da atualização:",
-        currentStep
-      );
 
       // Preservar o step ANTES de atualizar o form
       const stepToPreserve = currentStep;
@@ -409,20 +390,9 @@ export default {
         scouts: val.scouts || [],
       };
 
-      console.log(
-        "DEBUG - data watcher: Step após atualização do form:",
-        this.internalStep
-      );
-
       // PRESERVAÇÃO AGESSIVA: Múltiplas tentativas de preservar o step
       const preserveStep = () => {
         if (this.internalStep !== stepToPreserve) {
-          console.log(
-            "DEBUG - data watcher: Corrigindo step de",
-            this.internalStep,
-            "para",
-            stepToPreserve
-          );
           this.internalStep = stepToPreserve;
         }
       };
@@ -886,6 +856,28 @@ export default {
     async saveScoutsOnly() {
       // Emite evento específico para salvar scouts sem redirecionamento
       this.$emit("saveScouts", this.form);
+    },
+
+    // Atualiza a URL com a etapa atual
+    updateURLWithStep(step) {
+      const currentUrl = new URL(window.location.href);
+      currentUrl.searchParams.set("step", step.toString());
+
+      // Atualizar a URL sem recarregar a página
+      window.history.replaceState({}, "", currentUrl.toString());
+    },
+
+    // Lê a etapa da URL e define o step inicial
+    readStepFromURL() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const stepParam = urlParams.get("step");
+
+      if (stepParam !== null) {
+        const step = parseInt(stepParam);
+        if (step >= 0 && step <= 4) {
+          this.internalStep = step;
+        }
+      }
     },
   },
 };
