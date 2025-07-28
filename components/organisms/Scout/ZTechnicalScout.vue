@@ -187,13 +187,8 @@ const getTraining = (fetchPolicyOptions = {}) => {
 
 // Função para carregar dados de scout salvos
 const loadSavedScoutData = (scoutData) => {
-  console.log("Carregando dados de scout salvos:", scoutData);
   scoutData.forEach((scout) => {
     const playerId = scout.playerId;
-    console.log(`Carregando dados para jogador ${playerId}:`, {
-      technicalSpecificObservations: scout.technicalSpecificObservations,
-      feedback: scout.feedback,
-    });
 
     // Mapear os dados de scout para o formato esperado pelos componentes
     const playerEvaluations = {
@@ -392,13 +387,6 @@ const selectPlayer = (player) => {
   // Carregar observações e feedback do jogador selecionado
   observations.value = playerObservations.value[player.id] || "";
   feedback.value = playerFeedback.value[player.id] || "";
-
-  console.log(`Jogador ${player.id} selecionado. Dados carregados:`, {
-    observations: observations.value,
-    feedback: feedback.value,
-    savedObservations: playerObservations.value[player.id],
-    savedFeedback: playerFeedback.value[player.id],
-  });
 
   // Carregar feedbacks dos fundamentais do jogador selecionado
   if (!fundamentalFeedbacks.value[player.id]) {
