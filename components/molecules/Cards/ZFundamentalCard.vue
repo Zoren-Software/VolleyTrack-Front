@@ -105,7 +105,7 @@
       <div class="feedback-section">
         <va-textarea
           v-model="fundamentalFeedback"
-          placeholder="Feedback específico para este fundamental..."
+          placeholder="Feedback específico para este fundamento..."
           :rows="2"
           class="feedback-textarea"
           @input="updateFeedback"
