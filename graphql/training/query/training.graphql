@@ -77,6 +77,61 @@ query training(
       presencePercentage
       absencePercentage
     }
+    scoutFundamentalsTraining {
+      id
+      userId
+      playerId
+      technicalSpecificObservations
+      feedback
+      player {
+        id
+        name
+        email
+        userId
+        
+        positions {
+          id
+          name
+          createdAt
+          updatedAt
+        }
+        emailVerifiedAt
+        createdAt
+        updatedAt
+      }
+      scoutsAttack {
+        total_a
+        total_b
+        total_c
+      }
+      scoutsBlock {
+        total_a
+        total_b
+        total_c
+      }
+      scoutsDefense {
+        total_a
+        total_b
+        total_c
+      }
+      scoutsReception {
+        total_a
+        total_b
+        total_c
+      }
+      scoutsServe {
+        total_a
+        total_b
+        total_c
+      }
+      scoutsSetAssist {
+        total_a
+        total_b
+        total_c
+      }
+      createdAt
+      updatedAt
+    }
     status
     dateStart
     dateEnd

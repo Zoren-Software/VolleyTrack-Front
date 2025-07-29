@@ -2,10 +2,13 @@
   <ZTrainingForm
     :data="data"
     @save="edit"
+    @saveAndContinue="editAndContinue"
+    @saveScouts="editScouts"
     @refresh="getTraining({ fetchPolicy: 'network-only' })"
     :loading="loading"
     :errorFields="errorFields"
     :errors="errors"
+    ref="trainingForm"
   />
 </template>
 
@@ -23,6 +26,15 @@ export default {
   },
   mounted() {
     this.getTraining({ fetchPolicy: "network-only" });
+  },
+
+  watch: {
+    data: {
+      handler(newData) {
+        // O ZTrainingForm agora lê automaticamente a etapa da URL
+      },
+      immediate: true,
+    },
   },
   data() {
     return {
@@ -109,11 +121,28 @@ export default {
 
         const { data } = await mutate();
 
-        confirmSuccess("Treino salvo com sucesso!", () => {
-          this.errors = this.errorsDefault();
+        // Verifica a etapa atual para decidir se redireciona
+        const currentStep = this.$refs.trainingForm
+          ? this.$refs.trainingForm.step
+          : 0;
 
-          this.$router.push("/trainings");
-        });
+        // Só redireciona se estiver nas etapas iniciais (0-3)
+        if (currentStep <= 3) {
+          confirmSuccess("Treino salvo com sucesso!", () => {
+            this.errors = this.errorsDefault();
+            this.$router.push("/trainings");
+          });
+        } else if (currentStep >= 4) {
+          // Se estiver salvando scouts (etapas 4-5), apenas mostra sucesso sem redirecionar
+          confirmSuccess("Scouts salvos com sucesso!");
+          this.errors = this.errorsDefault();
+          // IMPORTANTE: Não redireciona, mantém na página atual
+          // Não chama this.$router.push() aqui
+        } else {
+          // Fallback para etapas desconhecidas
+          confirmSuccess("Dados salvos com sucesso!");
+          this.errors = this.errorsDefault();
+        }
       } catch (error) {
         console.error(error);
         this.error = true;
@@ -138,6 +167,142 @@ export default {
           confirmError("Ocorreu um erro ao salvar o treino!", footer);
         } else {
           confirmError("Ocorreu um erro ao salvar o treino!");
+        }
+      }
+      this.loading = false;
+    },
+
+    async editAndContinue(form) {
+      try {
+        this.loading = true;
+        this.error = false;
+
+        const query = gql`
+          ${TRAININGEDIT}
+        `;
+
+        const dateStart =
+          moment(form.dateValue).format("YYYY-MM-DD") +
+          " " +
+          moment(form.timeStartValue).format("HH:mm:ss");
+        const dateEnd =
+          moment(form.dateValue).format("YYYY-MM-DD") +
+          " " +
+          moment(form.timeEndValue).format("HH:mm:ss");
+
+        const variables = {
+          id: parseInt(form.id),
+          name: form.name,
+          description: form.description,
+          teamId: parseInt(form.teams.map((item) => item.id)[0]),
+          fundamentalId: form.fundamentals.map((item) => item.id),
+          specificFundamentalId: form.fundamentals.map((item) => item.id),
+          dateStart,
+          dateEnd,
+        };
+
+        const { mutate } = await useMutation(query, { variables });
+
+        const { data } = await mutate();
+
+        // Só avança para a etapa 4 se estiver nas etapas iniciais (0-3)
+        // E se não estiver salvando scouts (etapas 4-5)
+        if (this.$refs.trainingForm && this.$refs.trainingForm.step <= 3) {
+          this.$refs.trainingForm.step = 4; // Vai para a etapa 4 (Lista de Presença)
+        } else if (
+          this.$refs.trainingForm &&
+          this.$refs.trainingForm.step >= 4
+        ) {
+          // Não altera o step quando está salvando scouts
+        }
+      } catch (error) {
+        console.error(error);
+        this.error = true;
+
+        if (
+          error.graphQLErrors &&
+          error.graphQLErrors[0] &&
+          error.graphQLErrors[0].extensions &&
+          error.graphQLErrors[0].extensions.validation
+        ) {
+          this.errors = error.graphQLErrors[0].extensions.validation;
+
+          const errorMessages = Object.values(this.errors).map((item) => {
+            return item[0];
+          });
+
+          this.errorFields = Object.keys(this.errors);
+
+          const footer = errorMessages.join("<br>");
+
+          confirmError("Ocorreu um erro ao salvar o treino!", footer);
+        } else {
+          confirmError("Ocorreu um erro ao salvar o treino!");
+        }
+      }
+      this.loading = false;
+    },
+
+    async editScouts(form) {
+      try {
+        this.loading = true;
+        this.error = false;
+
+        const query = gql`
+          ${TRAININGEDIT}
+        `;
+
+        const dateStart =
+          moment(form.dateValue).format("YYYY-MM-DD") +
+          " " +
+          moment(form.timeStartValue).format("HH:mm:ss");
+        const dateEnd =
+          moment(form.dateValue).format("YYYY-MM-DD") +
+          " " +
+          moment(form.timeEndValue).format("HH:mm:ss");
+
+        const variables = {
+          id: parseInt(form.id),
+          name: form.name,
+          description: form.description,
+          teamId: parseInt(form.teams.map((item) => item.id)[0]),
+          fundamentalId: form.fundamentals.map((item) => item.id),
+          specificFundamentalId: form.fundamentals.map((item) => item.id),
+          dateStart,
+          dateEnd,
+        };
+
+        const { mutate } = await useMutation(query, { variables });
+
+        const { data } = await mutate();
+
+        // Para scouts, apenas mostra sucesso sem redirecionar
+        confirmSuccess("Scouts salvos com sucesso!");
+        this.errors = this.errorsDefault();
+        // IMPORTANTE: Não redireciona, mantém na página atual
+      } catch (error) {
+        console.error(error);
+        this.error = true;
+
+        if (
+          error.graphQLErrors &&
+          error.graphQLErrors[0] &&
+          error.graphQLErrors[0].extensions &&
+          error.graphQLErrors[0].extensions.validation
+        ) {
+          this.errors = error.graphQLErrors[0].extensions.validation;
+
+          const errorMessages = Object.values(this.errors).map((item) => {
+            return item[0];
+          });
+
+          this.errorFields = Object.keys(this.errors);
+
+          const footer = errorMessages.join("<br>");
+
+          confirmError("Ocorreu um erro ao salvar os scouts!", footer);
+        } else {
+          confirmError("Ocorreu um erro ao salvar os scouts!");
         }
       }
       this.loading = false;
