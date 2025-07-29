@@ -30,14 +30,7 @@
 </template>
 
 <script>
-import ZBadge from "~/components/atoms/Badges/ZBadge";
-import ZButton from "~/components/atoms/Buttons/ZButton";
-
 export default {
-  components: {
-    ZBadge,
-    ZButton,
-  },
   props: {
     data: {
       type: Object,
@@ -48,16 +41,17 @@ export default {
       required: true,
     },
   },
-  data() {
-    return {
-      metricsConfirmationTraining:
-        this.metrics.confirmedPercentage + this.metrics.rejectedPercentage,
-      metricsConfirmationPresence: this.metrics.presencePercentage,
-    };
-  },
   methods: {
     isBeforeTrainingDate() {
       return new Date(this.data.dateStart) > new Date();
+    },
+  },
+  computed: {
+    metricsConfirmationTraining() {
+      return this.metrics.confirmedPercentage + this.metrics.rejectedPercentage;
+    },
+    metricsConfirmationPresence() {
+      return this.metrics.presencePercentage;
     },
   },
 };

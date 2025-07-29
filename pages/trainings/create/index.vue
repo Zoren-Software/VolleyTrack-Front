@@ -1,6 +1,8 @@
 <template>
   <ZTrainingForm
+    ref="trainingForm"
     @save="create"
+    @saveAndContinue="createAndContinue"
     :loading="loading"
     :errorFields="errorFields"
     :errors="errors"
@@ -89,6 +91,68 @@ export default {
           this.errorFields = Object.keys(this.errors);
 
           // criar um título para essas validacões que seram mostradas
+          const footer = errorMessages.join("<br>");
+
+          confirmError("Ocorreu um erro ao salvar o treino!", footer);
+        } else {
+          confirmError("Ocorreu um erro ao salvar o treino!");
+        }
+      }
+      this.loading = false;
+    },
+
+    async createAndContinue(form) {
+      try {
+        this.loading = true;
+        this.error = false;
+
+        const query = gql`
+          ${TRAININGCREATE}
+        `;
+
+        // Converter a data para o formato YYYY-MM-DD antes de usar moment
+        const dateValue = new Date(form.dateValue).toISOString().split("T")[0];
+        const dateStart =
+          dateValue + " " + moment(form.timeStartValue).format("HH:mm:ss");
+
+        const dateEnd =
+          dateValue + " " + moment(form.timeEndValue).format("HH:mm:ss");
+
+        const variables = {
+          name: form.name,
+          description: form.description,
+          teamId: parseInt(form.teams.map((item) => item.id)[0]),
+          fundamentalId: form.fundamentals.map((item) => item.id),
+          specificFundamentalId: form.fundamentals.map((item) => item.id),
+          dateStart,
+          dateEnd,
+        };
+
+        const { mutate } = await useMutation(query, { variables });
+
+        const { data } = await mutate();
+
+        console.log("nem passei aqui");
+        // Redireciona para a página de edição com o ID do treino criado e etapa 4
+        this.$router.push(`/trainings/edit/${data.trainingCreate.id}?step=3`);
+      } catch (error) {
+        console.error(error);
+        this.error = true;
+
+        if (
+          error.graphQLErrors &&
+          error.graphQLErrors[0] &&
+          error.graphQLErrors[0].extensions &&
+          error.graphQLErrors[0].extensions.validation
+        ) {
+          this.errors = error.graphQLErrors[0].extensions.validation;
+
+          const errorMessages = Object.values(this.errors).map((item) => {
+            return item[0];
+          });
+
+          this.errorFields = Object.keys(this.errors);
+
           const footer = errorMessages.join("<br>");
 
           confirmError("Ocorreu um erro ao salvar o treino!", footer);

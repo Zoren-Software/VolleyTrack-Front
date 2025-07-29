@@ -32,13 +32,11 @@
 <script>
 import ZListRelationGeneric from "~/components/molecules/List/ZListRelationGeneric";
 import ZDatatableGeneric from "~/components/molecules/Datatable/ZDatatableGeneric";
-import ZPosition from "~/components/molecules/Datatable/Slots/ZPosition";
 
 export default {
   components: {
     ZListRelationGeneric,
     ZDatatableGeneric,
-    ZPosition,
   },
   emits: ["add", "delete"],
   props: {

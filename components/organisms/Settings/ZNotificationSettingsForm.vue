@@ -72,8 +72,6 @@ export default {
   },
   methods: {
     getNotificationSettings() {
-      console.log("getNotificationSettings");
-
       const query = gql`
         ${NOTIFICATIONSETTINGS}
       `;
