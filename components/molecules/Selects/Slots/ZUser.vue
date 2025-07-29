@@ -14,6 +14,15 @@
               ><b>{{ data.name }}</b></span
             >
           </div>
+          <div v-if="data.position" class="flex items-center">
+            <va-icon
+              size="small"
+              name="trip_origin"
+              color="secondary"
+              class="mr-2"
+            />
+            <span>{{ data.position }}</span>
+          </div>
           <div v-if="data.information?.phone" class="flex items-center">
             <va-icon size="small" name="phone" color="secondary" class="mr-2" />
             <span>{{ formattedPhone }}</span>

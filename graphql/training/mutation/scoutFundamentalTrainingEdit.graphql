@@ -1,0 +1,166 @@
+mutation scoutFundamentalTrainingEdit(
+  $id: ID!
+  $playerId: Int!
+  $trainingId: Int!
+  $positionId: Int!
+  $technicalSpecificObservations: String
+  $feedback: String
+  $attackTotalA: Int!
+  $attackTotalB: Int!
+  $attackTotalC: Int!
+  $attackFeedback: String
+  $blockTotalA: Int!
+  $blockTotalB: Int!
+  $blockTotalC: Int!
+  $blockFeedback: String
+  $defenseTotalA: Int!
+  $defenseTotalB: Int!
+  $defenseTotalC: Int!
+  $defenseFeedback: String
+  $receptionTotalA: Int!
+  $receptionTotalB: Int!
+  $receptionTotalC: Int!
+  $receptionFeedback: String
+  $serveTotalA: Int!
+  $serveTotalB: Int!
+  $serveTotalC: Int!
+  $serveFeedback: String
+  $setAssistTotalA: Int!
+  $setAssistTotalB: Int!
+  $setAssistTotalC: Int!
+  $setAssistFeedback: String
+) {
+  scoutFundamentalTrainingEdit(
+    id: $id
+    playerId: $playerId
+    trainingId: $trainingId
+    positionId: $positionId
+    technicalSpecificObservations: $technicalSpecificObservations
+    feedback: $feedback
+    attackTotalA: $attackTotalA
+    attackTotalB: $attackTotalB
+    attackTotalC: $attackTotalC
+    attackFeedback: $attackFeedback
+    blockTotalA: $blockTotalA
+    blockTotalB: $blockTotalB
+    blockTotalC: $blockTotalC
+    blockFeedback: $blockFeedback
+    defenseTotalA: $defenseTotalA
+    defenseTotalB: $defenseTotalB
+    defenseTotalC: $defenseTotalC
+    defenseFeedback: $defenseFeedback
+    receptionTotalA: $receptionTotalA
+    receptionTotalB: $receptionTotalB
+    receptionTotalC: $receptionTotalC
+    receptionFeedback: $receptionFeedback
+    serveTotalA: $serveTotalA
+    serveTotalB: $serveTotalB
+    serveTotalC: $serveTotalC
+    serveFeedback: $serveFeedback
+    setAssistTotalA: $setAssistTotalA
+    setAssistTotalB: $setAssistTotalB
+    setAssistTotalC: $setAssistTotalC
+    setAssistFeedback: $setAssistFeedback
+  ) {
+    id
+    userId
+    technicalSpecificObservations
+    feedback
+    user {
+      id
+      name
+      email
+      userId
+      emailVerifiedAt
+      createdAt
+      updatedAt
+    }
+    playerId
+    player {
+      id
+      name
+      email
+      userId
+      emailVerifiedAt
+      createdAt
+      updatedAt
+    }
+    trainingId
+    training {
+      id
+      name
+      userId
+      teamId
+      status
+      dateStart
+      dateEnd
+      description
+      createdAt
+      updatedAt
+    }
+    positionId
+    position {
+      id
+      name
+      userId
+      createdAt
+      updatedAt
+    }
+    scoutsAttack {
+      id
+      scoutFundamentalTrainingId
+      total_a
+      total_b
+      total_c
+      total
+      feedback
+    }
+    scoutsBlock {
+      id
+      scoutFundamentalTrainingId
+      total_a
+      total_b
+      total_c
+      total
+      feedback
+    }
+    scoutsDefense {
+      id
+      scoutFundamentalTrainingId
+      total_a
+      total_b
+      total_c
+      total
+      feedback
+    }
+    scoutsReception {
+      id
+      scoutFundamentalTrainingId
+      total_a
+      total_b
+      total_c
+      total
+      feedback
+    }
+    scoutsServe {
+      id
+      scoutFundamentalTrainingId
+      total_a
+      total_b
+      total_c
+      total
+      feedback
+    }
+    scoutsSetAssist {
+      id
+      scoutFundamentalTrainingId
+      total_a
+      total_b
+      total_c
+      total
+      feedback
+    }
+    createdAt
+    updatedAt
+  }
+}

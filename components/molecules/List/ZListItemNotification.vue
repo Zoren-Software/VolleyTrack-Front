@@ -10,7 +10,7 @@
       </va-list-item-label>
     </va-list-item-section>
     <va-list-item-section icon>
-      <va-icon name="remove_red_eye" color="primary" />
+      <va-icon name="visibility" color="primary" />
     </va-list-item-section>
   </va-list-item>
 </template>

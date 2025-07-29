@@ -36,13 +36,6 @@ export default {
       required: true,
     },
   },
-  data() {
-    return {
-      metricsConfirmationTraining:
-        this.metrics.confirmedPercentage + this.metrics.rejectedPercentage,
-      metricsConfirmationPresence: this.metrics.presencePercentage,
-    };
-  },
   methods: {
     isBeforeTrainingDate() {
       return new Date(this.data.dateStart) > new Date();
