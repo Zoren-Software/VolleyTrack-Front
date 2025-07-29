@@ -392,11 +392,34 @@ export default {
       // Preservar o step ANTES de atualizar o form
       const stepToPreserve = currentStep;
 
+      // Preservar dados existentes que podem ser perdidos
+      const existingTeams = this.form.teams || [];
+      const existingFundamentals = this.form.fundamentals || [];
+      const existingSpecificFundamentals = this.form.specificFundamentals || [];
+
+      console.log("DEBUG - data watcher: Teams existentes:", existingTeams);
+      console.log("DEBUG - data watcher: Teams recebidos:", val.teams);
+
       this.form = {
         ...val,
         players: val.players || [],
         scouts: val.scouts || [],
+        // Preservar dados que podem ser perdidos na atualização
+        teams: val.teams && val.teams.length > 0 ? val.teams : existingTeams,
+        fundamentals:
+          val.fundamentals && val.fundamentals.length > 0
+            ? val.fundamentals
+            : existingFundamentals,
+        specificFundamentals:
+          val.specificFundamentals && val.specificFundamentals.length > 0
+            ? val.specificFundamentals
+            : existingSpecificFundamentals,
       };
+
+      console.log(
+        "DEBUG - data watcher: Teams após atualização:",
+        this.form.teams
+      );
 
       // PRESERVAÇÃO AGESSIVA: Múltiplas tentativas de preservar o step
       const preserveStep = () => {
@@ -417,7 +440,7 @@ export default {
       setTimeout(preserveStep, 50);
     },
     "data.team": function (newVal) {
-      if (newVal) {
+      if (newVal && (!this.form.teams || this.form.teams.length === 0)) {
         this.form.teams = [{ id: newVal.id, team: newVal.name }];
       }
     },
@@ -446,7 +469,12 @@ export default {
       }
 
       // Validação específica para arrays
+      console.log(
+        "DEBUG - validateRequiredFields: Teams no form:",
+        this.form.teams
+      );
       if (!this.form.teams || this.form.teams.length === 0) {
+        console.log("DEBUG - validateRequiredFields: Time está vazio!");
         missingFields.push("Time");
       }
 
