@@ -163,6 +163,7 @@
         </template>
         <template #step-content-4>
           <ZListRelationPlayersWithScouts
+            ref="listRelationPlayersWithScoutsRef"
             :training-id="form.id"
             :items="[...(form.players || []), ...(form.scouts || [])]"
             @add="addPlayers"
@@ -890,8 +891,32 @@ export default {
 
     // Método específico para salvar scouts sem redirecionamento
     async saveScoutsOnly() {
-      // Emite evento específico para salvar scouts sem redirecionamento
-      this.$emit("saveScouts", this.form);
+      console.log("DEBUG - saveScoutsOnly: Iniciando save forçado de scouts");
+
+      try {
+        // Forçar o save de todos os scouts pendentes
+        if (
+          this.$refs.listRelationPlayersWithScoutsRef &&
+          this.$refs.listRelationPlayersWithScoutsRef.forceSaveAllScouts
+        ) {
+          console.log("DEBUG - saveScoutsOnly: Chamando forceSaveAllScouts");
+          await this.$refs.listRelationPlayersWithScoutsRef.forceSaveAllScouts();
+        } else {
+          console.log(
+            "DEBUG - saveScoutsOnly: forceSaveAllScouts não disponível"
+          );
+        }
+
+        // Aguardar um pouco para garantir que o save foi processado
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
+        // Emite evento específico para salvar scouts sem redirecionamento
+        this.$emit("saveScouts", this.form);
+      } catch (error) {
+        console.error("DEBUG - saveScoutsOnly: Erro ao salvar scouts:", error);
+        // Emite evento mesmo com erro para não bloquear o fluxo
+        this.$emit("saveScouts", this.form);
+      }
     },
 
     // Atualiza a URL com a etapa atual

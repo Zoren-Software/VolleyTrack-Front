@@ -324,6 +324,8 @@ onUnmounted(async () => {
   evaluationDebounceTimers.value = {};
 });
 
+// defineExpose será movido para o final do script
+
 // Dados dos jogadores
 const players = ref([]);
 
@@ -578,8 +580,49 @@ const updateFeedback = async () => {
   }, 5000);
 };
 
+// Método para forçar o save de todos os scouts pendentes
+const forceSaveAllScouts = async () => {
+  console.log(
+    "DEBUG - forceSaveAllScouts: Iniciando save forçado de todos os scouts"
+  );
+
+  // Salvar dados do jogador atual antes de processar todos
+  if (selectedPlayer.value) {
+    playerObservations.value[selectedPlayer.value.id] = observations.value;
+    playerFeedback.value[selectedPlayer.value.id] = feedback.value;
+    fundamentalFeedbacks.value[selectedPlayer.value.id] = {
+      ...fundamentalFeedbacks.value[selectedPlayer.value.id],
+    };
+  }
+
+  // Limpar todos os timers pendentes
+  Object.keys(generalFieldsDebounceTimers.value).forEach((key) => {
+    if (generalFieldsDebounceTimers.value[key]) {
+      clearTimeout(generalFieldsDebounceTimers.value[key]);
+      delete generalFieldsDebounceTimers.value[key];
+    }
+  });
+
+  // Salvar o jogador atual imediatamente
+  if (selectedPlayer.value) {
+    await saveScoutEvaluation(true);
+  }
+
+  console.log("DEBUG - forceSaveAllScouts: Save forçado concluído");
+};
+
 const saveScoutEvaluation = async (showNotification = true) => {
   if (!selectedPlayer.value || !props.trainingId) return;
+
+  console.log(
+    "DEBUG - saveScoutEvaluation: Iniciando save para jogador:",
+    selectedPlayer.value.id
+  );
+  console.log(
+    "DEBUG - saveScoutEvaluation: Observações atuais:",
+    observations.value
+  );
+  console.log("DEBUG - saveScoutEvaluation: Feedback atual:", feedback.value);
 
   try {
     const query = gql`
@@ -747,6 +790,11 @@ const saveEvaluation = async () => {
     saving.value = false;
   }
 };
+
+// Expor métodos para uso externo
+defineExpose({
+  forceSaveAllScouts,
+});
 </script>
 
 <style scoped>

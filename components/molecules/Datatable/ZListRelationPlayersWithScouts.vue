@@ -5,6 +5,7 @@
     </template>
     <template #list>
       <ZTechnicalScout
+        ref="technicalScoutRef"
         @save-evaluation="handleSaveEvaluation"
         :training-id="trainingId"
         :is-inside-training-form="true"
@@ -99,8 +100,34 @@ export default {
       // }
 
       // Exemplo de notificação de sucesso
-      alert("Avaliação salva com sucesso!");
+      // alert("Avaliação salva com sucesso!");
     },
+
+    // Método para forçar o save de todos os scouts
+    async forceSaveAllScouts() {
+      console.log(
+        "DEBUG - ZListRelationPlayersWithScouts: forceSaveAllScouts chamado"
+      );
+      if (this.$refs.technicalScoutRef) {
+        await this.$refs.technicalScoutRef.forceSaveAllScouts();
+      }
+    },
+  },
+
+  // Expor métodos para uso externo
+  mounted() {
+    // Expor o método forceSaveAllScouts para uso externo
+    this.$nextTick(() => {
+      if (
+        this.$refs.technicalScoutRef &&
+        this.$refs.technicalScoutRef.forceSaveAllScouts
+      ) {
+        this.forceSaveAllScouts =
+          this.$refs.technicalScoutRef.forceSaveAllScouts.bind(
+            this.$refs.technicalScoutRef
+          );
+      }
+    });
   },
 };
 </script>
