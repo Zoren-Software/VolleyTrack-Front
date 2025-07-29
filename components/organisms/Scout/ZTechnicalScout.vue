@@ -267,10 +267,47 @@ const loadSavedScoutData = (scoutData) => {
 // Chamar getTraining quando o componente for montado
 onMounted(() => {
   getTraining({ fetchPolicy: "network-only" });
+
+  // Adicionar listener para salvar dados quando o usuário sair da página
+  window.addEventListener("beforeunload", handleBeforeUnload);
 });
 
+// Handler para salvar dados antes de sair da página
+const handleBeforeUnload = async (event) => {
+  if (selectedPlayer.value) {
+    playerObservations.value[selectedPlayer.value.id] = observations.value;
+    playerFeedback.value[selectedPlayer.value.id] = feedback.value;
+    fundamentalFeedbacks.value[selectedPlayer.value.id] = {
+      ...fundamentalFeedbacks.value[selectedPlayer.value.id],
+    };
+
+    // Forçar salvamento síncrono (sem notificação)
+    try {
+      await saveScoutEvaluation(false);
+    } catch (error) {
+      console.error("Erro ao salvar antes de sair:", error);
+    }
+  }
+};
+
 // Cleanup dos timers quando o componente for desmontado
-onUnmounted(() => {
+onUnmounted(async () => {
+  // Remover listener do beforeunload
+  window.removeEventListener("beforeunload", handleBeforeUnload);
+
+  // Salvar dados do jogador atual antes de desmontar
+  if (selectedPlayer.value) {
+    playerObservations.value[selectedPlayer.value.id] = observations.value;
+    playerFeedback.value[selectedPlayer.value.id] = feedback.value;
+    fundamentalFeedbacks.value[selectedPlayer.value.id] = {
+      ...fundamentalFeedbacks.value[selectedPlayer.value.id],
+    };
+
+    // Forçar salvamento final (sem notificação)
+    await saveScoutEvaluation(false);
+  }
+
+  // Limpar todos os timers
   Object.values(feedbackDebounceTimers.value).forEach((timer) => {
     clearTimeout(timer);
   });
@@ -358,7 +395,20 @@ const fundamentals = ref([
 const evaluations = ref({});
 
 // Methods
-const selectPlayer = (player) => {
+const selectPlayer = async (player) => {
+  // Se há um jogador selecionado atualmente, salvar seus dados imediatamente
+  if (selectedPlayer.value) {
+    // Salvar observações e feedback do jogador anterior
+    playerObservations.value[selectedPlayer.value.id] = observations.value;
+    playerFeedback.value[selectedPlayer.value.id] = feedback.value;
+    fundamentalFeedbacks.value[selectedPlayer.value.id] = {
+      ...fundamentalFeedbacks.value[selectedPlayer.value.id],
+    };
+
+    // Forçar salvamento imediato do jogador anterior (sem notificação)
+    await saveScoutEvaluation(false);
+  }
+
   // Limpar todos os timers de debounce antes de trocar de jogador
   Object.values(feedbackDebounceTimers.value).forEach((timer) => {
     clearTimeout(timer);
@@ -377,15 +427,7 @@ const selectPlayer = (player) => {
   });
   evaluationDebounceTimers.value = {};
 
-  // Salvar observações e feedback do jogador anterior
-  if (selectedPlayer.value) {
-    playerObservations.value[selectedPlayer.value.id] = observations.value;
-    playerFeedback.value[selectedPlayer.value.id] = feedback.value;
-    fundamentalFeedbacks.value[selectedPlayer.value.id] = {
-      ...fundamentalFeedbacks.value[selectedPlayer.value.id],
-    };
-  }
-
+  // Trocar para o novo jogador
   selectedPlayer.value = player;
 
   // Carregar observações e feedback do jogador selecionado
@@ -536,7 +578,7 @@ const updateFeedback = async () => {
   }, 5000);
 };
 
-const saveScoutEvaluation = async () => {
+const saveScoutEvaluation = async (showNotification = true) => {
   if (!selectedPlayer.value || !props.trainingId) return;
 
   try {
@@ -565,23 +607,12 @@ const saveScoutEvaluation = async () => {
     });
 
     // Verificar se já existe um scout para este jogador
-    // console.log("Jogador selecionado ID:", selectedPlayer.value.id);
-    // console.log(
-    //   "ScoutFundamentalsTraining:",
-    //   data.value?.scoutFundamentalsTraining
-    // );
-
     const existingScout = data.value?.scoutFundamentalsTraining?.find(
       (scout) => parseInt(scout.playerId) === parseInt(selectedPlayer.value.id)
     );
 
-    // console.log("Scout encontrado:", existingScout);
-
     // Se não existe scout, não podemos editar - os dados devem existir automaticamente
     if (!existingScout) {
-      // console.log(
-      //   "Scout não encontrado para este jogador. Os dados devem ser criados automaticamente."
-      // );
       return;
     }
 
@@ -639,7 +670,12 @@ const saveScoutEvaluation = async () => {
     const { data: resultData } = await mutate();
 
     // Scout salvo com sucesso
-    //console.log("Scout salvo com sucesso:", resultData);
+    if (showNotification) {
+      showSuccessToast(
+        "Scout salvo com sucesso!",
+        "Dados do jogador foram salvos automaticamente."
+      );
+    }
   } catch (error) {
     console.error("Erro ao salvar scout:", error);
   }
