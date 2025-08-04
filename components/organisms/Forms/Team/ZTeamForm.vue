@@ -42,7 +42,7 @@
             label="Buscar e selecionar jogadores"
             placeholder="Digite o nome do jogador"
           />
-          <va-button color="primary" icon="add" @click="addUsers">
+          <va-button class="custom-button" color="primary" icon="add" @click="addUsers">
             Relacionar
           </va-button>
         </div>
@@ -194,4 +194,9 @@ textarea::placeholder {
   font-size: 13px; /* Diminuir o tamanho da fonte do placeholder */
 }
 
+.custom-button {
+  padding: 0 1.0rem; /* Espaçamento apenas nas laterais */
+  font-size: 14px; /* Ajuste do tamanho da fonte */
+  border-radius: 8px; /* Bordas arredondadas */
+}
 </style>

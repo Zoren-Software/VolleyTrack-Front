@@ -23,7 +23,7 @@
             </div>
             <va-icon
               name="delete"
-              color="danger"
+              color="white"
               class="delete-icon"
               @click="actionDelete(item.id)"
             />
@@ -105,7 +105,7 @@ export default {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background-color: #e9742b;
+  background-color: #FF4E1B;
   color: #ffffff;
   display: flex;
   align-items: center;
@@ -117,6 +117,7 @@ export default {
 .user-details {
   display: flex;
   flex-direction: column;
+  font-size: 14px;
 }
 
 .user-name {
@@ -132,9 +133,16 @@ export default {
 .delete-icon {
   cursor: pointer;
   transition: color 0.2s ease;
+  background-color: rgb(0, 225, 255);
 }
 
 .delete-icon:hover {
   color: #c82333;
+}
+
+.va-list-label {
+  text-align: left; /* Alinha o texto à esquerda */
+  font-weight: bold; /* Opcional: mantém o texto em destaque */
+  margin-bottom: 8px; /* Opcional: adiciona espaçamento abaixo */
 }
 </style>

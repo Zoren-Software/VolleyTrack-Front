@@ -2,7 +2,7 @@
   <!-- Aqui continha uma classe d-flex se algum layout quebrar deve ser reposto por parâmetros -->
   <div class="align-items-center justify-content-between">
     <slot name="filter" />
-    <ZButton
+    <!-- <ZButton
       v-if="!disableRelation"
       class="mb-3 ml-2 custom-button"
       color="primary"
@@ -11,7 +11,7 @@
       @click="add"
     >
       Relacionar
-    </ZButton>
+    </ZButton> -->
   </div>
   <slot name="list" />
 </template>
