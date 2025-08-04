@@ -6,41 +6,29 @@
     <template #list>
       <va-list>
         <va-list-label> Relacionados </va-list-label>
-        <ZDatatableGeneric
-          selectable
-          includeActionsColumn
-          includeActionDeleteList
-          :items="items"
-          :columns="columns"
-          :loading="loading"
-          :paginatorInfo="paginatorInfo"
-          @delete="actionDelete"
-        >
-          <!-- FILTER -->
-
-          <!-- CELL -->
-          <template #cell(user)="{ rowKey: { user } }">
-            <ZUser :data="user" show-email />
-          </template>
-          <template
-            #cell(cpf)="{
-              rowKey: {
-                user: { information },
-              },
-            }"
+        <div class="user-list">
+          <div
+            v-for="item in items"
+            :key="item.id"
+            class="user-card"
           >
-            <ZCPF :cpf="information?.cpf" :rg="information?.rg" />
-          </template>
-          <template
-            #cell(positions)="{
-              rowKey: {
-                user: { positions },
-              },
-            }"
-          >
-            <ZPosition :data="positions" />
-          </template>
-        </ZDatatableGeneric>
+            <div class="user-info">
+              <div class="user-avatar">
+                <span>{{ item.user.name.charAt(0).toUpperCase() }}</span>
+              </div>
+              <div class="user-details">
+                <p class="user-name">{{ item.user.name }}</p>
+                <p class="user-position">{{ item.user.positions[0]?.name || 'Sem posição' }}</p>
+              </div>
+            </div>
+            <va-icon
+              name="delete"
+              color="danger"
+              class="delete-icon"
+              @click="actionDelete(item.id)"
+            />
+          </div>
+        </div>
       </va-list>
     </template>
   </ZListRelationGeneric>
@@ -48,23 +36,15 @@
 
 <script>
 import ZListRelationGeneric from "~/components/molecules/List/ZListRelationGeneric";
-import ZDatatableGeneric from "~/components/molecules/Datatable/ZDatatableGeneric";
-import ZUser from "~/components/molecules/Datatable/Slots/ZUser";
-import ZCPF from "~/components/molecules/Datatable/Slots/ZCPF";
-import ZPosition from "~/components/molecules/Datatable/Slots/ZPosition";
 
 export default {
   components: {
     ZListRelationGeneric,
-    ZDatatableGeneric,
-    ZUser,
-    ZCPF,
-    ZPosition,
   },
   emits: ["add", "delete"],
   props: {
     items: {
-      type: Array || Object,
+      type: Array,
       required: true,
     },
     error: {
@@ -85,41 +65,76 @@ export default {
         lastPage: 1,
         total: 0,
       },
-      columns: [
-        {
-          key: "id",
-          name: "id",
-          label: "Id",
-          sortable: true,
-        },
-        {
-          key: "user",
-          name: "user",
-          label: "Integrante",
-          sortable: true,
-        },
-        {
-          key: "positions",
-          name: "positions",
-          label: "Posições",
-          sortable: true,
-        },
-        {
-          key: "userInformation",
-          name: "cpf",
-          label: "CPF e RG",
-          sortable: true,
-        },
-      ],
     };
   },
   methods: {
     add() {
       this.$emit("add");
     },
-    actionDelete(item) {
-      this.$emit("delete", item);
+    actionDelete(id) {
+      this.$emit("delete", id);
     },
   },
 };
 </script>
+
+<style scoped>
+.user-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.user-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #e9742b;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-name {
+  font-weight: bold;
+  color: #0b1e3a;
+}
+
+.user-position {
+  font-size: 14px;
+  color: #6c757d;
+}
+
+.delete-icon {
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.delete-icon:hover {
+  color: #c82333;
+}
+</style>

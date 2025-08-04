@@ -8,7 +8,8 @@
           id="name"
           v-model="form.name"
           name="name"
-          label="Nome "
+          label="Nome do Time"
+          placeholder="Ex: Águias de Ouro"
           class="mb-3"
           :error-messages="errors.name || []"
         />
@@ -16,6 +17,7 @@
           v-model="form.teamCategory"
           name="teamCategoryId"
           label="Categoria"
+          placeholder="Selecione a categoria"
           class="mb-3"
           :error-messages="errors.teamCategory || []"
         />
@@ -23,6 +25,7 @@
           v-model="form.teamLevel"
           name="teamLevelId"
           label="Nível"
+          placeholder="Selecione o nível"
           class="mb-3"
           :error-messages="errors.teamLevel || []"
         />
@@ -37,6 +40,7 @@
             :ignoreIds="form.users.map((item) => item.id)"
             class="mb-3"
             label="Buscar e selecionar jogadores"
+            placeholder="Digite o nome do jogador"
           />
           <va-button color="primary" icon="add" @click="addUsers">
             Relacionar
@@ -145,7 +149,7 @@ export default {
 };
 </script>
 
-<style scoped>
+<style>
 .form-container {
   display: flex;
   flex-direction: column;
@@ -183,4 +187,11 @@ export default {
   text-align: center;
   margin-top: 20px;
 }
+
+/* Aplicar estilo ao placeholder de inputs e textareas */
+input::placeholder,
+textarea::placeholder {
+  font-size: 13px; /* Diminuir o tamanho da fonte do placeholder */
+}
+
 </style>
