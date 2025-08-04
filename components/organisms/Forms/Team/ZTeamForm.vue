@@ -52,8 +52,9 @@
         />
       </va-card>
 
-      <!-- Botão Salvar -->
-      <div class="save-button-container">
+      <!-- Botões -->
+      <div class="action-buttons">
+        <va-button color="secondary" @click="goBack" class="mr-1">Voltar</va-button>
         <va-button color="primary" @click="save">Salvar</va-button>
       </div>
     </va-form>
@@ -145,11 +146,15 @@ export default {
       console.log(this.form);
       this.$emit("save", this.form);
     },
+
+    goBack() {
+      this.$router.push("/teams");
+    },
   },
 };
 </script>
 
-<style>
+<style scoped>
 .form-container {
   display: flex;
   flex-direction: column;
@@ -198,5 +203,15 @@ textarea::placeholder {
   padding: 0 1.0rem; /* Espaçamento apenas nas laterais */
   font-size: 14px; /* Ajuste do tamanho da fonte */
   border-radius: 8px; /* Bordas arredondadas */
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: flex-end; /* Alinha os botões no lado direito */
+  gap: 12px;
+}
+
+.action-buttons va-button {
+  border-radius: 8px;
 }
 </style>

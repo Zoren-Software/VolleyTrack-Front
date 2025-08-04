@@ -4,7 +4,7 @@
       <slot name="filter" />
     </template>
     <template #list>
-      <va-list>
+      <va-list v-if="items.length > 0">
         <va-list-label> Relacionados </va-list-label>
         <div class="user-list">
           <div
