@@ -23,7 +23,8 @@
         <div class="item">
           <ZDataTableInputSearch
             v-model="search"
-            placeholder="Digite para buscar..."
+            placeholder="Digite para pesquisar..."
+            label="Pesquisar"
             @actionSearch="actionSearch"
           />
         </div>
@@ -37,10 +38,8 @@
     <div class="row">
       <div class="flex flex-col md6 py-1">
         <div class="item">
-          <ZButton label="Limpar" color="info" class="mr-3" @click="actionClear"
-            >Limpar</ZButton
-          >
-          <ZButton label="Pesquisar" @click="actionSearch">Pesquisar</ZButton>
+          <ZButton label="Filtrar" color="orange" class="mr-3" @click="actionSearch">Filtrar</ZButton>
+          <ZButton label="Limpar" color="info" class="mr-3" @click="actionClear">Limpar</ZButton>
         </div>
       </div>
     </div>

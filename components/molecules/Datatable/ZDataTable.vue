@@ -63,8 +63,42 @@ export default {
 };
 </script>
 
-<style>
-/* NOTE - Para fazer com que o badge não fique sobrepondo o menu superior do datatables */
+<style scoped>
+.va-data-table {
+  border-radius: 12px; /* Bordas arredondadas */
+  overflow: hidden; /* Para evitar que elementos ultrapassem os limites */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra leve */
+}
+
+.va-data-table__table {
+  border-collapse: separate;
+  border-spacing: 0 8px; /* Espaçamento entre linhas */
+}
+
+.va-data-table__table-thead th {
+  background-color: #f8f9fa; /* Cor de fundo do cabeçalho */
+  color: #0b1e3a; /* Cor do texto */
+  font-size: 16px; /* Tamanho da fonte */
+  font-weight: bold; /* Negrito */
+  text-align: left; /* Alinhamento do texto */
+  padding: 12px; /* Espaçamento interno */
+}
+
+.va-data-table__table-tbody tr {
+  background-color: #ffffff; /* Cor de fundo das linhas */
+  border-radius: 8px; /* Bordas arredondadas para as linhas */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra leve */
+}
+
+.va-data-table__table-tbody td {
+  padding: 12px; /* Espaçamento interno */
+  color: #6c757d; /* Cor do texto */
+  font-size: 14px; /* Tamanho da fonte */
+}
+
+.va-data-table__table-tbody tr:hover {
+  background-color: #f1f1f1; /* Cor de fundo ao passar o mouse */
+}
 
 .va-data-table .va-data-table__table .va-data-table__table-thead--sticky {
   z-index: 3;

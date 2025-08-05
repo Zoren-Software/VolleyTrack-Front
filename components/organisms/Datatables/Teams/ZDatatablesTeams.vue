@@ -51,14 +51,18 @@
       <ZTeam :data="rowKey" />
     </template>
     <template #cell(category)="{ rowKey: { teamCategory } }">
-      <va-badge color="gray" text-color="white">
-        {{ teamCategory?.name || "Sem Categoria" }}
-      </va-badge>
+      <ZBadgeCustom
+        :text="teamCategory?.name || 'Sem Categoria'"
+        backgroundColor="#F5F5F5"
+        textColor="#000000"
+      />
     </template>
     <template #cell(level)="{ rowKey: { teamLevel } }">
-      <va-badge color="info" text-color="white">
-        {{ teamLevel?.name || "Sem Nível Técnico" }}
-      </va-badge>
+      <ZBadgeCustom
+        :text="teamLevel?.name || 'Sem Nível Técnico'"
+        backgroundColor="#F5F5F5"
+        textColor="#000000"
+      />
     </template>
     <template #cell(players)="{ rowKey: { players } }">
       <span>{{ players?.length || 0 }} Jogadores</span>
@@ -77,6 +81,7 @@ import ZSelectUser from "~/components/molecules/Selects/ZSelectUser";
 import ZUser from "~/components/molecules/Datatable/Slots/ZUser";
 import ZDateTraining from "~/components/molecules/Datatable/Slots/ZDateTraining";
 import ZTeam from "~/components/molecules/Datatable/Slots/ZTeam";
+import ZBadgeCustom from "~/components/molecules/Badges/ZBadgeCustom";
 import TEAMDELETE from "~/graphql/team/mutation/teamDelete.graphql";
 import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
 
@@ -91,6 +96,7 @@ export default defineComponent({
     ZSelectPosition,
     ZSelectTeam,
     ZSelectUser,
+    ZBadgeCustom,
   },
 
   created() {
