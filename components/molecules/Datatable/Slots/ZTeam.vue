@@ -12,13 +12,13 @@
           <div class="flex gap-1 mb-1">
             <span class="va-text-custom"><b>{{ data.name }}</b></span>
           </div>
-          <div v-if="data.teamCategory?.name" class="flex items-center">
-            <va-icon size="small" name="category" color="secondary" class="mr-2" />
-            <span class="va-text-custom">Categoria: {{ data.teamCategory.name }}</span>
+          <div v-if="data.technician" class="flex items-center">
+            <va-icon size="small" name="person" color="secondary" class="mr-2" />
+            <span class="va-text-custom">Técnico: {{ data.technician }}</span>
           </div>
-          <div v-if="data.teamLevel?.name" class="flex items-center">
-            <va-icon size="small" name="star" color="secondary" class="mr-2" />
-            <span class="va-text-custom">Nível Técnico: {{ data.teamLevel.name }}</span>
+          <div v-if="data.assistant" class="flex items-center">
+            <va-icon size="small" name="person_outline" color="secondary" class="mr-2" />
+            <span class="va-text-custom">Auxiliar: {{ data.assistant }}</span>
           </div>
         </div>
       </div>

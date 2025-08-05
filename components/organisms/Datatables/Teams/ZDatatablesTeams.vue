@@ -278,6 +278,8 @@ export default defineComponent({
             ...team,
             teamCategory: team.teamCategory || { name: "Sem Categoria" },
             teamLevel: team.teamLevel || { name: "Sem Nível Técnico" },
+            technician: team.technician || "Sem Técnico",
+            assistant: team.assistant || "Sem Auxiliar",
           }));
         }
       });
@@ -289,6 +291,8 @@ export default defineComponent({
             ...team,
             teamCategory: team.teamCategory || { name: "Sem Categoria" },
             teamLevel: team.teamLevel || { name: "Sem Nível Técnico" },
+            technician: team.technician || "Sem Técnico",
+            assistant: team.assistant || "Sem Auxiliar",
           }));
         }
       }
