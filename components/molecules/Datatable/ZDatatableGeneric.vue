@@ -23,14 +23,12 @@
         <div class="item">
           <ZDataTableInputSearch
             v-model="search"
+            placeholder="Digite para buscar..."
             @actionSearch="actionSearch"
           />
         </div>
       </div>
-      <div class="flex flex-col md12 py-1">
-        <div v-if="textAdvancedFilters" class="item my-2">
-          <span class="mr my-2 va-text-bold">Filtros avançados:</span>
-        </div>
+      <div class="flex flex-col md12 py-2">
         <div class="item mb-2">
           <slot name="filter"></slot>
         </div>

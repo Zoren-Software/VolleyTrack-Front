@@ -1,33 +1,49 @@
 <template>
-  <ZBadge v-if="data[0] && data.length > 0" :text="willTeams(data)" overlap>
-    <ZButton size="small" color="primary"> {{ data[0].name }}</ZButton>
-  </ZBadge>
-  <ZButton v-if="data.name" size="small" color="primary">
-    {{ data.name }}
-  </ZButton>
+  <div v-if="data" class="row justify-start mt-2">
+    <div class="flex flex-col">
+      <div class="item mt-2">
+        <va-avatar v-if="data.id" class="mr-6">{{ firstLetter }}</va-avatar>
+        <va-icon v-else name="sports_volleyball" />
+      </div>
+    </div>
+    <div class="flex flex-col">
+      <div class="item">
+        <div class="pl-2">
+          <div class="flex gap-1 mb-1">
+            <span class="va-text-custom"><b>{{ data.name }}</b></span>
+          </div>
+          <div v-if="data.teamCategory?.name" class="flex items-center">
+            <va-icon size="small" name="category" color="secondary" class="mr-2" />
+            <span class="va-text-custom">Categoria: {{ data.teamCategory.name }}</span>
+          </div>
+          <div v-if="data.teamLevel?.name" class="flex items-center">
+            <va-icon size="small" name="star" color="secondary" class="mr-2" />
+            <span class="va-text-custom">Nível Técnico: {{ data.teamLevel.name }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script>
-import ZBadge from "~/components/atoms/Badges/ZBadge";
-import ZButton from "~/components/atoms/Buttons/ZButton";
-
 export default {
-  components: {
-    ZBadge,
-    ZButton,
-  },
   props: {
     data: {
       type: Object,
       required: true,
     },
   },
-  methods: {
-    willTeams(total) {
-      total = total.length;
-      if (total <= 1) return "";
-      return `+${total - 1}`;
+  computed: {
+    firstLetter() {
+      return this.data.name.charAt(0).toUpperCase();
     },
   },
 };
 </script>
+
+<style scoped>
+.va-text-custom {
+  color: #34495e;
+}
+</style>

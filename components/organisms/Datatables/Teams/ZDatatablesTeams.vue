@@ -23,12 +23,12 @@
   >
     <!-- FILTER -->
     <template #filter>
-      <!-- TODO - Pensar nos reais filtros que deveram existir aqui -->
       <div class="row">
         <div class="flex flex-col md6 mb-2">
           <div class="item mr-2">
             <ZSelectPosition
               label="Posições"
+              placeholder="Selecione uma posição"
               v-model="variablesGetTeams.filter.positionsIds"
               :teamsIds="variablesGetTeams.filter.teamsIds"
             />
@@ -38,6 +38,7 @@
           <div class="item mr-2">
             <ZSelectUser
               label="Usuário Alteração"
+              placeholder="Selecione um usuário"
               v-model="variablesGetTeams.filter.usersIds"
             />
           </div>
@@ -46,6 +47,7 @@
           <div class="item mr-2">
             <ZSelectUser
               label="Jogadores"
+              placeholder="Selecione um jogador"
               v-model="variablesGetTeams.filter.playersIds"
             />
           </div>
@@ -54,8 +56,8 @@
     </template>
 
     <!-- CELL -->
-    <template #cell(name)="{ rowKey: { name } }">
-      {{ name }}
+    <template #cell(team)="{ rowKey }">
+      <ZTeam :data="rowKey" />
     </template>
     <template #cell(user)="{ rowKey: { user, createdAt, updatedAt } }">
       <ZUser
@@ -104,8 +106,7 @@ export default defineComponent({
     let loading = false;
 
     const columns = [
-      { key: "id", name: "id", sortable: true },
-      { key: "name", name: "name", label: "Time", sortable: true },
+      { key: "team", name: "team", label: "Time", sortable: false },
       {
         key: "user",
         name: "user",
@@ -265,7 +266,7 @@ export default defineComponent({
       const {
         result: { value },
       } = useQuery(query, consult, {
-        fetchPolicy: fetchPolicyOptions.fetchPolicy || "cache-first", // Usa 'network-only' quando quer buscar nova consulta, senão 'cache-first'
+        fetchPolicy: fetchPolicyOptions.fetchPolicy || "cache-first",
       });
 
       const { onResult } = useQuery(query, consult);
@@ -273,14 +274,22 @@ export default defineComponent({
       onResult((result) => {
         if (result?.data?.teams?.data.length > 0) {
           this.paginatorInfo = result.data.teams.paginatorInfo;
-          this.items = result.data.teams.data;
+          this.items = result.data.teams.data.map((team) => ({
+            ...team,
+            teamCategory: team.teamCategory || { name: "Sem Categoria" },
+            teamLevel: team.teamLevel || { name: "Sem Nível Técnico" },
+          }));
         }
       });
 
       if (value) {
         if (value?.teams?.data.length > 0) {
           this.paginatorInfo = value.teams.paginatorInfo;
-          this.items = value.teams.data;
+          this.items = value.teams.data.map((team) => ({
+            ...team,
+            teamCategory: team.teamCategory || { name: "Sem Categoria" },
+            teamLevel: team.teamLevel || { name: "Sem Nível Técnico" },
+          }));
         }
       }
       this.loading = false;
