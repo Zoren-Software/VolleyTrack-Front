@@ -37,15 +37,6 @@
         <div class="flex flex-col md6 mb-2">
           <div class="item mr-2">
             <ZSelectUser
-              label="Usuário Alteração"
-              placeholder="Selecione um usuário"
-              v-model="variablesGetTeams.filter.usersIds"
-            />
-          </div>
-        </div>
-        <div class="flex flex-col md6 mb-2">
-          <div class="item mr-2">
-            <ZSelectUser
               label="Jogadores"
               placeholder="Selecione um jogador"
               v-model="variablesGetTeams.filter.playersIds"
@@ -59,14 +50,18 @@
     <template #cell(team)="{ rowKey }">
       <ZTeam :data="rowKey" />
     </template>
-    <template #cell(user)="{ rowKey: { user, createdAt, updatedAt } }">
-      <ZUser
-        :data="user || {}"
-        :createdAt="createdAt"
-        :updatedAt="updatedAt"
-        showUpdatedAt
-        showCreatedAt
-      />
+    <template #cell(category)="{ rowKey: { teamCategory } }">
+      <va-badge color="gray" text-color="white">
+        {{ teamCategory?.name || "Sem Categoria" }}
+      </va-badge>
+    </template>
+    <template #cell(level)="{ rowKey: { teamLevel } }">
+      <va-badge color="info" text-color="white">
+        {{ teamLevel?.name || "Sem Nível Técnico" }}
+      </va-badge>
+    </template>
+    <template #cell(players)="{ rowKey: { players } }">
+      <span>{{ players?.length || 0 }} Jogadores</span>
     </template>
   </ZDatatableGeneric>
 </template>
@@ -107,12 +102,9 @@ export default defineComponent({
 
     const columns = [
       { key: "team", name: "team", label: "Time", sortable: false },
-      {
-        key: "user",
-        name: "user",
-        label: "Usuário Alteração",
-        sortable: true,
-      },
+      { key: "category", name: "category", label: "Categoria", sortable: false },
+      { key: "level", name: "level", label: "Nível Técnico", sortable: false },
+      { key: "players", name: "players", label: "Total de Jogadores", sortable: false },
     ];
 
     return {
@@ -278,6 +270,7 @@ export default defineComponent({
             ...team,
             teamCategory: team.teamCategory || { name: "Sem Categoria" },
             teamLevel: team.teamLevel || { name: "Sem Nível Técnico" },
+            players: team.players || [],
             technician: team.technician || "Sem Técnico",
             assistant: team.assistant || "Sem Auxiliar",
           }));
@@ -291,6 +284,7 @@ export default defineComponent({
             ...team,
             teamCategory: team.teamCategory || { name: "Sem Categoria" },
             teamLevel: team.teamLevel || { name: "Sem Nível Técnico" },
+            players: team.players || [],
             technician: team.technician || "Sem Técnico",
             assistant: team.assistant || "Sem Auxiliar",
           }));
