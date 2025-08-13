@@ -29,6 +29,9 @@ importers:
       vue:
         specifier: ^3.4.20
         version: 3.4.20(typescript@4.9.5)
+      vue-stripe-elements:
+        specifier: ^0.2.3
+        version: 0.2.3
       vue-sweetalert2:
         specifier: ^5.0.5
         version: 5.0.5(vue@3.4.20(typescript@4.9.5))
@@ -3736,6 +3739,9 @@ packages:
     resolution: {integrity: sha512-dqUcs8tUeG+ssgWhcPbjHvazML16Oga5w34uCUmsk7i0BcnskoLGwjpa15fqMr2Fa5JgVBrdL2MEgqz6XZ/6IQ==}
     peerDependencies:
       vue: ^3.2.0
+
+  vue-stripe-elements@0.2.3:
+    resolution: {integrity: sha512-Hox1H89wj/yu/3p0qNhGR4uZfRH455XPT870Bc12FEPMofrskWCVvyZzoKfgHm5cKJgBzXzIVBuykZ/6ubrfMg==}
 
   vue-sweetalert2@5.0.5:
     resolution: {integrity: sha512-Q7+TjQxNwGruT2jfPaSKMz18HHWs81r4umEwlrrtOf/QL5Iwl1T+tUaNkcvKB7Rf9rYftubt7NnOMjfDMnDH3A==}
@@ -8013,6 +8019,8 @@ snapshots:
     dependencies:
       '@vue/devtools-api': 6.6.1
       vue: 3.4.20(typescript@4.9.5)
+
+  vue-stripe-elements@0.2.3: {}
 
   vue-sweetalert2@5.0.5(vue@3.4.20(typescript@4.9.5)):
     dependencies:
