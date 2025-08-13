@@ -1,0 +1,11 @@
+# Stripe Configuration
+# Copie este arquivo para .env e preencha com suas chaves
+
+STRIPE_PUBLISHABLE_KEY=pk_test_your_publishable_key_here
+STRIPE_SECRET_KEY=sk_test_your_secret_key_here
+
+# Stripe Webhook Secret (opcional)
+STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret_here
+
+# Environment
+NODE_ENV=development
