@@ -1,481 +1,896 @@
 <template>
-  <div class="payment-test-page">
+  <div class="subscription-plans-page">
     <div class="container">
-      <h1>Teste do Stripe Elements</h1>
-      <p>Testando o componente Stripe Elements personalizado</p>
+      <h1>Planos de Assinatura</h1>
+      <p>Escolha o plano ideal para o seu clube de vôlei</p>
 
-      <!-- Debug info -->
-      <div
-        class="debug-info"
-        style="
-          background: #f0f0f0;
-          padding: 15px;
-          margin: 20px 0;
-          border-radius: 8px;
-        "
-      >
-        <h4>Debug Info:</h4>
-        <p><strong>Stripe Key:</strong> {{ stripeKey }}</p>
-        <p><strong>Client Secret:</strong> {{ clientSecret }}</p>
-        <p><strong>Currency:</strong> {{ currency }}</p>
-        <p><strong>Loading:</strong> {{ loading }}</p>
-        <button
-          @click="testStripeKey"
-          style="
-            background: #007bff;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-          "
-        >
-          Testar Chave Stripe
-        </button>
+      <!-- Seletor de Periodicidade -->
+      <div class="billing-toggle">
+        <span class="toggle-label">Faturamento:</span>
+        <div class="toggle-buttons">
+          <button
+            @click="selectedBilling = 'monthly'"
+            :class="{ active: selectedBilling === 'monthly' }"
+            class="toggle-btn"
+          >
+            Mensal
+          </button>
+          <button
+            @click="selectedBilling = 'yearly'"
+            :class="{ active: selectedBilling === 'yearly' }"
+            class="toggle-btn"
+          >
+            Anual
+            <span class="discount-badge">-20%</span>
+          </button>
+        </div>
       </div>
 
-      <!-- Componente de pagamento inline para teste -->
-      <div class="stripe-elements-form">
-        <div class="payment-card">
-          <div class="card-header">
-            <h3>Pagamento com Stripe Elements</h3>
-          </div>
+      <!-- Debug info -->
+      <div v-if="showDebug" class="debug-info">
+        <h4>Debug Info:</h4>
+        <p><strong>Stripe Key:</strong> {{ stripeKey }}</p>
+        <p><strong>Loading:</strong> {{ loading }}</p>
+        <p>
+          <strong>Selected Plan:</strong> {{ selectedPlan?.name || "Nenhum" }}
+        </p>
+        <p><strong>Billing:</strong> {{ selectedBilling }}</p>
+      </div>
 
-          <div class="card-body">
-            <div v-if="loading" class="loading">
-              <p>Carregando formulário de pagamento...</p>
-              <p
-                v-if="statusMessage"
-                class="status-message"
-                :class="statusType"
+      <!-- Planos de Assinatura -->
+      <div class="plans-container">
+        <!-- Planos Periódicos (Mensais/Anuais) -->
+        <div class="periodic-plans">
+          <div
+            v-for="plan in periodicPlans"
+            :key="`${plan.id}-${plan.billing}`"
+            class="plan-card"
+            :class="{
+              selected:
+                selectedPlan?.id === plan.id &&
+                selectedPlan?.billing === plan.billing,
+            }"
+            @click="selectPlan(plan)"
+          >
+            <div class="plan-header">
+              <h3>{{ plan.name }}</h3>
+              <div class="plan-price">
+                <span class="currency">R$</span>
+                <span class="amount">{{ getPlanPrice(plan) }}</span>
+                <span class="period">{{ getPlanPeriod(plan) }}</span>
+              </div>
+              <div
+                v-if="plan.billing === 'yearly' && plan.discount"
+                class="yearly-savings"
               >
-                {{ statusMessage }}
-              </p>
+                Economia de R$ {{ plan.discount }}/ano
+              </div>
             </div>
 
-            <div v-else>
-              <!-- Formulário de pagamento usando Stripe Elements -->
-              <div id="card-element" class="card-element"></div>
+            <div class="plan-features">
+              <ul>
+                <li v-for="feature in plan.features" :key="feature">
+                  <span class="feature-icon">✓</span>
+                  {{ feature }}
+                </li>
+              </ul>
+            </div>
 
-              <!-- Botão de pagamento -->
-              <div class="payment-actions">
-                <button
-                  :disabled="processing || !stripe || !elements"
-                  @click="handleSubmit"
-                  class="payment-button"
-                >
-                  <span v-if="processing">Processando...</span>
-                  <span v-else>Pagar {{ formatCurrency(5000) }}</span>
-                </button>
-              </div>
+            <div class="plan-popular" v-if="plan.popular">
+              <span>Mais Popular</span>
+            </div>
+          </div>
+        </div>
 
-              <!-- Informações do produto -->
-              <div class="product-info">
-                <h4>Resumo do Pedido</h4>
-                <div class="product-item">
-                  <span>Produto: Pacote Premium VoleiClub</span>
-                  <span class="price">{{ formatCurrency(5000) }}</span>
-                </div>
-                <div class="total">
-                  <strong>Total: {{ formatCurrency(5000) }}</strong>
-                </div>
+        <!-- Plano Vitalício Centralizado -->
+        <div class="lifetime-plan-container">
+          <div
+            v-for="plan in lifetimePlans"
+            :key="`${plan.id}-${plan.billing}`"
+            class="plan-card lifetime-card"
+            :class="{
+              selected:
+                selectedPlan?.id === plan.id &&
+                selectedPlan?.billing === plan.billing,
+            }"
+            @click="selectPlan(plan)"
+          >
+            <div class="plan-header">
+              <h3>{{ plan.name }}</h3>
+              <div class="plan-price">
+                <span class="currency">R$</span>
+                <span class="amount">{{ getPlanPrice(plan) }}</span>
+                <span class="period">{{ getPlanPeriod(plan) }}</span>
               </div>
+            </div>
 
-              <!-- Mensagens de status -->
-              <div v-if="statusMessage" :class="['status-message', statusType]">
-                {{ statusMessage }}
-              </div>
+            <div class="plan-features">
+              <ul>
+                <li v-for="feature in plan.features" :key="feature">
+                  <span class="feature-icon">✓</span>
+                  {{ feature }}
+                </li>
+              </ul>
+            </div>
+
+            <div class="lifetime-badge">
+              <span>Pagamento Único</span>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Resultado do pagamento -->
-      <div v-if="paymentResult" class="payment-result">
-        <h3>Resultado do Pagamento:</h3>
-        <pre>{{ JSON.stringify(paymentResult, null, 2) }}</pre>
+      <!-- Botão de Assinatura -->
+      <div v-if="selectedPlan" class="subscription-actions">
+        <h3>Plano Selecionado: {{ selectedPlan.name }}</h3>
+        <p class="plan-description">{{ selectedPlan.description }}</p>
+        <p class="plan-billing-info">
+          <strong>Faturamento:</strong>
+          {{
+            selectedPlan.billing === "lifetime"
+              ? "Pagamento único"
+              : `${selectedPlan.billing === "monthly" ? "Mensal" : "Anual"}`
+          }}
+        </p>
+
+        <button
+          @click="subscribeToPlan"
+          :disabled="loading"
+          class="subscribe-button"
+        >
+          {{
+            loading
+              ? "Processando..."
+              : `Assinar ${selectedPlan.name} - ${getPlanPrice(
+                  selectedPlan
+                )}${getPlanPeriod(selectedPlan)}`
+          }}
+        </button>
+      </div>
+
+      <!-- Stripe Checkout será implementado via JavaScript -->
+
+      <!-- Resultado da Assinatura -->
+      <div v-if="subscriptionResult" class="subscription-result">
+        <h3>Resultado da Assinatura</h3>
+        <pre>{{ JSON.stringify(subscriptionResult, null, 2) }}</pre>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from "vue";
+import { ref, computed, onMounted } from "vue";
 
 // Configurações do Stripe
 const runtimeConfig = useRuntimeConfig();
 const stripeKey = runtimeConfig.public.stripePublishableKey;
 
-// Para teste, vamos usar um clientSecret mockado
-// Em produção, isso viria do seu backend quando criar um PaymentIntent
-// O clientSecret deve começar com "pi_" (PaymentIntent)
-const clientSecret = ref("pi_test_secret_123456789");
+// Estado da aplicação
+const loading = ref(false);
+const selectedPlan = ref(null);
+const selectedBilling = ref("monthly"); // 'monthly', 'yearly'
+const subscriptionResult = ref(null);
+const showDebug = ref(true); // Ativado para debug
 
-// Constantes
-const currency = ref("BRL");
-
-const paymentResult = ref(null);
-const loading = ref(true);
-const processing = ref(false);
-const statusMessage = ref("");
-const statusType = ref("");
+// Instância do Stripe
 const stripe = ref(null);
-const elements = ref(null);
-const cardElement = ref(null);
 
-const formatCurrency = (value) => {
-  return new Intl.NumberFormat("pt-BR", {
-    style: "currency",
-    currency: currency.value,
-  }).format(value / 100);
+// Todos os planos disponíveis
+const allPlans = ref([
+  // Plano Básico
+  {
+    id: "basic",
+    name: "Básico",
+    billing: "monthly",
+    priceId: "price_basic_monthly",
+    price: 29.9,
+    description: "Plano ideal para clubes iniciantes",
+    features: [
+      "Até 20 jogadores",
+      "Gestão básica de treinos",
+      "Relatórios simples",
+      "Suporte por email",
+    ],
+    popular: false,
+  },
+  {
+    id: "basic",
+    name: "Básico",
+    billing: "yearly",
+    priceId: "price_basic_yearly",
+    price: 287.04, // 29.90 * 12 * 0.8 (20% desconto)
+    discount: 71.76,
+    description: "Plano ideal para clubes iniciantes",
+    features: [
+      "Até 20 jogadores",
+      "Gestão básica de treinos",
+      "Relatórios simples",
+      "Suporte por email",
+    ],
+    popular: false,
+  },
+
+  // Plano Profissional
+  {
+    id: "pro",
+    name: "Profissional",
+    billing: "monthly",
+    priceId: "price_pro_monthly",
+    price: 59.9,
+    description: "Para clubes em crescimento",
+    features: [
+      "Até 50 jogadores",
+      "Gestão avançada de treinos",
+      "Relatórios detalhados",
+      "Scouting técnico",
+      "Suporte prioritário",
+      "Integração com calendário",
+    ],
+    popular: true,
+  },
+  {
+    id: "pro",
+    name: "Profissional",
+    billing: "yearly",
+    priceId: "price_pro_yearly",
+    price: 575.04, // 59.90 * 12 * 0.8 (20% desconto)
+    discount: 143.76,
+    description: "Para clubes em crescimento",
+    features: [
+      "Até 50 jogadores",
+      "Gestão avançada de treinos",
+      "Relatórios detalhados",
+      "Scouting técnico",
+      "Suporte prioritário",
+      "Integração com calendário",
+    ],
+    popular: true,
+  },
+
+  // Plano Empresarial
+  {
+    id: "enterprise",
+    name: "Empresarial",
+    billing: "monthly",
+    priceId: "price_enterprise_monthly",
+    price: 99.9,
+    description: "Para grandes clubes e federações",
+    features: [
+      "Jogadores ilimitados",
+      "Todas as funcionalidades Pro",
+      "API personalizada",
+      "Suporte 24/7",
+      "Treinamento da equipe",
+      "Relatórios customizados",
+    ],
+    popular: false,
+  },
+  {
+    id: "enterprise",
+    name: "Empresarial",
+    billing: "yearly",
+    priceId: "price_enterprise_yearly",
+    price: 959.04, // 99.90 * 12 * 0.8 (20% desconto)
+    discount: 239.76,
+    description: "Para grandes clubes e federações",
+    features: [
+      "Jogadores ilimitados",
+      "Todas as funcionalidades Pro",
+      "API personalizada",
+      "Suporte 24/7",
+      "Treinamento da equipe",
+      "Relatórios customizados",
+    ],
+    popular: false,
+  },
+
+  // Plano Vitalício
+  {
+    id: "lifetime",
+    name: "Vitalício",
+    billing: "lifetime",
+    priceId: "price_lifetime",
+    price: 999.9,
+    description: "Acesso vitalício com funcionalidades limitadas",
+    features: [
+      "Até 10 jogadores",
+      "Gestão básica de treinos",
+      "Relatórios simples",
+      "Sem atualizações futuras",
+      "Suporte por email (1 ano)",
+      "Acesso vitalício",
+    ],
+    popular: false,
+  },
+]);
+
+// Planos periódicos baseados na periodicidade selecionada
+const periodicPlans = computed(() => {
+  return allPlans.value.filter(
+    (plan) => plan.billing === selectedBilling.value
+  );
+});
+
+// Plano vitalício sempre disponível
+const lifetimePlans = computed(() => {
+  return allPlans.value.filter((plan) => plan.billing === "lifetime");
+});
+
+// Configurações do Stripe Checkout
+const lineItems = computed(() => {
+  console.log("🔍 lineItems computed - selectedPlan:", selectedPlan.value);
+
+  if (!selectedPlan.value) {
+    console.log("❌ lineItems: Nenhum plano selecionado");
+    return [];
+  }
+
+  const items = [
+    {
+      price: selectedPlan.value.priceId,
+      quantity: 1,
+    },
+  ];
+
+  console.log("✅ lineItems gerados:", items);
+  return items;
+});
+
+const successURL = `${window.location.origin}/payment/success`;
+const cancelURL = `${window.location.origin}/payment/cancel`;
+
+// Funções auxiliares
+const getPlanPrice = (plan) => {
+  if (plan.billing === "lifetime") {
+    return plan.price.toFixed(2).replace(".", ",");
+  }
+  return plan.price.toFixed(2).replace(".", ",");
 };
 
-const testStripeKey = () => {
-  console.log("=== TESTE DA CHAVE STRIPE ===");
-  console.log(stripeKey);
-
-  // Tentar usar a chave diretamente
-  if (window.Stripe) {
-    try {
-      const testStripe = window.Stripe(stripeKey);
-      console.log("Stripe criado com sucesso:", testStripe);
-    } catch (error) {
-      console.error("Erro ao criar Stripe:", error);
-    }
-  } else {
-    console.log("Stripe.js ainda não foi carregado");
+const getPlanPeriod = (plan) => {
+  if (plan.billing === "lifetime") {
+    return "";
   }
+  return plan.billing === "monthly" ? "/mês" : "/ano";
 };
 
-const handleSubmit = async () => {
-  if (!stripe.value || !elements.value) {
-    return;
-  }
+const selectPlan = (plan) => {
+  selectedPlan.value = plan;
+  console.log("Plano selecionado:", plan);
+};
 
-  processing.value = true;
-  statusMessage.value = "";
+const handleLoading = (isLoading) => {
+  loading.value = isLoading;
+  console.log("Stripe Checkout loading:", isLoading);
+};
 
+const subscribeToPlan = async () => {
   try {
-    const { error } = await stripe.value.confirmPayment({
-      elements: elements.value,
-      confirmParams: {
-        return_url: `${window.location.origin}/payment/success`,
-      },
+    // Validações iniciais
+    if (!selectedPlan.value) {
+      alert("Por favor, selecione um plano primeiro");
+      return;
+    }
+
+    if (!stripe.value) {
+      console.error("❌ Stripe não inicializado");
+      alert("Stripe não foi inicializado. Recarregue a página.");
+      return;
+    }
+
+    // Logs para debug
+    console.log("🔍 Debug - Plano selecionado:", selectedPlan.value);
+    console.log("🔍 Debug - Stripe instance:", stripe.value);
+    console.log("🔍 Debug - Line items:", lineItems.value);
+    console.log("🔍 Debug - Success URL:", successURL);
+    console.log("🔍 Debug - Cancel URL:", cancelURL);
+
+    // Verificar se lineItems está correto
+    if (!lineItems.value || lineItems.value.length === 0) {
+      console.error("❌ Line items vazio ou inválido");
+      alert(
+        "Erro: Dados do plano inválidos. Tente selecionar o plano novamente."
+      );
+      return;
+    }
+
+    handleLoading(true);
+    console.log(
+      "🚀 Iniciando assinatura para o plano:",
+      selectedPlan.value.name
+    );
+
+    // Criar sessão de checkout
+    const result = await stripe.value.redirectToCheckout({
+      lineItems: lineItems.value,
+      mode: "subscription",
+      successUrl: successURL,
+      cancelUrl: cancelURL,
     });
 
-    if (error) {
-      statusMessage.value = error.message || "Erro ao processar pagamento.";
-      statusType.value = "error";
-      paymentResult.value = {
-        status: "error",
-        error: error,
-        timestamp: new Date().toISOString(),
-      };
+    console.log("🔍 Debug - Resultado do checkout:", result);
+
+    if (result.error) {
+      console.error("❌ Erro no checkout:", result.error);
+      alert(`Erro no checkout: ${result.error.message}`);
     } else {
-      statusMessage.value = "Pagamento realizado com sucesso!";
-      statusType.value = "success";
-      paymentResult.value = {
-        status: "success",
-        data: { amount: 5000 },
-        timestamp: new Date().toISOString(),
-      };
+      console.log("✅ Checkout iniciado com sucesso");
     }
   } catch (error) {
-    statusMessage.value = "Erro ao processar pagamento.";
-    statusType.value = "error";
-    paymentResult.value = {
-      status: "error",
-      error: error,
-      timestamp: new Date().toISOString(),
-    };
+    console.error("❌ Erro ao iniciar assinatura:", error);
+    console.error("❌ Stack trace:", error.stack);
+    console.error("❌ Error details:", {
+      name: error.name,
+      message: error.message,
+      code: error.code,
+    });
+
+    // Mensagem mais específica baseada no tipo de erro
+    if (error.message.includes("price")) {
+      alert("Erro: ID do preço inválido. Verifique a configuração dos planos.");
+    } else if (error.message.includes("stripe")) {
+      alert(
+        "Erro de conexão com Stripe. Verifique sua internet e tente novamente."
+      );
+    } else {
+      alert(`Erro ao iniciar assinatura: ${error.message}`);
+    }
   } finally {
-    processing.value = false;
+    handleLoading(false);
   }
 };
 
-const handlePaymentSuccess = (result) => {
-  console.log("Pagamento realizado com sucesso:", result);
-  paymentResult.value = {
-    status: "success",
-    data: result,
-    timestamp: new Date().toISOString(),
-  };
-};
-
-const handlePaymentError = (error) => {
-  console.error("Erro no pagamento:", error);
-  paymentResult.value = {
-    status: "error",
-    error: error,
-    timestamp: new Date().toISOString(),
-  };
-};
-
+// Inicialização
 onMounted(async () => {
   try {
-    console.log("=== INICIANDO CONFIGURAÇÃO DO STRIPE ===");
-    console.log("Stripe Key:", stripeKey);
-    console.log("Client Secret:", clientSecret.value);
-    console.log("Currency:", currency.value);
+    console.log("🚀 Iniciando carregamento da página...");
 
-    // Verificar se temos uma chave válida
+    // Verificar se a chave do Stripe está configurada
     if (!stripeKey || stripeKey === "undefined") {
-      throw new Error("Chave do Stripe não configurada ou inválida");
+      throw new Error("Chave do Stripe não configurada");
     }
 
-    // Aguardar o Stripe.js carregar
+    console.log(
+      "🔑 Chave do Stripe encontrada:",
+      stripeKey.substring(0, 20) + "..."
+    );
+
+    // Carregar Stripe.js se não estiver disponível
     if (!window.Stripe) {
-      console.log("Carregando Stripe.js...");
+      console.log("📥 Carregando Stripe.js do CDN...");
       const script = document.createElement("script");
       script.src = "https://js.stripe.com/v3/";
       await new Promise((resolve, reject) => {
-        script.onload = resolve;
-        script.onerror = reject;
+        script.onload = () => {
+          console.log("✅ Stripe.js carregado com sucesso");
+          resolve();
+        };
+        script.onerror = (error) => {
+          console.error("❌ Erro ao carregar Stripe.js:", error);
+          reject(error);
+        };
         document.head.appendChild(script);
       });
-      console.log("Stripe.js carregado com sucesso");
+    } else {
+      console.log("✅ Stripe.js já está disponível");
     }
 
-    // Primeiro, parar o loading para renderizar o elemento
-    loading.value = false;
-    console.log("Loading parado, elemento deve estar renderizado");
-
-    // Aguardar o próximo tick para garantir que o DOM está renderizado
-    await nextTick();
-    console.log("nextTick completado");
-
-    // Pequeno delay para garantir que o DOM está completamente renderizado
-    await new Promise((resolve) => setTimeout(resolve, 200));
-    console.log("Delay de 200ms completado");
-
-    // Verificar se o elemento existe
-    const cardElementDom = document.getElementById("card-element");
-    if (!cardElementDom) {
-      throw new Error("Elemento #card-element não encontrado no DOM");
-    }
-    console.log("Elemento #card-element encontrado:", cardElementDom);
+    // Aguardar Stripe carregar
+    console.log("⏳ Aguardando Stripe carregar...");
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
     // Inicializar Stripe
-    console.log("Inicializando Stripe...", stripeKey);
+    console.log("🔧 Inicializando instância do Stripe...");
     stripe.value = window.Stripe(stripeKey);
-    console.log("Stripe inicializado:", stripe.value);
+    console.log("✅ Stripe inicializado com sucesso:", stripe.value);
 
-    // Configurar Elements
-    const appearance = {
-      theme: "flat",
-      variables: {
-        colorPrimaryText: "#262626",
-        colorPrimary: "#667eea",
-      },
-    };
-
-    console.log("Configurando Elements...");
-    elements.value = stripe.value.elements({
-      clientSecret: clientSecret.value,
-      appearance,
-    });
-    console.log("Elements configurado:", elements.value);
-
-    // Criar elemento de cartão
-    console.log("Criando elemento de cartão...");
-    cardElement.value = elements.value.create("card", {
-      style: {
-        base: {
-          fontSize: "16px",
-          color: "#424770",
-          "::placeholder": {
-            color: "#aab7c4",
-          },
-        },
-        invalid: {
-          color: "#9e2146",
-        },
-      },
-    });
-
-    // Montar elemento na tela
-    console.log("Montando elemento na tela...");
-    cardElement.value.mount("#card-element");
-    console.log("Elemento montado com sucesso");
-
-    console.log("=== CONFIGURAÇÃO COMPLETA ===");
-    console.log("Formulário pronto!");
+    // Testar se o Stripe está funcionando
+    if (stripe.value && typeof stripe.value.redirectToCheckout === "function") {
+      console.log("✅ Método redirectToCheckout disponível");
+    } else {
+      console.error("❌ Método redirectToCheckout não encontrado");
+    }
   } catch (error) {
-    console.error("=== ERRO NA CONFIGURAÇÃO ===");
-    console.error("Erro ao inicializar Stripe Elements:", error);
-    console.error("Stack trace:", error.stack);
-    statusMessage.value =
-      "Erro ao carregar formulário de pagamento: " + error.message;
-    statusType.value = "error";
-    loading.value = false;
+    console.error("❌ Erro ao inicializar Stripe:", error);
+    console.error("❌ Stack trace:", error.stack);
+    showDebug.value = true;
   }
+
+  console.log("📄 Página de planos carregada");
 });
 </script>
 
 <style scoped>
-.payment-test-page {
+.subscription-plans-page {
   padding: 40px 20px;
-  background: #f5f7fa;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   min-height: 100vh;
 }
 
 .container {
-  max-width: 800px;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
 h1 {
   text-align: center;
-  color: #333;
+  color: white;
   margin-bottom: 10px;
+  font-size: 2.5rem;
+  font-weight: 700;
 }
 
 p {
   text-align: center;
-  color: #666;
+  color: rgba(255, 255, 255, 0.9);
   margin-bottom: 40px;
+  font-size: 1.1rem;
 }
 
-.stripe-elements-form {
-  background: white;
+/* Toggle de Faturamento */
+.billing-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 40px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 20px;
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.toggle-label {
+  color: white;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.toggle-buttons {
+  display: flex;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 4px;
+  position: relative;
+}
+
+.toggle-btn {
+  background: transparent;
+  border: none;
+  color: white;
+  padding: 12px 24px;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  padding: 20px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  position: relative;
+  min-width: 120px;
+}
+
+.toggle-btn.active {
+  background: white;
+  color: #667eea;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.toggle-btn:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.discount-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #f59e0b;
+  color: white;
+  font-size: 0.7rem;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-weight: 700;
+}
+
+.debug-info {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 15px;
+  margin: 20px 0;
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.debug-info h4 {
+  margin: 0 0 10px 0;
+  color: white;
+}
+
+.debug-info p {
+  margin: 5px 0;
+  text-align: left;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.plans-container {
   margin-bottom: 40px;
 }
 
-.payment-card {
-  border: 1px solid #e0e0e0;
-  border-radius: 6px;
-  overflow: hidden;
+.periodic-plans {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 30px;
+  margin-bottom: 40px;
 }
 
-.card-header {
-  background-color: #f0f2f5;
-  padding: 15px 20px;
-  border-bottom: 1px solid #e0e0e0;
+.lifetime-plan-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+  width: 100%;
 }
 
-.card-header h3 {
-  margin: 0;
-  color: #333;
+.lifetime-plan-container .plan-card {
+  width: 100%;
+  max-width: 400px;
 }
 
-.card-body {
-  padding: 20px;
+.plan-card {
+  background: white;
+  border-radius: 16px;
+  padding: 30px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+  border: 3px solid transparent;
 }
 
-.loading {
+.plan-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+.plan-card.selected {
+  border-color: #667eea;
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px rgba(102, 126, 234, 0.3);
+}
+
+.plan-header {
   text-align: center;
-  padding: 20px;
+  margin-bottom: 25px;
+}
+
+.plan-header h3 {
+  margin: 0 0 15px 0;
+  color: #333;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.plan-price {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 5px;
+}
+
+.plan-price .currency {
+  font-size: 1.2rem;
+  color: #667eea;
+  font-weight: 600;
+}
+
+.plan-price .amount {
+  font-size: 3rem;
+  color: #667eea;
+  font-weight: 700;
+}
+
+.plan-price .period {
+  font-size: 1rem;
   color: #666;
 }
 
-.card-element {
+.yearly-savings {
+  margin-top: 10px;
+  color: #10b981;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.plan-features {
   margin-bottom: 20px;
 }
 
-.payment-actions {
-  text-align: center;
-  margin-top: 20px;
+.plan-features ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
 
-.payment-button {
-  background-color: #667eea;
-  color: white;
-  padding: 12px 25px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: bold;
-  transition: background-color 0.3s ease;
-}
-
-.payment-button:hover:not(:disabled) {
-  background-color: #5a67d8;
-}
-
-.payment-button:disabled {
-  background-color: #a0aec0;
-  cursor: not-allowed;
-  color: #4a5568;
-}
-
-.product-info {
-  margin-top: 20px;
-  padding-top: 20px;
-  border-top: 1px dashed #e0e0e0;
-}
-
-.product-info h4 {
-  margin-bottom: 15px;
-  color: #333;
-}
-
-.product-item {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 10px;
+.plan-features li {
+  padding: 8px 0;
   color: #555;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.product-item span:first-child {
+.feature-icon {
+  color: #10b981;
   font-weight: bold;
+  font-size: 1.2rem;
 }
 
-.product-item .price {
-  font-weight: bold;
-  color: #667eea;
+.plan-popular {
+  position: absolute;
+  top: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  padding: 8px 20px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
 }
 
-.total {
-  margin-top: 10px;
-  text-align: right;
-  font-size: 18px;
-  font-weight: bold;
+.lifetime-badge {
+  position: absolute;
+  top: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  color: white;
+  padding: 8px 20px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+}
+
+.lifetime-card {
+  width: 100%;
+  min-width: 320px;
+  border: 3px solid #8b5cf6;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
+}
+
+.lifetime-card:hover {
+  border-color: #7c3aed;
+  box-shadow: 0 20px 40px rgba(139, 92, 246, 0.3);
+}
+
+.lifetime-card.selected {
+  border-color: #7c3aed;
+  box-shadow: 0 20px 40px rgba(139, 92, 246, 0.4);
+}
+
+.subscription-actions {
+  background: white;
+  border-radius: 16px;
+  padding: 30px;
+  text-align: center;
+  margin-bottom: 40px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.subscription-actions h3 {
+  margin: 0 0 10px 0;
   color: #333;
+  font-size: 1.5rem;
 }
 
-.status-message {
-  margin-top: 20px;
-  padding: 12px 15px;
-  border-radius: 6px;
-  font-weight: bold;
+.plan-description {
+  color: #666;
+  margin-bottom: 15px;
+  font-size: 1.1rem;
+}
+
+.plan-billing-info {
+  color: #667eea;
+  margin-bottom: 25px;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.subscribe-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 18px 36px;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+  min-width: 300px;
+}
+
+.subscribe-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 35px rgba(102, 126, 234, 0.6);
+}
+
+.subscribe-button:disabled {
+  background: #a0aec0;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.subscription-result {
+  background: white;
+  border-radius: 16px;
+  padding: 30px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.subscription-result h3 {
+  margin: 0 0 20px 0;
+  color: #333;
   text-align: center;
 }
 
-.status-message.success {
-  background-color: #e6f6ea;
-  color: #2f9e44;
-  border: 1px solid #d3f9d8;
-}
-
-.status-message.error {
-  background-color: #fde3e3;
-  color: #c92a2a;
-  border: 1px solid #f5d0d0;
-}
-
-.payment-result {
-  margin-top: 40px;
-  padding: 20px;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.payment-result h3 {
-  margin: 0 0 16px 0;
-  color: #333;
-}
-
-.payment-result pre {
+.subscription-result pre {
   background: #f8f9fa;
-  padding: 16px;
-  border-radius: 6px;
+  padding: 20px;
+  border-radius: 8px;
   overflow-x: auto;
   font-size: 14px;
   color: #333;
+  border: 1px solid #e9ecef;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .billing-toggle {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .toggle-buttons {
+    width: 100%;
+  }
+
+  .toggle-btn {
+    flex: 1;
+    min-width: auto;
+  }
+
+  .periodic-plans {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .lifetime-plan-container {
+    margin-top: 30px;
+  }
+
+  .lifetime-card {
+    width: 100%;
+    min-width: auto;
+  }
+
+  .lifetime-plan-container .plan-card {
+    max-width: 100%;
+  }
+
+  .plan-card {
+    padding: 20px;
+  }
+
+  .subscribe-button {
+    min-width: 100%;
+    padding: 16px 24px;
+  }
+
+  h1 {
+    font-size: 2rem;
+  }
 }
 </style>
