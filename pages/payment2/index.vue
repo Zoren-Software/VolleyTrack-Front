@@ -6,7 +6,7 @@
 
       <!-- Seletor de Periodicidade -->
       <div class="billing-toggle">
-        <span class="toggle-label">Faturamento:</span>
+        <span class="toggle-label">Planos:</span>
         <div class="toggle-buttons">
           <button
             @click="selectedBilling = 'monthly'"
@@ -21,9 +21,15 @@
             class="toggle-btn"
           >
             Anual
-            <span class="discount-badge">-20%</span>
+            <span class="discount-badge">-{{ getGeneralYearlyDiscount }}%</span>
           </button>
         </div>
+      </div>
+
+      <!-- Loading State -->
+      <div v-if="loading" class="loading-container">
+        <div class="loading-spinner"></div>
+        <p>Carregando planos...</p>
       </div>
 
       <!-- Debug info -->
@@ -31,27 +37,65 @@
         <h4>Debug Info:</h4>
         <p><strong>Stripe Key:</strong> {{ stripeKey }}</p>
         <p><strong>Loading:</strong> {{ loading }}</p>
+        <p><strong>Plans:</strong> {{ plans.length }} planos carregados</p>
+        <p>
+          <strong>Valid Plans:</strong> {{ displayedPlans.length }} planos
+          válidos
+        </p>
         <p>
           <strong>Selected Plan:</strong> {{ selectedPlan?.name || "Nenhum" }}
         </p>
         <p><strong>Billing:</strong> {{ selectedBilling }}</p>
+        <p>
+          <strong>General Yearly Discount:</strong>
+          {{ getGeneralYearlyDiscount }}%
+        </p>
+        <div v-if="selectedPlan && selectedPlan.prices?.data?.[0]">
+          <p><strong>Price ID:</strong> {{ selectedPlan.prices.data[0].id }}</p>
+          <p>
+            <strong>Price Amount:</strong> R$ {{ getPlanPrice(selectedPlan) }}
+          </p>
+          <p>
+            <strong>Price Type:</strong> {{ selectedPlan.prices.data[0].type }}
+          </p>
+          <p v-if="selectedPlan.prices.data[0].recurring">
+            <strong>Recurring:</strong>
+            {{ selectedPlan.prices.data[0].recurring.interval_count }}
+            {{ selectedPlan.prices.data[0].recurring.interval }}
+          </p>
+        </div>
       </div>
 
       <!-- Planos de Assinatura -->
-      <div class="plans-container">
-        <!-- Planos Periódicos (Mensais/Anuais) -->
-        <div class="periodic-plans">
+      <div v-if="!loading && plans.length > 0" class="plans-container">
+        <!-- Grid de 3 opções -->
+        <div class="plans-grid">
           <div
-            v-for="plan in periodicPlans"
+            v-for="plan in displayedPlans"
             :key="`${plan.id}-${plan.billing}`"
             class="plan-card"
             :class="{
               selected:
                 selectedPlan?.id === plan.id &&
                 selectedPlan?.billing === plan.billing,
+              'lifetime-card': plan.metadata?.plan_type === 'lifetime',
+              'popular-plan': plan.metadata?.plan_type === 'pro',
             }"
             @click="selectPlan(plan)"
           >
+            <!-- Badge de Popular -->
+            <div v-if="plan.metadata?.plan_type === 'pro'" class="plan-popular">
+              <span>Mais Popular</span>
+            </div>
+
+            <!-- Badge de Vitalício -->
+            <div
+              v-if="plan.metadata?.plan_type === 'lifetime'"
+              class="lifetime-badge"
+            >
+              <span>Pagamento Único</span>
+            </div>
+
             <div class="plan-header">
               <h3>{{ plan.name }}</h3>
               <div class="plan-price">
@@ -60,64 +104,70 @@
                 <span class="period">{{ getPlanPeriod(plan) }}</span>
               </div>
               <div
-                v-if="plan.billing === 'yearly' && plan.discount"
+                v-if="
+                  plan.metadata?.yearly_discount === 'true' &&
+                  plan.metadata?.type === 'yearly'
+                "
                 class="yearly-savings"
               >
-                Economia de R$ {{ plan.discount }}/ano
+                <span v-if="getYearlyDiscount(plan)">
+                  Economia de R$ {{ getYearlyDiscount(plan).savings }}/ano ({{
+                    getYearlyDiscount(plan).percentage
+                  }}%)
+                </span>
+                <span v-else> Desconto no plano anual </span>
               </div>
+              <div
+                v-if="plan.metadata?.plan_type === 'lifetime'"
+                class="lifetime-savings"
+              >
+                Pagamento único - Sem mensalidades
+              </div>
+            </div>
+
+            <div class="plan-description">
+              <p>{{ plan.description }}</p>
             </div>
 
             <div class="plan-features">
               <ul>
-                <li v-for="feature in plan.features" :key="feature">
+                <li v-if="plan.metadata?.max_players !== '0'">
                   <span class="feature-icon">✓</span>
-                  {{ feature }}
+                  Até {{ plan.metadata?.max_players }} jogadores
+                </li>
+                <li v-if="plan.metadata?.max_teams !== '0'">
+                  <span class="feature-icon">✓</span>
+                  Até {{ plan.metadata?.max_teams }} equipes
+                </li>
+                <li v-if="plan.metadata?.plan_type === 'lifetime'">
+                  <span class="feature-icon">✓</span>
+                  Acesso vitalício
+                </li>
+                <li v-if="plan.metadata?.plan_type === 'clubes'">
+                  <span class="feature-icon">✓</span>
+                  Jogadores e equipes ilimitados
+                </li>
+                <li v-if="plan.metadata?.plan_type === 'pro'">
+                  <span class="feature-icon">✓</span>
+                  Funcionalidades avançadas
+                </li>
+                <li v-if="plan.metadata?.type === 'yearly'">
+                  <span class="feature-icon">✓</span>
+                  Desconto anual
                 </li>
               </ul>
             </div>
-
-            <div class="plan-popular" v-if="plan.popular">
-              <span>Mais Popular</span>
-            </div>
           </div>
         </div>
+      </div>
 
-        <!-- Plano Vitalício Centralizado -->
-        <div class="lifetime-plan-container">
-          <div
-            v-for="plan in lifetimePlans"
-            :key="`${plan.id}-${plan.billing}`"
-            class="plan-card lifetime-card"
-            :class="{
-              selected:
-                selectedPlan?.id === plan.id &&
-                selectedPlan?.billing === plan.billing,
-            }"
-            @click="selectPlan(plan)"
-          >
-            <div class="plan-header">
-              <h3>{{ plan.name }}</h3>
-              <div class="plan-price">
-                <span class="currency">R$</span>
-                <span class="amount">{{ getPlanPrice(plan) }}</span>
-                <span class="period">{{ getPlanPeriod(plan) }}</span>
-              </div>
-            </div>
-
-            <div class="plan-features">
-              <ul>
-                <li v-for="feature in plan.features" :key="feature">
-                  <span class="feature-icon">✓</span>
-                  {{ feature }}
-                </li>
-              </ul>
-            </div>
-
-            <div class="lifetime-badge">
-              <span>Pagamento Único</span>
-            </div>
-          </div>
-        </div>
+      <!-- Mensagem de erro -->
+      <div v-if="error" class="error-message">
+        <h3>Erro ao carregar planos</h3>
+        <p>{{ error }}</p>
+        <button @click="loadPlans" class="retry-button">
+          Tentar novamente
+        </button>
       </div>
 
       <!-- Botão de Assinatura -->
@@ -127,28 +177,28 @@
         <p class="plan-billing-info">
           <strong>Faturamento:</strong>
           {{
-            selectedPlan.billing === "lifetime"
+            selectedPlan.metadata?.plan_type === "lifetime"
               ? "Pagamento único"
-              : `${selectedPlan.billing === "monthly" ? "Mensal" : "Anual"}`
+              : `${
+                  selectedPlan.metadata?.type === "monthly" ? "Mensal" : "Anual"
+                }`
           }}
         </p>
 
         <button
           @click="subscribeToPlan"
-          :disabled="loading"
+          :disabled="subscriptionLoading"
           class="subscribe-button"
         >
           {{
-            loading
+            subscriptionLoading
               ? "Processando..."
-              : `Assinar ${selectedPlan.name} - ${getPlanPrice(
+              : `Assinar ${selectedPlan.name} - R$ ${getPlanPrice(
                   selectedPlan
                 )}${getPlanPeriod(selectedPlan)}`
           }}
         </button>
       </div>
-
-      <!-- Stripe Checkout será implementado via JavaScript -->
 
       <!-- Resultado da Assinatura -->
       <div v-if="subscriptionResult" class="subscription-result">
@@ -168,154 +218,89 @@ const stripeKey = runtimeConfig.public.stripePublishableKey;
 
 // Estado da aplicação
 const loading = ref(false);
+const subscriptionLoading = ref(false);
 const selectedPlan = ref(null);
 const selectedBilling = ref("monthly"); // 'monthly', 'yearly'
 const subscriptionResult = ref(null);
-const showDebug = ref(true); // Ativado para debug
+const showDebug = ref(false); // Ativado para debug
+const plans = ref([]);
+const error = ref(null);
 
 // Instância do Stripe
 const stripe = ref(null);
 
-// Todos os planos disponíveis
-const allPlans = ref([
-  // Plano Básico
-  {
-    id: "basic",
-    name: "Básico",
-    billing: "monthly",
-    priceId: "price_basic_monthly",
-    price: 29.9,
-    description: "Plano ideal para clubes iniciantes",
-    features: [
-      "Até 20 jogadores",
-      "Gestão básica de treinos",
-      "Relatórios simples",
-      "Suporte por email",
-    ],
-    popular: false,
-  },
-  {
-    id: "basic",
-    name: "Básico",
-    billing: "yearly",
-    priceId: "price_basic_yearly",
-    price: 287.04, // 29.90 * 12 * 0.8 (20% desconto)
-    discount: 71.76,
-    description: "Plano ideal para clubes iniciantes",
-    features: [
-      "Até 20 jogadores",
-      "Gestão básica de treinos",
-      "Relatórios simples",
-      "Suporte por email",
-    ],
-    popular: false,
-  },
+// API URL
+const API_URL = "http://graphql.volleytrack.local/v1/products";
 
-  // Plano Profissional
-  {
-    id: "pro",
-    name: "Profissional",
-    billing: "monthly",
-    priceId: "price_pro_monthly",
-    price: 59.9,
-    description: "Para clubes em crescimento",
-    features: [
-      "Até 50 jogadores",
-      "Gestão avançada de treinos",
-      "Relatórios detalhados",
-      "Scouting técnico",
-      "Suporte prioritário",
-      "Integração com calendário",
-    ],
-    popular: true,
-  },
-  {
-    id: "pro",
-    name: "Profissional",
-    billing: "yearly",
-    priceId: "price_pro_yearly",
-    price: 575.04, // 59.90 * 12 * 0.8 (20% desconto)
-    discount: 143.76,
-    description: "Para clubes em crescimento",
-    features: [
-      "Até 50 jogadores",
-      "Gestão avançada de treinos",
-      "Relatórios detalhados",
-      "Scouting técnico",
-      "Suporte prioritário",
-      "Integração com calendário",
-    ],
-    popular: true,
-  },
+// Planos exibidos baseados na periodicidade selecionada
+const displayedPlans = computed(() => {
+  if (plans.value.length === 0) return [];
 
-  // Plano Empresarial
-  {
-    id: "enterprise",
-    name: "Empresarial",
-    billing: "monthly",
-    priceId: "price_enterprise_monthly",
-    price: 99.9,
-    description: "Para grandes clubes e federações",
-    features: [
-      "Jogadores ilimitados",
-      "Todas as funcionalidades Pro",
-      "API personalizada",
-      "Suporte 24/7",
-      "Treinamento da equipe",
-      "Relatórios customizados",
-    ],
-    popular: false,
-  },
-  {
-    id: "enterprise",
-    name: "Empresarial",
-    billing: "yearly",
-    priceId: "price_enterprise_yearly",
-    price: 959.04, // 99.90 * 12 * 0.8 (20% desconto)
-    discount: 239.76,
-    description: "Para grandes clubes e federações",
-    features: [
-      "Jogadores ilimitados",
-      "Todas as funcionalidades Pro",
-      "API personalizada",
-      "Suporte 24/7",
-      "Treinamento da equipe",
-      "Relatórios customizados",
-    ],
-    popular: false,
-  },
-
-  // Plano Vitalício
-  {
-    id: "lifetime",
-    name: "Vitalício",
-    billing: "lifetime",
-    priceId: "price_lifetime",
-    price: 999.9,
-    description: "Acesso vitalício com funcionalidades limitadas",
-    features: [
-      "Até 10 jogadores",
-      "Gestão básica de treinos",
-      "Relatórios simples",
-      "Sem atualizações futuras",
-      "Suporte por email (1 ano)",
-      "Acesso vitalício",
-    ],
-    popular: false,
-  },
-]);
-
-// Planos periódicos baseados na periodicidade selecionada
-const periodicPlans = computed(() => {
-  return allPlans.value.filter(
-    (plan) => plan.billing === selectedBilling.value
+  // Filtrar apenas produtos válidos (excluir produtos de teste)
+  const validPlans = plans.value.filter(
+    (plan) =>
+      plan.metadata?.plan_type &&
+      plan.metadata?.plan_type !== "test" &&
+      plan.name !== "Product Test"
   );
+
+  // Filtrar planos baseado na periodicidade selecionada
+  const filteredPlans = validPlans.filter((plan) => {
+    if (plan.metadata?.plan_type === "lifetime") return true; // Sempre mostrar vitalício
+
+    if (selectedBilling.value === "monthly") {
+      return plan.metadata?.type === "monthly";
+    } else {
+      return plan.metadata?.type === "yearly";
+    }
+  });
+
+  // Ordenar: vitalício primeiro, depois por tipo
+  filteredPlans.sort((a, b) => {
+    if (a.metadata?.plan_type === "lifetime") return -1;
+    if (b.metadata?.plan_type === "lifetime") return 1;
+
+    // Ordenar por tipo: clubes, pro
+    const typeOrder = { clubes: 1, pro: 2 };
+    const aOrder = typeOrder[a.metadata?.plan_type] || 3;
+    const bOrder = typeOrder[b.metadata?.plan_type] || 3;
+
+    return aOrder - bOrder;
+  });
+
+  return filteredPlans;
 });
 
-// Plano vitalício sempre disponível
-const lifetimePlans = computed(() => {
-  return allPlans.value.filter((plan) => plan.billing === "lifetime");
-});
+// Carregar planos da API
+const loadPlans = async () => {
+  try {
+    loading.value = true;
+    error.value = null;
+
+    console.log("🔍 Carregando planos da API:", API_URL);
+
+    const response = await fetch(API_URL);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log("✅ Planos carregados:", data);
+
+    if (data.success && data.data) {
+      plans.value = data.data;
+      console.log(`✅ ${data.data.length} planos carregados com sucesso`);
+    } else {
+      throw new Error("Resposta da API inválida");
+    }
+  } catch (err) {
+    console.error("❌ Erro ao carregar planos:", err);
+    error.value = err.message;
+  } finally {
+    loading.value = false;
+  }
+};
 
 // Configurações do Stripe Checkout
 const lineItems = computed(() => {
@@ -326,9 +311,26 @@ const lineItems = computed(() => {
     return [];
   }
 
+  // Para o plano vitalício, usar modo 'payment', para outros 'subscription'
+  const mode =
+    selectedPlan.value.metadata?.plan_type === "lifetime"
+      ? "payment"
+      : "subscription";
+
+  // Usar o ID do preço da API
+  const priceId = selectedPlan.value.prices?.data?.[0]?.id;
+
+  if (!priceId) {
+    console.error(
+      "❌ Price ID não encontrado para o plano:",
+      selectedPlan.value
+    );
+    return [];
+  }
+
   const items = [
     {
-      price: selectedPlan.value.priceId,
+      price: priceId,
       quantity: 1,
     },
   ];
@@ -342,17 +344,113 @@ const cancelURL = `${window.location.origin}/payment/cancel`;
 
 // Funções auxiliares
 const getPlanPrice = (plan) => {
-  if (plan.billing === "lifetime") {
-    return plan.price.toFixed(2).replace(".", ",");
+  // Usar o preço real da API
+  const priceData = plan.prices?.data?.[0];
+  if (!priceData) {
+    console.warn("⚠️ Preço não encontrado para o plano:", plan.name);
+    return "0,00";
   }
-  return plan.price.toFixed(2).replace(".", ",");
+
+  // unit_amount está em centavos, converter para reais
+  const priceInReais = priceData.unit_amount / 100;
+  return priceInReais.toFixed(2).replace(".", ",");
 };
 
+// Calcular desconto anual baseado nos preços reais
+const getYearlyDiscount = (plan) => {
+  if (plan.metadata?.type !== "yearly") return null;
+
+  // Encontrar o plano mensal correspondente
+  const monthlyPlan = plans.value.find(
+    (p) =>
+      p.metadata?.plan_type === plan.metadata?.plan_type &&
+      p.metadata?.type === "monthly"
+  );
+
+  if (!monthlyPlan) return null;
+
+  const monthlyPrice = monthlyPlan.prices?.data?.[0]?.unit_amount / 100;
+  const yearlyPrice = plan.prices?.data?.[0]?.unit_amount / 100;
+
+  if (!monthlyPrice || !yearlyPrice) return null;
+
+  const yearlyTotal = monthlyPrice * 12;
+  const savings = yearlyTotal - yearlyPrice;
+  const discountPercentage = Math.round((savings / yearlyTotal) * 100);
+
+  return {
+    savings: savings.toFixed(2).replace(".", ","),
+    percentage: discountPercentage,
+  };
+};
+
+// Calcular desconto geral para o toggle de periodicidade
+const getGeneralYearlyDiscount = computed(() => {
+  if (plans.value.length === 0) return 20; // Fallback padrão
+
+  // Encontrar planos Pro (que têm desconto anual)
+  const proMonthly = plans.value.find(
+    (p) => p.metadata?.plan_type === "pro" && p.metadata?.type === "monthly"
+  );
+  const proYearly = plans.value.find(
+    (p) => p.metadata?.plan_type === "pro" && p.metadata?.type === "yearly"
+  );
+
+  if (proMonthly && proYearly) {
+    const monthlyPrice = proMonthly.prices?.data?.[0]?.unit_amount / 100;
+    const yearlyPrice = proYearly.prices?.data?.[0]?.unit_amount / 100;
+
+    if (monthlyPrice && yearlyPrice) {
+      const yearlyTotal = monthlyPrice * 12;
+      const savings = yearlyTotal - yearlyPrice;
+      const discountPercentage = Math.round((savings / yearlyTotal) * 100);
+      return discountPercentage;
+    }
+  }
+
+  // Fallback para planos Clubes
+  const clubesMonthly = plans.value.find(
+    (p) => p.metadata?.plan_type === "clubes" && p.metadata?.type === "monthly"
+  );
+  const clubesYearly = plans.value.find(
+    (p) => p.metadata?.plan_type === "clubes" && p.metadata?.type === "yearly"
+  );
+
+  if (clubesMonthly && clubesYearly) {
+    const monthlyPrice = clubesMonthly.prices?.data?.[0]?.unit_amount / 100;
+    const yearlyPrice = clubesYearly.prices?.data?.[0]?.unit_amount / 100;
+
+    if (monthlyPrice && yearlyPrice) {
+      const yearlyTotal = monthlyPrice * 12;
+      const savings = yearlyTotal - yearlyPrice;
+      const discountPercentage = Math.round((savings / yearlyTotal) * 100);
+      return discountPercentage;
+    }
+  }
+
+  return 20; // Fallback padrão se não conseguir calcular
+});
+
 const getPlanPeriod = (plan) => {
-  if (plan.billing === "lifetime") {
+  if (plan.metadata?.plan_type === "lifetime") {
     return "";
   }
-  return plan.billing === "monthly" ? "/mês" : "/ano";
+
+  // Usar os dados de recorrência da API
+  const priceData = plan.prices?.data?.[0];
+  if (priceData?.recurring) {
+    const interval = priceData.recurring.interval;
+    const count = priceData.recurring.interval_count;
+
+    if (interval === "month") {
+      return count > 1 ? `/${count} meses` : "/mês";
+    } else if (interval === "year") {
+      return count > 1 ? `/${count} anos` : "/ano";
+    }
+  }
+
+  // Fallback para o metadata
+  return plan.metadata?.type === "monthly" ? "/mês" : "/ano";
 };
 
 const selectPlan = (plan) => {
@@ -361,7 +459,7 @@ const selectPlan = (plan) => {
 };
 
 const handleLoading = (isLoading) => {
-  loading.value = isLoading;
+  subscriptionLoading.value = isLoading;
   console.log("Stripe Checkout loading:", isLoading);
 };
 
@@ -376,6 +474,13 @@ const subscribeToPlan = async () => {
     if (!stripe.value) {
       console.error("❌ Stripe não inicializado");
       alert("Stripe não foi inicializado. Recarregue a página.");
+      return;
+    }
+
+    // Verificar se o plano tem preço válido
+    const priceId = selectedPlan.value.prices?.data?.[0]?.id;
+    if (!priceId) {
+      alert("Erro: Preço não encontrado para este plano. Tente novamente.");
       return;
     }
 
@@ -401,10 +506,16 @@ const subscribeToPlan = async () => {
       selectedPlan.value.name
     );
 
+    // Determinar o modo baseado no tipo de plano
+    const mode =
+      selectedPlan.value.metadata?.plan_type === "lifetime"
+        ? "payment"
+        : "subscription";
+
     // Criar sessão de checkout
     const result = await stripe.value.redirectToCheckout({
       lineItems: lineItems.value,
-      mode: "subscription",
+      mode: mode,
       successUrl: successURL,
       cancelUrl: cancelURL,
     });
@@ -445,6 +556,9 @@ const subscribeToPlan = async () => {
 onMounted(async () => {
   try {
     console.log("🚀 Iniciando carregamento da página...");
+
+    // Carregar planos da API
+    await loadPlans();
 
     // Verificar se a chave do Stripe está configurada
     if (!stripeKey || stripeKey === "undefined") {
@@ -592,6 +706,60 @@ p {
   font-weight: 700;
 }
 
+/* Loading State */
+.loading-container {
+  text-align: center;
+  padding: 60px 20px;
+  color: white;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top: 4px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Error Message */
+.error-message {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 16px;
+  padding: 30px;
+  text-align: center;
+  margin: 40px 0;
+  color: white;
+}
+
+.retry-button {
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  margin-top: 15px;
+  transition: all 0.3s ease;
+}
+
+.retry-button:hover {
+  background: #dc2626;
+  transform: translateY(-2px);
+}
+
 .debug-info {
   background: rgba(255, 255, 255, 0.1);
   padding: 15px;
@@ -616,23 +784,12 @@ p {
   margin-bottom: 40px;
 }
 
-.periodic-plans {
+/* Grid de 3 opções */
+.plans-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 30px;
   margin-bottom: 40px;
-}
-
-.lifetime-plan-container {
-  display: flex;
-  justify-content: center;
-  margin-top: 20px;
-  width: 100%;
-}
-
-.lifetime-plan-container .plan-card {
-  width: 100%;
-  max-width: 400px;
 }
 
 .plan-card {
@@ -644,6 +801,9 @@ p {
   cursor: pointer;
   position: relative;
   border: 3px solid transparent;
+  min-height: 500px;
+  display: flex;
+  flex-direction: column;
 }
 
 .plan-card:hover {
@@ -660,6 +820,7 @@ p {
 .plan-header {
   text-align: center;
   margin-bottom: 25px;
+  flex-shrink: 0;
 }
 
 .plan-header h3 {
@@ -700,8 +861,32 @@ p {
   font-size: 0.9rem;
 }
 
-.plan-features {
+.lifetime-savings {
+  margin-top: 10px;
+  color: #10b981;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.plan-description {
+  text-align: center;
   margin-bottom: 20px;
+  color: #666 !important;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  flex-shrink: 0;
+}
+
+.plan-description p {
+  color: #666 !important;
+  margin: 0;
+}
+
+.plan-features {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
 }
 
 .plan-features ul {
@@ -753,8 +938,6 @@ p {
 }
 
 .lifetime-card {
-  width: 100%;
-  min-width: 320px;
   border: 3px solid #8b5cf6;
   background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
 }
@@ -767,6 +950,20 @@ p {
 .lifetime-card.selected {
   border-color: #7c3aed;
   box-shadow: 0 20px 40px rgba(139, 92, 246, 0.4);
+}
+
+.popular-plan {
+  border: 3px solid #f59e0b;
+}
+
+.popular-plan:hover {
+  border-color: #d97706;
+  box-shadow: 0 20px 40px rgba(245, 158, 11, 0.3);
+}
+
+.popular-plan.selected {
+  border-color: #d97706;
+  box-shadow: 0 20px 40px rgba(245, 158, 11, 0.4);
 }
 
 .subscription-actions {
@@ -847,6 +1044,13 @@ p {
 }
 
 /* Responsividade */
+@media (max-width: 1024px) {
+  .plans-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+}
+
 @media (max-width: 768px) {
   .billing-toggle {
     flex-direction: column;
@@ -862,26 +1066,14 @@ p {
     min-width: auto;
   }
 
-  .periodic-plans {
+  .plans-grid {
     grid-template-columns: 1fr;
     gap: 20px;
   }
 
-  .lifetime-plan-container {
-    margin-top: 30px;
-  }
-
-  .lifetime-card {
-    width: 100%;
-    min-width: auto;
-  }
-
-  .lifetime-plan-container .plan-card {
-    max-width: 100%;
-  }
-
   .plan-card {
     padding: 20px;
+    min-height: auto;
   }
 
   .subscribe-button {
