@@ -105,17 +105,15 @@
               </div>
               <div
                 v-if="
-                  plan.metadata?.yearly_discount === 'true' &&
-                  plan.metadata?.type === 'yearly'
+                  plan.metadata?.type === 'yearly' && getYearlyDiscount(plan)
                 "
                 class="yearly-savings"
               >
-                <span v-if="getYearlyDiscount(plan)">
+                <span>
                   Economia de R$ {{ getYearlyDiscount(plan).savings }}/ano ({{
                     getYearlyDiscount(plan).percentage
                   }}%)
                 </span>
-                <span v-else> Desconto no plano anual </span>
               </div>
               <div
                 v-if="plan.metadata?.plan_type === 'lifetime'"
@@ -222,7 +220,7 @@ const subscriptionLoading = ref(false);
 const selectedPlan = ref(null);
 const selectedBilling = ref("monthly"); // 'monthly', 'yearly'
 const subscriptionResult = ref(null);
-const showDebug = ref(false); // Ativado para debug
+const showDebug = ref(true); // Ativado para debug
 const plans = ref([]);
 const error = ref(null);
 
@@ -378,6 +376,9 @@ const getYearlyDiscount = (plan) => {
   const savings = yearlyTotal - yearlyPrice;
   const discountPercentage = Math.round((savings / yearlyTotal) * 100);
 
+  // Log para debug
+  //console.log(`🔍 Desconto para ${plan.name}: ${monthlyPrice} × 12 = ${yearlyTotal}, Anual: ${yearlyPrice}, Economia: ${savings}, Desconto: ${discountPercentage}%`);
+
   return {
     savings: savings.toFixed(2).replace(".", ","),
     percentage: discountPercentage,
@@ -388,27 +389,7 @@ const getYearlyDiscount = (plan) => {
 const getGeneralYearlyDiscount = computed(() => {
   if (plans.value.length === 0) return 20; // Fallback padrão
 
-  // Encontrar planos Pro (que têm desconto anual)
-  const proMonthly = plans.value.find(
-    (p) => p.metadata?.plan_type === "pro" && p.metadata?.type === "monthly"
-  );
-  const proYearly = plans.value.find(
-    (p) => p.metadata?.plan_type === "pro" && p.metadata?.type === "yearly"
-  );
-
-  if (proMonthly && proYearly) {
-    const monthlyPrice = proMonthly.prices?.data?.[0]?.unit_amount / 100;
-    const yearlyPrice = proYearly.prices?.data?.[0]?.unit_amount / 100;
-
-    if (monthlyPrice && yearlyPrice) {
-      const yearlyTotal = monthlyPrice * 12;
-      const savings = yearlyTotal - yearlyPrice;
-      const discountPercentage = Math.round((savings / yearlyTotal) * 100);
-      return discountPercentage;
-    }
-  }
-
-  // Fallback para planos Clubes
+  // Priorizar planos Clubes (que têm valores mais altos e desconto mais significativo)
   const clubesMonthly = plans.value.find(
     (p) => p.metadata?.plan_type === "clubes" && p.metadata?.type === "monthly"
   );
@@ -424,6 +405,32 @@ const getGeneralYearlyDiscount = computed(() => {
       const yearlyTotal = monthlyPrice * 12;
       const savings = yearlyTotal - yearlyPrice;
       const discountPercentage = Math.round((savings / yearlyTotal) * 100);
+      console.log(
+        `🔍 Desconto Clubes: ${monthlyPrice} × 12 = ${yearlyTotal}, Anual: ${yearlyPrice}, Economia: ${savings}, Desconto: ${discountPercentage}%`
+      );
+      return discountPercentage;
+    }
+  }
+
+  // Fallback para planos Pro
+  const proMonthly = plans.value.find(
+    (p) => p.metadata?.plan_type === "pro" && p.metadata?.type === "monthly"
+  );
+  const proYearly = plans.value.find(
+    (p) => p.metadata?.plan_type === "pro" && p.metadata?.type === "yearly"
+  );
+
+  if (proMonthly && proYearly) {
+    const monthlyPrice = proMonthly.prices?.data?.[0]?.unit_amount / 100;
+    const yearlyPrice = proYearly.prices?.data?.[0]?.unit_amount / 100;
+
+    if (monthlyPrice && yearlyPrice) {
+      const yearlyTotal = monthlyPrice * 12;
+      const savings = yearlyTotal - yearlyPrice;
+      const discountPercentage = Math.round((savings / yearlyTotal) * 100);
+      console.log(
+        `🔍 Desconto Pro: ${monthlyPrice} × 12 = ${yearlyTotal}, Anual: ${yearlyPrice}, Economia: ${savings}, Desconto: ${discountPercentage}%`
+      );
       return discountPercentage;
     }
   }
