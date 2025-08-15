@@ -54,8 +54,7 @@
         <div class="help-section">
           <p>Precisa de ajuda? Entre em contato conosco:</p>
           <div class="contact-info">
-            <span>📧 suporte@voleiclub.com</span>
-            <span>📱 (11) 99999-9999</span>
+            <span>📧 support@volleytrack.com</span>
           </div>
         </div>
       </div>

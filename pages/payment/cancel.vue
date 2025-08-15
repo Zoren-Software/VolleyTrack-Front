@@ -48,8 +48,7 @@
         <div class="help-section">
           <p>Precisa de ajuda ou tem dúvidas?</p>
           <div class="contact-info">
-            <span>📧 suporte@voleiclub.com</span>
-            <span>📱 (11) 99999-9999</span>
+            <span>📧 support@volleytrack.com</span>
           </div>
           <p class="help-text">
             Nossa equipe está sempre pronta para ajudar você a escolher o plano
