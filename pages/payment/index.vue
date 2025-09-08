@@ -4,6 +4,52 @@
       <h1>Planos de Assinatura</h1>
       <p>Escolha o plano ideal para o seu clube de vôlei</p>
 
+      <!-- Status da Validação do Email -->
+      <div class="email-validation-status">
+        <div v-if="emailValidation.loading" class="validation-loading">
+          <div class="loading-spinner" />
+          <p>Validando seu email...</p>
+        </div>
+
+        <div
+          v-else-if="emailValidation.validated && emailValidation.valid"
+          class="validation-success-discrete"
+        >
+          <div class="validation-icon-small">✅</div>
+          <span>E-mail valido - Pronto para pagamento</span>
+        </div>
+
+        <div
+          v-else-if="emailValidation.validated && !emailValidation.valid"
+          class="validation-error"
+        >
+          <div class="validation-content">
+            <div class="validation-header">
+              <div class="validation-icon">❌</div>
+              <h3>E-mail Não Encontrado</h3>
+            </div>
+            <p>
+              Seu e-mail não está registrado como administrador. Entre em
+              contato com o suporte para prosseguir com o pagamento.
+            </p>
+            <button class="retry-button" @click="validateCustomerEmail">
+              Tentar Novamente
+            </button>
+          </div>
+        </div>
+
+        <div v-else-if="emailValidation.error" class="validation-error">
+          <div class="validation-icon">⚠️</div>
+          <div class="validation-content">
+            <h3>Erro na Validação</h3>
+            <p>{{ emailValidation.error }}</p>
+            <button class="retry-button" @click="validateCustomerEmail">
+              Tentar Novamente
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- Seletor de Periodicidade -->
       <div class="billing-toggle">
         <span class="toggle-label">Planos:</span>
@@ -62,6 +108,41 @@
           <p>
             <strong>Email para Stripe:</strong>
             {{ getUserEmail() || "Não disponível" }}
+          </p>
+        </div>
+        <div
+          v-if="
+            emailValidation.validated &&
+            emailValidation.valid &&
+            emailValidation.customerData
+          "
+        >
+          <p><strong>Validação de E-mail:</strong></p>
+          <p><strong>Status:</strong> ✅ E-mail validado com sucesso</p>
+          <p>
+            <strong>Customer ID:</strong> {{ emailValidation.customerData.id }}
+          </p>
+          <p>
+            <strong>Nome do Customer:</strong>
+            {{ emailValidation.customerData.name }}
+          </p>
+          <p>
+            <strong>E-mail do Customer:</strong>
+            {{ emailValidation.customerData.email }}
+          </p>
+          <p>
+            <strong>Tenant ID:</strong>
+            {{ emailValidation.customerData.tenant_id }}
+          </p>
+          <p>
+            <strong>E-mail Verificado:</strong>
+            {{
+              emailValidation.customerData.email_verified_at || "Não verificado"
+            }}
+          </p>
+          <p>
+            <strong>Criado em:</strong>
+            {{ emailValidation.customerData.created_at }}
           </p>
         </div>
         <div v-else>
@@ -170,13 +251,24 @@
         <!-- Botão de Assinatura -->
         <div v-if="selectedPlan" class="subscription-actions">
           <button
+            :disabled="
+              subscriptionLoading ||
+              !emailValidation.validated ||
+              !emailValidation.valid
+            "
+            :class="{
+              'subscribe-button': true,
+              disabled: !emailValidation.validated || !emailValidation.valid,
+            }"
             @click="subscribeToPlan"
-            :disabled="subscriptionLoading"
-            class="subscribe-button"
           >
             {{
               subscriptionLoading
                 ? "Processando..."
+                : !emailValidation.validated
+                ? "Aguardando validação..."
+                : !emailValidation.valid
+                ? "E-mail não validado - Contate o suporte"
                 : `Assinar ${selectedPlan.name} - R$ ${getPlanPrice(
                     selectedPlan
                   )}${getPlanPeriod(selectedPlan)}`
@@ -187,7 +279,7 @@
 
       <!-- Loading do Stripe -->
       <div v-if="stripeLoading" class="stripe-loading">
-        <div class="loading-spinner"></div>
+        <div class="loading-spinner" />
         <p>Redirecionando para o Stripe...</p>
       </div>
 
@@ -201,7 +293,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { loadStripe } from "@stripe/stripe-js";
 
 // Configurações do Stripe
@@ -223,8 +315,19 @@ const plans = ref([]);
 const error = ref(null);
 const stripe = ref(null);
 
+// Estados para validação de email do customer
+const emailValidation = ref({
+  loading: false,
+  validated: false,
+  valid: false,
+  customerData: null,
+  error: null,
+});
+
 // API URL
 const API_URL = "http://graphql.volleytrack.local/v1/products";
+const CUSTOMER_VALIDATION_URL =
+  "http://api.volleytrack.local/v1/customers/check-email";
 
 // URLs de redirecionamento
 const successURL = `${window.location.origin}/payment/success`;
@@ -308,6 +411,63 @@ const checkoutMode = computed(() => {
     ? "payment"
     : "subscription";
 });
+
+// Validar email do customer
+const validateCustomerEmail = async () => {
+  try {
+    emailValidation.value.loading = true;
+    emailValidation.value.error = null;
+
+    const userEmail = getUserEmail();
+    if (!userEmail) {
+      throw new Error("Email do usuário não encontrado");
+    }
+
+    console.log("🔍 Validando email do customer:", userEmail);
+
+    const response = await fetch(
+      `${CUSTOMER_VALIDATION_URL}?email=${encodeURIComponent(userEmail)}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          email: userEmail,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log("✅ Resposta da validação:", data);
+
+    if (data.success) {
+      emailValidation.value.validated = true;
+      emailValidation.value.valid = data.exists;
+      emailValidation.value.customerData = data.data;
+
+      if (data.exists) {
+        console.log("✅ Customer encontrado:", data.data);
+      } else {
+        console.log("⚠️ Customer não encontrado para o email:", userEmail);
+      }
+    } else {
+      throw new Error(data.message || "Erro na validação do customer");
+    }
+  } catch (err) {
+    console.error("❌ Erro ao validar email do customer:", err);
+    emailValidation.value.error = err.message;
+    emailValidation.value.validated = true;
+    emailValidation.value.valid = false;
+  } finally {
+    emailValidation.value.loading = false;
+  }
+};
 
 // Carregar planos da API
 const loadPlans = async () => {
@@ -509,6 +669,19 @@ const subscribeToPlan = async () => {
       return;
     }
 
+    // Verificar se a validação do email foi realizada e se é válida
+    if (!emailValidation.value.validated) {
+      alert("Aguarde a validação do seu email para continuar.");
+      return;
+    }
+
+    if (!emailValidation.value.valid) {
+      alert(
+        "Seu e-mail não está registrado como administrador. Entre em contato com o suporte para prosseguir com o pagamento."
+      );
+      return;
+    }
+
     if (!stripe.value) {
       await initializeStripe();
     }
@@ -602,6 +775,9 @@ onMounted(async () => {
     await getUserInfo();
     console.log("🔍 Info do usuário:", user.value);
 
+    // Validar email do customer
+    await validateCustomerEmail();
+
     // Carregar planos da API
     await loadPlans();
 
@@ -651,6 +827,161 @@ p {
   color: rgba(255, 255, 255, 0.9);
   margin-bottom: 40px;
   font-size: 1.1rem;
+}
+
+/* Status da Validação do Email */
+.email-validation-status {
+  margin-bottom: 40px;
+  display: flex;
+  justify-content: center;
+}
+
+.validation-loading,
+.validation-success,
+.validation-error {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 20px;
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  text-align: left;
+  max-width: 600px;
+  width: 100%;
+}
+
+.validation-loading {
+  justify-content: center;
+  text-align: center;
+  flex-direction: column;
+}
+
+.validation-success {
+  flex-direction: column;
+  text-align: center;
+}
+
+.validation-error {
+  flex-direction: column;
+  text-align: center;
+  align-items: center;
+  justify-content: center;
+}
+
+.validation-loading .loading-spinner {
+  width: 30px;
+  height: 30px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top: 3px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 10px;
+}
+
+.validation-success {
+  border-color: rgba(16, 185, 129, 0.3);
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.validation-success-discrete {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 8px;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 0 auto 20px;
+  max-width: 400px;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.validation-icon-small {
+  font-size: 1.2rem;
+}
+
+.validation-error {
+  border-color: rgba(239, 68, 68, 0.3);
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.validation-icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+  text-align: center;
+}
+
+.validation-content {
+  flex: 1;
+  text-align: center;
+}
+
+.validation-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.validation-header .validation-icon {
+  font-size: 2.5rem;
+  margin: 0;
+}
+
+.validation-header h3 {
+  margin: 0;
+}
+
+.validation-content h3 {
+  color: white;
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.validation-content p {
+  margin: 0 0 10px 0;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.customer-info {
+  margin: 15px auto 0;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  text-align: center;
+  max-width: 400px;
+}
+
+.customer-info p {
+  margin: 5px 0;
+  font-size: 0.9rem;
+}
+
+.retry-button {
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  margin: 10px auto 0;
+  transition: all 0.3s ease;
+  display: block;
+}
+
+.retry-button:hover {
+  background: #dc2626;
+  transform: translateY(-2px);
 }
 
 /* Toggle de Faturamento */
@@ -1024,7 +1355,8 @@ p {
   box-shadow: 0 12px 35px rgba(102, 126, 234, 0.6);
 }
 
-.subscribe-button:disabled {
+.subscribe-button:disabled,
+.subscribe-button.disabled {
   background: #a0aec0;
   cursor: not-allowed;
   transform: none;
