@@ -1,11 +1,33 @@
 <template>
-  <ZSettingsForm
-    :data="data"
-    @save="edit"
-    :loading="loading"
-    :errorFields="errorFields"
-    :errors="errors"
-  />
+  <div class="settings-page">
+    <div class="settings-header">
+      <h1>Configurações</h1>
+      <div class="settings-nav">
+        <button
+          @click="$router.push('/settings')"
+          :class="{ active: $route.path === '/settings' }"
+          class="nav-button"
+        >
+          Configurações Gerais
+        </button>
+        <button
+          @click="$router.push('/settings/payment')"
+          :class="{ active: $route.path === '/settings/payment' }"
+          class="nav-button"
+        >
+          Configurações de Pagamento
+        </button>
+      </div>
+    </div>
+
+    <ZSettingsForm
+      :data="data"
+      @save="edit"
+      :loading="loading"
+      :errorFields="errorFields"
+      :errors="errors"
+    />
+  </div>
 </template>
 
 <script>
@@ -142,3 +164,66 @@ useHead({
   titleTemplate: "Configurações",
 });
 </script>
+
+<style scoped>
+.settings-page {
+  padding: 20px;
+}
+
+.settings-header {
+  margin-bottom: 30px;
+}
+
+.settings-header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 20px;
+}
+
+.settings-nav {
+  display: flex;
+  gap: 10px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.nav-button {
+  background: none;
+  border: none;
+  padding: 12px 20px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #6b7280;
+  border-bottom: 2px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.nav-button:hover {
+  color: #374151;
+  background: #f9fafb;
+}
+
+.nav-button.active {
+  color: #667eea;
+  border-bottom-color: #667eea;
+  background: #f8f9ff;
+}
+
+@media (max-width: 768px) {
+  .settings-nav {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .nav-button {
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+    border-radius: 0;
+  }
+
+  .nav-button.active {
+    border-bottom-color: #667eea;
+  }
+}
+</style>

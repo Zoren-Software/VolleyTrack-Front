@@ -20,13 +20,29 @@
           </svg>
         </div>
 
-        <h1>Assinatura Confirmada!</h1>
+        <h1>Pagamento Realizado com Sucesso!</h1>
         <p class="success-message">
-          Parabéns! Sua assinatura foi ativada com sucesso. Agora você tem
-          acesso a todos os recursos do plano escolhido.
+          Obrigado pela sua compra. Você receberá um email de confirmação em
+          breve.
         </p>
 
-        <div class="subscription-details">
+        <!-- Loading State -->
+        <div v-if="loading" class="loading-section">
+          <div class="loading-spinner"></div>
+          <p>Carregando detalhes da assinatura...</p>
+        </div>
+
+        <!-- Error State -->
+        <div v-else-if="error" class="error-section">
+          <div class="error-icon">⚠️</div>
+          <p>Erro ao carregar detalhes: {{ error }}</p>
+          <p class="error-note">
+            Mas não se preocupe, seu pagamento foi processado com sucesso!
+          </p>
+        </div>
+
+        <!-- Subscription Details -->
+        <div v-else class="subscription-details">
           <h3>Detalhes da Assinatura</h3>
           <div class="detail-item">
             <span class="label">Status:</span>
@@ -39,6 +55,35 @@
           <div class="detail-item">
             <span class="label">Próxima Cobrança:</span>
             <span class="value">{{ nextBillingDate }}</span>
+          </div>
+
+          <!-- Dados da sessão se disponíveis -->
+          <div v-if="sessionData" class="session-details">
+            <h4>Informações do Pagamento</h4>
+            <div class="detail-item">
+              <span class="label">Modo:</span>
+              <span class="value">{{
+                sessionData.mode === "subscription"
+                  ? "Assinatura"
+                  : "Pagamento Único"
+              }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Valor Total:</span>
+              <span class="value price"
+                >R$ {{ formatPrice(sessionData.amount_total) }}</span
+              >
+            </div>
+            <div class="detail-item">
+              <span class="label">Status do Pagamento:</span>
+              <span class="value" :class="sessionData.payment_status">
+                {{ getPaymentStatusText(sessionData.payment_status) }}
+              </span>
+            </div>
+            <div v-if="sessionData.customer_email" class="detail-item">
+              <span class="label">Email:</span>
+              <span class="value">{{ sessionData.customer_email }}</span>
+            </div>
           </div>
         </div>
 
@@ -64,10 +109,22 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
+import {
+  getCheckoutSession,
+  getCurrentSessionId,
+} from "~/services/stripeCheckoutService.js";
+
+// Head
+useHead({
+  title: "Pagamento Confirmado - VoleiClub",
+});
 
 // Estado da aplicação
 const currentDate = ref("");
 const nextBillingDate = ref("");
+const sessionData = ref(null);
+const loading = ref(true);
+const error = ref(null);
 
 // Função para formatar data
 const formatDate = (date) => {
@@ -78,22 +135,110 @@ const formatDate = (date) => {
   }).format(date);
 };
 
-// Função para calcular próxima cobrança (30 dias)
-const calculateNextBilling = () => {
+// Função para formatar data ISO (não utilizada no momento)
+// const formatISODate = (dateString) => {
+//   if (!dateString) return "N/A";
+//   return formatDate(new Date(dateString));
+// };
+
+// Função para calcular próxima cobrança baseada no período
+const calculateNextBilling = (sessionData) => {
+  if (!sessionData) {
+    // Fallback: 30 dias
+    const next = new Date();
+    next.setDate(next.getDate() + 30);
+    return next;
+  }
+
+  // Se for subscription, calcular baseado no período
+  if (sessionData.mode === "subscription" && sessionData.subscription) {
+    const currentPeriodEnd = new Date(
+      sessionData.subscription.current_period_end * 1000
+    );
+    return currentPeriodEnd;
+  }
+
+  // Se for payment único, não há próxima cobrança
+  if (sessionData.mode === "payment") {
+    return null;
+  }
+
+  // Fallback: 30 dias
   const next = new Date();
   next.setDate(next.getDate() + 30);
   return next;
 };
 
-onMounted(() => {
-  // Definir data atual
-  currentDate.value = formatDate(new Date());
+// Carregar dados da sessão
+const loadSessionData = async () => {
+  try {
+    loading.value = true;
+    error.value = null;
 
-  // Calcular próxima cobrança
-  nextBillingDate.value = formatDate(calculateNextBilling());
+    // Obter session ID da URL
+    const sessionId = getCurrentSessionId();
 
-  // Log de sucesso
-  console.log("Página de sucesso carregada");
+    if (!sessionId) {
+      console.warn("⚠️ Session ID não encontrado na URL");
+      // Usar dados padrão se não houver session ID
+      currentDate.value = formatDate(new Date());
+      nextBillingDate.value = formatDate(calculateNextBilling());
+      return;
+    }
+
+    console.log("🔍 Consultando sessão:", sessionId);
+
+    // Consultar dados da sessão
+    const result = await getCheckoutSession(sessionId);
+
+    if (!result.success) {
+      throw new Error(result.error || "Erro ao consultar sessão");
+    }
+
+    sessionData.value = result.data;
+    console.log("✅ Dados da sessão carregados:", sessionData.value);
+
+    // Definir data atual
+    currentDate.value = formatDate(new Date());
+
+    // Calcular próxima cobrança baseada nos dados da sessão
+    const nextBilling = calculateNextBilling(sessionData.value);
+    if (nextBilling) {
+      nextBillingDate.value = formatDate(nextBilling);
+    } else {
+      nextBillingDate.value = "Pagamento único";
+    }
+  } catch (err) {
+    console.error("❌ Erro ao carregar dados da sessão:", err);
+    error.value = err.message;
+
+    // Usar dados padrão em caso de erro
+    currentDate.value = formatDate(new Date());
+    nextBillingDate.value = formatDate(calculateNextBilling());
+  } finally {
+    loading.value = false;
+  }
+};
+
+// Funções auxiliares
+const formatPrice = (amount) => {
+  if (!amount) return "0,00";
+  return (amount / 100).toFixed(2).replace(".", ",");
+};
+
+const getPaymentStatusText = (status) => {
+  const statusMap = {
+    paid: "Pago",
+    unpaid: "Não Pago",
+    no_payment_required: "Pagamento Não Necessário",
+  };
+  return statusMap[status] || status;
+};
+
+onMounted(async () => {
+  console.log("🚀 Carregando página de sucesso...");
+  await loadSessionData();
+  console.log("✅ Página de sucesso carregada");
 });
 </script>
 
@@ -181,6 +326,77 @@ h1 {
 
 .detail-item .value.success {
   color: #10b981;
+}
+
+.detail-item .value.paid {
+  color: #10b981;
+}
+
+.detail-item .value.unpaid {
+  color: #ef4444;
+}
+
+.detail-item .value.price {
+  color: #667eea;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.loading-section,
+.error-section {
+  text-align: center;
+  padding: 20px;
+  margin: 20px 0;
+}
+
+.loading-spinner {
+  width: 30px;
+  height: 30px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #10b981;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 15px;
+}
+
+.error-section {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  color: #dc2626;
+}
+
+.error-icon {
+  font-size: 2rem;
+  margin-bottom: 10px;
+}
+
+.error-note {
+  color: #059669;
+  font-weight: 500;
+  margin-top: 10px;
+}
+
+.session-details {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e9ecef;
+}
+
+.session-details h4 {
+  color: #333;
+  margin: 0 0 15px 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .action-buttons {

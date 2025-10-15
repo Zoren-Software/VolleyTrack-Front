@@ -22,11 +22,23 @@
 
         <h1>Pagamento Cancelado</h1>
         <p class="cancel-message">
-          O processo de assinatura foi cancelado. Não se preocupe, você não foi
-          cobrado.
+          Você cancelou o processo de pagamento. Nenhuma cobrança foi realizada.
         </p>
 
-        <div class="info-section">
+        <!-- Loading State -->
+        <div v-if="loading" class="loading-section">
+          <div class="loading-spinner"></div>
+          <p>Carregando informações...</p>
+        </div>
+
+        <!-- Error State -->
+        <div v-else-if="error" class="error-section">
+          <div class="error-icon">⚠️</div>
+          <p>Erro ao carregar informações: {{ error }}</p>
+        </div>
+
+        <!-- Info Section -->
+        <div v-else class="info-section">
           <h3>O que aconteceu?</h3>
           <ul>
             <li>Você cancelou o processo de pagamento</li>
@@ -34,10 +46,37 @@
             <li>Sua conta permanece no plano atual</li>
             <li>Você pode tentar novamente a qualquer momento</li>
           </ul>
+
+          <!-- Dados da sessão se disponíveis -->
+          <div v-if="sessionData" class="session-details">
+            <h4>Detalhes da Sessão Cancelada</h4>
+            <div class="detail-item">
+              <span class="label">Modo:</span>
+              <span class="value">{{
+                sessionData.mode === "subscription"
+                  ? "Assinatura"
+                  : "Pagamento Único"
+              }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Valor:</span>
+              <span class="value price"
+                >R$ {{ formatPrice(sessionData.amount_total) }}</span
+              >
+            </div>
+            <div class="detail-item">
+              <span class="label">Status:</span>
+              <span class="value cancelled">Cancelado</span>
+            </div>
+            <div v-if="sessionData.customer_email" class="detail-item">
+              <span class="label">Email:</span>
+              <span class="value">{{ sessionData.customer_email }}</span>
+            </div>
+          </div>
         </div>
 
         <div class="action-buttons">
-          <NuxtLink to="/payment2" class="btn btn-primary">
+          <NuxtLink to="/payment" class="btn btn-primary">
             Tentar Novamente
           </NuxtLink>
           <NuxtLink to="/" class="btn btn-secondary">
@@ -61,10 +100,75 @@
 </template>
 
 <script setup>
-import { onMounted } from "vue";
+import { ref, onMounted } from "vue";
+import {
+  getCheckoutSession,
+  getCurrentSessionId,
+} from "~/services/stripeCheckoutService.js";
 
-onMounted(() => {
-  console.log("Página de cancelamento carregada");
+// Head
+useHead({
+  title: "Pagamento Cancelado - VoleiClub",
+});
+
+// Estado da aplicação
+const sessionData = ref(null);
+const loading = ref(true);
+const error = ref(null);
+
+// Carregar dados da sessão
+const loadSessionData = async () => {
+  try {
+    loading.value = true;
+    error.value = null;
+
+    // Obter session ID da URL
+    const sessionId = getCurrentSessionId();
+
+    if (!sessionId) {
+      console.warn("⚠️ Session ID não encontrado na URL");
+      return;
+    }
+
+    console.log("🔍 Consultando sessão cancelada:", sessionId);
+
+    // Consultar dados da sessão
+    const result = await getCheckoutSession(sessionId);
+
+    if (!result.success) {
+      throw new Error(result.error || "Erro ao consultar sessão");
+    }
+
+    sessionData.value = result.data;
+    console.log("✅ Dados da sessão carregados:", sessionData.value);
+  } catch (err) {
+    console.error("❌ Erro ao carregar dados da sessão:", err);
+    error.value = err.message;
+  } finally {
+    loading.value = false;
+  }
+};
+
+// Funções auxiliares
+const formatPrice = (amount) => {
+  if (!amount) return "0,00";
+  return (amount / 100).toFixed(2).replace(".", ",");
+};
+
+// Função para obter texto do status (não utilizada no momento)
+// const getPaymentStatusText = (status) => {
+//   const statusMap = {
+//     paid: "Pago",
+//     unpaid: "Não Pago",
+//     no_payment_required: "Pagamento Não Necessário",
+//   };
+//   return statusMap[status] || status;
+// };
+
+onMounted(async () => {
+  console.log("🚀 Carregando página de cancelamento...");
+  await loadSessionData();
+  console.log("✅ Página de cancelamento carregada");
 });
 </script>
 
@@ -227,6 +331,89 @@ h1 {
   color: #667eea;
   font-weight: 500;
   font-size: 0.9rem;
+}
+
+.loading-section,
+.error-section {
+  text-align: center;
+  padding: 20px;
+  margin: 20px 0;
+}
+
+.loading-spinner {
+  width: 30px;
+  height: 30px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #ef4444;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 15px;
+}
+
+.error-section {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  color: #dc2626;
+}
+
+.error-icon {
+  font-size: 2rem;
+  margin-bottom: 10px;
+}
+
+.session-details {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e9ecef;
+}
+
+.session-details h4 {
+  color: #333;
+  margin: 0 0 15px 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.detail-item:last-child {
+  border-bottom: none;
+}
+
+.detail-item .label {
+  color: #666;
+  font-weight: 500;
+}
+
+.detail-item .value {
+  font-weight: 600;
+  color: #333;
+}
+
+.detail-item .value.cancelled {
+  color: #ef4444;
+}
+
+.detail-item .value.price {
+  color: #667eea;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Responsividade */

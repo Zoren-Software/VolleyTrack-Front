@@ -16,7 +16,7 @@
           class="validation-success-discrete"
         >
           <div class="validation-icon-small">✅</div>
-          <span>E-mail valido - Pronto para pagamento</span>
+          <span>E-mail válido - Pronto para pagamento</span>
         </div>
 
         <div
@@ -295,6 +295,11 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import { loadStripe } from "@stripe/stripe-js";
+import {
+  createCheckoutSession,
+  redirectToCheckout,
+  validateCheckoutData,
+} from "~/services/stripeCheckoutService.js";
 
 // Configurações do Stripe
 const runtimeConfig = useRuntimeConfig();
@@ -372,44 +377,72 @@ const displayedPlans = computed(() => {
   return filteredPlans;
 });
 
-// Configurações do Stripe Checkout
-const lineItems = computed(() => {
-  console.log("🔍 lineItems computed - selectedPlan:", selectedPlan.value);
+// Configurações do Stripe Checkout (mantido para compatibilidade)
+// const lineItems = computed(() => {
+//   console.log("🔍 lineItems computed - selectedPlan:", selectedPlan.value);
 
-  if (!selectedPlan.value) {
-    console.log("❌ lineItems: Nenhum plano selecionado");
-    return [];
-  }
+//   if (!selectedPlan.value) {
+//     console.log("❌ lineItems: Nenhum plano selecionado");
+//     return [];
+//   }
 
-  // Usar o ID do preço da API
-  const priceId = selectedPlan.value.prices?.data?.[0]?.id;
+//   // Usar o ID do preço da API
+//   const priceId = selectedPlan.value.prices?.data?.[0]?.id;
 
-  if (!priceId) {
-    console.error(
-      "❌ Price ID não encontrado para o plano:",
-      selectedPlan.value
-    );
-    return [];
-  }
+//   if (!priceId) {
+//     console.error(
+//       "❌ Price ID não encontrado para o plano:",
+//       selectedPlan.value
+//     );
+//     return [];
+//   }
 
-  const items = [
-    {
-      price: priceId,
-      quantity: 1,
-    },
-  ];
+//   const items = [
+//     {
+//       price: priceId,
+//       quantity: 1,
+//     },
+//   ];
 
-  console.log("✅ lineItems gerados:", items);
-  return items;
-});
+//   console.log("✅ lineItems gerados:", items);
+//   return items;
+// });
 
-// Modo do checkout baseado no tipo de plano
+// Modo do checkout baseado no tipo de preço
 const checkoutMode = computed(() => {
   if (!selectedPlan.value) return "subscription";
 
-  return selectedPlan.value.metadata?.plan_type === "lifetime"
-    ? "payment"
-    : "subscription";
+  // Verificar se o preço é recorrente ou único
+  const priceData = selectedPlan.value.prices?.data?.[0];
+  if (!priceData) {
+    console.log(
+      "⚠️ Price data não encontrado, usando subscription como padrão"
+    );
+    return "subscription";
+  }
+
+  console.log("🔍 Analisando preço para determinar modo:");
+  console.log("🔍 Price Data:", priceData);
+  console.log("🔍 Recurring:", priceData.recurring);
+  console.log("🔍 Type:", priceData.type);
+
+  // Se o preço tem recurring, deve ser subscription
+  if (priceData.recurring) {
+    console.log("✅ Preço recorrente detectado, usando modo subscription");
+    return "subscription";
+  }
+
+  // Se o tipo é 'one_time', deve ser payment
+  if (priceData.type === "one_time") {
+    console.log("✅ Preço único detectado, usando modo payment");
+    return "payment";
+  }
+
+  // Se não tem recurring e não é one_time, assumir subscription por padrão
+  console.log(
+    "⚠️ Tipo de preço não identificado, usando subscription como padrão"
+  );
+  return "subscription";
 });
 
 // Validar email do customer
@@ -489,6 +522,17 @@ const loadPlans = async () => {
     if (data.success && data.data) {
       plans.value = data.data;
       console.log(`✅ ${data.data.length} planos carregados com sucesso`);
+
+      // Debug dos planos carregados
+      plans.value.forEach((plan, index) => {
+        console.log(`🔍 Plano ${index + 1}:`, {
+          name: plan.name,
+          priceId: plan.prices?.data?.[0]?.id,
+          recurring: plan.prices?.data?.[0]?.recurring,
+          type: plan.prices?.data?.[0]?.type,
+          amount: plan.prices?.data?.[0]?.unit_amount,
+        });
+      });
     } else {
       throw new Error("Resposta da API inválida");
     }
@@ -697,6 +741,11 @@ const subscribeToPlan = async () => {
     console.log("🔍 === DEBUG DETALHADO ===");
     console.log("🔍 Plano selecionado:", selectedPlan.value);
     console.log("🔍 Price ID:", priceId);
+    console.log("🔍 Price Data:", selectedPlan.value.prices?.data?.[0]);
+    console.log(
+      "🔍 Price Recurring:",
+      selectedPlan.value.prices?.data?.[0]?.recurring
+    );
     console.log("🔍 Checkout mode:", checkoutMode.value);
     console.log("🔍 Stripe Key:", stripeKey);
     console.log("🔍 Success URL:", successURL);
@@ -712,24 +761,112 @@ const subscribeToPlan = async () => {
       selectedPlan.value.name
     );
 
-    // Configurar opções do checkout
-    const checkoutOptions = {
-      mode: checkoutMode.value,
-      lineItems: lineItems.value,
-      successUrl: successURL,
-      cancelUrl: cancelURL,
-      customerEmail: getUserEmail() || "customer@example.com", // Usar email do usuário logado
+    // Verificar compatibilidade do modo com o preço
+    const priceData = selectedPlan.value.prices?.data?.[0];
+    const isRecurring = priceData?.recurring;
+    const priceType = priceData?.type;
+    const mode = checkoutMode.value;
+
+    console.log("🔍 Validação de compatibilidade:");
+    console.log("🔍 Price Data:", priceData);
+    console.log("🔍 Is Recurring:", isRecurring);
+    console.log("🔍 Price Type:", priceType);
+    console.log("🔍 Mode:", mode);
+
+    // Validação mais robusta
+    if (isRecurring && mode === "payment") {
+      console.error("❌ Erro: Preço recorrente com modo payment");
+      throw new Error(
+        "Modo de pagamento incompatível com o tipo de preço. O plano selecionado é recorrente (assinatura) mas está sendo processado como pagamento único."
+      );
+    }
+
+    if (priceType === "one_time" && mode === "subscription") {
+      console.error("❌ Erro: Preço único com modo subscription");
+      throw new Error(
+        "Modo de pagamento incompatível com o tipo de preço. O plano selecionado é único (vitalício) mas está sendo processado como assinatura."
+      );
+    }
+
+    // Validação adicional para casos edge
+    if (!isRecurring && priceType !== "one_time" && mode === "subscription") {
+      console.warn(
+        "⚠️ Aviso: Preço sem recurring nem one_time, mas usando subscription"
+      );
+    }
+
+    console.log("✅ Compatibilidade validada com sucesso");
+
+    // Obter email do usuário logado
+    const userEmail = getUserEmail();
+    console.log("🔍 Email do usuário obtido:", userEmail);
+    console.log("🔍 Usuário completo:", user.value);
+
+    if (!userEmail) {
+      throw new Error("Email do usuário não encontrado. Faça login novamente.");
+    }
+
+    // Validar formato do email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(userEmail)) {
+      throw new Error("Email do usuário inválido. Faça login novamente.");
+    }
+
+    console.log("✅ Email validado:", userEmail);
+
+    // Preparar dados para o checkout
+    const checkoutData = {
+      price_id: priceId,
+      customer_email: userEmail, // Usar email do usuário logado
+      success_url: successURL,
+      cancel_url: cancelURL,
+      mode: mode,
+      quantity: 1, // Quantidade padrão
     };
 
-    console.log("🔧 Opções do checkout:", checkoutOptions);
+    // Validar dados antes de enviar
+    const validation = validateCheckoutData(checkoutData);
+    if (!validation.isValid) {
+      throw new Error(`Dados inválidos: ${validation.errors.join(", ")}`);
+    }
 
-    // Redirecionar para o checkout
-    const { error: checkoutError } = await stripe.value.redirectToCheckout(
-      checkoutOptions
+    console.log("🔧 Dados do checkout:", checkoutData);
+    console.log("🔧 Email sendo enviado:", checkoutData.customer_email);
+
+    // Criar sessão de checkout no backend
+    const sessionResult = await createCheckoutSession(checkoutData);
+
+    if (!sessionResult.success) {
+      throw new Error(
+        sessionResult.error || "Erro ao criar sessão de checkout"
+      );
+    }
+
+    console.log("✅ Sessão criada:", sessionResult.data);
+    console.log(
+      "🔍 Session ID para redirecionamento:",
+      sessionResult.sessionId
+    );
+    console.log(
+      "🔍 Email na resposta da sessão:",
+      sessionResult.data?.customer_email
     );
 
-    if (checkoutError) {
-      throw checkoutError;
+    // Verificar se sessionId existe antes de redirecionar
+    if (!sessionResult.sessionId) {
+      throw new Error("Session ID não encontrado na resposta da API");
+    }
+
+    // Redirecionar para o checkout do Stripe
+    const redirectResult = await redirectToCheckout(
+      stripe.value,
+      sessionResult.sessionId
+    );
+
+    if (!redirectResult.success) {
+      throw new Error(
+        redirectResult.error || "Erro ao redirecionar para checkout"
+      );
     }
 
     console.log("✅ Redirecionamento para checkout iniciado");
@@ -751,12 +888,40 @@ const subscribeToPlan = async () => {
           "3. Salve as configurações\n" +
           "4. Tente novamente"
       );
+    } else if (
+      error.message.includes(
+        "You must provide one of lineItems, items, or sessionId"
+      )
+    ) {
+      alert(
+        "❌ ERRO: Session ID não encontrado na resposta da API.\n\n" +
+          "Verifique os logs do console para mais detalhes.\n" +
+          "Possível problema na estrutura da resposta do backend."
+      );
+    } else if (error.message.includes("Session ID não encontrado")) {
+      alert(
+        "❌ ERRO: Session ID não encontrado na resposta da API.\n\n" +
+          "Verifique se o backend está retornando o session_id corretamente."
+      );
+    } else if (
+      error.message.includes("recurring price") ||
+      error.message.includes("payment mode but passed a recurring price")
+    ) {
+      alert(
+        "❌ ERRO: Modo de pagamento incompatível com o tipo de preço.\n\n" +
+          "O plano selecionado é recorrente (assinatura) mas está sendo processado como pagamento único.\n" +
+          "Tente novamente ou entre em contato com o suporte."
+      );
     } else if (error.message.includes("price")) {
       alert("Erro: ID do preço inválido. Verifique a configuração dos planos.");
     } else if (error.message.includes("stripe")) {
       alert(
         "Erro de conexão com Stripe. Verifique sua internet e tente novamente."
       );
+    } else if (error.message.includes("Dados inválidos")) {
+      alert(`Erro de validação: ${error.message}`);
+    } else if (error.message.includes("Erro ao criar sessão")) {
+      alert(`Erro no servidor: ${error.message}`);
     } else {
       alert(`Erro ao iniciar assinatura: ${error.message}`);
     }
