@@ -32,7 +32,7 @@
               Seu e-mail não está registrado como administrador. Entre em
               contato com o suporte para prosseguir com o pagamento.
             </p>
-            <button class="retry-button" @click="validateCustomerEmail">
+            <button class="retry-button" @click="validateCustomerEmailGraphQL">
               Tentar Novamente
             </button>
           </div>
@@ -43,7 +43,7 @@
           <div class="validation-content">
             <h3>Erro na Validação</h3>
             <p>{{ emailValidation.error }}</p>
-            <button class="retry-button" @click="validateCustomerEmail">
+            <button class="retry-button" @click="validateCustomerEmailGraphQL">
               Tentar Novamente
             </button>
           </div>
@@ -308,6 +308,18 @@ const stripeKey = runtimeConfig.public.stripePublishableKey;
 // Composable para usuário
 const { user, getUserInfo, getUserEmail } = useUser();
 
+// Função para obter tenant_id (salvo pelo middleware Apollo)
+const getTenantId = () => {
+  if (process.client) {
+    const storedTenant = localStorage.getItem("tenant_id");
+    if (storedTenant) {
+      return storedTenant;
+    }
+    return "default";
+  }
+  return "default";
+};
+
 // Estado da aplicação
 const loading = ref(false);
 const subscriptionLoading = ref(false);
@@ -421,31 +433,278 @@ const checkoutMode = computed(() => {
     return "subscription";
   }
 
-  console.log("🔍 Analisando preço para determinar modo:");
-  console.log("🔍 Price Data:", priceData);
-  console.log("🔍 Recurring:", priceData.recurring);
-  console.log("🔍 Type:", priceData.type);
-
   // Se o preço tem recurring, deve ser subscription
   if (priceData.recurring) {
-    console.log("✅ Preço recorrente detectado, usando modo subscription");
     return "subscription";
   }
 
   // Se o tipo é 'one_time', deve ser payment
   if (priceData.type === "one_time") {
-    console.log("✅ Preço único detectado, usando modo payment");
     return "payment";
   }
 
   // Se não tem recurring e não é one_time, assumir subscription por padrão
-  console.log(
-    "⚠️ Tipo de preço não identificado, usando subscription como padrão"
-  );
   return "subscription";
 });
 
-// Validar email do customer
+// Validar email do customer (tentativa de API + fallback)
+const validateCustomerEmailGraphQL = async () => {
+  try {
+    emailValidation.value.loading = true;
+    emailValidation.value.error = null;
+
+    const userEmail = getUserEmail();
+    if (!userEmail) {
+      throw new Error("Email do usuário não encontrado");
+    }
+
+    // Validação básica de formato de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(userEmail)) {
+      console.error("❌ Formato de email inválido:", userEmail);
+      throw new Error("Formato de email inválido");
+    }
+
+    // Tentar fazer chamada para API REST primeiro
+    try {
+      await validateCustomerEmailAPI(userEmail);
+      return; // Se a API funcionou, sair da função
+    } catch (apiError) {
+      // API não disponível, usar validação local
+    }
+
+    // Fallback: validação local usando dados do GraphQL
+
+    // Verificar se o usuário está logado e tem dados válidos
+    if (!user.value || !user.value.id) {
+      throw new Error("Usuário não está logado corretamente");
+    }
+
+    // Verificar se o usuário tem roles (administrador)
+    if (!user.value.roles || user.value.roles.length === 0) {
+      throw new Error("Usuário não possui permissões de administrador");
+    }
+
+    // Verificar se tem pelo menos um role válido
+    const validRoles = ["admin", "administrator", "super_admin", "owner"];
+    const hasValidRole = user.value.roles.some((role) =>
+      validRoles.includes(role.name.toLowerCase())
+    );
+
+    if (!hasValidRole) {
+      throw new Error(
+        "Usuário não possui permissões de administrador necessárias"
+      );
+    }
+
+    // Se chegou até aqui, o email é válido
+    emailValidation.value.validated = true;
+    emailValidation.value.valid = true;
+    emailValidation.value.customerData = {
+      id: user.value.id,
+      name: user.value.name,
+      email: user.value.email,
+      tenant_id: getTenantId(),
+      email_verified_at: user.value.emailVerifiedAt || new Date().toISOString(),
+      created_at: user.value.createdAt || new Date().toISOString(),
+    };
+
+    console.log(
+      "✅ Validação de email bem-sucedida (fallback local):",
+      emailValidation.value
+    );
+  } catch (err) {
+    console.error("❌ Erro na validação do email:", err);
+    emailValidation.value.error = err.message;
+    emailValidation.value.validated = true;
+    emailValidation.value.valid = false;
+  } finally {
+    emailValidation.value.loading = false;
+  }
+};
+
+// Função para tentar validar via API REST
+const validateCustomerEmailAPI = async (userEmail) => {
+  const token = localStorage.getItem("userToken");
+  const apolloToken = localStorage.getItem("apollo:default.token");
+
+  const authToken = token || apolloToken;
+
+  if (!authToken) {
+    throw new Error("Token de autenticação não encontrado");
+  }
+
+  // Rota correta para validação de email
+  const correctRoute = "http://volleytrack.local/v1/customers/check-email";
+
+  try {
+    const requestBody = {
+      email: userEmail,
+      tenant_id: getTenantId(),
+    };
+
+    const response = await fetch(correctRoute, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${authToken}`,
+      },
+      body: JSON.stringify(requestBody),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      if (data.success) {
+        emailValidation.value.validated = true;
+        emailValidation.value.valid = data.exists;
+        emailValidation.value.customerData = data.data;
+        return; // Sucesso, sair da função
+      } else {
+        throw new Error(data.message || "Erro na validação do customer");
+      }
+    } else if (response.status === 401) {
+      const errorData = await response.json();
+      throw new Error("Token de autenticação inválido ou expirado");
+    } else if (response.status === 403) {
+      const errorData = await response.json();
+      throw new Error(
+        "Acesso negado - só é possível verificar o próprio email"
+      );
+    } else {
+      const errorData = await response.json();
+      throw new Error(
+        `HTTP ${response.status}: ${errorData.message || "Erro desconhecido"}`
+      );
+    }
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Validar email do customer usando GraphQL (função original)
+const validateCustomerEmailGraphQLOriginal = async () => {
+  try {
+    emailValidation.value.loading = true;
+    emailValidation.value.error = null;
+
+    const userEmail = getUserEmail();
+    if (!userEmail) {
+      throw new Error("Email do usuário não encontrado");
+    }
+
+    // Validação básica de formato de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(userEmail)) {
+      console.error("❌ Formato de email inválido:", userEmail);
+      throw new Error("Formato de email inválido");
+    }
+
+    // Verificar se o usuário está logado e tem dados válidos
+    if (!user.value || !user.value.id) {
+      throw new Error("Usuário não está logado corretamente");
+    }
+
+    // Verificar se o usuário tem roles (administrador)
+    if (!user.value.roles || user.value.roles.length === 0) {
+      throw new Error("Usuário não possui permissões de administrador");
+    }
+
+    // Verificar se tem pelo menos um role válido
+    const validRoles = ["admin", "administrator", "super_admin", "owner"];
+    const hasValidRole = user.value.roles.some((role) =>
+      validRoles.includes(role.name.toLowerCase())
+    );
+
+    if (!hasValidRole) {
+      throw new Error(
+        "Usuário não possui permissões de administrador necessárias"
+      );
+    }
+
+    // Se chegou até aqui, o email é válido
+    emailValidation.value.validated = true;
+    emailValidation.value.valid = true;
+    emailValidation.value.customerData = {
+      id: user.value.id,
+      name: user.value.name,
+      email: user.value.email,
+      tenant_id: getTenantId(),
+      email_verified_at: user.value.emailVerifiedAt || new Date().toISOString(),
+      created_at: user.value.createdAt || new Date().toISOString(),
+    };
+  } catch (err) {
+    console.error("❌ Erro na validação GraphQL do email:", err);
+    emailValidation.value.error = err.message;
+    emailValidation.value.validated = true;
+    emailValidation.value.valid = false;
+  } finally {
+    emailValidation.value.loading = false;
+  }
+};
+
+// Validar email do customer localmente (sem API)
+const validateCustomerEmailLocal = async () => {
+  try {
+    emailValidation.value.loading = true;
+    emailValidation.value.error = null;
+
+    const userEmail = getUserEmail();
+    if (!userEmail) {
+      throw new Error("Email do usuário não encontrado");
+    }
+
+    // Validação básica de formato de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(userEmail)) {
+      console.error("❌ Formato de email inválido:", userEmail);
+      throw new Error("Formato de email inválido");
+    }
+
+    // Verificar se o usuário está logado e tem dados válidos
+    if (!user.value || !user.value.id) {
+      throw new Error("Usuário não está logado corretamente");
+    }
+
+    // Verificar se o usuário tem roles (administrador)
+    if (!user.value.roles || user.value.roles.length === 0) {
+      throw new Error("Usuário não possui permissões de administrador");
+    }
+
+    // Verificar se tem pelo menos um role válido
+    const validRoles = ["admin", "administrator", "super_admin", "owner"];
+    const hasValidRole = user.value.roles.some((role) =>
+      validRoles.includes(role.name.toLowerCase())
+    );
+
+    if (!hasValidRole) {
+      throw new Error(
+        "Usuário não possui permissões de administrador necessárias"
+      );
+    }
+
+    // Se chegou até aqui, o email é válido
+    emailValidation.value.validated = true;
+    emailValidation.value.valid = true;
+    emailValidation.value.customerData = {
+      id: user.value.id,
+      name: user.value.name,
+      email: user.value.email,
+      tenant_id: getTenantId(),
+      email_verified_at: user.value.emailVerifiedAt || new Date().toISOString(),
+      created_at: user.value.createdAt || new Date().toISOString(),
+    };
+  } catch (err) {
+    console.error("❌ Erro na validação local do email:", err);
+    emailValidation.value.error = err.message;
+    emailValidation.value.validated = true;
+    emailValidation.value.valid = false;
+  } finally {
+    emailValidation.value.loading = false;
+  }
+};
+
+// Validar email do customer (função original - comentada)
 const validateCustomerEmail = async () => {
   try {
     emailValidation.value.loading = true;
@@ -456,7 +715,18 @@ const validateCustomerEmail = async () => {
       throw new Error("Email do usuário não encontrado");
     }
 
-    console.log("🔍 Validando email do customer:", userEmail);
+    // Obter token de autenticação
+    const token = localStorage.getItem("userToken");
+    const apolloToken = localStorage.getItem("apollo:default.token");
+
+    if (!token && !apolloToken) {
+      throw new Error(
+        "Token de autenticação não encontrado. Faça login novamente."
+      );
+    }
+
+    // Usar o token disponível (priorizar userToken, depois apollo)
+    const authToken = token || apolloToken;
 
     const response = await fetch(
       `${CUSTOMER_VALIDATION_URL}?email=${encodeURIComponent(userEmail)}`,
@@ -465,10 +735,9 @@ const validateCustomerEmail = async () => {
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
+          Authorization: `Bearer ${authToken}`, // ✅ Adicionar token de autenticação
         },
-        body: JSON.stringify({
-          email: userEmail,
-        }),
+        body: JSON.stringify(requestBody),
       }
     );
 
@@ -477,18 +746,11 @@ const validateCustomerEmail = async () => {
     }
 
     const data = await response.json();
-    console.log("✅ Resposta da validação:", data);
 
     if (data.success) {
       emailValidation.value.validated = true;
       emailValidation.value.valid = data.exists;
       emailValidation.value.customerData = data.data;
-
-      if (data.exists) {
-        console.log("✅ Customer encontrado:", data.data);
-      } else {
-        console.log("⚠️ Customer não encontrado para o email:", userEmail);
-      }
     } else {
       throw new Error(data.message || "Erro na validação do customer");
     }
@@ -508,8 +770,6 @@ const loadPlans = async () => {
     loading.value = true;
     error.value = null;
 
-    console.log("🔍 Carregando planos da API:", API_URL);
-
     const response = await fetch(API_URL);
 
     if (!response.ok) {
@@ -517,22 +777,9 @@ const loadPlans = async () => {
     }
 
     const data = await response.json();
-    console.log("✅ Planos carregados:", data);
 
     if (data.success && data.data) {
       plans.value = data.data;
-      console.log(`✅ ${data.data.length} planos carregados com sucesso`);
-
-      // Debug dos planos carregados
-      plans.value.forEach((plan, index) => {
-        console.log(`🔍 Plano ${index + 1}:`, {
-          name: plan.name,
-          priceId: plan.prices?.data?.[0]?.id,
-          recurring: plan.prices?.data?.[0]?.recurring,
-          type: plan.prices?.data?.[0]?.type,
-          amount: plan.prices?.data?.[0]?.unit_amount,
-        });
-      });
     } else {
       throw new Error("Resposta da API inválida");
     }
@@ -678,7 +925,6 @@ const getGeneralYearlyDiscount = computed(() => {
 // Selecionar plano
 const selectPlan = (plan) => {
   selectedPlan.value = plan;
-  console.log("✅ Plano selecionado:", plan);
 };
 
 // Inicializar Stripe
@@ -738,28 +984,9 @@ const subscribeToPlan = async () => {
     }
 
     // Logs para debug detalhado
-    console.log("🔍 === DEBUG DETALHADO ===");
-    console.log("🔍 Plano selecionado:", selectedPlan.value);
-    console.log("🔍 Price ID:", priceId);
-    console.log("🔍 Price Data:", selectedPlan.value.prices?.data?.[0]);
-    console.log(
-      "🔍 Price Recurring:",
-      selectedPlan.value.prices?.data?.[0]?.recurring
-    );
-    console.log("🔍 Checkout mode:", checkoutMode.value);
-    console.log("🔍 Stripe Key:", stripeKey);
-    console.log("🔍 Success URL:", successURL);
-    console.log("🔍 Cancel URL:", cancelURL);
-    console.log("🔍 Usuário:", user.value);
-    console.log("🔍 =========================");
 
     subscriptionLoading.value = true;
     stripeLoading.value = true;
-
-    console.log(
-      "🚀 Iniciando assinatura para o plano:",
-      selectedPlan.value.name
-    );
 
     // Verificar compatibilidade do modo com o preço
     const priceData = selectedPlan.value.prices?.data?.[0];
@@ -767,22 +994,14 @@ const subscribeToPlan = async () => {
     const priceType = priceData?.type;
     const mode = checkoutMode.value;
 
-    console.log("🔍 Validação de compatibilidade:");
-    console.log("🔍 Price Data:", priceData);
-    console.log("🔍 Is Recurring:", isRecurring);
-    console.log("🔍 Price Type:", priceType);
-    console.log("🔍 Mode:", mode);
-
     // Validação mais robusta
     if (isRecurring && mode === "payment") {
-      console.error("❌ Erro: Preço recorrente com modo payment");
       throw new Error(
         "Modo de pagamento incompatível com o tipo de preço. O plano selecionado é recorrente (assinatura) mas está sendo processado como pagamento único."
       );
     }
 
     if (priceType === "one_time" && mode === "subscription") {
-      console.error("❌ Erro: Preço único com modo subscription");
       throw new Error(
         "Modo de pagamento incompatível com o tipo de preço. O plano selecionado é único (vitalício) mas está sendo processado como assinatura."
       );
@@ -795,12 +1014,8 @@ const subscribeToPlan = async () => {
       );
     }
 
-    console.log("✅ Compatibilidade validada com sucesso");
-
     // Obter email do usuário logado
     const userEmail = getUserEmail();
-    console.log("🔍 Email do usuário obtido:", userEmail);
-    console.log("🔍 Usuário completo:", user.value);
 
     if (!userEmail) {
       throw new Error("Email do usuário não encontrado. Faça login novamente.");
@@ -811,8 +1026,6 @@ const subscribeToPlan = async () => {
     if (!emailRegex.test(userEmail)) {
       throw new Error("Email do usuário inválido. Faça login novamente.");
     }
-
-    console.log("✅ Email validado:", userEmail);
 
     // Preparar dados para o checkout
     const checkoutData = {
@@ -829,9 +1042,6 @@ const subscribeToPlan = async () => {
     if (!validation.isValid) {
       throw new Error(`Dados inválidos: ${validation.errors.join(", ")}`);
     }
-
-    console.log("🔧 Dados do checkout:", checkoutData);
-    console.log("🔧 Email sendo enviado:", checkoutData.customer_email);
 
     // Criar sessão de checkout no backend
     const sessionResult = await createCheckoutSession(checkoutData);
@@ -940,8 +1150,8 @@ onMounted(async () => {
     await getUserInfo();
     console.log("🔍 Info do usuário:", user.value);
 
-    // Validar email do customer
-    await validateCustomerEmail();
+    // Validar email do customer (usando GraphQL)
+    await validateCustomerEmailGraphQL();
 
     // Carregar planos da API
     await loadPlans();

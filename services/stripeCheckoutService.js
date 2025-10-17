@@ -21,11 +21,28 @@ export const createCheckoutSession = async (checkoutData) => {
     console.log('🔍 Criando sessão de checkout:', checkoutData)
     console.log('🔍 Email sendo enviado para o backend:', checkoutData.customer_email)
 
+    // Obter token de autenticação
+    const token = localStorage.getItem('userToken');
+    const apolloToken = localStorage.getItem('apollo:default.token');
+    
+    console.log('🔍 Debug de tokens:');
+    console.log('🔍 userToken:', token);
+    console.log('🔍 apollo:default.token:', apolloToken);
+    
+    if (!token && !apolloToken) {
+      throw new Error("Token de autenticação não encontrado. Faça login novamente.");
+    }
+
+    // Usar o token disponível (priorizar userToken, depois apollo)
+    const authToken = token || apolloToken;
+    console.log('🔍 Token que será usado:', authToken);
+
     const response = await fetch(`${API_BASE_URL}/checkout-session`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
+        'Authorization': `Bearer ${authToken}`, // ✅ Adicionar token de autenticação
       },
       body: JSON.stringify(checkoutData)
     })
@@ -86,10 +103,27 @@ export const getCheckoutSession = async (sessionId) => {
   try {
     console.log('🔍 Consultando sessão:', sessionId)
 
+    // Obter token de autenticação
+    const token = localStorage.getItem('userToken');
+    const apolloToken = localStorage.getItem('apollo:default.token');
+    
+    console.log('🔍 Debug de tokens:');
+    console.log('🔍 userToken:', token);
+    console.log('🔍 apollo:default.token:', apolloToken);
+    
+    if (!token && !apolloToken) {
+      throw new Error("Token de autenticação não encontrado. Faça login novamente.");
+    }
+
+    // Usar o token disponível (priorizar userToken, depois apollo)
+    const authToken = token || apolloToken;
+    console.log('🔍 Token que será usado:', authToken);
+
     const response = await fetch(`${API_BASE_URL}/checkout-session/${sessionId}`, {
       method: 'GET',
       headers: {
         'Accept': 'application/json',
+        'Authorization': `Bearer ${authToken}`, // ✅ Adicionar token de autenticação
       }
     })
 
