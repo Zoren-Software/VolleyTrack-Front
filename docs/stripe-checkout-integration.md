@@ -2,7 +2,7 @@
 
 ## Visão Geral
 
-Esta documentação descreve a implementação da integração com o Stripe Checkout usando o novo endpoint do backend Laravel. A integração mantém o fluxo existente mas agora utiliza o endpoint `/api/checkout-session` para criar sessões de checkout.
+Esta documentação descreve a implementação da integração com o Stripe Checkout usando o novo endpoint do backend Laravel. A integração mantém o fluxo existente mas agora utiliza o endpoint `/v1/checkout-session` para criar sessões de checkout.
 
 ## Arquivos Modificados
 
@@ -51,7 +51,7 @@ if (sessionResult.success) {
 
 ## Endpoints da API
 
-### POST /api/checkout-session
+### POST /v1/checkout-session
 Cria uma nova sessão de checkout no Stripe.
 
 **Request:**
@@ -80,7 +80,7 @@ Cria uma nova sessão de checkout no Stripe.
 }
 ```
 
-### GET /api/checkout-session/{sessionId}
+### GET /v1/checkout-session/{sessionId}
 Consulta dados de uma sessão de checkout.
 
 **Response:**
@@ -187,7 +187,7 @@ console.log('🔍 Consultando sessão:', sessionId);
 
 ### Erro: "Erro ao criar sessão de checkout"
 - Verifique se o backend está rodando
-- Verifique se o endpoint `/api/checkout-session` está acessível
+- Verifique se o endpoint `/v1/checkout-session` está acessível
 - Verifique logs do backend para detalhes do erro
 
 ### Erro: "Session ID não encontrado na URL"

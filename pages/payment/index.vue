@@ -4,6 +4,16 @@
       <h1>Planos de Assinatura</h1>
       <p>Escolha o plano ideal para o seu clube de vôlei</p>
 
+      <!-- Status do Plano Ativo -->
+      <div class="active-plan-status">
+        <ActivePlanChecker
+          :auto-refresh="false"
+          :tenant-id="getTenantId()"
+          @plan-loaded="onActivePlanLoaded"
+          @plan-error="onActivePlanError"
+        />
+      </div>
+
       <!-- Status da Validação do Email -->
       <div class="email-validation-status">
         <div v-if="emailValidation.loading" class="validation-loading">
@@ -55,16 +65,16 @@
         <span class="toggle-label">Planos:</span>
         <div class="toggle-buttons">
           <button
-            @click="selectedBilling = 'monthly'"
-            :class="{ active: selectedBilling === 'monthly' }"
             class="toggle-btn"
+            :class="{ active: selectedBilling === 'monthly' }"
+            @click="selectedBilling = 'monthly'"
           >
             Mensal
           </button>
           <button
-            @click="selectedBilling = 'yearly'"
-            :class="{ active: selectedBilling === 'yearly' }"
             class="toggle-btn"
+            :class="{ active: selectedBilling === 'yearly' }"
+            @click="selectedBilling = 'yearly'"
           >
             Anual
             <span class="discount-badge">-{{ getGeneralYearlyDiscount }}%</span>
@@ -194,6 +204,11 @@
               <span>Pagamento Único</span>
             </div>
 
+            <!-- Badge de Plano Ativo -->
+            <div v-if="isPlanActive(plan)" class="active-plan-badge">
+              <span>Plano em Uso</span>
+            </div>
+
             <div class="plan-header">
               <h3>{{ plan.name }}</h3>
               <div class="plan-price">
@@ -235,15 +250,22 @@
                 selected:
                   selectedPlan?.id === plan.id &&
                   selectedPlan?.billing === plan.billing,
+                'active-plan': isPlanActive(plan),
+                disabled: isPlanActive(plan),
               }"
+              :disabled="isPlanActive(plan)"
               @click.stop="selectPlan(plan)"
             >
-              {{
-                selectedPlan?.id === plan.id &&
-                selectedPlan?.billing === plan.billing
-                  ? "Selecionado"
-                  : "Selecionar Plano"
-              }}
+              <span v-if="isPlanActive(plan)"> ✅ Plano em Uso </span>
+              <span
+                v-else-if="
+                  selectedPlan?.id === plan.id &&
+                  selectedPlan?.billing === plan.billing
+                "
+              >
+                Selecionado
+              </span>
+              <span v-else> Selecionar Plano </span>
             </button>
           </div>
         </div>
@@ -300,6 +322,7 @@ import {
   redirectToCheckout,
   validateCheckoutData,
 } from "~/services/stripeCheckoutService.js";
+import ActivePlanChecker from "~/components/ActivePlanChecker.vue";
 
 // Configurações do Stripe
 const runtimeConfig = useRuntimeConfig();
@@ -340,6 +363,10 @@ const emailValidation = ref({
   customerData: null,
   error: null,
 });
+
+// Estado do plano ativo
+const activePlanData = ref(null);
+const activePlanLoading = ref(true);
 
 // API URL
 const API_URL = "http://graphql.volleytrack.local/v1/products";
@@ -924,7 +951,70 @@ const getGeneralYearlyDiscount = computed(() => {
 
 // Selecionar plano
 const selectPlan = (plan) => {
+  // Não permitir seleção se o plano já está ativo
+  if (isPlanActive(plan)) {
+    console.log("⚠️ Tentativa de selecionar plano já ativo:", plan.name);
+    return;
+  }
   selectedPlan.value = plan;
+};
+
+// Verificar se um plano está ativo
+const isPlanActive = (plan) => {
+  if (!activePlanData.value || !activePlanData.value.subscription) {
+    return false;
+  }
+
+  const activePriceId = activePlanData.value.subscription.price_id;
+  const planPriceId = plan.prices?.data?.[0]?.id;
+
+  // Comparar por ID do preço
+  if (activePriceId && planPriceId) {
+    return activePriceId === planPriceId;
+  }
+
+  // Fallback: comparar por nome e tipo
+  const activeProductName = activePlanData.value.product?.name?.toLowerCase();
+  const planName = plan.name?.toLowerCase();
+
+  if (activeProductName && planName) {
+    // Verificar se é o mesmo tipo de plano
+    const activePlanType = activePlanData.value.product?.name?.toLowerCase();
+    const currentPlanType = plan.name?.toLowerCase();
+
+    // Mapear tipos de planos
+    const planTypeMapping = {
+      "plano pro mensal": "pro",
+      "plano clubes mensal": "clubes",
+      "plano vitalício": "lifetime",
+    };
+
+    const activeType = planTypeMapping[activePlanType] || activePlanType;
+    const currentType = planTypeMapping[currentPlanType] || currentPlanType;
+
+    return activeType === currentType;
+  }
+
+  return false;
+};
+
+// Event handlers do ActivePlanChecker
+const onActivePlanLoaded = (planData) => {
+  console.log("📋 Plano ativo carregado:", planData);
+  activePlanData.value = planData;
+  activePlanLoading.value = false;
+
+  if (planData) {
+    console.log("✅ Cliente possui plano ativo:", planData.product?.name);
+  } else {
+    console.log("ℹ️ Cliente não possui plano ativo");
+  }
+};
+
+const onActivePlanError = (error) => {
+  console.error("❌ Erro ao carregar plano ativo:", error);
+  activePlanLoading.value = false;
+  // Não bloquear a interface por erro de carregamento do plano ativo
 };
 
 // Inicializar Stripe
@@ -1202,6 +1292,43 @@ p {
   color: rgba(255, 255, 255, 0.9);
   margin-bottom: 40px;
   font-size: 1.1rem;
+}
+
+/* Status do Plano Ativo */
+.active-plan-status {
+  margin-bottom: 30px;
+  display: flex;
+  justify-content: center;
+}
+
+.active-plan-status .active-plan-checker {
+  max-width: 800px;
+  width: 100%;
+}
+
+.active-plan-status .active-plan-checker .active-plan {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: 2px solid #10b981;
+  box-shadow: 0 8px 32px rgba(16, 185, 129, 0.2);
+}
+
+.active-plan-status .active-plan-checker .no-plan {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.active-plan-status .active-plan-checker .error {
+  background: rgba(254, 242, 242, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid #fecaca;
+}
+
+.active-plan-status .active-plan-checker .loading {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 /* Status da Validação do Email */
@@ -1654,6 +1781,21 @@ p {
   box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
 }
 
+.active-plan-badge {
+  position: absolute;
+  top: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  padding: 8px 20px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+  z-index: 10;
+}
+
 .lifetime-card {
   border: 3px solid #8b5cf6;
   background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
@@ -1784,6 +1926,29 @@ p {
 .plan-button.selected {
   background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+}
+
+.plan-button.active-plan {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+  cursor: default;
+}
+
+.plan-button.active-plan:hover {
+  transform: none;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+}
+
+.plan-button.disabled {
+  background: #e5e7eb;
+  color: #9ca3af;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.plan-button.disabled:hover {
+  transform: none;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
 .stripe-loading {

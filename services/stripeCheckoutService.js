@@ -3,7 +3,7 @@
  * Utiliza o novo endpoint do backend Laravel com email pré-preenchido
  */
 
-const API_BASE_URL = 'http://api.volleytrack.local/api'
+const API_BASE_URL = 'http://api.volleytrack.local'
 
 /**
  * Criar sessão de checkout no Stripe
@@ -37,7 +37,7 @@ export const createCheckoutSession = async (checkoutData) => {
     const authToken = token || apolloToken;
     console.log('🔍 Token que será usado:', authToken);
 
-    const response = await fetch(`${API_BASE_URL}/checkout-session`, {
+    const response = await fetch(`${API_BASE_URL}/v1/checkout-session`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -119,7 +119,7 @@ export const getCheckoutSession = async (sessionId) => {
     const authToken = token || apolloToken;
     console.log('🔍 Token que será usado:', authToken);
 
-    const response = await fetch(`${API_BASE_URL}/checkout-session/${sessionId}`, {
+    const response = await fetch(`${API_BASE_URL}/v1/checkout-session/${sessionId}`, {
       method: 'GET',
       headers: {
         'Accept': 'application/json',
@@ -268,4 +268,120 @@ export const getCurrentSessionId = () => {
     return extractSessionIdFromUrl(window.location.href)
   }
   return null
+}
+
+/**
+ * Sincronizar sessão de checkout com o banco de dados
+ * @param {string} sessionId - ID da sessão do Stripe
+ * @returns {Promise<Object>} Resposta da sincronização
+ */
+export const syncCheckoutSession = async (sessionId) => {
+  try {
+    console.log('🔍 Sincronizando sessão de checkout:', sessionId)
+
+    const response = await fetch(`${API_BASE_URL}/v1/checkout-session/${sessionId}/sync`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json'
+      }
+    })
+
+    console.log('🔍 Response status:', response.status)
+
+    if (!response.ok) {
+      const errorData = await response.json()
+      console.error('❌ Erro na sincronização:', errorData)
+      
+      if (response.status === 400) {
+        throw new Error('Sessão não foi paga ou é inválida')
+      } else if (response.status === 404) {
+        throw new Error('Customer não encontrado no banco de dados')
+      } else if (response.status === 500) {
+        throw new Error(`Erro interno do servidor: ${errorData.message || 'Erro interno'}`)
+      } else {
+        throw new Error(`Erro HTTP ${response.status}: ${errorData.message || 'Erro desconhecido'}`)
+      }
+    }
+
+    const data = await response.json()
+    console.log('✅ Sessão sincronizada com sucesso:', data)
+    
+    return {
+      success: true,
+      data: data
+    }
+  } catch (error) {
+    console.error('❌ Erro ao sincronizar sessão:', error)
+    return {
+      success: false,
+      error: error.message
+    }
+  }
+}
+
+/**
+ * Consultar plano ativo do customer
+ * @param {string} token - Token de autenticação
+ * @param {string} tenantId - ID do tenant (opcional)
+ * @returns {Promise<Object>} Dados do plano ativo
+ */
+export const getActivePlan = async (token, tenantId = null) => {
+  try {
+    console.log('🔍 Consultando plano ativo do customer')
+
+    if (!token) {
+      throw new Error("Token de autenticação não encontrado. Faça login novamente.")
+    }
+
+    // Construir URL com tenant_id como parâmetro de query
+    let url = `${API_BASE_URL}/v1/customers/active-plan`
+    if (tenantId) {
+      url += `?tenant_id=${encodeURIComponent(tenantId)}`
+    }
+
+    console.log('🔍 URL da requisição:', url)
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    })
+
+    console.log('🔍 Response status:', response.status)
+
+    if (!response.ok) {
+      const errorData = await response.json()
+      console.error('❌ Erro na consulta do plano ativo:', errorData)
+      
+      if (response.status === 401) {
+        throw new Error('Token de autenticação inválido')
+      } else if (response.status === 404) {
+        throw new Error('Customer não encontrado')
+      } else if (response.status === 500) {
+        throw new Error(`Erro do servidor: ${errorData.message || 'Erro interno'}`)
+      } else {
+        throw new Error(`Erro HTTP ${response.status}: ${errorData.message || 'Erro desconhecido'}`)
+      }
+    }
+
+    const data = await response.json()
+    console.log('✅ Plano ativo consultado com sucesso:', data)
+    console.log('🔍 data.has_active_plan:', data.has_active_plan)
+    console.log('🔍 Tipo de data.has_active_plan:', typeof data.has_active_plan)
+    console.log('🔍 data.data:', data.data)
+    console.log('🔍 data.data.has_active_plan:', data.data?.has_active_plan)
+    
+    return {
+      success: true,
+      data: data.data
+    }
+  } catch (error) {
+    console.error('❌ Erro ao consultar plano ativo:', error)
+    return {
+      success: false,
+      error: error.message
+    }
+  }
 }

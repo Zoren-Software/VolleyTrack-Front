@@ -119,8 +119,8 @@ class CheckoutController extends Controller
 ```php
 // routes/api.php
 
-Route::post('/checkout-session', [CheckoutController::class, 'createCheckoutSession']);
-Route::get('/checkout-session/{sessionId}', [CheckoutController::class, 'getCheckoutSession']);
+Route::post('/v1/checkout-session', [CheckoutController::class, 'createCheckoutSession']);
+Route::get('/v1/checkout-session/{sessionId}', [CheckoutController::class, 'getCheckoutSession']);
 ```
 
 ### 3. Configuração do Stripe
@@ -145,7 +145,7 @@ STRIPE_SECRET=sk_test_...
 
 ### 1. Teste da API
 ```bash
-curl -X POST http://api.volleytrack.local/api/checkout-session \
+curl -X POST http://api.volleytrack.local/v1/checkout-session \
   -H "Content-Type: application/json" \
   -d '{
     "price_id": "price_1234567890",

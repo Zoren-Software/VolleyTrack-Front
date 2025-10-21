@@ -28,8 +28,11 @@
 
         <!-- Loading State -->
         <div v-if="loading" class="loading-section">
-          <div class="loading-spinner"></div>
-          <p>Carregando detalhes da assinatura...</p>
+          <div class="loading-spinner" />
+          <p v-if="syncLoading">
+            Sincronizando assinatura com o banco de dados...
+          </p>
+          <p v-else>Carregando detalhes da assinatura...</p>
         </div>
 
         <!-- Error State -->
@@ -38,6 +41,25 @@
           <p>Erro ao carregar detalhes: {{ error }}</p>
           <p class="error-note">
             Mas não se preocupe, seu pagamento foi processado com sucesso!
+          </p>
+        </div>
+
+        <!-- Sync Success State -->
+        <div v-if="syncData && !syncError" class="sync-success-section">
+          <div class="sync-success-icon">✅</div>
+          <p>Assinatura sincronizada com sucesso!</p>
+          <p class="sync-success-note">
+            Seus dados foram registrados no banco de dados e estão prontos para
+            uso.
+          </p>
+        </div>
+
+        <!-- Sync Error State -->
+        <div v-if="syncError" class="sync-error-section">
+          <div class="sync-error-icon">⚠️</div>
+          <p>Aviso: Erro na sincronização: {{ syncError }}</p>
+          <p class="sync-error-note">
+            Seu pagamento foi processado, mas pode haver um atraso na ativação.
           </p>
         </div>
 
@@ -70,9 +92,9 @@
             </div>
             <div class="detail-item">
               <span class="label">Valor Total:</span>
-              <span class="value price"
-                >R$ {{ formatPrice(sessionData.amount_total) }}</span
-              >
+              <span class="value price">
+                R$ {{ formatPrice(sessionData.amount_total) }}
+              </span>
             </div>
             <div class="detail-item">
               <span class="label">Status do Pagamento:</span>
@@ -83,6 +105,29 @@
             <div v-if="sessionData.customer_email" class="detail-item">
               <span class="label">Email:</span>
               <span class="value">{{ sessionData.customer_email }}</span>
+            </div>
+          </div>
+
+          <!-- Dados de sincronização se disponíveis -->
+          <div v-if="syncData" class="sync-details">
+            <h4>Status da Sincronização</h4>
+            <div class="detail-item">
+              <span class="label">Sincronização:</span>
+              <span class="value success">✅ Concluída</span>
+            </div>
+            <div v-if="syncData.subscription" class="detail-item">
+              <span class="label">ID da Assinatura:</span>
+              <span class="value">{{ syncData.subscription.stripe_id }}</span>
+            </div>
+            <div v-if="syncData.subscription" class="detail-item">
+              <span class="label">Status da Assinatura:</span>
+              <span class="value" :class="syncData.subscription.status">
+                {{ getSubscriptionStatusText(syncData.subscription.status) }}
+              </span>
+            </div>
+            <div v-if="syncData.customer_id" class="detail-item">
+              <span class="label">ID do Cliente:</span>
+              <span class="value">{{ syncData.customer_id }}</span>
             </div>
           </div>
         </div>
@@ -112,6 +157,7 @@ import { ref, onMounted } from "vue";
 import {
   getCheckoutSession,
   getCurrentSessionId,
+  syncCheckoutSession,
 } from "~/services/stripeCheckoutService.js";
 
 // Head
@@ -123,8 +169,11 @@ useHead({
 const currentDate = ref("");
 const nextBillingDate = ref("");
 const sessionData = ref(null);
+const syncData = ref(null);
 const loading = ref(true);
+const syncLoading = ref(false);
 const error = ref(null);
+const syncError = ref(null);
 
 // Função para formatar data
 const formatDate = (date) => {
@@ -169,11 +218,48 @@ const calculateNextBilling = (sessionData) => {
   return next;
 };
 
+// Sincronizar dados da sessão com o banco de dados
+const syncSessionData = async (sessionId) => {
+  try {
+    console.log("🔄 Sincronizando sessão com o banco de dados:", sessionId);
+    syncLoading.value = true;
+    syncError.value = null;
+
+    const result = await syncCheckoutSession(sessionId);
+
+    if (result.success) {
+      syncData.value = result.data;
+      console.log("✅ Sessão sincronizada com sucesso:", syncData.value);
+
+      // Se temos dados de sincronização, usar eles para atualizar as informações
+      if (syncData.value.subscription) {
+        const nextBilling = new Date(
+          syncData.value.subscription.current_period_end
+        );
+        nextBillingDate.value = formatDate(nextBilling);
+      }
+
+      // Mostrar mensagem de sucesso da sincronização
+      console.log("🎉 Assinatura registrada com sucesso no banco de dados!");
+    } else {
+      console.warn("⚠️ Erro na sincronização:", result.error);
+      syncError.value = result.error;
+    }
+  } catch (err) {
+    console.error("❌ Erro ao sincronizar sessão:", err);
+    syncError.value = err.message;
+    // Não bloquear a UI por erro de sincronização
+  } finally {
+    syncLoading.value = false;
+  }
+};
+
 // Carregar dados da sessão
 const loadSessionData = async () => {
   try {
     loading.value = true;
     error.value = null;
+    syncError.value = null;
 
     // Obter session ID da URL
     const sessionId = getCurrentSessionId();
@@ -186,28 +272,36 @@ const loadSessionData = async () => {
       return;
     }
 
-    console.log("🔍 Consultando sessão:", sessionId);
+    console.log("🔍 Session ID encontrado:", sessionId);
 
-    // Consultar dados da sessão
+    // PRIORIDADE 1: Sincronizar imediatamente com o banco de dados
+    console.log("🚀 Iniciando sincronização automática da assinatura...");
+    await syncSessionData(sessionId);
+
+    // PRIORIDADE 2: Consultar dados da sessão (opcional, para exibição)
+    console.log("🔍 Consultando dados da sessão para exibição...");
     const result = await getCheckoutSession(sessionId);
 
-    if (!result.success) {
-      throw new Error(result.error || "Erro ao consultar sessão");
+    if (result.success) {
+      sessionData.value = result.data;
+      console.log("✅ Dados da sessão carregados:", sessionData.value);
+    } else {
+      console.warn("⚠️ Erro ao consultar dados da sessão:", result.error);
+      // Não bloquear por erro na consulta, pois a sincronização já foi feita
     }
-
-    sessionData.value = result.data;
-    console.log("✅ Dados da sessão carregados:", sessionData.value);
 
     // Definir data atual
     currentDate.value = formatDate(new Date());
 
-    // Calcular próxima cobrança baseada nos dados da sessão
+    // Calcular próxima cobrança baseada nos dados da sessão ou sincronização
     const nextBilling = calculateNextBilling(sessionData.value);
     if (nextBilling) {
       nextBillingDate.value = formatDate(nextBilling);
     } else {
       nextBillingDate.value = "Pagamento único";
     }
+
+    console.log("✅ Processo de carregamento concluído");
   } catch (err) {
     console.error("❌ Erro ao carregar dados da sessão:", err);
     error.value = err.message;
@@ -231,6 +325,19 @@ const getPaymentStatusText = (status) => {
     paid: "Pago",
     unpaid: "Não Pago",
     no_payment_required: "Pagamento Não Necessário",
+  };
+  return statusMap[status] || status;
+};
+
+const getSubscriptionStatusText = (status) => {
+  const statusMap = {
+    active: "Ativa",
+    canceled: "Cancelada",
+    incomplete: "Incompleta",
+    incomplete_expired: "Expirada",
+    past_due: "Em Atraso",
+    trialing: "Período de Teste",
+    unpaid: "Não Paga",
   };
   return statusMap[status] || status;
 };
@@ -377,6 +484,48 @@ h1 {
   margin-top: 10px;
 }
 
+.sync-error-section {
+  background: #fef3cd;
+  border: 1px solid #fde68a;
+  border-radius: 8px;
+  color: #92400e;
+  margin-bottom: 20px;
+}
+
+.sync-error-icon {
+  font-size: 1.5rem;
+  margin-bottom: 8px;
+}
+
+.sync-error-note {
+  color: #059669;
+  font-weight: 500;
+  margin-top: 8px;
+  font-size: 0.9rem;
+}
+
+.sync-success-section {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  color: #166534;
+  margin-bottom: 20px;
+  padding: 15px;
+  text-align: center;
+}
+
+.sync-success-icon {
+  font-size: 1.5rem;
+  margin-bottom: 8px;
+}
+
+.sync-success-note {
+  color: #059669;
+  font-weight: 500;
+  margin-top: 8px;
+  font-size: 0.9rem;
+}
+
 .session-details {
   margin-top: 20px;
   padding-top: 20px;
@@ -385,6 +534,22 @@ h1 {
 
 .session-details h4 {
   color: #333;
+  margin: 0 0 15px 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.sync-details {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e9ecef;
+  background: #f0f9ff;
+  border-radius: 8px;
+  padding: 15px;
+}
+
+.sync-details h4 {
+  color: #0ea5e9;
   margin: 0 0 15px 0;
   font-size: 1.1rem;
   font-weight: 600;
