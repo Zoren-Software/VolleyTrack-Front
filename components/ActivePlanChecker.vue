@@ -61,8 +61,17 @@
           <button @click="manageSubscription" class="btn btn-secondary">
             Gerenciar Assinatura
           </button>
-          <button @click="upgradePlan" class="btn btn-primary">
-            Fazer Upgrade
+          <button
+            @click="upgradePlan"
+            class="btn btn-primary upgrade-btn"
+            :class="{ 'upgrade-animation': props.showUpgradeAnimations }"
+          >
+            <span class="upgrade-text">{{
+              props.showUpgradeAnimations ? "Parar Animações" : "Fazer Upgrade"
+            }}</span>
+            <span class="upgrade-sparkle" v-if="props.showUpgradeAnimations"
+              >✨</span
+            >
           </button>
         </div>
       </div>
@@ -102,10 +111,19 @@ const props = defineProps({
     type: String,
     default: null,
   },
+  showUpgradeAnimations: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 // Emits
-const emit = defineEmits(["plan-loaded", "plan-error", "plan-updated"]);
+const emit = defineEmits([
+  "plan-loaded",
+  "plan-error",
+  "plan-updated",
+  "upgrade-clicked",
+]);
 
 // Estado da aplicação
 const activePlan = ref(null);
@@ -253,8 +271,11 @@ const manageSubscription = () => {
 };
 
 const upgradePlan = () => {
+  // Emitir evento para toggle das animações nos planos
+  emit("upgrade-clicked");
+
+  console.log("Toggle de animações ativado");
   // Implementar redirecionamento para upgrade
-  console.log("Fazer upgrade do plano");
   // Exemplo: this.$router.push('/plans')
 };
 
@@ -453,6 +474,66 @@ onUnmounted(() => {
   flex-wrap: wrap;
 }
 
+/* Botão de Upgrade com Animação */
+.upgrade-btn {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #10b981, #059669);
+  border: none;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+  transition: all 0.3s ease;
+}
+
+.upgrade-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6);
+}
+
+.upgrade-animation {
+  animation: upgradePulse 0.6s ease-in-out infinite alternate;
+  background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4) !important;
+}
+
+@keyframes upgradePulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+  }
+  100% {
+    transform: scale(1.05);
+    box-shadow: 0 6px 25px rgba(245, 158, 11, 0.7);
+  }
+}
+
+.upgrade-text {
+  position: relative;
+  z-index: 2;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.upgrade-sparkle {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  font-size: 1.2rem;
+  animation: sparkle 1s ease-in-out infinite;
+  z-index: 3;
+}
+
+@keyframes sparkle {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0.8) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2) rotate(180deg);
+  }
+}
+
 .no-plan {
   background: #f9fafb;
   border: 2px dashed #d1d5db;
@@ -547,6 +628,31 @@ onUnmounted(() => {
     flex-direction: column;
     align-items: flex-start;
     gap: 5px;
+  }
+
+  /* Animações responsivas */
+  .upgrade-animation {
+    animation: upgradePulseMobile 0.8s ease-in-out infinite alternate;
+  }
+
+  @keyframes upgradePulseMobile {
+    0% {
+      transform: scale(1);
+      box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+    }
+    100% {
+      transform: scale(1.02);
+      box-shadow: 0 6px 20px rgba(245, 158, 11, 0.6);
+    }
+  }
+
+  .top-tier-badge {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+  }
+
+  .upgrade-sparkle {
+    font-size: 1rem;
   }
 }
 </style>

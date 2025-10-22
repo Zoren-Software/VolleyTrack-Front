@@ -55,8 +55,10 @@
         <ActivePlanChecker
           :auto-refresh="false"
           :tenant-id="getTenantId()"
+          :show-upgrade-animations="showUpgradeAnimations"
           @plan-loaded="onActivePlanLoaded"
           @plan-error="onActivePlanError"
+          @upgrade-clicked="onUpgradeClicked"
         />
       </div>
 
@@ -208,6 +210,22 @@
                 selectedPlan?.billing === plan.billing,
               'lifetime-card': plan.metadata?.plan_type === 'lifetime',
               'popular-plan': plan.metadata?.plan_type === 'pro',
+              'upgrade-plan':
+                showUpgradeAnimations &&
+                isBetterPlan(plan) &&
+                !isPlanActive(plan),
+              'upgrade-high':
+                showUpgradeAnimations &&
+                isBetterPlan(plan) &&
+                getUpgradeAnimationLevel(plan) === 'high',
+              'upgrade-medium':
+                showUpgradeAnimations &&
+                isBetterPlan(plan) &&
+                getUpgradeAnimationLevel(plan) === 'medium',
+              'upgrade-low':
+                showUpgradeAnimations &&
+                isBetterPlan(plan) &&
+                getUpgradeAnimationLevel(plan) === 'low',
             }"
             @click="selectPlan(plan)"
           >
@@ -227,6 +245,22 @@
             <!-- Badge de Plano Ativo -->
             <div v-if="isPlanActive(plan)" class="active-plan-badge">
               <span>Plano em Uso</span>
+            </div>
+
+            <!-- Badge de Upgrade Disponível -->
+            <div
+              v-if="
+                showUpgradeAnimations &&
+                isBetterPlan(plan) &&
+                !isPlanActive(plan)
+              "
+              class="upgrade-available-badge"
+              :class="`upgrade-${getUpgradeAnimationLevel(plan)}`"
+            >
+              <span class="upgrade-icon">🚀</span>
+              <span class="upgrade-text">
+                {{ getUpgradeText(plan) }}
+              </span>
             </div>
 
             <div class="plan-header">
@@ -387,6 +421,7 @@ const emailValidation = ref({
 // Estado do plano ativo
 const activePlanData = ref(null);
 const activePlanLoading = ref(true);
+const showUpgradeAnimations = ref(false);
 
 // API URL
 const API_URL = "http://graphql.volleytrack.local/v1/products";
@@ -1063,6 +1098,67 @@ const detectYearlyPlan = (planData) => {
   return false;
 };
 
+// Verificar se um plano é melhor que o ativo (baseado no valor)
+const isBetterPlan = (plan) => {
+  if (!activePlanData.value || !activePlanData.value.price) {
+    return false;
+  }
+
+  const activePlanValue = activePlanData.value.price.unit_amount;
+  const currentPlanValue = getPlanValue(plan);
+
+  // Se o plano atual for mais caro, é melhor
+  return currentPlanValue > activePlanValue;
+};
+
+// Obter valor do plano para comparação
+const getPlanValue = (plan) => {
+  if (!plan.prices?.data?.[0]?.unit_amount) {
+    return 0;
+  }
+  return plan.prices.data[0].unit_amount;
+};
+
+// Obter nível de animação baseado na diferença de valor
+const getUpgradeAnimationLevel = (plan) => {
+  if (!activePlanData.value || !activePlanData.value.price) {
+    return "none";
+  }
+
+  const activePlanValue = activePlanData.value.price.unit_amount;
+  const currentPlanValue = getPlanValue(plan);
+  const difference = currentPlanValue - activePlanValue;
+
+  // Calcular percentual de diferença
+  const percentageDiff = (difference / activePlanValue) * 100;
+
+  if (percentageDiff >= 100) {
+    return "high"; // 100%+ mais caro = animação alta
+  } else if (percentageDiff >= 50) {
+    return "medium"; // 50-99% mais caro = animação média
+  } else if (percentageDiff > 0) {
+    return "low"; // 1-49% mais caro = animação baixa
+  }
+
+  return "none";
+};
+
+// Obter texto do upgrade baseado no nível
+const getUpgradeText = (plan) => {
+  const level = getUpgradeAnimationLevel(plan);
+
+  switch (level) {
+    case "high":
+      return "Upgrade Premium!";
+    case "medium":
+      return "Upgrade Recomendado";
+    case "low":
+      return "Upgrade Disponível";
+    default:
+      return "Upgrade";
+  }
+};
+
 // Event handlers do ActivePlanChecker
 const onActivePlanLoaded = (planData) => {
   console.log("📋 Plano ativo carregado:", planData);
@@ -1090,6 +1186,17 @@ const onActivePlanError = (error) => {
   console.error("❌ Erro ao carregar plano ativo:", error);
   activePlanLoading.value = false;
   // Não bloquear a interface por erro de carregamento do plano ativo
+};
+
+const onUpgradeClicked = () => {
+  // Toggle das animações (liga/desliga)
+  showUpgradeAnimations.value = !showUpgradeAnimations.value;
+
+  if (showUpgradeAnimations.value) {
+    console.log("🚀 Upgrade clicado - ativando animações nos planos");
+  } else {
+    console.log("⏹️ Upgrade clicado - desativando animações nos planos");
+  }
 };
 
 // Inicializar Stripe
@@ -1765,6 +1872,153 @@ p {
   box-shadow: 0 20px 40px rgba(102, 126, 234, 0.3);
 }
 
+/* Animações de Upgrade */
+.plan-card.upgrade-plan {
+  border: 3px solid #f59e0b;
+  background: linear-gradient(135deg, #fff7ed, #ffffff);
+}
+
+.plan-card.upgrade-high {
+  animation: upgradePulseHigh 2s ease-in-out infinite;
+  box-shadow: 0 15px 35px rgba(245, 158, 11, 0.4);
+}
+
+.plan-card.upgrade-medium {
+  animation: upgradePulseMedium 3s ease-in-out infinite;
+  box-shadow: 0 12px 30px rgba(245, 158, 11, 0.3);
+}
+
+.plan-card.upgrade-low {
+  animation: upgradePulseLow 4s ease-in-out infinite;
+  box-shadow: 0 10px 25px rgba(245, 158, 11, 0.2);
+}
+
+@keyframes upgradePulseHigh {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 15px 35px rgba(245, 158, 11, 0.4);
+  }
+  50% {
+    transform: scale(1.02);
+    box-shadow: 0 20px 45px rgba(245, 158, 11, 0.6);
+  }
+}
+
+@keyframes upgradePulseMedium {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 12px 30px rgba(245, 158, 11, 0.3);
+  }
+  50% {
+    transform: scale(1.01);
+    box-shadow: 0 18px 40px rgba(245, 158, 11, 0.5);
+  }
+}
+
+@keyframes upgradePulseLow {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 10px 25px rgba(245, 158, 11, 0.2);
+  }
+  50% {
+    transform: scale(1.005);
+    box-shadow: 0 15px 35px rgba(245, 158, 11, 0.4);
+  }
+}
+
+/* Badge de Upgrade Disponível */
+.upgrade-available-badge {
+  position: absolute;
+  top: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 20px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 10;
+  animation: upgradeBadgeGlow 2s ease-in-out infinite alternate;
+}
+
+.upgrade-available-badge.upgrade-high {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.6);
+  animation: upgradeBadgeGlowHigh 1.5s ease-in-out infinite alternate;
+}
+
+.upgrade-available-badge.upgrade-medium {
+  background: linear-gradient(135deg, #f59e0b, #fbbf24);
+  color: white;
+  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+  animation: upgradeBadgeGlowMedium 2s ease-in-out infinite alternate;
+}
+
+.upgrade-available-badge.upgrade-low {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  color: white;
+  box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3);
+  animation: upgradeBadgeGlowLow 2.5s ease-in-out infinite alternate;
+}
+
+@keyframes upgradeBadgeGlowHigh {
+  0% {
+    box-shadow: 0 4px 15px rgba(245, 158, 11, 0.6);
+    transform: translateX(-50%) scale(1);
+  }
+  100% {
+    box-shadow: 0 6px 20px rgba(245, 158, 11, 0.8);
+    transform: translateX(-50%) scale(1.05);
+  }
+}
+
+@keyframes upgradeBadgeGlowMedium {
+  0% {
+    box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+    transform: translateX(-50%) scale(1);
+  }
+  100% {
+    box-shadow: 0 6px 20px rgba(245, 158, 11, 0.6);
+    transform: translateX(-50%) scale(1.03);
+  }
+}
+
+@keyframes upgradeBadgeGlowLow {
+  0% {
+    box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3);
+    transform: translateX(-50%) scale(1);
+  }
+  100% {
+    box-shadow: 0 6px 20px rgba(251, 191, 36, 0.5);
+    transform: translateX(-50%) scale(1.02);
+  }
+}
+
+.upgrade-icon {
+  font-size: 1.1rem;
+  animation: upgradeIconSpin 2s linear infinite;
+}
+
+@keyframes upgradeIconSpin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.upgrade-text {
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
 .plan-header {
   text-align: center;
   margin-bottom: 25px;
@@ -2133,6 +2387,64 @@ p {
   .plan-card {
     padding: 20px;
     min-height: auto;
+  }
+
+  /* Animações responsivas de upgrade */
+  .plan-card.upgrade-high {
+    animation: upgradePulseHighMobile 2.5s ease-in-out infinite;
+  }
+
+  .plan-card.upgrade-medium {
+    animation: upgradePulseMediumMobile 3.5s ease-in-out infinite;
+  }
+
+  .plan-card.upgrade-low {
+    animation: upgradePulseLowMobile 4.5s ease-in-out infinite;
+  }
+
+  @keyframes upgradePulseHighMobile {
+    0%,
+    100% {
+      transform: scale(1);
+      box-shadow: 0 12px 30px rgba(245, 158, 11, 0.3);
+    }
+    50% {
+      transform: scale(1.01);
+      box-shadow: 0 15px 35px rgba(245, 158, 11, 0.5);
+    }
+  }
+
+  @keyframes upgradePulseMediumMobile {
+    0%,
+    100% {
+      transform: scale(1);
+      box-shadow: 0 10px 25px rgba(245, 158, 11, 0.2);
+    }
+    50% {
+      transform: scale(1.005);
+      box-shadow: 0 12px 30px rgba(245, 158, 11, 0.4);
+    }
+  }
+
+  @keyframes upgradePulseLowMobile {
+    0%,
+    100% {
+      transform: scale(1);
+      box-shadow: 0 8px 20px rgba(245, 158, 11, 0.15);
+    }
+    50% {
+      transform: scale(1.002);
+      box-shadow: 0 10px 25px rgba(245, 158, 11, 0.3);
+    }
+  }
+
+  .upgrade-available-badge {
+    font-size: 0.8rem;
+    padding: 6px 16px;
+  }
+
+  .upgrade-icon {
+    font-size: 1rem;
   }
 
   .subscribe-button {
