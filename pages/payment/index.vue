@@ -66,18 +66,38 @@
         <div class="toggle-buttons">
           <button
             class="toggle-btn"
-            :class="{ active: selectedBilling === 'monthly' }"
+            :class="{
+              active: selectedBilling === 'monthly',
+              'auto-selected':
+                activePlanData && !detectYearlyPlan(activePlanData),
+            }"
             @click="selectedBilling = 'monthly'"
           >
             Mensal
+            <span
+              v-if="activePlanData && !detectYearlyPlan(activePlanData)"
+              class="auto-selected-badge"
+            >
+              (Seu Plano)
+            </span>
           </button>
           <button
             class="toggle-btn"
-            :class="{ active: selectedBilling === 'yearly' }"
+            :class="{
+              active: selectedBilling === 'yearly',
+              'auto-selected':
+                activePlanData && detectYearlyPlan(activePlanData),
+            }"
             @click="selectedBilling = 'yearly'"
           >
             Anual
             <span class="discount-badge">-{{ getGeneralYearlyDiscount }}%</span>
+            <span
+              v-if="activePlanData && detectYearlyPlan(activePlanData)"
+              class="auto-selected-badge"
+            >
+              (Seu Plano)
+            </span>
           </button>
         </div>
       </div>
@@ -998,6 +1018,51 @@ const isPlanActive = (plan) => {
   return false;
 };
 
+// Detectar se o plano ativo é anual baseado nos dados retornados
+const detectYearlyPlan = (planData) => {
+  if (!planData || !planData.price) {
+    return false;
+  }
+
+  // Verificar pelo intervalo de recorrência
+  const recurring = planData.price.recurring;
+  if (recurring && recurring.interval) {
+    console.log("🔍 Intervalo de recorrência:", recurring.interval);
+    return recurring.interval === "year";
+  }
+
+  // Verificar pelo nome do produto (fallback)
+  const productName = planData.product?.name?.toLowerCase() || "";
+  console.log("🔍 Nome do produto:", productName);
+
+  // Palavras-chave que indicam plano anual
+  const yearlyKeywords = ["anual", "yearly", "year", "ano"];
+  const isYearlyByName = yearlyKeywords.some((keyword) =>
+    productName.includes(keyword)
+  );
+
+  if (isYearlyByName) {
+    console.log("📅 Plano detectado como anual pelo nome:", productName);
+    return true;
+  }
+
+  // Verificar pelo preço (planos anuais geralmente têm valores maiores)
+  const unitAmount = planData.price.unit_amount;
+  if (unitAmount) {
+    console.log("🔍 Valor unitário:", unitAmount);
+    // Se o valor for muito alto para ser mensal, provavelmente é anual
+    // Exemplo: se for maior que R$ 1000, provavelmente é anual
+    if (unitAmount > 100000) {
+      // R$ 1000,00 em centavos
+      console.log("📅 Plano detectado como anual pelo valor alto:", unitAmount);
+      return true;
+    }
+  }
+
+  console.log("📅 Plano detectado como mensal");
+  return false;
+};
+
 // Event handlers do ActivePlanChecker
 const onActivePlanLoaded = (planData) => {
   console.log("📋 Plano ativo carregado:", planData);
@@ -1006,6 +1071,16 @@ const onActivePlanLoaded = (planData) => {
 
   if (planData) {
     console.log("✅ Cliente possui plano ativo:", planData.product?.name);
+
+    // Detectar se o plano ativo é anual e pré-selecionar a aba correta
+    const isYearlyPlan = detectYearlyPlan(planData);
+    if (isYearlyPlan) {
+      console.log("📅 Plano ativo é anual - pré-selecionando aba anual");
+      selectedBilling.value = "yearly";
+    } else {
+      console.log("📅 Plano ativo é mensal - mantendo aba mensal");
+      selectedBilling.value = "monthly";
+    }
   } else {
     console.log("ℹ️ Cliente não possui plano ativo");
   }
@@ -1538,6 +1613,33 @@ p {
   background: rgba(255, 255, 255, 0.1);
 }
 
+.toggle-btn.auto-selected {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+  border: 2px solid #10b981;
+}
+
+.toggle-btn.auto-selected.active {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+}
+
+.auto-selected-badge {
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  background: #10b981;
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 10px;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
 .discount-badge {
   position: absolute;
   top: -8px;
@@ -2012,6 +2114,13 @@ p {
   .toggle-btn {
     flex: 1;
     min-width: auto;
+  }
+
+  .auto-selected-badge {
+    font-size: 0.6rem;
+    padding: 1px 4px;
+    top: -6px;
+    left: -6px;
   }
 
   .plans-grid {
