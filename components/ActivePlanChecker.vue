@@ -55,13 +55,6 @@
               formatDate(activePlan.subscription.current_period_end)
             }}</span>
           </div>
-
-          <div v-if="activePlan.subscription?.quantity" class="stat-item">
-            <span class="stat-label">Quantidade:</span>
-            <span class="stat-value">{{
-              activePlan.subscription.quantity
-            }}</span>
-          </div>
         </div>
 
         <div class="plan-actions">

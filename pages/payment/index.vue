@@ -1,19 +1,6 @@
 <template>
   <div class="subscription-plans-page">
     <div class="container">
-      <h1>Planos de Assinatura</h1>
-      <p>Escolha o plano ideal para o seu clube de vôlei</p>
-
-      <!-- Status do Plano Ativo -->
-      <div class="active-plan-status">
-        <ActivePlanChecker
-          :auto-refresh="false"
-          :tenant-id="getTenantId()"
-          @plan-loaded="onActivePlanLoaded"
-          @plan-error="onActivePlanError"
-        />
-      </div>
-
       <!-- Status da Validação do Email -->
       <div class="email-validation-status">
         <div v-if="emailValidation.loading" class="validation-loading">
@@ -58,6 +45,19 @@
             </button>
           </div>
         </div>
+      </div>
+
+      <h1>Planos de Assinatura</h1>
+      <p>Escolha o plano ideal para o seu clube de vôlei</p>
+
+      <!-- Status do Plano Ativo -->
+      <div class="active-plan-status">
+        <ActivePlanChecker
+          :auto-refresh="false"
+          :tenant-id="getTenantId()"
+          @plan-loaded="onActivePlanLoaded"
+          @plan-error="onActivePlanError"
+        />
       </div>
 
       <!-- Seletor de Periodicidade -->
@@ -1358,6 +1358,7 @@ h1 {
   text-align: center;
   color: white;
   margin-bottom: 10px;
+  margin-top: 0;
   font-size: 2.5rem;
   font-weight: 700;
 }
@@ -1408,7 +1409,8 @@ p {
 
 /* Status da Validação do Email */
 .email-validation-status {
-  margin-bottom: 40px;
+  margin-bottom: 10px;
+  margin-top: 5px;
   display: flex;
   justify-content: center;
 }
