@@ -308,7 +308,7 @@
                 disabled: isPlanActive(plan),
               }"
               :disabled="isPlanActive(plan)"
-              @click.stop="selectPlan(plan)"
+              @click.stop="handlePlanClick(plan)"
             >
               <span v-if="isPlanActive(plan)"> ✅ Plano em Uso </span>
               <span
@@ -324,7 +324,7 @@
           </div>
         </div>
 
-        <!-- Botão de Assinatura -->
+        <!-- Botão de Assinatura/Troca -->
         <div v-if="selectedPlan" class="subscription-actions">
           <button
             :disabled="
@@ -334,9 +334,10 @@
             "
             :class="{
               'subscribe-button': true,
+              'swap-button': activePlanData && activePlanData.customer_id,
               disabled: !emailValidation.validated || !emailValidation.valid,
             }"
-            @click="subscribeToPlan"
+            @click="handleSubscriptionAction"
           >
             {{
               subscriptionLoading
@@ -345,6 +346,10 @@
                 ? "Aguardando validação..."
                 : !emailValidation.valid
                 ? "E-mail não validado - Contate o suporte"
+                : activePlanData && activePlanData.customer_id
+                ? `🔄 Trocar para ${selectedPlan.name} - R$ ${getPlanPrice(
+                    selectedPlan
+                  )}${getPlanPeriod(selectedPlan)}`
                 : `Assinar ${selectedPlan.name} - R$ ${getPlanPrice(
                     selectedPlan
                   )}${getPlanPeriod(selectedPlan)}`
@@ -365,6 +370,8 @@
         <pre>{{ JSON.stringify(subscriptionResult, null, 2) }}</pre>
       </div>
     </div>
+
+    <!-- Modal removido - agora redirecionamos para rota específica de troca -->
   </div>
 </template>
 
@@ -423,10 +430,10 @@ const activePlanData = ref(null);
 const activePlanLoading = ref(true);
 const showUpgradeAnimations = ref(false);
 
+// Removido: Estado do modal de troca de planos (agora redirecionamos para rota específica)
+
 // API URL
 const API_URL = "http://graphql.volleytrack.local/v1/products";
-const CUSTOMER_VALIDATION_URL =
-  "http://api.volleytrack.local/v1/customers/check-email";
 
 // URLs de redirecionamento
 const successURL = `${window.location.origin}/payment/success`;
@@ -619,232 +626,44 @@ const validateCustomerEmailAPI = async (userEmail) => {
   // Rota correta para validação de email
   const correctRoute = "http://volleytrack.local/v1/customers/check-email";
 
-  try {
-    const requestBody = {
-      email: userEmail,
-      tenant_id: getTenantId(),
-    };
+  const requestBody = {
+    email: userEmail,
+    tenant_id: getTenantId(),
+  };
 
-    const response = await fetch(correctRoute, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-        Authorization: `Bearer ${authToken}`,
-      },
-      body: JSON.stringify(requestBody),
-    });
+  const response = await fetch(correctRoute, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      Authorization: `Bearer ${authToken}`,
+    },
+    body: JSON.stringify(requestBody),
+  });
 
-    if (response.ok) {
-      const data = await response.json();
-      if (data.success) {
-        emailValidation.value.validated = true;
-        emailValidation.value.valid = data.exists;
-        emailValidation.value.customerData = data.data;
-        return; // Sucesso, sair da função
-      } else {
-        throw new Error(data.message || "Erro na validação do customer");
-      }
-    } else if (response.status === 401) {
-      const errorData = await response.json();
-      throw new Error("Token de autenticação inválido ou expirado");
-    } else if (response.status === 403) {
-      const errorData = await response.json();
-      throw new Error(
-        "Acesso negado - só é possível verificar o próprio email"
-      );
-    } else {
-      const errorData = await response.json();
-      throw new Error(
-        `HTTP ${response.status}: ${errorData.message || "Erro desconhecido"}`
-      );
-    }
-  } catch (error) {
-    throw error;
-  }
-};
-
-// Validar email do customer usando GraphQL (função original)
-const validateCustomerEmailGraphQLOriginal = async () => {
-  try {
-    emailValidation.value.loading = true;
-    emailValidation.value.error = null;
-
-    const userEmail = getUserEmail();
-    if (!userEmail) {
-      throw new Error("Email do usuário não encontrado");
-    }
-
-    // Validação básica de formato de email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(userEmail)) {
-      console.error("❌ Formato de email inválido:", userEmail);
-      throw new Error("Formato de email inválido");
-    }
-
-    // Verificar se o usuário está logado e tem dados válidos
-    if (!user.value || !user.value.id) {
-      throw new Error("Usuário não está logado corretamente");
-    }
-
-    // Verificar se o usuário tem roles (administrador)
-    if (!user.value.roles || user.value.roles.length === 0) {
-      throw new Error("Usuário não possui permissões de administrador");
-    }
-
-    // Verificar se tem pelo menos um role válido
-    const validRoles = ["admin", "administrator", "super_admin", "owner"];
-    const hasValidRole = user.value.roles.some((role) =>
-      validRoles.includes(role.name.toLowerCase())
-    );
-
-    if (!hasValidRole) {
-      throw new Error(
-        "Usuário não possui permissões de administrador necessárias"
-      );
-    }
-
-    // Se chegou até aqui, o email é válido
-    emailValidation.value.validated = true;
-    emailValidation.value.valid = true;
-    emailValidation.value.customerData = {
-      id: user.value.id,
-      name: user.value.name,
-      email: user.value.email,
-      tenant_id: getTenantId(),
-      email_verified_at: user.value.emailVerifiedAt || new Date().toISOString(),
-      created_at: user.value.createdAt || new Date().toISOString(),
-    };
-  } catch (err) {
-    console.error("❌ Erro na validação GraphQL do email:", err);
-    emailValidation.value.error = err.message;
-    emailValidation.value.validated = true;
-    emailValidation.value.valid = false;
-  } finally {
-    emailValidation.value.loading = false;
-  }
-};
-
-// Validar email do customer localmente (sem API)
-const validateCustomerEmailLocal = async () => {
-  try {
-    emailValidation.value.loading = true;
-    emailValidation.value.error = null;
-
-    const userEmail = getUserEmail();
-    if (!userEmail) {
-      throw new Error("Email do usuário não encontrado");
-    }
-
-    // Validação básica de formato de email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(userEmail)) {
-      console.error("❌ Formato de email inválido:", userEmail);
-      throw new Error("Formato de email inválido");
-    }
-
-    // Verificar se o usuário está logado e tem dados válidos
-    if (!user.value || !user.value.id) {
-      throw new Error("Usuário não está logado corretamente");
-    }
-
-    // Verificar se o usuário tem roles (administrador)
-    if (!user.value.roles || user.value.roles.length === 0) {
-      throw new Error("Usuário não possui permissões de administrador");
-    }
-
-    // Verificar se tem pelo menos um role válido
-    const validRoles = ["admin", "administrator", "super_admin", "owner"];
-    const hasValidRole = user.value.roles.some((role) =>
-      validRoles.includes(role.name.toLowerCase())
-    );
-
-    if (!hasValidRole) {
-      throw new Error(
-        "Usuário não possui permissões de administrador necessárias"
-      );
-    }
-
-    // Se chegou até aqui, o email é válido
-    emailValidation.value.validated = true;
-    emailValidation.value.valid = true;
-    emailValidation.value.customerData = {
-      id: user.value.id,
-      name: user.value.name,
-      email: user.value.email,
-      tenant_id: getTenantId(),
-      email_verified_at: user.value.emailVerifiedAt || new Date().toISOString(),
-      created_at: user.value.createdAt || new Date().toISOString(),
-    };
-  } catch (err) {
-    console.error("❌ Erro na validação local do email:", err);
-    emailValidation.value.error = err.message;
-    emailValidation.value.validated = true;
-    emailValidation.value.valid = false;
-  } finally {
-    emailValidation.value.loading = false;
-  }
-};
-
-// Validar email do customer (função original - comentada)
-const validateCustomerEmail = async () => {
-  try {
-    emailValidation.value.loading = true;
-    emailValidation.value.error = null;
-
-    const userEmail = getUserEmail();
-    if (!userEmail) {
-      throw new Error("Email do usuário não encontrado");
-    }
-
-    // Obter token de autenticação
-    const token = localStorage.getItem("userToken");
-    const apolloToken = localStorage.getItem("apollo:default.token");
-
-    if (!token && !apolloToken) {
-      throw new Error(
-        "Token de autenticação não encontrado. Faça login novamente."
-      );
-    }
-
-    // Usar o token disponível (priorizar userToken, depois apollo)
-    const authToken = token || apolloToken;
-
-    const response = await fetch(
-      `${CUSTOMER_VALIDATION_URL}?email=${encodeURIComponent(userEmail)}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          Authorization: `Bearer ${authToken}`, // ✅ Adicionar token de autenticação
-        },
-        body: JSON.stringify(requestBody),
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
+  if (response.ok) {
     const data = await response.json();
-
     if (data.success) {
       emailValidation.value.validated = true;
       emailValidation.value.valid = data.exists;
       emailValidation.value.customerData = data.data;
+      return; // Sucesso, sair da função
     } else {
       throw new Error(data.message || "Erro na validação do customer");
     }
-  } catch (err) {
-    console.error("❌ Erro ao validar email do customer:", err);
-    emailValidation.value.error = err.message;
-    emailValidation.value.validated = true;
-    emailValidation.value.valid = false;
-  } finally {
-    emailValidation.value.loading = false;
+  } else if (response.status === 401) {
+    throw new Error("Token de autenticação inválido ou expirado");
+  } else if (response.status === 403) {
+    throw new Error("Acesso negado - só é possível verificar o próprio email");
+  } else {
+    const errorData = await response.json();
+    throw new Error(
+      `HTTP ${response.status}: ${errorData.message || "Erro desconhecido"}`
+    );
   }
 };
+
+// Funções de validação removidas - usando apenas validateCustomerEmailGraphQL
 
 // Carregar planos da API
 const loadPlans = async () => {
@@ -1162,11 +981,19 @@ const getUpgradeText = (plan) => {
 // Event handlers do ActivePlanChecker
 const onActivePlanLoaded = (planData) => {
   console.log("📋 Plano ativo carregado:", planData);
+  console.log(
+    "🔍 Estrutura completa do planData:",
+    JSON.stringify(planData, null, 2)
+  );
+  console.log("🔍 planData.customer_id:", planData?.customer_id);
+  console.log("🔍 planData.has_active_plan:", planData?.has_active_plan);
+
   activePlanData.value = planData;
   activePlanLoading.value = false;
 
   if (planData) {
     console.log("✅ Cliente possui plano ativo:", planData.product?.name);
+    console.log("🔍 customer_id disponível:", planData.customer_id);
 
     // Detectar se o plano ativo é anual e pré-selecionar a aba correta
     const isYearlyPlan = detectYearlyPlan(planData);
@@ -1199,6 +1026,17 @@ const onUpgradeClicked = () => {
   }
 };
 
+// Métodos para seleção de planos
+const handlePlanClick = (plan) => {
+  // Se é o plano ativo, não faz nada (botão desabilitado)
+  if (isPlanActive(plan)) {
+    return;
+  }
+
+  // Sempre apenas seleciona o plano (a lógica de troca agora está no botão principal)
+  selectPlan(plan);
+};
+
 // Inicializar Stripe
 const initializeStripe = async () => {
   try {
@@ -1220,6 +1058,65 @@ const initializeStripe = async () => {
   } catch (error) {
     console.error("❌ Erro ao inicializar Stripe:", error);
     throw error;
+  }
+};
+
+// Função para lidar com ação de assinatura/troca
+const handleSubscriptionAction = () => {
+  console.log("🔍 handleSubscriptionAction chamada");
+  console.log("🔍 activePlanData.value:", activePlanData.value);
+  console.log(
+    "🔍 activePlanData.value?.customer_id:",
+    activePlanData.value?.customer_id
+  );
+  console.log("🔍 selectedPlan.value:", selectedPlan.value);
+  console.log("🔍 typeof activePlanData.value:", typeof activePlanData.value);
+  console.log(
+    "🔍 activePlanData.value === null:",
+    activePlanData.value === null
+  );
+  console.log(
+    "🔍 activePlanData.value === undefined:",
+    activePlanData.value === undefined
+  );
+
+  // Verificar se tem plano ativo
+  const hasActivePlan =
+    activePlanData.value && activePlanData.value.customer_id;
+  console.log("🔍 hasActivePlan:", hasActivePlan);
+
+  if (hasActivePlan) {
+    const priceId = selectedPlan.value.prices?.data?.[0]?.id;
+    const customerId = activePlanData.value.customer_id;
+    console.log("🔍 priceId encontrado:", priceId);
+    console.log("🔍 customerId encontrado:", customerId);
+    console.log("🔍 activePlanData.value completo:", activePlanData.value);
+    console.log("🔍 Tipo do customerId:", typeof customerId);
+    console.log("🔍 customerId === 1:", customerId === 1);
+    console.log("🔍 customerId === '1':", customerId === "1");
+
+    if (priceId && customerId) {
+      const swapUrl = `/payment/swap?price_id=${encodeURIComponent(
+        priceId
+      )}&customer_id=${encodeURIComponent(customerId)}`;
+      console.log(
+        "🔄 Usuário tem plano ativo, redirecionando para troca de planos:",
+        swapUrl
+      );
+      window.location.href = swapUrl;
+    } else {
+      alert(
+        `Erro: ${
+          !priceId ? "ID do preço" : "ID do customer"
+        } não encontrado para redirecionamento`
+      );
+    }
+  } else {
+    // Se não tem plano ativo, fazer checkout normal
+    console.log("🔄 Usuário não tem plano ativo, fazendo checkout normal");
+    console.log("🔍 Motivo: activePlanData.value =", activePlanData.value);
+    console.log("🔍 Motivo: customer_id =", activePlanData.value?.customer_id);
+    subscribeToPlan();
   }
 };
 
@@ -1319,9 +1216,37 @@ const subscribeToPlan = async () => {
     const sessionResult = await createCheckoutSession(checkoutData);
 
     if (!sessionResult.success) {
-      throw new Error(
-        sessionResult.error || "Erro ao criar sessão de checkout"
-      );
+      console.log("❌ Sessão não criada com sucesso:", sessionResult);
+
+      // Verificar se é erro de subscription existente
+      if (sessionResult.isExistingSubscription) {
+        console.log(
+          "🔄 Customer já possui assinatura ativa, redirecionando para troca de planos"
+        );
+        console.log("🔍 Dados do erro:", sessionResult.errorData);
+
+        // Redirecionar automaticamente para a tela de troca de planos
+        // Usar o price_id do plano selecionado como parâmetro
+        const priceId = selectedPlan.value.prices?.data?.[0]?.id;
+        if (priceId) {
+          const swapUrl = `/payment/swap?price_id=${encodeURIComponent(
+            priceId
+          )}`;
+          console.log("🔄 Redirecionando para:", swapUrl);
+          window.location.href = swapUrl;
+          return;
+        } else {
+          throw new Error("ID do preço não encontrado para redirecionamento");
+        }
+      } else {
+        console.log(
+          "❌ Erro não relacionado a subscription existente:",
+          sessionResult.error
+        );
+        throw new Error(
+          sessionResult.error || "Erro ao criar sessão de checkout"
+        );
+      }
     }
 
     console.log("✅ Sessão criada:", sessionResult.data);
@@ -2238,6 +2163,16 @@ p {
   box-shadow: none;
 }
 
+.subscribe-button.swap-button {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
+}
+
+.subscribe-button.swap-button:hover:not(:disabled) {
+  background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+  box-shadow: 0 12px 35px rgba(245, 158, 11, 0.6);
+}
+
 .subscription-result {
   background: white;
   border-radius: 16px;
@@ -2308,6 +2243,8 @@ p {
   transform: none;
   box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
+
+/* Estilos de troca removidos - agora usamos o botão principal */
 
 .stripe-loading {
   position: fixed;

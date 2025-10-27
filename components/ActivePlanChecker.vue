@@ -94,7 +94,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
 import { getActivePlan } from "~/services/stripeCheckoutService.js";
 
 // Props
@@ -184,10 +184,48 @@ const checkActivePlan = async () => {
 
       if (response.data.has_active_plan === true) {
         activePlan.value = response.data;
+
+        // Extrair customer_id da nova estrutura da API
+        const customerId = response.data.customer_id;
+
+        console.log("🔍 Tentando extrair customer_id:", {
+          "response.data.customer_id": response.data.customer_id,
+          "customerId final": customerId,
+        });
+
+        // Salvar customer_id no localStorage para uso na página de troca
+        if (customerId) {
+          localStorage.setItem("customer_id", customerId);
+          console.log("💾 Customer ID salvo no localStorage:", customerId);
+          console.log("💾 Tipo do customerId salvo:", typeof customerId);
+          console.log("💾 customerId === 1:", customerId === 1);
+          console.log("💾 customerId === '1':", customerId === "1");
+
+          // Adicionar customer_id ao objeto que será emitido
+          activePlan.value.customer_id = customerId;
+          console.log(
+            "💾 activePlan.value.customer_id definido como:",
+            activePlan.value.customer_id
+          );
+        } else {
+          console.log("❌ Customer ID não encontrado na resposta");
+          console.log("🔍 Estrutura completa da resposta:", response.data);
+        }
+
+        // Salvar dados completos do plano ativo no localStorage
+        localStorage.setItem("activePlanData", JSON.stringify(response.data));
+        console.log("💾 Dados do plano ativo salvos no localStorage");
+
         emit("plan-loaded", activePlan.value);
         console.log("✅ Plano ativo carregado:", activePlan.value);
       } else {
         activePlan.value = null;
+
+        // Limpar dados do localStorage quando não há plano ativo
+        localStorage.removeItem("customer_id");
+        localStorage.removeItem("activePlanData");
+        console.log("🧹 Dados do plano ativo removidos do localStorage");
+
         emit("plan-loaded", null);
         console.log(
           "ℹ️ Nenhum plano ativo encontrado - has_active_plan:",

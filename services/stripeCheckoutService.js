@@ -53,7 +53,32 @@ export const createCheckoutSession = async (checkoutData) => {
       const errorData = await response.json()
       console.error('❌ Erro na resposta:', errorData)
       
-      if (response.status === 422) {
+      if (response.status === 400) {
+        // Verificar se é erro de subscription existente
+        const message = errorData.message || ''
+        const isExistingSubscription = message.toLowerCase().includes('already has an active subscription') ||
+                                     message.toLowerCase().includes('subscription already exists') ||
+                                     message.toLowerCase().includes('já possui uma assinatura ativa') ||
+                                     message.toLowerCase().includes('use the plan swap endpoint instead') ||
+                                     message.toLowerCase().includes('customer already has an active subscription')
+        
+        console.log('🔍 Verificando se é erro de subscription existente:', {
+          message: message,
+          isExistingSubscription: isExistingSubscription
+        })
+        
+        if (isExistingSubscription) {
+          console.log('🔄 Erro 400 detectado como subscription existente, retornando flag')
+          return {
+            success: false,
+            error: errorData.message || 'Erro desconhecido',
+            isExistingSubscription: true,
+            errorData: errorData
+          }
+        } else {
+          throw new Error(`Erro de validação: ${errorData.message || 'Dados inválidos'}`)
+        }
+      } else if (response.status === 422) {
         throw new Error(`Erro de validação: ${errorData.message || 'Dados inválidos'}`)
       } else if (response.status === 500) {
         throw new Error(`Erro do servidor: ${errorData.message || 'Erro interno'}`)
