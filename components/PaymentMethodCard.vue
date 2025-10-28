@@ -24,22 +24,48 @@
         class="payment-method-item"
         :class="{ 'is-default': method.is_default }"
       >
-        <div class="method-icon">
-          <span class="card-brand-icon">{{
-            getCardBrandIcon(method.card.brand)
-          }}</span>
-        </div>
-
-        <div class="method-details">
-          <div class="card-brand">{{ formatCardBrand(method.card.brand) }}</div>
-          <div class="card-number">•••• •••• •••• {{ method.card.last4 }}</div>
-          <div class="card-expiry">
-            Válido até
-            {{ formatExpDate(method.card.exp_month, method.card.exp_year) }}
+        <div class="payment-method-content">
+          <div class="method-icon">
+            <span class="card-brand-icon">{{
+              getCardBrandIcon(method.card.brand)
+            }}</span>
           </div>
+
+          <div class="method-details">
+            <div class="card-brand">
+              {{ formatCardBrand(method.card.brand) }}
+            </div>
+            <div class="card-number">
+              •••• •••• •••• {{ method.card.last4 }}
+            </div>
+            <div class="card-expiry">
+              Válido até
+              {{ formatExpDate(method.card.exp_month, method.card.exp_year) }}
+            </div>
+          </div>
+
+          <div v-if="method.is_default" class="badge default-badge">PADRÃO</div>
         </div>
 
-        <div v-if="method.is_default" class="badge default-badge">Padrão</div>
+        <!-- Ações do cartão -->
+        <div class="method-actions" v-if="paymentMethods.length > 1">
+          <button
+            v-if="!method.is_default"
+            @click="setAsDefault(method.id)"
+            class="set-default-button"
+            :disabled="changingCard"
+          >
+            Definir Padrão
+          </button>
+          <button
+            v-if="!method.is_default"
+            @click="removeCard(method.id)"
+            class="remove-card-button"
+            :disabled="changingCard"
+          >
+            Remover
+          </button>
+        </div>
       </div>
     </div>
 
@@ -124,7 +150,15 @@ const loadPaymentMethods = async () => {
     const data = await response.json();
 
     if (data.success) {
-      paymentMethods.value = data.data.payment_methods || [];
+      const methods = data.data.payment_methods || [];
+
+      // Ordenar: cartão padrão primeiro
+      paymentMethods.value = methods.sort((a, b) => {
+        if (a.is_default) return -1;
+        if (b.is_default) return 1;
+        return 0;
+      });
+
       console.log("✅ Métodos de pagamento carregados:", paymentMethods.value);
     } else {
       throw new Error(data.message || "Erro ao carregar métodos de pagamento");
@@ -220,6 +254,131 @@ const handleChangeCard = async () => {
   }
 };
 
+// Definir cartão como padrão
+const setAsDefault = async (paymentMethodId) => {
+  changingCard.value = true;
+
+  try {
+    const token =
+      localStorage.getItem("userToken") ||
+      localStorage.getItem("apollo:default.token");
+
+    if (!token) {
+      throw new Error("Token de autenticação não encontrado");
+    }
+
+    const response = await fetch(
+      `http://api.volleytrack.local/v1/customers/payment-methods/default`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          customer_id: props.customerId,
+          payment_method_id: paymentMethodId,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Erro ao definir cartão padrão");
+    }
+
+    const data = await response.json();
+
+    if (data.success) {
+      console.log("✅ Cartão definido como padrão:", data);
+
+      // Recarregar lista de cartões
+      await loadPaymentMethods();
+
+      // Mostrar mensagem de sucesso
+      if (window.Swal) {
+        window.Swal.fire({
+          icon: "success",
+          title: "Cartão definido como padrão!",
+          text: "Este cartão será usado para futuras cobranças.",
+          timer: 3000,
+          showConfirmButton: false,
+        });
+      }
+    }
+  } catch (err) {
+    console.error("❌ Erro ao definir cartão padrão:", err);
+    alert(`Erro: ${err.message}`);
+  } finally {
+    changingCard.value = false;
+  }
+};
+
+// Remover cartão
+const removeCard = async (paymentMethodId) => {
+  if (!confirm("Tem certeza que deseja remover este cartão?")) {
+    return;
+  }
+
+  changingCard.value = true;
+
+  try {
+    const token =
+      localStorage.getItem("userToken") ||
+      localStorage.getItem("apollo:default.token");
+
+    if (!token) {
+      throw new Error("Token de autenticação não encontrado");
+    }
+
+    const response = await fetch(
+      `http://api.volleytrack.local/v1/customers/payment-methods/${paymentMethodId}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          customer_id: props.customerId,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Erro ao remover cartão");
+    }
+
+    const data = await response.json();
+
+    if (data.success) {
+      console.log("✅ Cartão removido:", data);
+
+      // Recarregar lista de cartões
+      await loadPaymentMethods();
+
+      // Mostrar mensagem de sucesso
+      if (window.Swal) {
+        window.Swal.fire({
+          icon: "success",
+          title: "Cartão removido!",
+          text: "O cartão foi removido com sucesso.",
+          timer: 3000,
+          showConfirmButton: false,
+        });
+      }
+    }
+  } catch (err) {
+    console.error("❌ Erro ao remover cartão:", err);
+    alert(`Erro: ${err.message}`);
+  } finally {
+    changingCard.value = false;
+  }
+};
+
 onMounted(() => {
   loadPaymentMethods();
 
@@ -259,6 +418,9 @@ onMounted(() => {
   border: 1px solid #e5e7eb;
   display: flex;
   flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  justify-content: space-between;
 }
 
 .card-header {
@@ -320,17 +482,24 @@ onMounted(() => {
 
 .payment-method-item {
   display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  padding: 16px;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
   border: 2px solid #e5e7eb;
   border-radius: 12px;
   transition: all 0.3s ease;
+  position: relative;
 }
 
 .payment-method-item.is-default {
   border-color: #10b981;
   background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);
+}
+
+.payment-method-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
 .method-icon {
@@ -344,6 +513,7 @@ onMounted(() => {
 
 .method-details {
   flex: 1;
+  min-width: 0;
 }
 
 .card-brand {
@@ -354,12 +524,14 @@ onMounted(() => {
 }
 
 .card-number {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: 700;
   color: #374151;
-  letter-spacing: 2px;
+  letter-spacing: 1px;
   margin: 8px 0;
   font-family: "Courier New", monospace;
+  word-break: keep-all;
+  white-space: nowrap;
 }
 
 .card-expiry {
@@ -398,9 +570,9 @@ onMounted(() => {
 
 /* Botão para trocar/adicionar cartão */
 .card-actions {
-  margin-top: 24px;
-  padding-top: 24px;
-  border-top: 1px solid #e5e7eb;
+  margin-top: auto;
+  padding-top: 20px;
+  border-top: 2px solid #f3f4f6;
 }
 
 .change-card-button {
@@ -425,6 +597,52 @@ onMounted(() => {
 
 .change-card-button:disabled {
   opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Ações dos cartões */
+.method-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: auto;
+  flex-direction: row;
+  justify-content: flex-end;
+  padding-top: 12px;
+  border-top: 1px solid #f3f4f6;
+}
+
+.set-default-button,
+.remove-card-button {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.set-default-button {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.set-default-button:hover:not(:disabled) {
+  background: #e5e7eb;
+}
+
+.remove-card-button {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.remove-card-button:hover:not(:disabled) {
+  background: #fecaca;
+}
+
+.set-default-button:disabled,
+.remove-card-button:disabled {
+  opacity: 0.4;
   cursor: not-allowed;
 }
 

@@ -711,6 +711,9 @@ onUnmounted(() => {
   padding: 30px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   border: 1px solid #e5e7eb;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .plan-header {
@@ -758,6 +761,12 @@ onUnmounted(() => {
   color: #991b1b;
 }
 
+.plan-details {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
 .plan-info {
   margin-bottom: 25px;
 }
@@ -776,7 +785,8 @@ onUnmounted(() => {
 }
 
 .plan-stats {
-  margin-bottom: 25px;
+  margin-bottom: 0;
+  flex-grow: 1;
 }
 
 .stat-item {
@@ -815,8 +825,17 @@ onUnmounted(() => {
 .plan-actions {
   display: flex;
   gap: 12px;
-  justify-content: center;
+  justify-content: stretch;
   flex-wrap: wrap;
+  margin-top: auto;
+  padding-top: 24px;
+  margin-bottom: 0;
+  border-top: 2px solid #f3f4f6;
+}
+
+.plan-actions .btn {
+  flex: 1;
+  min-width: 0;
 }
 
 /* Botão de Upgrade com Animação */

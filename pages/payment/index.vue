@@ -2332,6 +2332,13 @@ p {
   align-items: stretch;
 }
 
+.active-plan-section > *,
+.payment-method-section > * {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
 /* Responsividade */
 @media (max-width: 1024px) {
   .active-plan-container {
