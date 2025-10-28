@@ -649,7 +649,6 @@ onUnmounted(() => {
 .active-plan-checker {
   max-width: 600px;
   margin: 0 auto;
-  padding: 20px;
 }
 
 .loading,

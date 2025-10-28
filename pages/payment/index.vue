@@ -50,16 +50,26 @@
       <h1>Planos de Assinatura</h1>
       <p>Escolha o plano ideal para o seu clube de vôlei</p>
 
-      <!-- Status do Plano Ativo -->
-      <div class="active-plan-status">
-        <ActivePlanChecker
-          :auto-refresh="false"
-          :tenant-id="getTenantId()"
-          :show-upgrade-animations="showUpgradeAnimations"
-          @plan-loaded="onActivePlanLoaded"
-          @plan-error="onActivePlanError"
-          @upgrade-clicked="onUpgradeClicked"
-        />
+      <!-- Status do Plano Ativo e Método de Pagamento -->
+      <div class="active-plan-container">
+        <!-- Plano Ativo -->
+        <div class="active-plan-section">
+          <ActivePlanChecker
+            :auto-refresh="false"
+            :tenant-id="getTenantId()"
+            :show-upgrade-animations="showUpgradeAnimations"
+            @plan-loaded="onActivePlanLoaded"
+            @plan-error="onActivePlanError"
+            @upgrade-clicked="onUpgradeClicked"
+          />
+        </div>
+
+        <!-- Método de Pagamento (apenas se tiver plano ativo) -->
+        <template v-if="activePlanData && !activePlanData.isTrial">
+          <div class="payment-method-section">
+            <PaymentMethodCard :customer-id="activePlanData.customer_id" />
+          </div>
+        </template>
       </div>
 
       <!-- Seletor de Periodicidade -->
@@ -384,6 +394,7 @@ import {
   validateCheckoutData,
 } from "~/services/stripeCheckoutService.js";
 import ActivePlanChecker from "~/components/ActivePlanChecker.vue";
+import PaymentMethodCard from "~/components/PaymentMethodCard.vue";
 
 // Configurações do Stripe
 const runtimeConfig = useRuntimeConfig();
@@ -1006,11 +1017,20 @@ const onActivePlanLoaded = (planData) => {
   console.log("🔍 planData.has_active_plan:", planData?.has_active_plan);
 
   activePlanData.value = planData;
+
+  // Adicionar flag isTrial para identificar planos de trial
+  if (planData && !planData.has_active_plan && planData.trial_info) {
+    activePlanData.value.isTrial = true;
+  } else if (planData) {
+    activePlanData.value.isTrial = false;
+  }
+
   activePlanLoading.value = false;
 
   if (planData) {
     console.log("✅ Cliente possui plano ativo:", planData.product?.name);
     console.log("🔍 customer_id disponível:", planData.customer_id);
+    console.log("🔍 isTrial:", activePlanData.value.isTrial);
 
     // Detectar se o plano ativo é anual e pré-selecionar a aba correta
     const isYearlyPlan = detectYearlyPlan(planData);
@@ -2303,8 +2323,20 @@ p {
   }
 }
 
+/* Container do plano ativo e método de pagamento */
+.active-plan-container {
+  display: grid;
+  grid-template-columns: 1fr 0.8fr;
+  gap: 24px;
+  margin-bottom: 40px;
+  align-items: stretch;
+}
+
 /* Responsividade */
 @media (max-width: 1024px) {
+  .active-plan-container {
+    grid-template-columns: 1fr;
+  }
   .plans-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 20px;
