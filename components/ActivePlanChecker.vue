@@ -105,17 +105,29 @@
       </div>
     </div>
 
-    <div v-else class="active-plan free-plan">
+    <div
+      v-else
+      class="active-plan free-plan"
+      :class="{ 'trial-expired': trialInfo && !trialInfo.in_trial }"
+    >
       <div class="plan-header">
         <h3>Seu Plano Ativo</h3>
-        <div class="status-badge free-plan-badge">GRÁTIS</div>
+        <div class="status-badge free-plan-badge">
+          {{ trialInfo?.in_trial ? "TRIAL ATIVO" : "GRÁTIS" }}
+        </div>
       </div>
 
       <div class="plan-details">
         <div class="plan-info">
-          <h4>Plano Gratuito (14 dias)</h4>
+          <h4>
+            {{
+              trialInfo?.in_trial
+                ? "Trial Gratuito (14 dias)"
+                : "Sem Plano Ativo"
+            }}
+          </h4>
           <p class="plan-description">
-            Plano de avaliação gratuito por 14 dias
+            {{ formattedTrialMessage }}
           </p>
         </div>
 
@@ -125,10 +137,48 @@
             <span class="stat-value price free-price"> R$ 0,00 </span>
           </div>
 
-          <div class="stat-item">
-            <span class="stat-label">Período de teste:</span>
-            <span class="stat-value free-period"> 14 dias </span>
+          <div v-if="trialInfo?.in_trial" class="stat-item trial-countdown">
+            <span class="stat-label">Tempo restante:</span>
+            <span v-if="timeRemaining" class="stat-value countdown-display">
+              {{ timeRemaining.days }}d {{ timeRemaining.hours }}h
+              {{ timeRemaining.minutes }}m {{ timeRemaining.seconds }}s
+            </span>
+            <span v-else class="stat-value free-period trial-days">
+              Calculando...
+            </span>
           </div>
+
+          <div v-if="trialInfo?.in_trial" class="stat-item">
+            <span class="stat-label">Trial expira em:</span>
+            <span class="stat-value trial-date">
+              {{ formatDate(trialInfo.trial_ends_at) }}
+            </span>
+          </div>
+
+          <div v-if="trialInfo && !trialInfo.in_trial" class="stat-item">
+            <span class="stat-label">Status:</span>
+            <span class="stat-value trial-expired-badge"> Trial Expirado </span>
+          </div>
+        </div>
+
+        <!-- Barra de progresso do trial -->
+        <div v-if="trialInfo?.in_trial" class="trial-progress">
+          <div class="progress-bar">
+            <div
+              class="progress-fill"
+              :style="{
+                width: `${
+                  (trialInfo.days_remaining / trialInfo.total_trial_days) * 100
+                }%`,
+              }"
+            ></div>
+          </div>
+          <span class="progress-text">
+            {{
+              Math.ceil(trialInfo.total_trial_days - trialInfo.days_remaining)
+            }}
+            de {{ trialInfo.total_trial_days }} dias usados
+          </span>
         </div>
 
         <div class="plan-actions">
@@ -188,6 +238,8 @@ const activePlan = ref(null);
 const loading = ref(true);
 const error = ref(null);
 const refreshTimer = ref(null);
+const trialInfo = ref(null);
+const timeRemaining = ref(null); // Para contagem regressiva
 
 // Verificar se o plano está cancelado
 const isCanceled = computed(() => {
@@ -196,6 +248,77 @@ const isCanceled = computed(() => {
     activePlan.value?.subscription?.canceled_at !== null
   );
 });
+
+// Formatar mensagem do trial com dias arredondados
+const formattedTrialMessage = computed(() => {
+  if (!trialInfo.value?.message) {
+    return "Plano de avaliação gratuito por 14 dias";
+  }
+
+  // Extrair números decimais da mensagem e arredondar para cima
+  const message = trialInfo.value.message;
+  const match = message.match(/(\d+\.\d+)/);
+
+  if (match) {
+    const daysDecimal = parseFloat(match[1]);
+    const daysRounded = Math.ceil(daysDecimal);
+    return message.replace(/\d+\.\d+/, daysRounded.toString());
+  }
+
+  return message;
+});
+
+// Contagem regressiva do trial
+const startTrialCountdown = () => {
+  if (
+    !trialInfo.value ||
+    !trialInfo.value.in_trial ||
+    !trialInfo.value.trial_ends_at
+  ) {
+    return;
+  }
+
+  const updateCountdown = () => {
+    const now = new Date();
+    const trialEnd = new Date(trialInfo.value.trial_ends_at);
+    const diff = trialEnd - now;
+
+    if (diff <= 0) {
+      timeRemaining.value = null;
+      return;
+    }
+
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+    timeRemaining.value = {
+      days,
+      hours,
+      minutes,
+      seconds,
+    };
+  };
+
+  // Atualizar imediatamente
+  updateCountdown();
+
+  // Atualizar a cada segundo
+  const countdownInterval = setInterval(() => {
+    updateCountdown();
+
+    // Se o trial expirou, limpar intervalo
+    if (!timeRemaining.value) {
+      clearInterval(countdownInterval);
+    }
+  }, 1000);
+
+  // Limpar intervalo ao desmontar
+  onUnmounted(() => {
+    clearInterval(countdownInterval);
+  });
+};
 
 // Obter token de autenticação
 const getAuthToken = () => {
@@ -286,6 +409,20 @@ const checkActivePlan = async () => {
         console.log("✅ Plano ativo carregado:", activePlan.value);
       } else {
         activePlan.value = null;
+
+        // Extrair informações de trial se disponível
+        if (response.data.trial_info) {
+          trialInfo.value = response.data.trial_info;
+          console.log("📋 Informações de trial encontradas:", trialInfo.value);
+
+          // Iniciar contagem regressiva se trial está ativo
+          if (trialInfo.value.in_trial && trialInfo.value.trial_ends_at) {
+            startTrialCountdown();
+            console.log("⏱️ Contagem regressiva iniciada para trial");
+          }
+        } else {
+          trialInfo.value = null;
+        }
 
         // Limpar dados do localStorage quando não há plano ativo
         localStorage.removeItem("customer_id");
@@ -931,6 +1068,68 @@ onUnmounted(() => {
 .free-plan .btn-primary:hover {
   background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
   box-shadow: 0 6px 20px rgba(107, 114, 128, 0.4);
+}
+
+/* Estilos para Trial */
+.trial-days {
+  color: #10b981;
+  font-weight: 700;
+}
+
+.trial-date {
+  color: #3b82f6;
+  font-weight: 600;
+}
+
+.trial-expired-badge {
+  color: #dc2626;
+  font-weight: 700;
+}
+
+.free-plan.trial-expired {
+  border-color: #dc2626;
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+}
+
+/* Barra de progresso do trial */
+.trial-progress {
+  margin: 20px 0;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border-radius: 10px;
+  transition: width 0.3s ease;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.progress-text {
+  font-size: 0.85rem;
+  color: #6b7280;
+  font-weight: 600;
+}
+
+/* Contagem regressiva */
+.trial-countdown {
+  margin: 10px 0;
+}
+
+.countdown-display {
+  font-family: "Courier New", monospace;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #374151;
+  letter-spacing: 1px;
 }
 
 /* Responsividade */
