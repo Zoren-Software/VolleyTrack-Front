@@ -50,16 +50,44 @@
             v-if="activePlan.subscription?.current_period_end"
             class="stat-item"
           >
-            <span class="stat-label">Próxima cobrança:</span>
-            <span class="stat-value">{{
-              formatDate(activePlan.subscription.current_period_end)
-            }}</span>
+            <span class="stat-label" :class="{ 'canceled-label': isCanceled }"
+              >Próxima cobrança:</span
+            >
+            <span
+              class="stat-value"
+              :class="{ 'canceled-value': isCanceled }"
+              >{{
+                formatDate(activePlan.subscription.current_period_end)
+              }}</span
+            >
           </div>
         </div>
 
+        <!-- Aviso de Cancelamento -->
+        <div v-if="isCanceled" class="cancellation-notice">
+          <div class="notice-header">
+            <span class="notice-icon">⚠️</span>
+            <h4 class="notice-title">Sua assinatura foi cancelada</h4>
+          </div>
+          <p class="notice-text">
+            Você continuará com acesso até
+            <strong
+              >{{
+                formatDate(activePlan.subscription?.current_period_end)
+              }}.</strong
+            >
+            Não haverá novas cobranças após esta data.
+          </p>
+        </div>
+
         <div class="plan-actions">
-          <button @click="manageSubscription" class="btn btn-secondary">
-            Gerenciar Assinatura
+          <button
+            @click="manageSubscription"
+            class="btn btn-secondary"
+            :disabled="isCanceled"
+            :class="{ 'btn-disabled': isCanceled }"
+          >
+            {{ isCanceled ? "Assinatura Cancelada" : "Cancelar Assinatura" }}
           </button>
           <button
             @click="upgradePlan"
@@ -77,25 +105,55 @@
       </div>
     </div>
 
-    <div v-else class="no-plan">
-      <div class="no-plan-icon">📋</div>
-      <h3>Nenhum Plano Ativo</h3>
-      <p>Você não possui um plano ativo no momento.</p>
-      <div class="no-plan-actions">
-        <button @click="goToPlans" class="btn btn-primary">
-          Ver Planos Disponíveis
-        </button>
-        <button @click="checkActivePlan" class="btn btn-secondary">
-          Atualizar
-        </button>
+    <div v-else class="active-plan free-plan">
+      <div class="plan-header">
+        <h3>Seu Plano Ativo</h3>
+        <div class="status-badge free-plan-badge">GRÁTIS</div>
+      </div>
+
+      <div class="plan-details">
+        <div class="plan-info">
+          <h4>Plano Gratuito (14 dias)</h4>
+          <p class="plan-description">
+            Plano de avaliação gratuito por 14 dias
+          </p>
+        </div>
+
+        <div class="plan-stats">
+          <div class="stat-item">
+            <span class="stat-label">Valor:</span>
+            <span class="stat-value price free-price"> R$ 0,00 </span>
+          </div>
+
+          <div class="stat-item">
+            <span class="stat-label">Período de teste:</span>
+            <span class="stat-value free-period"> 14 dias </span>
+          </div>
+        </div>
+
+        <div class="plan-actions">
+          <button
+            @click="upgradePlan"
+            class="btn btn-primary upgrade-btn"
+            :class="{ 'upgrade-animation': props.showUpgradeAnimations }"
+          >
+            <span class="upgrade-text">{{
+              props.showUpgradeAnimations ? "Parar Animações" : "Fazer Upgrade"
+            }}</span>
+            <span class="upgrade-sparkle" v-if="props.showUpgradeAnimations"
+              >✨</span
+            >
+          </button>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from "vue";
+import { ref, onMounted, onUnmounted, computed } from "vue";
 import { getActivePlan } from "~/services/stripeCheckoutService.js";
+import Swal from "sweetalert2";
 
 // Props
 const props = defineProps({
@@ -130,6 +188,14 @@ const activePlan = ref(null);
 const loading = ref(true);
 const error = ref(null);
 const refreshTimer = ref(null);
+
+// Verificar se o plano está cancelado
+const isCanceled = computed(() => {
+  return (
+    activePlan.value?.subscription?.cancel_at_period_end === true &&
+    activePlan.value?.subscription?.canceled_at !== null
+  );
+});
 
 // Obter token de autenticação
 const getAuthToken = () => {
@@ -302,25 +368,130 @@ const getRecurringInterval = (interval) => {
 };
 
 // Ações do usuário
-const manageSubscription = () => {
-  // Implementar redirecionamento para gerenciamento de assinatura
-  console.log("Gerenciar assinatura");
-  // Exemplo: window.open('https://billing.stripe.com/p/login/...', '_blank')
+const manageSubscription = async () => {
+  console.log("🔄 Iniciando cancelamento de assinatura...");
+
+  // Confirmar cancelamento com SweetAlert2
+  const { value: confirmed } = await Swal.fire({
+    title: "Cancelar Assinatura?",
+    html: `
+      <div style="text-align: left; padding: 10px 0;">
+        <p style="margin-bottom: 15px;">
+          Tem certeza que deseja cancelar sua assinatura?
+        </p>
+        <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 12px; border-radius: 8px; margin: 15px 0;">
+          <p style="margin: 0; color: #92400e; font-weight: 600;">
+            ⚠️ Seu acesso será mantido até o fim do período atual.
+          </p>
+          <p style="margin: 5px 0 0 0; color: #78350f; font-size: 0.9rem;">
+            Você continuará tendo acesso ao plano até o fim do ciclo atual.
+          </p>
+        </div>
+      </div>
+    `,
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Sim, cancelar assinatura",
+    cancelButtonText: "Não, manter assinatura",
+    confirmButtonColor: "#dc2626",
+    cancelButtonColor: "#10b981",
+    width: "600px",
+  });
+
+  if (!confirmed) {
+    console.log("❌ Cancelamento cancelado pelo usuário");
+    return;
+  }
+
+  try {
+    console.log("🔄 Processando cancelamento...");
+
+    // Obter customer_id
+    const customerId = localStorage.getItem("customer_id");
+    if (!customerId) {
+      throw new Error("ID do customer não encontrado");
+    }
+
+    // Obter token
+    const token = getAuthToken();
+    if (!token) {
+      throw new Error("Token de autenticação não encontrado");
+    }
+
+    // Chamar API de cancelamento
+    const response = await fetch(
+      "http://api.volleytrack.local/v1/subscriptions/cancel",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          customer_id: parseInt(customerId),
+          cancel_at_period_end: true,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Erro ao cancelar assinatura");
+    }
+
+    const data = await response.json();
+    console.log("✅ Assinatura cancelada com sucesso:", data);
+
+    // Mostrar sucesso
+    Swal.fire({
+      icon: "success",
+      title: "Assinatura Cancelada",
+      html: `
+        <div style="text-align: left; padding: 10px 0;">
+          <p style="font-size: 1.1rem; margin-bottom: 15px; color: #333;">
+            <strong>✅ Sua assinatura foi cancelada com sucesso!</strong>
+          </p>
+          <div style="background: #f0f9ff; border-left: 4px solid #3b82f6; padding: 12px; border-radius: 8px; margin: 15px 0;">
+            <p style="margin: 0; color: #1e40af; font-weight: 600;">
+              Você continuará com acesso até o fim do período atual.
+            </p>
+          </div>
+          <p style="margin: 15px 0 0 0; font-size: 0.95rem; color: #666;">
+            Não haverá novas cobranças após o fim do período atual.
+          </p>
+        </div>
+      `,
+      confirmButtonText: "Entendido",
+      confirmButtonColor: "#10b981",
+      width: "600px",
+    });
+
+    // Recarregar dados do plano
+    await checkActivePlan();
+  } catch (error) {
+    console.error("❌ Erro ao cancelar assinatura:", error);
+
+    Swal.fire({
+      icon: "error",
+      title: "Erro ao Cancelar Assinatura",
+      text:
+        error.message ||
+        "Ocorreu um erro ao processar o cancelamento. Por favor, tente novamente.",
+      confirmButtonText: "Fechar",
+      confirmButtonColor: "#dc2626",
+    });
+  }
 };
 
 const upgradePlan = () => {
+  console.log("🔄 Botão Fazer Upgrade clicado!");
+  console.log("🔍 showUpgradeAnimations atual:", props.showUpgradeAnimations);
+
   // Emitir evento para toggle das animações nos planos
   emit("upgrade-clicked");
 
-  console.log("Toggle de animações ativado");
-  // Implementar redirecionamento para upgrade
-  // Exemplo: this.$router.push('/plans')
-};
-
-const goToPlans = () => {
-  // Implementar redirecionamento para planos
-  console.log("Ir para planos");
-  // Exemplo: this.$router.push('/plans')
+  console.log("✅ Evento 'upgrade-clicked' emitido");
 };
 
 // Lifecycle
@@ -632,9 +803,134 @@ onUnmounted(() => {
   border: 2px solid #e5e7eb;
 }
 
-.btn-secondary:hover {
+.btn-secondary:hover:not(:disabled) {
   background: #e5e7eb;
   color: #1f2937;
+}
+
+.btn-secondary:disabled,
+.btn-disabled {
+  background: #d1d5db !important;
+  color: #9ca3af !important;
+  cursor: not-allowed !important;
+  opacity: 0.6;
+}
+
+.btn-secondary:disabled:hover,
+.btn-disabled:hover {
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Estilos para plano cancelado */
+.canceled-label,
+.canceled-value {
+  text-decoration: line-through;
+  color: #9ca3af;
+}
+
+/* Aviso de cancelamento - Melhorado */
+.cancellation-notice {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border: 2px solid #f59e0b;
+  border-left: 6px solid #d97706;
+  border-radius: 16px;
+  padding: 24px 28px;
+  margin: 24px 0;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+}
+
+.notice-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.notice-icon {
+  font-size: 28px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.notice-title {
+  margin: 0;
+  color: #92400e;
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.notice-text {
+  margin: 0;
+  color: #78350f;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  padding-left: 40px;
+}
+
+.notice-text strong {
+  color: #1e40af;
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+/* Estilos para plano gratuito */
+.free-plan {
+  background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+  border: 2px dashed #d1d5db;
+  opacity: 0.85;
+}
+
+.free-plan .plan-header {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.free-plan .plan-header h3 {
+  color: #6b7280;
+}
+
+.free-plan-badge {
+  background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
+  color: white;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  box-shadow: 0 2px 8px rgba(107, 114, 128, 0.3);
+}
+
+.free-plan .plan-info h4 {
+  color: #6b7280;
+}
+
+.free-plan .plan-description {
+  color: #9ca3af;
+}
+
+.free-price {
+  color: #9ca3af;
+  font-weight: 600;
+}
+
+.free-period {
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.free-plan .plan-stats .stat-label {
+  color: #9ca3af;
+}
+
+.free-plan .btn-primary {
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+  box-shadow: 0 4px 15px rgba(107, 114, 128, 0.3);
+}
+
+.free-plan .btn-primary:hover {
+  background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+  box-shadow: 0 6px 20px rgba(107, 114, 128, 0.4);
 }
 
 /* Responsividade */

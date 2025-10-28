@@ -919,8 +919,11 @@ const detectYearlyPlan = (planData) => {
 
 // Verificar se um plano é melhor que o ativo (baseado no valor)
 const isBetterPlan = (plan) => {
+  // Se não há plano ativo, todos os planos pagos são melhores
   if (!activePlanData.value || !activePlanData.value.price) {
-    return false;
+    const currentPlanValue = getPlanValue(plan);
+    // Retorna true se o plano tem valor > 0 (não é gratuito)
+    return currentPlanValue > 0;
   }
 
   const activePlanValue = activePlanData.value.price.unit_amount;
@@ -940,12 +943,26 @@ const getPlanValue = (plan) => {
 
 // Obter nível de animação baseado na diferença de valor
 const getUpgradeAnimationLevel = (plan) => {
+  const currentPlanValue = getPlanValue(plan);
+
+  // Se não há plano ativo, definir animação baseado apenas no valor do plano
   if (!activePlanData.value || !activePlanData.value.price) {
+    // Plano Pro (R$ 49) = low
+    if (currentPlanValue >= 4900 && currentPlanValue < 10000) {
+      return "low";
+    }
+    // Plano Clubes (R$ 149) = medium
+    if (currentPlanValue >= 10000 && currentPlanValue < 50000) {
+      return "medium";
+    }
+    // Plano Vitalício (R$ 250) = high
+    if (currentPlanValue >= 50000) {
+      return "high";
+    }
     return "none";
   }
 
   const activePlanValue = activePlanData.value.price.unit_amount;
-  const currentPlanValue = getPlanValue(plan);
   const difference = currentPlanValue - activePlanValue;
 
   // Calcular percentual de diferença
