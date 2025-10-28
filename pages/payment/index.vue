@@ -2325,11 +2325,22 @@ p {
 
 /* Container do plano ativo e método de pagamento */
 .active-plan-container {
-  display: grid;
-  grid-template-columns: 1fr 0.8fr;
+  display: flex;
   gap: 24px;
   margin-bottom: 40px;
   align-items: stretch;
+}
+
+/* Grid quando tiver método de pagamento */
+.active-plan-container:has(.payment-method-section) {
+  display: grid;
+  grid-template-columns: 1fr 0.8fr;
+}
+
+/* Centralizar quando NÃO tiver método de pagamento */
+.active-plan-container > :only-child {
+  max-width: 800px;
+  margin: 0 auto;
 }
 
 .active-plan-section > *,
