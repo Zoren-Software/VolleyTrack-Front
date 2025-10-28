@@ -75,9 +75,9 @@
                 >+{{ formatCurrency(previewData.charge_amount) }}</span
               >
             </div>
-            <div class="proration-divider"></div>
+
             <div class="proration-item total">
-              <span class="label">Total a ser cobrado:</span>
+              <span class="label">Total na próxima fatura:</span>
               <span class="value total">{{
                 formatCurrency(previewData.total_amount)
               }}</span>
@@ -89,10 +89,25 @@
               >
             </div>
             <div class="proration-item">
-              <span class="label">Próxima cobrança:</span>
+              <span class="label">Cobrança acontece em:</span>
               <span class="value">{{
                 formatDate(previewData.next_billing_date)
               }}</span>
+            </div>
+          </div>
+
+          <!-- Aviso sobre Ativação Imediata -->
+          <div class="activation-notice">
+            <div class="notice-icon">✅</div>
+            <div class="notice-content">
+              <strong>Plano será ativado imediatamente!</strong>
+              <p>
+                Você terá acesso ao novo plano agora, mas a cobrança acontecerá
+                apenas em
+                <strong>
+                  {{ formatDate(previewData.next_billing_date) }} </strong
+                >.
+              </p>
             </div>
           </div>
         </div>
@@ -120,6 +135,7 @@
 import { ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import planSwapService from "~/services/planSwapService";
+import Swal from "sweetalert2";
 
 // Composables
 const route = useRoute();
@@ -160,12 +176,14 @@ const formatDate = (dateString) => {
 
 // Obter período do plano
 const getPlanPeriod = (plan) => {
-  if (plan.interval === "month") {
-    return plan.interval_count === 1
-      ? "/mês"
-      : `/ ${plan.interval_count} meses`;
-  } else if (plan.interval === "year") {
-    return plan.interval_count === 1 ? "/ano" : `/ ${plan.interval_count} anos`;
+  // Verificar se é um plano com recurring info
+  const interval = plan.recurring?.interval || plan.interval;
+  const intervalCount = plan.recurring?.interval_count || plan.interval_count;
+
+  if (interval === "month") {
+    return intervalCount === 1 ? "/mês" : `/ ${intervalCount} meses`;
+  } else if (interval === "year") {
+    return intervalCount === 1 ? "/ano" : `/ ${intervalCount} anos`;
   }
   return "";
 };
@@ -285,37 +303,74 @@ const loadPreview = async () => {
     console.log("🔍 previewData.value:", previewData.value);
     console.log("🔍 currentPlan.value:", currentPlan.value);
     console.log("🔍 newPlan.value:", newPlan.value);
-    console.log("🔍 Estrutura dos dados de preview:", {
-      credit_amount: previewData.value?.credit_amount,
-      charge_amount: previewData.value?.charge_amount,
-      total_amount: previewData.value?.total_amount,
-      days_remaining: previewData.value?.days_remaining,
-      next_billing_date: previewData.value?.next_billing_date,
-    });
+    console.log("🔍 proration_info:", previewData.value?.proration_info);
+    console.log(
+      "🔍 subscription_period:",
+      previewData.value?.subscription_period
+    );
 
-    // Mapear dados da estrutura atual da API para o formato esperado
-    if (previewData.value && previewData.value.swap_summary) {
-      const currentAmount = currentPlan.value?.amount || 0;
-      const newAmount = newPlan.value?.amount || 0;
-      const immediateCharge =
-        previewData.value.swap_summary.immediate_charge || 0;
+    // Mapear dados da nova estrutura da API
+    if (previewData.value && previewData.value.proration_info) {
+      const prorationInfo = previewData.value.proration_info;
+      const subscriptionPeriod = previewData.value.subscription_period;
 
-      // Calcular valores baseados na diferença dos planos
-      previewData.value.credit_amount = -currentAmount;
-      previewData.value.charge_amount = newAmount;
-      previewData.value.total_amount =
-        immediateCharge || newAmount - currentAmount;
-      previewData.value.days_remaining = 30; // Valor padrão temporário
-      previewData.value.next_billing_date =
-        previewData.value.swap_summary.next_billing_date;
+      // Mapear valores do proration_info
+      previewData.value.credit_amount =
+        prorationInfo.current_plan.prorated_credit || 0;
+      previewData.value.charge_amount =
+        prorationInfo.new_plan.prorated_charge || 0;
+      previewData.value.total_amount = prorationInfo.net_amount || 0;
 
-      console.log("🔧 Dados mapeados temporariamente:", {
+      // Mapear dados do período da assinatura
+      if (subscriptionPeriod) {
+        previewData.value.days_remaining = subscriptionPeriod.days_remaining;
+        previewData.value.next_billing_date =
+          subscriptionPeriod.current_period_end;
+      } else {
+        // Fallback para swap_summary se subscription_period não estiver disponível
+        previewData.value.days_remaining = prorationInfo.days_remaining;
+        previewData.value.next_billing_date =
+          previewData.value.swap_summary?.next_billing_date;
+      }
+
+      console.log("🔧 Dados mapeados da nova estrutura da API:", {
         credit_amount: previewData.value.credit_amount,
         charge_amount: previewData.value.charge_amount,
         total_amount: previewData.value.total_amount,
         days_remaining: previewData.value.days_remaining,
         next_billing_date: previewData.value.next_billing_date,
       });
+
+      // Debug: verificar estrutura completa
+      console.log(
+        "📊 currentPlan.value estrutura completa:",
+        JSON.stringify(currentPlan.value, null, 2)
+      );
+      console.log(
+        "📊 newPlan.value estrutura completa:",
+        JSON.stringify(newPlan.value, null, 2)
+      );
+    } else {
+      console.warn("⚠️ proration_info não encontrado na resposta da API");
+      console.log(
+        "📋 Estrutura completa da resposta:",
+        JSON.stringify(previewData.value, null, 2)
+      );
+
+      // Fallback para estrutura antiga, se necessário
+      if (previewData.value.swap_summary) {
+        const currentAmount = currentPlan.value?.amount || 0;
+        const newAmount = newPlan.value?.amount || 0;
+
+        previewData.value.credit_amount = -currentAmount;
+        previewData.value.charge_amount = newAmount;
+        previewData.value.total_amount =
+          previewData.value.swap_summary.immediate_charge ||
+          newAmount - currentAmount;
+        previewData.value.days_remaining = 30;
+        previewData.value.next_billing_date =
+          previewData.value.swap_summary.next_billing_date;
+      }
     }
   } catch (err) {
     console.error("❌ Erro ao carregar preview:", err);
@@ -447,12 +502,53 @@ const confirmSwap = async () => {
 
     console.log("✅ Plano trocado com sucesso:", result.data);
 
-    // Mostrar sucesso e redirecionar
-    alert("Plano trocado com sucesso!");
-    router.push("/payment");
+    // Mostrar sucesso com SweetAlert2 e redirecionar
+    const totalAmount = formatCurrency(previewData.value?.total_amount || 0);
+    const nextBilling = formatDate(previewData.value?.next_billing_date);
+
+    Swal.fire({
+      icon: "success",
+      title: "Plano trocado com sucesso!",
+      html: `
+        <div style="text-align: left; padding: 20px 0;">
+          <p style="font-size: 1.1rem; margin-bottom: 15px; color: #333;">
+            <strong>✅ Você já tem acesso ao ${newPlan.value?.name}!</strong>
+          </p>
+          <div style="background: #f0f9ff; border-left: 4px solid #3b82f6; padding: 12px; border-radius: 8px; margin: 15px 0;">
+            <p style="margin: 0; color: #1e40af; font-weight: 600;">
+              A cobrança de ${totalAmount} acontecerá em ${nextBilling}.
+            </p>
+          </div>
+          <p style="margin: 0; font-size: 0.95rem; color: #666;">
+            Seu plano foi ativado imediatamente e você pode começar a usar todas as funcionalidades do novo plano agora mesmo!
+          </p>
+        </div>
+      `,
+      confirmButtonText: "Continuar",
+      confirmButtonColor: "#10b981",
+      confirmButtonClass: "swal2-confirm",
+      width: "600px",
+      showCloseButton: true,
+      customClass: {
+        popup: "plan-swap-success-modal",
+        confirmButton: "plan-swap-success-button",
+      },
+      didClose: () => {
+        router.push("/payment");
+      },
+    });
   } catch (err) {
     console.error("❌ Erro ao trocar plano:", err);
-    alert(`Erro ao trocar plano: ${err.message}`);
+
+    Swal.fire({
+      icon: "error",
+      title: "Erro ao trocar plano",
+      text:
+        err.message ||
+        "Ocorreu um erro ao processar a troca de planos. Por favor, tente novamente.",
+      confirmButtonText: "Fechar",
+      confirmButtonColor: "#dc2626",
+    });
   } finally {
     swapping.value = false;
   }
@@ -665,7 +761,6 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 8px 0;
-  border-bottom: 1px solid #e9ecef;
 }
 
 .proration-item:last-child {
@@ -675,15 +770,15 @@ onMounted(() => {
 .proration-item.total {
   font-weight: 700;
   font-size: 1.1rem;
-  border-top: 2px solid #333;
+  border-top: 2px solid #e9ecef;
   margin-top: 10px;
   padding-top: 15px;
 }
 
 .proration-divider {
   height: 1px;
-  background: #333;
-  margin: 10px 0;
+  background: #e9ecef;
+  margin: 15px 0;
 }
 
 .proration-item .label {
@@ -752,6 +847,66 @@ onMounted(() => {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
+}
+
+/* Aviso de ativação imediata */
+.activation-notice {
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-top: 20px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.activation-notice .notice-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.activation-notice .notice-content {
+  flex: 1;
+}
+
+.activation-notice strong {
+  color: #059669;
+  display: block;
+  margin-bottom: 4px;
+  font-size: 1rem;
+}
+
+.activation-notice p {
+  color: #047857;
+  font-size: 0.9rem;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.activation-notice p strong {
+  color: #0369a1;
+  display: inline;
+}
+
+/* CSS para o modal de sucesso do SweetAlert2 */
+:deep(.plan-swap-success-modal) {
+  border-radius: 16px !important;
+  padding: 0 !important;
+}
+
+:deep(.plan-swap-success-button) {
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  padding: 12px 30px !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3) !important;
+  transition: all 0.3s ease !important;
+}
+
+:deep(.plan-swap-success-button:hover) {
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4) !important;
+  transform: translateY(-2px) !important;
 }
 
 /* Responsividade */
