@@ -47,6 +47,23 @@
       <div class="no-methods-icon">💳</div>
       <p>Nenhum método de pagamento cadastrado</p>
     </div>
+
+    <!-- Botão para trocar/adicionar cartão -->
+    <div class="card-actions">
+      <button
+        @click="handleChangeCard"
+        :disabled="changingCard"
+        class="change-card-button"
+      >
+        {{
+          changingCard
+            ? "Processando..."
+            : paymentMethods.length > 0
+            ? "Trocar Cartão"
+            : "Adicionar Cartão"
+        }}
+      </button>
+    </div>
   </div>
 </template>
 
@@ -63,6 +80,7 @@ const props = defineProps({
 const paymentMethods = ref([]);
 const loading = ref(true);
 const error = ref(null);
+const changingCard = ref(false);
 
 // Carregar métodos de pagamento
 const loadPaymentMethods = async () => {
@@ -143,8 +161,92 @@ const formatExpDate = (month, year) => {
   return `${monthStr}/${year}`;
 };
 
+// Trocar cartão de crédito
+const handleChangeCard = async () => {
+  changingCard.value = true;
+
+  try {
+    const token =
+      localStorage.getItem("userToken") ||
+      localStorage.getItem("apollo:default.token");
+
+    if (!token) {
+      throw new Error("Token de autenticação não encontrado");
+    }
+
+    const requestBody = {
+      customer_id: props.customerId,
+      success_url: `${window.location.origin}/payment?success=true`,
+      cancel_url: `${window.location.origin}/payment?cancel=true`,
+      currency: "brl",
+      payment_method_types: ["card"],
+    };
+
+    console.log("🔍 Request body:", requestBody);
+
+    const response = await fetch(
+      `http://api.volleytrack.local/v1/customers/payment-method-setup`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify(requestBody),
+      }
+    );
+
+    console.log("🔍 Response status:", response.status);
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Erro ao criar sessão de setup");
+    }
+
+    const data = await response.json();
+
+    if (data.success && data.data.url) {
+      console.log("✅ Redirecionando para Stripe Checkout:", data.data.url);
+      window.location.href = data.data.url;
+    } else {
+      throw new Error("URL de setup não retornada");
+    }
+  } catch (err) {
+    console.error("❌ Erro ao trocar cartão:", err);
+    alert(`Erro ao trocar cartão: ${err.message}`);
+  } finally {
+    changingCard.value = false;
+  }
+};
+
 onMounted(() => {
   loadPaymentMethods();
+
+  // Recarregar métodos de pagamento se veio da tela de sucesso do Stripe
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("success") === "true") {
+    console.log("✅ Retornando do Stripe Checkout - Recarregando cartões...");
+
+    // Mostrar mensagem de sucesso
+    if (window.Swal) {
+      window.Swal.fire({
+        icon: "success",
+        title: "Cartão adicionado!",
+        text: "Seu novo cartão foi adicionado com sucesso.",
+        timer: 3000,
+        showConfirmButton: false,
+      });
+    }
+
+    // Remover o parâmetro da URL
+    window.history.replaceState({}, "", window.location.pathname);
+
+    // Recarregar cartões após 1 segundo
+    setTimeout(() => {
+      loadPaymentMethods();
+    }, 1000);
+  }
 });
 </script>
 
@@ -292,6 +394,38 @@ onMounted(() => {
 .no-payment-methods p {
   color: #6b7280;
   font-size: 0.95rem;
+}
+
+/* Botão para trocar/adicionar cartão */
+.card-actions {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.change-card-button {
+  width: 100%;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.change-card-button:hover:not(:disabled) {
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+  transform: translateY(-2px);
+}
+
+.change-card-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 /* Responsividade */
