@@ -83,7 +83,7 @@
         <div class="plan-actions">
           <button
             @click="manageSubscription"
-            class="btn btn-secondary"
+            class="btn btn-cancel"
             :disabled="isCanceled"
             :class="{ 'btn-disabled': isCanceled }"
           >
@@ -963,7 +963,21 @@ onUnmounted(() => {
   color: #1f2937;
 }
 
+.btn-cancel {
+  background: #dc2626;
+  color: #ffffff;
+  border: 2px solid #b91c1c;
+}
+
+.btn-cancel:hover:not(:disabled) {
+  background: #b91c1c;
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4);
+}
+
 .btn-secondary:disabled,
+.btn-cancel:disabled,
 .btn-disabled {
   background: #d1d5db !important;
   color: #9ca3af !important;
@@ -972,6 +986,7 @@ onUnmounted(() => {
 }
 
 .btn-secondary:disabled:hover,
+.btn-cancel:disabled:hover,
 .btn-disabled:hover {
   transform: none !important;
   box-shadow: none !important;
