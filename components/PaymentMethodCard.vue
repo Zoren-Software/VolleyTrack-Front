@@ -1,7 +1,32 @@
 <template>
   <div class="payment-method-card">
     <div class="card-header">
-      <h3>Método de Pagamento</h3>
+      <h3>
+        Método de Pagamento
+        <va-popover placement="right" trigger="click">
+          <va-icon
+            name="info_outline"
+            size="small"
+            color="secondary"
+            class="info-icon"
+          />
+
+          <template #title>
+            <i>Segurança dos Dados</i>
+          </template>
+
+          <template #body>
+            <p>
+              Seus dados de cartão são armazenados com segurança
+              <strong>exclusivamente pela Stripe</strong>.
+            </p>
+            <p>
+              Não armazenamos informações sensíveis do cartão em nossos
+              servidores.
+            </p>
+          </template>
+        </va-popover>
+      </h3>
     </div>
 
     <div v-if="loading" class="loading-state">
@@ -433,6 +458,21 @@ onMounted(() => {
   font-size: 1.3rem;
   font-weight: 600;
   color: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.info-icon {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  vertical-align: middle;
+}
+
+.info-icon:hover {
+  color: #667eea !important;
+  transform: scale(1.1);
 }
 
 .loading-state,
