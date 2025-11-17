@@ -310,6 +310,10 @@ useHead({
 // Composable para usuário
 const { user, getUserInfo, getUserEmail } = useUser();
 
+// Configuração da API
+const config = useRuntimeConfig();
+const API_BASE = `${config.public.apiEndpoint}/v1`;
+
 // Estados
 const loading = ref(false);
 const error = ref(null);
@@ -320,9 +324,6 @@ const invoices = ref([]);
 const payments = ref([]);
 const selectedInvoice = ref(null);
 const invoiceFilter = ref("");
-
-// API URLs
-const API_BASE = "http://api.volleytrack.local/v1";
 
 // Carregar dados iniciais
 const loadData = async () => {

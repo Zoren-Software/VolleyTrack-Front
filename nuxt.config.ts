@@ -27,6 +27,7 @@ export default defineNuxtConfig({
       nameApplication: '', // can be overridden by NUXT_PUBLIC_NAME_APPLICATION environment variable
       stripeSecretKey: '', // can be overridden by NUXT_PUBLIC_STRIPE_SECRET_KEY environment variable
       stripePublishableKey: '', // can be overridden by NUXT_PUBLIC_STRIPE_PUBLISHABLE_KEY environment variable
+      apiEndpoint: dotenv.config().parsed?.API_ENDPOINT || 'http://api.volleytrack.local',
     }
   },
   vuestic: {

@@ -3,9 +3,25 @@
  * Integração com endpoints do backend Laravel
  */
 
-const API_BASE_URL = 'http://api.volleytrack.local'
-
 class PlanSwapService {
+  /**
+   * Obter URL base da API
+   * @returns {string} URL base da API
+   */
+  getApiBaseUrl() {
+    if (process.client) {
+      // Tentar obter do window.__NUXT__ (runtime config do Nuxt)
+      if (typeof window !== 'undefined' && window.__NUXT__?.config?.public?.apiEndpoint) {
+        return window.__NUXT__.config.public.apiEndpoint
+      }
+      // Tentar obter do process.env (se disponível)
+      if (process.env.API_ENDPOINT) {
+        return process.env.API_ENDPOINT
+      }
+    }
+    // Valor padrão como fallback
+    return 'http://api.volleytrack.local'
+  }
   /**
    * Preview da troca de planos
    * @param {number} customerId - ID do customer no banco central
@@ -21,10 +37,11 @@ class PlanSwapService {
         throw new Error("Token de autenticação não encontrado. Faça login novamente.")
       }
 
+      const apiBaseUrl = this.getApiBaseUrl()
       console.log('🔍 Token sendo usado na requisição:', token)
-      console.log('🔍 URL da requisição:', `${API_BASE_URL}/v1/subscriptions/preview-swap`)
+      console.log('🔍 URL da requisição:', `${apiBaseUrl}/v1/subscriptions/preview-swap`)
 
-      const response = await fetch(`${API_BASE_URL}/v1/subscriptions/preview-swap`, {
+      const response = await fetch(`${apiBaseUrl}/v1/subscriptions/preview-swap`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -88,7 +105,8 @@ class PlanSwapService {
         throw new Error("Token de autenticação não encontrado. Faça login novamente.")
       }
 
-      const response = await fetch(`${API_BASE_URL}/v1/subscriptions/swap-plan`, {
+      const apiBaseUrl = this.getApiBaseUrl()
+      const response = await fetch(`${apiBaseUrl}/v1/subscriptions/swap-plan`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

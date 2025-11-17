@@ -205,6 +205,9 @@ import { ref, onMounted, onUnmounted, computed } from "vue";
 import { getActivePlan } from "~/services/stripeCheckoutService.js";
 import Swal from "sweetalert2";
 
+const config = useRuntimeConfig();
+const apiEndpoint = config.public.apiEndpoint;
+
 // Props
 const props = defineProps({
   autoRefresh: {
@@ -557,7 +560,7 @@ const manageSubscription = async () => {
 
     // Chamar API de cancelamento
     const response = await fetch(
-      "http://api.volleytrack.local/v1/subscriptions/cancel",
+      `${apiEndpoint}/v1/subscriptions/cancel`,
       {
         method: "POST",
         headers: {

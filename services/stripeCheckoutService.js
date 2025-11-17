@@ -3,7 +3,24 @@
  * Utiliza o novo endpoint do backend Laravel com email pré-preenchido
  */
 
-const API_BASE_URL = 'http://api.volleytrack.local'
+/**
+ * Obter URL base da API
+ * @returns {string} URL base da API
+ */
+const getApiBaseUrl = () => {
+  if (process.client) {
+    // Tentar obter do window.__NUXT__ (runtime config do Nuxt)
+    if (typeof window !== 'undefined' && window.__NUXT__?.config?.public?.apiEndpoint) {
+      return window.__NUXT__.config.public.apiEndpoint
+    }
+    // Tentar obter do process.env (se disponível)
+    if (process.env.API_ENDPOINT) {
+      return process.env.API_ENDPOINT
+    }
+  }
+  // Valor padrão como fallback
+  return 'http://api.volleytrack.local'
+}
 
 /**
  * Criar sessão de checkout no Stripe
@@ -37,7 +54,8 @@ export const createCheckoutSession = async (checkoutData) => {
     const authToken = token || apolloToken;
     console.log('🔍 Token que será usado:', authToken);
 
-    const response = await fetch(`${API_BASE_URL}/v1/checkout-session`, {
+    const apiBaseUrl = getApiBaseUrl();
+    const response = await fetch(`${apiBaseUrl}/v1/checkout-session`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -144,7 +162,8 @@ export const getCheckoutSession = async (sessionId) => {
     const authToken = token || apolloToken;
     console.log('🔍 Token que será usado:', authToken);
 
-    const response = await fetch(`${API_BASE_URL}/v1/checkout-session/${sessionId}`, {
+    const apiBaseUrl = getApiBaseUrl();
+    const response = await fetch(`${apiBaseUrl}/v1/checkout-session/${sessionId}`, {
       method: 'GET',
       headers: {
         'Accept': 'application/json',
@@ -304,7 +323,8 @@ export const syncCheckoutSession = async (sessionId) => {
   try {
     console.log('🔍 Sincronizando sessão de checkout:', sessionId)
 
-    const response = await fetch(`${API_BASE_URL}/v1/checkout-session/${sessionId}/sync`, {
+    const apiBaseUrl = getApiBaseUrl();
+    const response = await fetch(`${apiBaseUrl}/v1/checkout-session/${sessionId}/sync`, {
       method: 'GET',
       headers: {
         'Accept': 'application/json'
@@ -359,7 +379,8 @@ export const getActivePlan = async (token, tenantId = null) => {
     }
 
     // Construir URL com tenant_id como parâmetro de query
-    let url = `${API_BASE_URL}/v1/customers/active-plan`
+    const apiBaseUrl = getApiBaseUrl();
+    let url = `${apiBaseUrl}/v1/customers/active-plan`
     if (tenantId) {
       url += `?tenant_id=${encodeURIComponent(tenantId)}`
     }

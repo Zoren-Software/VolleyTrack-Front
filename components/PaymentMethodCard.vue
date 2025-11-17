@@ -128,6 +128,9 @@ const props = defineProps({
   },
 });
 
+const config = useRuntimeConfig();
+const apiEndpoint = config.public.apiEndpoint;
+
 const paymentMethods = ref([]);
 const loading = ref(true);
 const error = ref(null);
@@ -154,7 +157,7 @@ const loadPaymentMethods = async () => {
     }
 
     const response = await fetch(
-      `http://api.volleytrack.local/v1/customers/payment-methods?customer_id=${props.customerId}`,
+      `${apiEndpoint}/v1/customers/payment-methods?customer_id=${props.customerId}`,
       {
         method: "GET",
         headers: {
@@ -244,7 +247,7 @@ const handleChangeCard = async () => {
     console.log("🔍 Request body:", requestBody);
 
     const response = await fetch(
-      `http://api.volleytrack.local/v1/customers/payment-method-setup`,
+      `${apiEndpoint}/v1/customers/payment-method-setup`,
       {
         method: "POST",
         headers: {
@@ -293,7 +296,7 @@ const setAsDefault = async (paymentMethodId) => {
     }
 
     const response = await fetch(
-      `http://api.volleytrack.local/v1/customers/payment-methods/default`,
+      `${apiEndpoint}/v1/customers/payment-methods/default`,
       {
         method: "POST",
         headers: {
@@ -358,7 +361,7 @@ const removeCard = async (paymentMethodId) => {
     }
 
     const response = await fetch(
-      `http://api.volleytrack.local/v1/customers/payment-methods/${paymentMethodId}`,
+      `${apiEndpoint}/v1/customers/payment-methods/${paymentMethodId}`,
       {
         method: "DELETE",
         headers: {
