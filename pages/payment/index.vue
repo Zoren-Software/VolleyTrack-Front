@@ -444,7 +444,7 @@ const showUpgradeAnimations = ref(false);
 // Removido: Estado do modal de troca de planos (agora redirecionamos para rota específica)
 
 // API URL
-const API_URL = "http://graphql.volleytrack.local/v1/products";
+const API_URL = `${runtimeConfig.public.apiEndpoint}/v1/products`;
 
 // URLs de redirecionamento
 const successURL = `${window.location.origin}/payment/success`;
