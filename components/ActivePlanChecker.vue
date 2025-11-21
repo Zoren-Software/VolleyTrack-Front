@@ -15,7 +15,7 @@
 
     <div v-else-if="activePlan" class="active-plan">
       <div class="plan-header">
-        <h3>Seu Plano Ativo</h3>
+        <h3>Seu Plano</h3>
         <div class="status-badge" :class="activePlan.subscription?.status">
           {{ getSubscriptionStatusText(activePlan.subscription?.status) }}
         </div>
@@ -486,7 +486,7 @@ const formatPrice = (amount) => {
 
 const getSubscriptionStatusText = (status) => {
   const statusMap = {
-    active: "Ativa",
+    active: "Ativo",
     canceled: "Cancelada",
     incomplete: "Incompleta",
     incomplete_expired: "Expirada",
@@ -559,21 +559,18 @@ const manageSubscription = async () => {
     }
 
     // Chamar API de cancelamento
-    const response = await fetch(
-      `${apiEndpoint}/v1/subscriptions/cancel`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          customer_id: parseInt(customerId),
-          cancel_at_period_end: true,
-        }),
-      }
-    );
+    const response = await fetch(`${apiEndpoint}/v1/subscriptions/cancel`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        customer_id: parseInt(customerId),
+        cancel_at_period_end: true,
+      }),
+    });
 
     if (!response.ok) {
       const errorData = await response.json();
