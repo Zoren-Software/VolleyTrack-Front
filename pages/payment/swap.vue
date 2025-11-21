@@ -116,6 +116,8 @@
 import { ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import planSwapService from "~/services/planSwapService";
+
+// Importar SweetAlert2
 import Swal from "sweetalert2";
 
 // Composables
@@ -489,10 +491,11 @@ const confirmSwap = async () => {
     console.log("✅ Plano trocado com sucesso:", result.data);
 
     // Mostrar sucesso com SweetAlert2 e redirecionar
-    const totalAmount = formatCurrency(previewData.value?.total_amount || 0);
+    // Usar o valor do novo plano (charge_amount) que será cobrado na próxima fatura
+    const nextPlanAmount = formatCurrency(previewData.value?.charge_amount || newPlan.value?.amount || 0);
     const nextBilling = formatDate(previewData.value?.next_billing_date);
 
-    Swal.fire({
+    await Swal.fire({
       icon: "success",
       title: "Plano trocado com sucesso!",
       html: `
@@ -502,7 +505,7 @@ const confirmSwap = async () => {
           </p>
           <div style="background: #f0f9ff; border-left: 4px solid #3b82f6; padding: 12px; border-radius: 8px; margin: 15px 0;">
             <p style="margin: 0; color: #1e40af; font-weight: 600;">
-              A próxima cobrança com o valor de ${totalAmount} acontecerá em ${nextBilling}.
+              A próxima cobrança com o valor de ${nextPlanAmount} acontecerá em ${nextBilling}.
             </p>
           </div>
           <p style="margin: 0; font-size: 0.95rem; color: #666;">
@@ -512,7 +515,6 @@ const confirmSwap = async () => {
       `,
       confirmButtonText: "Continuar",
       confirmButtonColor: "#10b981",
-      confirmButtonClass: "swal2-confirm",
       width: "600px",
       showCloseButton: true,
       customClass: {
@@ -526,7 +528,7 @@ const confirmSwap = async () => {
   } catch (err) {
     console.error("❌ Erro ao trocar plano:", err);
 
-    Swal.fire({
+    await Swal.fire({
       icon: "error",
       title: "Erro ao trocar plano",
       text:

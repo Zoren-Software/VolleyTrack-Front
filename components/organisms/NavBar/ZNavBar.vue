@@ -41,7 +41,7 @@ export default {
     ZNavBarItemSettings,
   },
 
-  emits: ["menuSettingsMinimize"],
+  emits: ["menuSettingsMinimize", "toggleMinimize"],
 
   data() {
     return {
@@ -144,15 +144,10 @@ export default {
   methods: {
     onMenuSettingsMinimize(value) {
       this.minimized = value;
-      console.log("emit 2");
       this.$emit("menuSettingsMinimize", this.minimized);
     },
     toggleMinimize(value) {
       this.$emit("toggleMinimize", value);
-    },
-    onMenuSettingsMinimize(value) {
-      this.minimized = value;
-      this.$emit("menuSettingsMinimize", this.minimized);
     },
 
     async getUser() {

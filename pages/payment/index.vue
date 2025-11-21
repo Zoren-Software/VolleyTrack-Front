@@ -340,12 +340,16 @@
             :disabled="
               subscriptionLoading ||
               !emailValidation.validated ||
-              !emailValidation.valid
+              !emailValidation.valid ||
+              isPlanActive(selectedPlan)
             "
             :class="{
               'subscribe-button': true,
               'swap-button': activePlanData && activePlanData.customer_id,
-              disabled: !emailValidation.validated || !emailValidation.valid,
+              disabled:
+                !emailValidation.validated ||
+                !emailValidation.valid ||
+                isPlanActive(selectedPlan),
             }"
             @click="handleSubscriptionAction"
           >
@@ -356,6 +360,8 @@
                 ? "Aguardando validação..."
                 : !emailValidation.valid
                 ? "E-mail não validado - Contate o suporte"
+                : isPlanActive(selectedPlan)
+                ? "Este plano já está ativo"
                 : activePlanData && activePlanData.customer_id
                 ? `🔄 Trocar para ${selectedPlan.name} - R$ ${getPlanPrice(
                     selectedPlan
@@ -386,7 +392,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, nextTick } from "vue";
 import { loadStripe } from "@stripe/stripe-js";
 import {
   createCheckoutSession,
@@ -692,6 +698,11 @@ const loadPlans = async () => {
 
     if (data.success && data.data) {
       plans.value = data.data;
+
+      // Após carregar os planos, tentar selecionar automaticamente o plano ativo
+      nextTick(() => {
+        autoSelectActivePlan();
+      });
     } else {
       throw new Error("Resposta da API inválida");
     }
@@ -844,18 +855,38 @@ const selectPlan = (plan) => {
   selectedPlan.value = plan;
 };
 
+// Selecionar automaticamente o plano ativo (para exibição visual)
+// NOTA: Não selecionamos o plano ativo automaticamente, pois ele já aparece
+// com o badge "Plano em Uso" e não deve ser selecionável
+const autoSelectActivePlan = () => {
+  // Removido: não selecionar automaticamente o plano ativo
+  // O plano ativo já aparece com badge "Plano em Uso" e não deve ser selecionável
+  console.log(
+    "ℹ️ Plano ativo detectado - não será selecionado automaticamente (já aparece com badge)"
+  );
+};
+
 // Verificar se um plano está ativo
 const isPlanActive = (plan) => {
-  if (!activePlanData.value || !activePlanData.value.subscription) {
+  if (!activePlanData.value || !activePlanData.value.subscription || !plan) {
     return false;
   }
 
   const activePriceId = activePlanData.value.subscription.price_id;
   const planPriceId = plan.prices?.data?.[0]?.id;
 
-  // Comparar por ID do preço
+  console.log("🔍 isPlanActive - Comparando planos:", {
+    activePriceId,
+    planPriceId,
+    planName: plan.name,
+    activeProductName: activePlanData.value.product?.name,
+  });
+
+  // Comparar por ID do preço (método mais confiável)
   if (activePriceId && planPriceId) {
-    return activePriceId === planPriceId;
+    const isActive = activePriceId === planPriceId;
+    console.log("🔍 isPlanActive - Comparação por price_id:", isActive);
+    return isActive;
   }
 
   // Fallback: comparar por nome e tipo
@@ -877,9 +908,12 @@ const isPlanActive = (plan) => {
     const activeType = planTypeMapping[activePlanType] || activePlanType;
     const currentType = planTypeMapping[currentPlanType] || currentPlanType;
 
-    return activeType === currentType;
+    const isActive = activeType === currentType;
+    console.log("🔍 isPlanActive - Comparação por nome:", isActive);
+    return isActive;
   }
 
+  console.log("🔍 isPlanActive - Nenhuma correspondência encontrada");
   return false;
 };
 
@@ -1041,6 +1075,12 @@ const onActivePlanLoaded = (planData) => {
       console.log("📅 Plano ativo é mensal - mantendo aba mensal");
       selectedBilling.value = "monthly";
     }
+
+    // Selecionar automaticamente o plano ativo na lista
+    // Usar nextTick para garantir que os planos já foram renderizados
+    nextTick(() => {
+      autoSelectActivePlan();
+    });
   } else {
     console.log("ℹ️ Cliente não possui plano ativo");
   }
@@ -1102,20 +1142,16 @@ const initializeStripe = async () => {
 const handleSubscriptionAction = () => {
   console.log("🔍 handleSubscriptionAction chamada");
   console.log("🔍 activePlanData.value:", activePlanData.value);
-  console.log(
-    "🔍 activePlanData.value?.customer_id:",
-    activePlanData.value?.customer_id
-  );
   console.log("🔍 selectedPlan.value:", selectedPlan.value);
-  console.log("🔍 typeof activePlanData.value:", typeof activePlanData.value);
-  console.log(
-    "🔍 activePlanData.value === null:",
-    activePlanData.value === null
-  );
-  console.log(
-    "🔍 activePlanData.value === undefined:",
-    activePlanData.value === undefined
-  );
+
+  // Verificar se o plano selecionado é o mesmo que o ativo
+  if (selectedPlan.value && isPlanActive(selectedPlan.value)) {
+    console.log("⚠️ Tentativa de trocar para o plano que já está ativo");
+    alert(
+      "Este plano já está ativo. Selecione um plano diferente para trocar."
+    );
+    return;
+  }
 
   // Verificar se tem plano ativo
   const hasActivePlan =
@@ -1127,10 +1163,6 @@ const handleSubscriptionAction = () => {
     const customerId = activePlanData.value.customer_id;
     console.log("🔍 priceId encontrado:", priceId);
     console.log("🔍 customerId encontrado:", customerId);
-    console.log("🔍 activePlanData.value completo:", activePlanData.value);
-    console.log("🔍 Tipo do customerId:", typeof customerId);
-    console.log("🔍 customerId === 1:", customerId === 1);
-    console.log("🔍 customerId === '1':", customerId === "1");
 
     if (priceId && customerId) {
       const swapUrl = `/payment/swap?price_id=${encodeURIComponent(
