@@ -273,6 +273,15 @@
               </span>
             </div>
 
+            <!-- Badge de Oferta Especial (Flutuante) -->
+            <div v-if="getOfferType(plan)" class="offer-floating-badge">
+              <span class="offer-badge-icon">🎁</span>
+              <div class="offer-badge-content">
+                <span class="offer-badge-label">Oferta Especial</span>
+                <span class="offer-badge-value">{{ getOfferType(plan) }}</span>
+              </div>
+            </div>
+
             <div class="plan-header">
               <h3>{{ plan.name }}</h3>
               <div class="plan-price">
@@ -306,6 +315,27 @@
                   {{ feature }}
                 </li>
               </ul>
+            </div>
+
+            <!-- Limites e Benefícios -->
+            <div v-if="hasPlanLimits(plan)" class="plan-limits">
+              <h4 class="limits-title">Limites e Benefícios</h4>
+              <div class="limits-grid">
+                <div v-if="getMaxPlayers(plan)" class="limit-item">
+                  <span class="limit-icon">👥</span>
+                  <div class="limit-content">
+                    <span class="limit-label">Jogadores</span>
+                    <span class="limit-value">{{ getMaxPlayers(plan) }}</span>
+                  </div>
+                </div>
+                <div v-if="getMaxTeams(plan)" class="limit-item">
+                  <span class="limit-icon">🏐</span>
+                  <div class="limit-content">
+                    <span class="limit-label">Times</span>
+                    <span class="limit-value">{{ getMaxTeams(plan) }}</span>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <button
@@ -795,6 +825,20 @@ const getPlanPeriod = (plan) => {
 
 // Obter recursos do plano
 const getPlanFeatures = (plan) => {
+  // Tentar ler features dos metadados (com prefixo display_)
+  if (plan.metadata?.display_features) {
+    try {
+      const features = JSON.parse(plan.metadata.display_features);
+      if (Array.isArray(features) && features.length > 0) {
+        return features;
+      }
+    } catch (error) {
+      console.warn("Erro ao fazer parse de display_features:", error);
+      // Continuar para fallback
+    }
+  }
+
+  // Fallback: usar valores hardcoded caso metadados não existam
   const baseFeatures = [
     "Gestão completa de jogadores",
     "Controle de presença",
@@ -821,6 +865,56 @@ const getPlanFeatures = (plan) => {
   }
 
   return baseFeatures;
+};
+
+// Verificar se o plano tem limites para exibir
+const hasPlanLimits = (plan) => {
+  return (
+    plan.metadata?.max_players !== undefined ||
+    plan.metadata?.max_teams !== undefined ||
+    plan.metadata?.offer_type !== undefined
+  );
+};
+
+// Obter limite de jogadores formatado
+const getMaxPlayers = (plan) => {
+  const maxPlayers = plan.metadata?.max_players;
+  if (maxPlayers === undefined || maxPlayers === null) return null;
+
+  if (maxPlayers === "0" || maxPlayers === 0) {
+    return "Ilimitado";
+  }
+
+  return `${maxPlayers} jogadores`;
+};
+
+// Obter limite de times formatado
+const getMaxTeams = (plan) => {
+  const maxTeams = plan.metadata?.max_teams;
+  if (maxTeams === undefined || maxTeams === null) return null;
+
+  if (maxTeams === "0" || maxTeams === 0) {
+    return "Ilimitado";
+  }
+
+  return `${maxTeams} ${maxTeams === "1" ? "time" : "times"}`;
+};
+
+// Obter tipo de oferta formatado
+const getOfferType = (plan) => {
+  const offerType = plan.metadata?.offer_type;
+  if (!offerType) return null;
+
+  // Formatar "limited 500 accounts" para "500 contas"
+  if (offerType.includes("limited") && offerType.includes("accounts")) {
+    const match = offerType.match(/(\d+)/);
+    if (match) {
+      const number = match[1];
+      return `${number} contas disponíveis`;
+    }
+  }
+
+  return offerType;
 };
 
 // Calcular desconto geral anual
@@ -1839,6 +1933,7 @@ p {
   grid-template-columns: repeat(3, 1fr);
   gap: 30px;
   margin-bottom: 40px;
+  align-items: stretch;
 }
 
 .plan-card {
@@ -1853,6 +1948,7 @@ p {
   min-height: 500px;
   display: flex;
   flex-direction: column;
+  height: 100%;
 }
 
 .plan-card:hover {
@@ -2078,6 +2174,148 @@ p {
   margin: 0;
 }
 
+.plan-limits {
+  margin-bottom: 20px;
+  padding: 15px;
+  background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);
+  border-radius: 12px;
+  border: 1px solid #e0e7ff;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.limits-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #667eea;
+  margin: 0 0 12px 0;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.limits-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.limit-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 8px;
+  text-align: center;
+  min-height: 80px;
+}
+
+.limit-icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+.limit-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+}
+
+.limit-label {
+  font-size: 0.7rem;
+  color: #666;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  text-align: center;
+}
+
+.limit-value {
+  font-size: 0.85rem;
+  color: #333;
+  font-weight: 600;
+  text-align: center;
+  word-break: break-word;
+}
+
+.offer-floating-badge {
+  position: absolute;
+  top: -31px;
+  right: 9px;
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  border-radius: 16px;
+  padding: 12px 16px;
+  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.4);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 15;
+  border: 2px solid #ffffff;
+  animation: offerPulse 2s ease-in-out infinite;
+  min-width: 180px;
+}
+
+@keyframes offerPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 8px 24px rgba(245, 158, 11, 0.4);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 12px 32px rgba(245, 158, 11, 0.6);
+  }
+}
+
+.offer-badge-icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+  animation: offerIconBounce 2s ease-in-out infinite;
+}
+
+@keyframes offerIconBounce {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-3px) rotate(-5deg);
+  }
+  75% {
+    transform: translateY(-3px) rotate(5deg);
+  }
+}
+
+.offer-badge-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.offer-badge-label {
+  font-size: 0.65rem;
+  color: #78350f;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  line-height: 1;
+}
+
+.offer-badge-value {
+  font-size: 0.85rem;
+  color: #78350f;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
 .plan-features {
   flex-grow: 1;
   display: flex;
@@ -2122,8 +2360,7 @@ p {
 .lifetime-badge {
   position: absolute;
   top: -15px;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 20px;
   background: linear-gradient(135deg, #8b5cf6, #7c3aed);
   color: white;
   padding: 8px 20px;
@@ -2131,6 +2368,7 @@ p {
   font-size: 0.9rem;
   font-weight: 600;
   box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+  z-index: 10;
 }
 
 .active-plan-badge {
@@ -2423,6 +2661,59 @@ p {
   .plan-card {
     padding: 20px;
     min-height: auto;
+  }
+
+  .plan-limits {
+    padding: 12px;
+    margin-bottom: 15px;
+  }
+
+  .limits-title {
+    font-size: 0.8rem;
+    margin-bottom: 10px;
+  }
+
+  .limits-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .offer-floating-badge {
+    top: -15px;
+    right: 10px;
+    padding: 10px 12px;
+    min-width: 150px;
+  }
+
+  .offer-badge-icon {
+    font-size: 1.5rem;
+  }
+
+  .offer-badge-label {
+    font-size: 0.6rem;
+  }
+
+  .offer-badge-value {
+    font-size: 0.75rem;
+  }
+
+  .limit-item {
+    gap: 6px;
+    padding: 10px 4px;
+    min-height: 70px;
+  }
+
+  .limit-icon {
+    font-size: 1.5rem;
+    margin-bottom: 2px;
+  }
+
+  .limit-label {
+    font-size: 0.65rem;
+  }
+
+  .limit-value {
+    font-size: 0.75rem;
   }
 
   /* Animações responsivas de upgrade */
