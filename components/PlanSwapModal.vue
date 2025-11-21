@@ -37,92 +37,24 @@
           </div>
         </div>
 
-        <!-- Detalhes do Pro-Rata -->
+        <!-- Detalhes da Troca -->
         <div class="proration-details">
-          <h3>💰 Detalhes da Cobrança Pro-Rata</h3>
+          <h3>💰 Detalhes da Troca</h3>
 
           <div class="proration-info">
             <div class="info-item">
-              <span class="label">Dias restantes no período:</span>
-              <span class="value"
-                >{{ previewData.proration_info.days_remaining }} dias</span
-              >
+              <span class="label">Valor do novo plano:</span>
+              <span class="value">{{
+                formatCurrency(previewData.new_plan.amount)
+              }}</span>
             </div>
 
             <div class="info-item">
-              <span class="label">Total de dias no período:</span>
-              <span class="value"
-                >{{ previewData.proration_info.total_days }} dias</span
-              >
+              <span class="label">Data da próxima cobrança:</span>
+              <span class="value">{{
+                formatDate(previewData.swap_summary.next_billing_date)
+              }}</span>
             </div>
-          </div>
-
-          <div class="calculation-breakdown">
-            <div class="breakdown-item credit">
-              <div class="breakdown-header">
-                <span class="icon">💳</span>
-                <span class="title">Crédito do plano atual</span>
-              </div>
-              <div class="breakdown-details">
-                <span class="daily-rate">
-                  {{
-                    formatCurrency(
-                      previewData.proration_info.current_plan.daily_rate
-                    )
-                  }}/dia
-                </span>
-                <span class="amount">
-                  -
-                  {{
-                    formatCurrency(
-                      previewData.proration_info.current_plan.prorated_credit
-                    )
-                  }}
-                </span>
-              </div>
-            </div>
-
-            <div class="breakdown-item charge">
-              <div class="breakdown-header">
-                <span class="icon">💸</span>
-                <span class="title">Cobrança do novo plano</span>
-              </div>
-              <div class="breakdown-details">
-                <span class="daily-rate">
-                  {{
-                    formatCurrency(
-                      previewData.proration_info.new_plan.daily_rate
-                    )
-                  }}/dia
-                </span>
-                <span class="amount">
-                  +
-                  {{
-                    formatCurrency(
-                      previewData.proration_info.new_plan.prorated_charge
-                    )
-                  }}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div class="total-amount">
-            <div class="total-label">Total a ser cobrado agora:</div>
-            <div class="total-value">
-              {{ formatCurrency(previewData.proration_info.net_amount) }}
-            </div>
-          </div>
-        </div>
-
-        <!-- Próxima Cobrança -->
-        <div class="next-billing">
-          <div class="next-billing-icon">📅</div>
-          <div class="next-billing-info">
-            <span class="label">Próxima cobrança:</span>
-            <span class="date">{{
-              formatDate(previewData.swap_summary.next_billing_date)
-            }}</span>
           </div>
         </div>
       </div>
@@ -130,7 +62,7 @@
       <!-- Loading -->
       <div v-else-if="loading" class="loading-state">
         <div class="spinner"></div>
-        <p>Calculando valores do pro-rata...</p>
+        <p>Carregando informações do plano...</p>
       </div>
 
       <!-- Erro -->

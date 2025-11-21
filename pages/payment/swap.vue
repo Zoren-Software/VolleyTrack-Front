@@ -64,32 +64,13 @@
           <h3>Detalhes da Troca</h3>
           <div class="proration-card">
             <div class="proration-item">
-              <span class="label">Crédito do plano atual:</span>
-              <span class="value credit"
-                >-{{ formatCurrency(previewData.credit_amount) }}</span
-              >
-            </div>
-            <div class="proration-item">
-              <span class="label">Cobrança do novo plano:</span>
+              <span class="label">Valor do novo plano:</span>
               <span class="value charge"
-                >+{{ formatCurrency(previewData.charge_amount) }}</span
-              >
-            </div>
-
-            <div class="proration-item total">
-              <span class="label">Total na próxima fatura:</span>
-              <span class="value total">{{
-                formatCurrency(previewData.total_amount)
-              }}</span>
-            </div>
-            <div class="proration-item">
-              <span class="label">Dias restantes no período:</span>
-              <span class="value"
-                >{{ previewData.days_remaining || 0 }} dias</span
+                >{{ formatCurrency(previewData.charge_amount) }}</span
               >
             </div>
             <div class="proration-item">
-              <span class="label">Cobrança acontece em:</span>
+              <span class="label">Data da próxima cobrança:</span>
               <span class="value">{{
                 formatDate(previewData.next_billing_date)
               }}</span>
@@ -102,8 +83,8 @@
             <div class="notice-content">
               <strong>Plano será ativado imediatamente!</strong>
               <p>
-                Você terá acesso ao novo plano agora, mas a cobrança acontecerá
-                apenas em
+                Você terá acesso ao novo plano agora mesmo. Não há cobrança no momento da troca. A próxima cobrança com o valor de
+                <strong>{{ formatCurrency(previewData.charge_amount) }}</strong> acontecerá em
                 <strong>
                   {{ formatDate(previewData.next_billing_date) }} </strong
                 >.
@@ -314,12 +295,17 @@ const loadPreview = async () => {
       const prorationInfo = previewData.value.proration_info;
       const subscriptionPeriod = previewData.value.subscription_period;
 
-      // Mapear valores do proration_info
+      // Crédito do plano atual: valor proporcional dos dias não usados
       previewData.value.credit_amount =
         prorationInfo.current_plan.prorated_credit || 0;
-      previewData.value.charge_amount =
-        prorationInfo.new_plan.prorated_charge || 0;
-      previewData.value.total_amount = prorationInfo.net_amount || 0;
+      
+      // Valor do novo plano na próxima fatura: valor TOTAL do novo plano
+      // (não proporcional, pois a cobrança só acontece na próxima fatura)
+      previewData.value.charge_amount = newPlan.value?.amount || 0;
+      
+      // Total na próxima fatura: valor total do novo plano - crédito do plano atual
+      previewData.value.total_amount = 
+        (newPlan.value?.amount || 0) - (prorationInfo.current_plan.prorated_credit || 0);
 
       // Mapear dados do período da assinatura
       if (subscriptionPeriod) {
@@ -516,11 +502,11 @@ const confirmSwap = async () => {
           </p>
           <div style="background: #f0f9ff; border-left: 4px solid #3b82f6; padding: 12px; border-radius: 8px; margin: 15px 0;">
             <p style="margin: 0; color: #1e40af; font-weight: 600;">
-              A cobrança de ${totalAmount} acontecerá em ${nextBilling}.
+              A próxima cobrança com o valor de ${totalAmount} acontecerá em ${nextBilling}.
             </p>
           </div>
           <p style="margin: 0; font-size: 0.95rem; color: #666;">
-            Seu plano foi ativado imediatamente e você pode começar a usar todas as funcionalidades do novo plano agora mesmo!
+            Seu novo plano está ativo agora mesmo e você pode começar a usar todas as funcionalidades imediatamente. Não há cobrança no momento da troca.
           </p>
         </div>
       `,
