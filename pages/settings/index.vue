@@ -10,6 +10,13 @@
         >
           Configurações Gerais
         </button>
+        <button
+          @click="$router.push('/payment')"
+          :class="{ active: $route.path === '/payment' }"
+          class="nav-button"
+        >
+          Pagamentos
+        </button>
       </div>
     </div>
 
