@@ -47,8 +47,18 @@
         </div>
       </div>
 
-      <h1>Planos de Assinatura</h1>
-      <p>Escolha o plano ideal para o seu clube de vôlei</p>
+      <div class="page-header">
+        <div class="header-content">
+          <h1>Planos de Assinatura</h1>
+          <p>Escolha o plano ideal para o seu clube de vôlei</p>
+        </div>
+        <div class="header-actions">
+          <NuxtLink to="/billing" class="billing-link">
+            <span class="billing-icon">📄</span>
+            <span>Ver Faturamentos</span>
+          </NuxtLink>
+        </div>
+      </div>
 
       <!-- Status do Plano Ativo e Método de Pagamento -->
       <div class="active-plan-container">
@@ -1549,6 +1559,64 @@ onMounted(async () => {
   margin: 0 auto;
 }
 
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.header-content {
+  flex: 1;
+}
+
+.header-content h1 {
+  text-align: left;
+  color: white;
+  margin-bottom: 10px;
+  margin-top: 0;
+  font-size: 2.5rem;
+  font-weight: 700;
+}
+
+.header-content p {
+  text-align: left;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 0;
+  font-size: 1.1rem;
+}
+
+.header-actions {
+  display: flex;
+  gap: 15px;
+}
+
+.billing-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.billing-link:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.billing-icon {
+  font-size: 1.2rem;
+}
+
 h1 {
   text-align: center;
   color: white;
@@ -2781,6 +2849,16 @@ p {
 
   h1 {
     font-size: 2rem;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .header-content h1,
+  .header-content p {
+    text-align: center;
   }
 }
 </style>
