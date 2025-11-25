@@ -65,9 +65,9 @@
           <div class="proration-card">
             <div class="proration-item">
               <span class="label">Valor do novo plano:</span>
-              <span class="value charge"
-                >{{ formatCurrency(previewData.charge_amount) }}</span
-              >
+              <span class="value charge">{{
+                formatCurrency(previewData.charge_amount)
+              }}</span>
             </div>
             <div class="proration-item">
               <span class="label">Data da próxima cobrança:</span>
@@ -83,8 +83,10 @@
             <div class="notice-content">
               <strong>Plano será ativado imediatamente!</strong>
               <p>
-                Você terá acesso ao novo plano agora mesmo. Não há cobrança no momento da troca. A próxima cobrança com o valor de
-                <strong>{{ formatCurrency(previewData.charge_amount) }}</strong> acontecerá em
+                Você terá acesso ao novo plano agora mesmo. Não há cobrança no
+                momento da troca. A próxima cobrança com o valor de
+                <strong>{{ formatCurrency(previewData.charge_amount) }}</strong>
+                acontecerá em
                 <strong>
                   {{ formatDate(previewData.next_billing_date) }} </strong
                 >.
@@ -300,14 +302,15 @@ const loadPreview = async () => {
       // Crédito do plano atual: valor proporcional dos dias não usados
       previewData.value.credit_amount =
         prorationInfo.current_plan.prorated_credit || 0;
-      
+
       // Valor do novo plano na próxima fatura: valor TOTAL do novo plano
       // (não proporcional, pois a cobrança só acontece na próxima fatura)
       previewData.value.charge_amount = newPlan.value?.amount || 0;
-      
+
       // Total na próxima fatura: valor total do novo plano - crédito do plano atual
-      previewData.value.total_amount = 
-        (newPlan.value?.amount || 0) - (prorationInfo.current_plan.prorated_credit || 0);
+      previewData.value.total_amount =
+        (newPlan.value?.amount || 0) -
+        (prorationInfo.current_plan.prorated_credit || 0);
 
       // Mapear dados do período da assinatura
       if (subscriptionPeriod) {
@@ -482,7 +485,17 @@ const confirmSwap = async () => {
       priceId,
     });
 
-    const result = await planSwapService.swapPlan(customerId, priceId);
+    // URLs de redirecionamento (mesmas da página de pagamento)
+    const successURL = `${window.location.origin}/payment/success`;
+    const cancelURL = `${window.location.origin}/payment/cancel`;
+
+    const result = await planSwapService.swapPlan(
+      customerId,
+      priceId,
+      "create_prorations",
+      successURL,
+      cancelURL
+    );
 
     if (!result.success) {
       throw new Error(result.error || "Erro ao trocar plano");
@@ -490,9 +503,53 @@ const confirmSwap = async () => {
 
     console.log("✅ Plano trocado com sucesso:", result.data);
 
+    // Se o plano é one_time (vitalício), redirecionar para checkout
+    if (result.requires_checkout && result.checkout_url) {
+      console.log("🔄 Redirecionando para checkout do plano vitalício...");
+
+      await Swal.fire({
+        icon: "info",
+        title: "Plano Vitalício",
+        html: `
+          <div style="text-align: left; padding: 20px 0;">
+            <p style="font-size: 1.1rem; margin-bottom: 15px; color: #333;">
+              <strong>Seu plano atual será cancelado ao final do período.</strong>
+            </p>
+            <div style="background: #f0f9ff; border-left: 4px solid #3b82f6; padding: 12px; border-radius: 8px; margin: 15px 0;">
+              <p style="margin: 0; color: #1e40af; font-weight: 600;">
+                Você será redirecionado para completar o pagamento do plano vitalício.
+              </p>
+            </div>
+            <p style="margin: 0; font-size: 0.95rem; color: #666;">
+              Após o pagamento, você terá acesso vitalício ao ${newPlan.value?.name}.
+            </p>
+          </div>
+        `,
+        confirmButtonText: "Continuar para Pagamento",
+        confirmButtonColor: "#3b82f6",
+        width: "600px",
+        showCloseButton: true,
+        customClass: {
+          popup: "plan-swap-checkout-modal",
+          confirmButton: "plan-swap-checkout-button",
+        },
+        didClose: () => {
+          // Redirecionar para checkout do Stripe
+          window.location.href = result.checkout_url;
+        },
+      }).then(() => {
+        // Redirecionar para checkout do Stripe
+        window.location.href = result.checkout_url;
+      });
+
+      return;
+    }
+
     // Mostrar sucesso com SweetAlert2 e redirecionar
     // Usar o valor do novo plano (charge_amount) que será cobrado na próxima fatura
-    const nextPlanAmount = formatCurrency(previewData.value?.charge_amount || newPlan.value?.amount || 0);
+    const nextPlanAmount = formatCurrency(
+      previewData.value?.charge_amount || newPlan.value?.amount || 0
+    );
     const nextBilling = formatDate(previewData.value?.next_billing_date);
 
     await Swal.fire({
@@ -894,6 +951,26 @@ onMounted(() => {
 
 :deep(.plan-swap-success-button:hover) {
   box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4) !important;
+  transform: translateY(-2px) !important;
+}
+
+/* CSS para o modal de checkout do plano vitalício */
+:deep(.plan-swap-checkout-modal) {
+  border-radius: 16px !important;
+  padding: 0 !important;
+}
+
+:deep(.plan-swap-checkout-button) {
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  padding: 12px 30px !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3) !important;
+  transition: all 0.3s ease !important;
+}
+
+:deep(.plan-swap-checkout-button:hover) {
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4) !important;
   transform: translateY(-2px) !important;
 }
 

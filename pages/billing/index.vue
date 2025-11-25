@@ -25,11 +25,19 @@
         <div class="error-icon">⚠️</div>
         <h3>Erro ao carregar faturas</h3>
         <p>{{ error }}</p>
-        <button class="retry-button" @click="loadInvoices">Tentar Novamente</button>
+        <button class="retry-button" @click="loadInvoices">
+          Tentar Novamente
+        </button>
       </div>
 
       <!-- Invoices List -->
-      <div v-else-if="!loading && invoices.length > 0" class="invoices-container">
+      <div
+        v-else-if="
+          !loading &&
+          (lifetimePayments.length > 0 || subscriptionInvoices.length > 0)
+        "
+        class="invoices-container"
+      >
         <!-- Summary -->
         <div class="summary-card">
           <div class="summary-item">
@@ -38,84 +46,218 @@
           </div>
           <div class="summary-item">
             <span class="summary-label">Valor Total</span>
-            <span class="summary-value">R$ {{ formatCurrency(summary.total_amount) }}</span>
+            <span class="summary-value"
+              >R$ {{ formatCurrency(summary.total_amount) }}</span
+            >
           </div>
         </div>
 
-        <!-- Invoices List -->
-        <div class="invoices-list">
-          <div
-            v-for="invoice in invoices"
-            :key="invoice.id"
-            class="invoice-card"
-          >
-            <div class="invoice-header">
-              <div class="invoice-info">
-                <h3 class="invoice-number">{{ invoice.number || invoice.id }}</h3>
-                <span class="invoice-status" :class="`status-${invoice.status}`">
-                  {{ getStatusLabel(invoice.status) }}
-                </span>
-              </div>
-              <div class="invoice-amount">
-                <span class="amount-value">R$ {{ formatCurrency(invoice.amount_paid) }}</span>
-                <span class="amount-currency">{{ invoice.currency.toUpperCase() }}</span>
-              </div>
-            </div>
+        <!-- Planos Vitalícios -->
+        <div v-if="lifetimePayments.length > 0" class="section-container">
+          <div class="section-header">
+            <h2 class="section-title">
+              <span class="section-icon">💎</span>
+              Planos Vitalícios
+            </h2>
+            <span class="section-count"
+              >{{ lifetimePayments.length }} pagamento(s)</span
+            >
+          </div>
 
-            <div class="invoice-details">
-              <div class="detail-item">
-                <span class="detail-label">Data de Pagamento:</span>
-                <span class="detail-value">{{ formatDate(invoice.paid_at) }}</span>
+          <div class="invoices-list">
+            <div
+              v-for="payment in lifetimePayments"
+              :key="payment.id"
+              class="invoice-card lifetime-card"
+            >
+              <div class="invoice-header">
+                <div class="invoice-info">
+                  <h3 class="invoice-number">
+                    {{ payment.number || payment.id }}
+                  </h3>
+                  <span class="invoice-status status-paid">
+                    Plano Vitalício
+                  </span>
+                </div>
+                <div class="invoice-amount">
+                  <span class="amount-value"
+                    >R$ {{ formatCurrency(payment.amount_paid) }}</span
+                  >
+                  <span class="amount-currency">{{
+                    payment.currency.toUpperCase()
+                  }}</span>
+                </div>
               </div>
-              <div class="detail-item">
-                <span class="detail-label">Data de Criação:</span>
-                <span class="detail-value">{{ formatDate(invoice.created) }}</span>
-              </div>
-              <div v-if="invoice.period_start && invoice.period_end" class="detail-item">
-                <span class="detail-label">Período:</span>
-                <span class="detail-value">
-                  {{ formatDate(invoice.period_start) }} - {{ formatDate(invoice.period_end) }}
-                </span>
-              </div>
-            </div>
 
-            <!-- Invoice Lines -->
-            <div v-if="invoice.lines && invoice.lines.length > 0" class="invoice-lines">
-              <h4 class="lines-title">Itens da Fatura</h4>
+              <div class="invoice-details">
+                <div class="detail-item">
+                  <span class="detail-label">Data de Pagamento:</span>
+                  <span class="detail-value">{{
+                    formatDate(payment.paid_at)
+                  }}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">Data de Criação:</span>
+                  <span class="detail-value">{{
+                    formatDate(payment.created)
+                  }}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">Tipo:</span>
+                  <span class="detail-value">Pagamento Único</span>
+                </div>
+              </div>
+
+              <!-- Payment Lines -->
               <div
-                v-for="(line, index) in invoice.lines"
-                :key="line.id || index"
-                class="invoice-line"
+                v-if="payment.lines && payment.lines.length > 0"
+                class="invoice-lines"
               >
-                <div class="line-info">
-                  <span class="line-description">{{ line.description || 'Item sem descrição' }}</span>
-                  <span class="line-quantity">Qtd: {{ line.quantity || 1 }}</span>
-                </div>
-                <div class="line-amount">
-                  <span>R$ {{ formatCurrency(line.amount) }}</span>
-                  <span v-if="line.product" class="line-product">{{ line.product.name }}</span>
+                <h4 class="lines-title">Itens do Pagamento</h4>
+                <div
+                  v-for="(line, index) in payment.lines"
+                  :key="line.id || index"
+                  class="invoice-line"
+                >
+                  <div class="line-info">
+                    <span class="line-description">{{
+                      line.description || "Item sem descrição"
+                    }}</span>
+                    <span class="line-quantity"
+                      >Qtd: {{ line.quantity || 1 }}</span
+                    >
+                  </div>
+                  <div class="line-amount">
+                    <span>R$ {{ formatCurrency(line.amount) }}</span>
+                    <span v-if="line.product" class="line-product">{{
+                      line.product.name
+                    }}</span>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <!-- Invoice Actions -->
-            <div class="invoice-actions">
-              <a
-                v-if="invoice.hosted_invoice_url"
-                :href="invoice.hosted_invoice_url"
-                target="_blank"
-                class="action-button view-button"
+              <!-- Payment Actions -->
+              <div class="invoice-actions">
+                <span class="action-note"
+                  >Pagamento único - Acesso vitalício</span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Assinaturas -->
+        <div v-if="subscriptionInvoices.length > 0" class="section-container">
+          <div class="section-header">
+            <h2 class="section-title">
+              <span class="section-icon">🔄</span>
+              Assinaturas
+            </h2>
+            <span class="section-count"
+              >{{ subscriptionInvoices.length }} fatura(s)</span
+            >
+          </div>
+
+          <div class="invoices-list">
+            <div
+              v-for="invoice in subscriptionInvoices"
+              :key="invoice.id"
+              class="invoice-card subscription-card"
+            >
+              <div class="invoice-header">
+                <div class="invoice-info">
+                  <h3 class="invoice-number">
+                    {{ invoice.number || invoice.id }}
+                  </h3>
+                  <span
+                    class="invoice-status"
+                    :class="`status-${invoice.status}`"
+                  >
+                    {{ getStatusLabel(invoice.status) }}
+                  </span>
+                </div>
+                <div class="invoice-amount">
+                  <span class="amount-value"
+                    >R$ {{ formatCurrency(invoice.amount_paid) }}</span
+                  >
+                  <span class="amount-currency">{{
+                    invoice.currency.toUpperCase()
+                  }}</span>
+                </div>
+              </div>
+
+              <div class="invoice-details">
+                <div class="detail-item">
+                  <span class="detail-label">Data de Pagamento:</span>
+                  <span class="detail-value">{{
+                    formatDate(invoice.paid_at)
+                  }}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">Data de Criação:</span>
+                  <span class="detail-value">{{
+                    formatDate(invoice.created)
+                  }}</span>
+                </div>
+                <div
+                  v-if="invoice.period_start && invoice.period_end"
+                  class="detail-item"
+                >
+                  <span class="detail-label">Período:</span>
+                  <span class="detail-value">
+                    {{ formatDate(invoice.period_start) }} -
+                    {{ formatDate(invoice.period_end) }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Invoice Lines -->
+              <div
+                v-if="invoice.lines && invoice.lines.length > 0"
+                class="invoice-lines"
               >
-                <span>Ver Fatura</span>
-              </a>
-              <a
-                v-if="invoice.invoice_pdf"
-                :href="invoice.invoice_pdf"
-                target="_blank"
-                class="action-button download-button"
-              >
-                <span>Baixar PDF</span>
-              </a>
+                <h4 class="lines-title">Itens da Fatura</h4>
+                <div
+                  v-for="(line, index) in invoice.lines"
+                  :key="line.id || index"
+                  class="invoice-line"
+                >
+                  <div class="line-info">
+                    <span class="line-description">{{
+                      line.description || "Item sem descrição"
+                    }}</span>
+                    <span class="line-quantity"
+                      >Qtd: {{ line.quantity || 1 }}</span
+                    >
+                  </div>
+                  <div class="line-amount">
+                    <span>R$ {{ formatCurrency(line.amount) }}</span>
+                    <span v-if="line.product" class="line-product">{{
+                      line.product.name
+                    }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Invoice Actions -->
+              <div class="invoice-actions">
+                <a
+                  v-if="invoice.hosted_invoice_url"
+                  :href="invoice.hosted_invoice_url"
+                  target="_blank"
+                  class="action-button view-button"
+                >
+                  <span>Ver Fatura</span>
+                </a>
+                <a
+                  v-if="invoice.invoice_pdf"
+                  :href="invoice.invoice_pdf"
+                  target="_blank"
+                  class="action-button download-button"
+                >
+                  <span>Baixar PDF</span>
+                </a>
+              </div>
             </div>
           </div>
         </div>
@@ -129,10 +271,15 @@
           >
             Anterior
           </button>
-          
+
           <div class="pagination-info">
-            <span>Página {{ pagination.current_page }} de {{ pagination.total_pages }}</span>
-            <span class="pagination-total">({{ pagination.total }} faturas)</span>
+            <span
+              >Página {{ pagination.current_page }} de
+              {{ pagination.total_pages }}</span
+            >
+            <span class="pagination-total"
+              >({{ pagination.total }} faturas)</span
+            >
           </div>
 
           <button
@@ -149,7 +296,7 @@
       <div v-else class="empty-state">
         <div class="empty-icon">📄</div>
         <h3>Nenhuma fatura encontrada</h3>
-        <p>Você ainda não possui faturas pagas.</p>
+        <p>Você ainda não possui faturas pagas ou planos vitalícios.</p>
         <NuxtLink to="/payment" class="back-link">
           <span>Ver Planos de Assinatura</span>
         </NuxtLink>
@@ -159,132 +306,217 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
-import { useUser } from '~/composables/useUser'
+import { ref, onMounted, computed } from "vue";
+import { useUser } from "~/composables/useUser";
 
-const runtimeConfig = useRuntimeConfig()
-const { getUserEmail } = useUser()
+const runtimeConfig = useRuntimeConfig();
+const { getUserEmail } = useUser();
 
 // Estado
-const loading = ref(false)
-const error = ref(null)
-const invoices = ref([])
+const loading = ref(false);
+const error = ref(null);
+const invoices = ref([]); // Mantido para compatibilidade
+const lifetimePayments = ref([]); // Planos vitalícios
+const subscriptionInvoices = ref([]); // Assinaturas
 const pagination = ref({
   current_page: 1,
   total_pages: 1,
   per_page: 20,
   total: 0,
   has_more: false,
-})
+});
 const summary = ref({
   total_amount: 0,
   total_invoices: 0,
-  currency: 'brl',
-})
+  currency: "brl",
+  subscription_invoices_count: 0,
+  subscription_total_amount: 0,
+  lifetime_payments_count: 0,
+  lifetime_total_amount: 0,
+});
 
 // Função para obter tenant_id
 const getTenantId = () => {
   if (process.client) {
-    const storedTenant = localStorage.getItem('tenant_id')
+    const storedTenant = localStorage.getItem("tenant_id");
     if (storedTenant) {
-      return storedTenant
+      return storedTenant;
     }
-    return 'test'
+    return "test";
   }
-  return 'test'
-}
+  return "test";
+};
 
 // Função para formatar moeda
 const formatCurrency = (amount) => {
-  if (!amount) return '0,00'
-  const value = amount / 100
-  return value.toFixed(2).replace('.', ',')
-}
+  if (!amount) return "0,00";
+  const value = amount / 100;
+  return value.toFixed(2).replace(".", ",");
+};
 
 // Função para formatar data
 const formatDate = (timestamp) => {
-  if (!timestamp) return 'N/A'
-  const date = new Date(timestamp * 1000)
-  return date.toLocaleDateString('pt-BR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  })
-}
+  if (!timestamp) return "N/A";
+  const date = new Date(timestamp * 1000);
+  return date.toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+};
 
 // Função para obter label do status
 const getStatusLabel = (status) => {
   const labels = {
-    paid: 'Pago',
-    open: 'Aberto',
-    void: 'Cancelado',
-    uncollectible: 'Inadimplente',
-  }
-  return labels[status] || status
-}
+    paid: "Pago",
+    open: "Aberto",
+    void: "Cancelado",
+    uncollectible: "Inadimplente",
+  };
+  return labels[status] || status;
+};
 
 // Função para carregar faturas
-const loadInvoices = async (page = 1) => {
+const loadInvoices = async (lifetimePage = 1, subscriptionPage = 1) => {
   try {
-    loading.value = true
-    error.value = null
+    loading.value = true;
+    error.value = null;
 
-    const token = localStorage.getItem('userToken')
-    const apolloToken = localStorage.getItem('apollo:default.token')
-    const authToken = token || apolloToken
+    const token = localStorage.getItem("userToken");
+    const apolloToken = localStorage.getItem("apollo:default.token");
+    const authToken = token || apolloToken;
 
     if (!authToken) {
-      throw new Error('Token de autenticação não encontrado')
+      throw new Error("Token de autenticação não encontrado");
     }
 
-    const tenantId = getTenantId()
-    const apiBaseUrl = runtimeConfig.public.apiEndpoint || 'http://api.volleytrack.local'
-    const url = `${apiBaseUrl}/v1/invoices/tenant/paid?tenant_id=${tenantId}&limit=20&page=${page}`
+    const tenantId = getTenantId();
+    const apiBaseUrl =
+      runtimeConfig.public.apiEndpoint || "http://api.volleytrack.local";
 
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-        Authorization: `Bearer ${authToken}`,
-      },
-    })
+    // Chamar as duas rotas separadamente
+    const [lifetimeResponse, subscriptionResponse] = await Promise.all([
+      // Rota para pagamentos únicos (vitalícios)
+      fetch(
+        `${apiBaseUrl}/v1/payments/tenant/lifetime?tenant_id=${tenantId}&limit=20&page=${lifetimePage}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: `Bearer ${authToken}`,
+          },
+        }
+      ),
+      // Rota para faturas de assinaturas
+      fetch(
+        `${apiBaseUrl}/v1/invoices/tenant/subscriptions?tenant_id=${tenantId}&limit=20&page=${subscriptionPage}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: `Bearer ${authToken}`,
+          },
+        }
+      ),
+    ]);
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      throw new Error(errorData.message || `Erro HTTP: ${response.status}`)
+    // Processar resposta de pagamentos vitalícios
+    if (!lifetimeResponse.ok) {
+      const errorData = await lifetimeResponse.json().catch(() => ({}));
+      throw new Error(
+        errorData.message || `Erro HTTP: ${lifetimeResponse.status}`
+      );
     }
 
-    const data = await response.json()
-
-    if (data.success && data.data) {
-      invoices.value = data.data.invoices || []
-      pagination.value = data.data.pagination || pagination.value
-      summary.value = data.data.summary || summary.value
-    } else {
-      throw new Error('Resposta inválida da API')
+    const lifetimeData = await lifetimeResponse.json();
+    if (lifetimeData.success && lifetimeData.data) {
+      lifetimePayments.value = lifetimeData.data.lifetime_payments || [];
+      console.log("💎 Pagamentos vitalícios carregados:", {
+        count: lifetimePayments.value.length,
+        summary: lifetimeData.data.summary,
+      });
     }
+
+    // Processar resposta de assinaturas
+    if (!subscriptionResponse.ok) {
+      const errorData = await subscriptionResponse.json().catch(() => ({}));
+      throw new Error(
+        errorData.message || `Erro HTTP: ${subscriptionResponse.status}`
+      );
+    }
+
+    const subscriptionData = await subscriptionResponse.json();
+    if (subscriptionData.success && subscriptionData.data) {
+      subscriptionInvoices.value =
+        subscriptionData.data.subscription_invoices || [];
+      console.log("🔄 Faturas de assinaturas carregadas:", {
+        count: subscriptionInvoices.value.length,
+        summary: subscriptionData.data.summary,
+      });
+    }
+
+    // Atualizar resumo combinado
+    const lifetimeSummary = lifetimeData.data?.summary || {
+      total_amount: 0,
+      total_payments: 0,
+    };
+    const subscriptionSummary = subscriptionData.data?.summary || {
+      total_amount: 0,
+      total_invoices: 0,
+    };
+
+    summary.value = {
+      total_amount:
+        lifetimeSummary.total_amount + subscriptionSummary.total_amount,
+      total_invoices:
+        lifetimeSummary.total_payments + subscriptionSummary.total_invoices,
+      currency: "brl",
+      subscription_invoices_count: subscriptionSummary.total_invoices,
+      subscription_total_amount: subscriptionSummary.total_amount,
+      lifetime_payments_count: lifetimeSummary.total_payments,
+      lifetime_total_amount: lifetimeSummary.total_amount,
+    };
+
+    // Atualizar paginação (usar a paginação das assinaturas como referência principal)
+    pagination.value = subscriptionData.data?.pagination || {
+      current_page: subscriptionPage,
+      total_pages: 1,
+      per_page: 20,
+      total: subscriptionSummary.total_invoices,
+      has_more: false,
+    };
+
+    console.log("📊 Faturamentos carregados:", {
+      lifetimePayments: lifetimePayments.value.length,
+      subscriptionInvoices: subscriptionInvoices.value.length,
+      summary: summary.value,
+    });
   } catch (err) {
-    console.error('Erro ao carregar faturas:', err)
-    error.value = err.message || 'Erro ao carregar faturas'
-    invoices.value = []
+    console.error("Erro ao carregar faturas:", err);
+    error.value = err.message || "Erro ao carregar faturas";
+    lifetimePayments.value = [];
+    subscriptionInvoices.value = [];
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 
 // Função para navegar para página
 const goToPage = (page) => {
-  if (page >= 1 && page <= pagination.value.total_pages) {
-    loadInvoices(page)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+  // Por enquanto, carregar a mesma página para ambas as listas
+  // Futuramente pode ser implementada paginação separada
+  if (page >= 1) {
+    loadInvoices(page, page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
-}
+};
 
 // Carregar faturas ao montar o componente
 onMounted(() => {
-  loadInvoices(1)
-})
+  loadInvoices(1, 1);
+});
 </script>
 
 <style scoped>
@@ -733,6 +965,51 @@ onMounted(() => {
   display: inline-flex;
 }
 
+/* Seções separadas */
+.section-container {
+  margin-bottom: 40px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.section-icon {
+  font-size: 1.8rem;
+}
+
+.section-count {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.lifetime-card {
+  border-left: 4px solid #10b981;
+}
+
+.subscription-card {
+  border-left: 4px solid #667eea;
+}
+
 @media (max-width: 768px) {
   .page-header {
     flex-direction: column;
@@ -771,4 +1048,3 @@ onMounted(() => {
   }
 }
 </style>
-

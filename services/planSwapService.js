@@ -94,18 +94,42 @@ class PlanSwapService {
    * @param {number} customerId - ID do customer no banco central
    * @param {string} newPriceId - ID do novo preço no Stripe
    * @param {string} prorationBehavior - Comportamento do pro-rata
+   * @param {string} successUrl - URL de sucesso (opcional)
+   * @param {string} cancelUrl - URL de cancelamento (opcional)
    * @returns {Promise<Object>} Resultado da troca
    */
-  async swapPlan(customerId, newPriceId, prorationBehavior = 'create_prorations') {
+  async swapPlan(customerId, newPriceId, prorationBehavior = 'create_prorations', successUrl = null, cancelUrl = null) {
     try {
-      console.log('🔄 Executando troca de planos:', { customerId, newPriceId, prorationBehavior })
+      console.log('🔄 Executando troca de planos:', { customerId, newPriceId, prorationBehavior, successUrl, cancelUrl })
 
       const token = this.getToken()
       if (!token) {
         throw new Error("Token de autenticação não encontrado. Faça login novamente.")
       }
 
+      // Se as URLs não foram fornecidas, usar as URLs padrão do frontend
+      if (!successUrl && process.client) {
+        successUrl = `${window.location.origin}/payment/success`
+      }
+      if (!cancelUrl && process.client) {
+        cancelUrl = `${window.location.origin}/payment/cancel`
+      }
+
       const apiBaseUrl = this.getApiBaseUrl()
+      const requestBody = {
+        customer_id: customerId,
+        new_price_id: newPriceId,
+        proration_behavior: prorationBehavior
+      }
+
+      // Adicionar URLs se fornecidas
+      if (successUrl) {
+        requestBody.success_url = successUrl
+      }
+      if (cancelUrl) {
+        requestBody.cancel_url = cancelUrl
+      }
+
       const response = await fetch(`${apiBaseUrl}/v1/subscriptions/swap-plan`, {
         method: 'POST',
         headers: {
@@ -113,11 +137,7 @@ class PlanSwapService {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
-        body: JSON.stringify({
-          customer_id: customerId,
-          new_price_id: newPriceId,
-          proration_behavior: prorationBehavior
-        })
+        body: JSON.stringify(requestBody)
       })
 
       console.log('🔍 Response status:', response.status)
@@ -144,6 +164,9 @@ class PlanSwapService {
       
       return {
         success: true,
+        requires_checkout: data.requires_checkout || false,
+        checkout_session_id: data.checkout_session_id || null,
+        checkout_url: data.checkout_url || null,
         data: data.data || data
       }
     } catch (error) {

@@ -267,6 +267,17 @@
               <span>Plano em Uso</span>
             </div>
 
+            <!-- Badge de Plano Vitalício Comprado -->
+            <div
+              v-if="
+                plan.metadata?.plan_type === 'lifetime' &&
+                hasPurchasedLifetimePlan()
+              "
+              class="purchased-lifetime-badge"
+            >
+              <span>💎 Já Comprado</span>
+            </div>
+
             <!-- Badge de Upgrade Disponível -->
             <div
               v-if="
@@ -355,12 +366,30 @@
                   selectedPlan?.id === plan.id &&
                   selectedPlan?.billing === plan.billing,
                 'active-plan': isPlanActive(plan),
-                disabled: isPlanActive(plan),
+                'purchased-lifetime':
+                  plan.metadata?.plan_type === 'lifetime' &&
+                  hasPurchasedLifetimePlan(),
+                disabled:
+                  isPlanActive(plan) ||
+                  (plan.metadata?.plan_type === 'lifetime' &&
+                    hasPurchasedLifetimePlan()),
               }"
-              :disabled="isPlanActive(plan)"
+              :disabled="
+                isPlanActive(plan) ||
+                (plan.metadata?.plan_type === 'lifetime' &&
+                  hasPurchasedLifetimePlan())
+              "
               @click.stop="handlePlanClick(plan)"
             >
               <span v-if="isPlanActive(plan)"> ✅ Plano em Uso </span>
+              <span
+                v-else-if="
+                  plan.metadata?.plan_type === 'lifetime' &&
+                  hasPurchasedLifetimePlan()
+                "
+              >
+                💎 Já Comprado
+              </span>
               <span
                 v-else-if="
                   selectedPlan?.id === plan.id &&
@@ -381,7 +410,9 @@
               subscriptionLoading ||
               !emailValidation.validated ||
               !emailValidation.valid ||
-              isPlanActive(selectedPlan)
+              isPlanActive(selectedPlan) ||
+              (selectedPlan?.metadata?.plan_type === 'lifetime' &&
+                hasPurchasedLifetimePlan())
             "
             :class="{
               'subscribe-button': true,
@@ -389,7 +420,9 @@
               disabled:
                 !emailValidation.validated ||
                 !emailValidation.valid ||
-                isPlanActive(selectedPlan),
+                isPlanActive(selectedPlan) ||
+                (selectedPlan?.metadata?.plan_type === 'lifetime' &&
+                  hasPurchasedLifetimePlan()),
             }"
             @click="handleSubscriptionAction"
           >
@@ -402,6 +435,9 @@
                 ? "E-mail não validado - Contate o suporte"
                 : isPlanActive(selectedPlan)
                 ? "Este plano já está ativo"
+                : selectedPlan?.metadata?.plan_type === 'lifetime' &&
+                  hasPurchasedLifetimePlan()
+                ? "💎 Plano Vitalício já comprado"
                 : activePlanData && activePlanData.customer_id
                 ? `🔄 Trocar para ${selectedPlan.name} - R$ ${getPlanPrice(
                     selectedPlan
@@ -956,6 +992,17 @@ const selectPlan = (plan) => {
     console.log("⚠️ Tentativa de selecionar plano já ativo:", plan.name);
     return;
   }
+
+  // Bloquear seleção de plano vitalício se já foi comprado
+  if (
+    plan.metadata?.plan_type === "lifetime" &&
+    hasPurchasedLifetimePlan()
+  ) {
+    console.log("⚠️ Tentativa de selecionar plano vitalício já comprado:", plan.name);
+    alert("Você já comprou o plano vitalício. O plano vitalício só pode ser adquirido uma vez.");
+    return;
+  }
+
   selectedPlan.value = plan;
 };
 
@@ -1019,6 +1066,29 @@ const isPlanActive = (plan) => {
 
   console.log("🔍 isPlanActive - Nenhuma correspondência encontrada");
   return false;
+};
+
+// Verificar se o usuário já comprou o plano vitalício alguma vez
+const hasPurchasedLifetimePlan = () => {
+  if (!activePlanData.value) {
+    return false;
+  }
+
+  // Verificar se o flag has_purchased_lifetime está presente
+  const hasPurchased = activePlanData.value.has_purchased_lifetime === true;
+  
+  // Também verificar se o plano ativo é vitalício (se está ativo, já comprou)
+  const isLifetimeActive =
+    activePlanData.value.plan_type === "one_time_payment" ||
+    activePlanData.value.subscription?.type === "one_time_payment";
+
+  console.log("🔍 hasPurchasedLifetimePlan:", {
+    hasPurchased,
+    isLifetimeActive,
+    activePlanData: activePlanData.value,
+  });
+
+  return hasPurchased || isLifetimeActive;
 };
 
 // Detectar se o plano ativo é anual baseado nos dados retornados
@@ -1262,7 +1332,28 @@ const handleSubscriptionAction = () => {
     activePlanData.value && activePlanData.value.customer_id;
   console.log("🔍 hasActivePlan:", hasActivePlan);
 
+  // Verificar se o plano ativo é vitalício (one_time_payment)
+  const isLifetimePlan = activePlanData.value?.plan_type === 'one_time_payment' || 
+                         activePlanData.value?.subscription?.type === 'one_time_payment';
+  
+  // Verificar se o plano selecionado é recorrente (subscription)
+  const selectedPlanIsRecurring = selectedPlan.value?.prices?.data?.[0]?.recurring !== null &&
+                                   selectedPlan.value?.prices?.data?.[0]?.type !== 'one_time';
+
+  console.log("🔍 isLifetimePlan:", isLifetimePlan);
+  console.log("🔍 selectedPlanIsRecurring:", selectedPlanIsRecurring);
+
   if (hasActivePlan) {
+    // Se o usuário tem plano vitalício e está tentando comprar um plano recorrente,
+    // permitir checkout normal (upgrade de vitalício para assinatura)
+    if (isLifetimePlan && selectedPlanIsRecurring) {
+      console.log("💎 Usuário com plano vitalício tentando fazer upgrade para plano recorrente - permitindo checkout normal");
+      subscribeToPlan();
+      return;
+    }
+
+    // Para outros casos (subscription ativa tentando comprar outra subscription),
+    // redirecionar para swap
     const priceId = selectedPlan.value.prices?.data?.[0]?.id;
     const customerId = activePlanData.value.customer_id;
     console.log("🔍 priceId encontrado:", priceId);
@@ -2454,6 +2545,22 @@ p {
   z-index: 10;
 }
 
+.purchased-lifetime-badge {
+  position: absolute;
+  top: -15px;
+  right: 20px;
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  color: white;
+  padding: 8px 20px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+  z-index: 10;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+  z-index: 10;
+}
+
 .lifetime-card {
   border: 3px solid #8b5cf6;
   background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
@@ -2617,6 +2724,18 @@ p {
 .plan-button.disabled:hover {
   transform: none;
   box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.plan-button.purchased-lifetime {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  color: white;
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+.plan-button.purchased-lifetime:hover {
+  transform: none;
+  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
 }
 
 /* Estilos de troca removidos - agora usamos o botão principal */
