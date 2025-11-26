@@ -538,6 +538,7 @@ const stripe = ref(null);
 const refreshingPlans = ref(false);
 
 const PLANS_CACHE_KEY = "subscription_plans_cache";
+const PLANS_CACHE_VERSION = "v2";
 const PLANS_CACHE_TTL_MS = 1000 * 60 * 60 * 4; // 4 horas
 const PLANS_REQUEST_TIMEOUT_MS = 15000; // 15 segundos
 
@@ -824,6 +825,7 @@ const loadPlansFromCache = () => {
 
     if (
       !parsed ||
+      parsed.version !== PLANS_CACHE_VERSION ||
       !Array.isArray(parsed.data) ||
       !parsed.timestamp ||
       Date.now() - parsed.timestamp > PLANS_CACHE_TTL_MS
@@ -851,6 +853,7 @@ const savePlansToCache = (planList) => {
     localStorage.setItem(
       PLANS_CACHE_KEY,
       JSON.stringify({
+        version: PLANS_CACHE_VERSION,
         timestamp: Date.now(),
         data: planList,
       })
