@@ -130,6 +130,33 @@
         <p>Carregando planos...</p>
       </div>
 
+      <div v-if="refreshingPlans && plans.length" class="refreshing-indicator">
+        <div class="mini-spinner"></div>
+        <span>Atualizando planos com as últimas ofertas...</span>
+      </div>
+
+      <div v-if="error" class="error-feedback">
+        <p>{{ error }}</p>
+        <button class="retry-button" @click="loadPlans({ forceRefresh: true })">
+          Tentar novamente
+        </button>
+      </div>
+
+      <div v-if="!loading && !plans.length && !error" class="empty-plans-state">
+        <p>Nenhum plano disponível no momento.</p>
+        <div class="empty-actions">
+          <button
+            class="retry-button"
+            @click="
+              clearPlansCache();
+              loadPlans({ forceRefresh: true });
+            "
+          >
+            Tentar atualizar novamente
+          </button>
+        </div>
+      </div>
+
       <!-- Debug info -->
       <div v-if="showDebug" class="debug-info">
         <h4>Debug Info:</h4>
@@ -435,7 +462,7 @@
                 ? "E-mail não validado - Contate o suporte"
                 : isPlanActive(selectedPlan)
                 ? "Este plano já está ativo"
-                : selectedPlan?.metadata?.plan_type === 'lifetime' &&
+                : selectedPlan?.metadata?.plan_type === "lifetime" &&
                   hasPurchasedLifetimePlan()
                 ? "💎 Plano Vitalício já comprado"
                 : activePlanData && activePlanData.customer_id
@@ -508,6 +535,11 @@ const showDebug = ref(false); // Ativado para debug
 const plans = ref([]);
 const error = ref(null);
 const stripe = ref(null);
+const refreshingPlans = ref(false);
+
+const PLANS_CACHE_KEY = "subscription_plans_cache";
+const PLANS_CACHE_TTL_MS = 1000 * 60 * 60 * 4; // 4 horas
+const PLANS_REQUEST_TIMEOUT_MS = 15000; // 15 segundos
 
 // Estados para validação de email do customer
 const emailValidation = ref({
@@ -533,15 +565,32 @@ const successURL = `${window.location.origin}/payment/success`;
 const cancelURL = `${window.location.origin}/payment/cancel`;
 
 // Planos exibidos baseados na periodicidade selecionada
+const getPlanPrimaryPrice = (plan) => plan?.prices?.data?.[0] || null;
+
+const isPlanRenderable = (plan) => {
+  if (!plan || !plan.metadata?.plan_type) {
+    return false;
+  }
+
+  if (plan.metadata.plan_type === "lifetime") {
+    // Sempre mostrar o plano vitalício, mesmo sem preço (pode já ter sido comprado)
+    return true;
+  }
+
+  // Demais planos precisam de metadata type e preço válido
+  return Boolean(plan.metadata?.type && getPlanPrimaryPrice(plan));
+};
+
 const displayedPlans = computed(() => {
   if (plans.value.length === 0) return [];
 
-  // Filtrar apenas produtos válidos (excluir produtos de teste)
+  // Filtrar apenas produtos válidos (excluir produtos de teste e sem preço)
   const validPlans = plans.value.filter(
     (plan) =>
       plan.metadata?.plan_type &&
       plan.metadata?.plan_type !== "test" &&
-      plan.name !== "Product Test"
+      plan.name !== "Product Test" &&
+      isPlanRenderable(plan)
   );
 
   // Filtrar planos baseado na periodicidade selecionada
@@ -758,13 +807,110 @@ const validateCustomerEmailAPI = async (userEmail) => {
 
 // Funções de validação removidas - usando apenas validateCustomerEmailGraphQL
 
-// Carregar planos da API
-const loadPlans = async () => {
+const canUseBrowserStorage = () => typeof window !== "undefined";
+
+const loadPlansFromCache = () => {
+  if (!canUseBrowserStorage()) {
+    return false;
+  }
+
   try {
-    loading.value = true;
+    const cached = localStorage.getItem(PLANS_CACHE_KEY);
+    if (!cached) {
+      return false;
+    }
+
+    const parsed = JSON.parse(cached);
+
+    if (
+      !parsed ||
+      !Array.isArray(parsed.data) ||
+      !parsed.timestamp ||
+      Date.now() - parsed.timestamp > PLANS_CACHE_TTL_MS
+    ) {
+      localStorage.removeItem(PLANS_CACHE_KEY);
+      return false;
+    }
+
+    plans.value = parsed.data;
+    console.log("✅ Planos carregados do cache local");
+    return true;
+  } catch (cacheError) {
+    console.warn("⚠️ Falha ao ler cache local de planos:", cacheError);
+    localStorage.removeItem(PLANS_CACHE_KEY);
+    return false;
+  }
+};
+
+const savePlansToCache = (planList) => {
+  if (!canUseBrowserStorage() || !Array.isArray(planList) || !planList.length) {
+    return;
+  }
+
+  try {
+    localStorage.setItem(
+      PLANS_CACHE_KEY,
+      JSON.stringify({
+        timestamp: Date.now(),
+        data: planList,
+      })
+    );
+    console.log("💾 Planos atualizados no cache local");
+  } catch (cacheError) {
+    console.warn("⚠️ Falha ao salvar planos no cache local:", cacheError);
+  }
+};
+
+const clearPlansCache = () => {
+  if (!canUseBrowserStorage()) {
+    return;
+  }
+
+  localStorage.removeItem(PLANS_CACHE_KEY);
+  console.log("🧹 Cache de planos limpo manualmente");
+};
+
+const createAbortableRequest = () => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(
+    () => controller.abort(),
+    PLANS_REQUEST_TIMEOUT_MS
+  );
+
+  return { controller, timeoutId };
+};
+
+// Carregar planos da API
+const loadPlans = async ({ forceRefresh = false } = {}) => {
+  try {
+    const hadPlansBeforeRequest = plans.value.length > 0;
+
+    if (!forceRefresh && !hadPlansBeforeRequest) {
+      loadPlansFromCache();
+    }
+
+    if (!plans.value.length) {
+      loading.value = true;
+    } else {
+      refreshingPlans.value = true;
+    }
+
     error.value = null;
 
-    const response = await fetch(API_URL);
+    const { controller, timeoutId } = createAbortableRequest();
+    let response;
+
+    try {
+      response = await fetch(API_URL, {
+        signal: controller.signal,
+        headers: {
+          Accept: "application/json",
+        },
+        cache: "no-store",
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -774,6 +920,7 @@ const loadPlans = async () => {
 
     if (data.success && data.data) {
       plans.value = data.data;
+      savePlansToCache(data.data);
 
       // Após carregar os planos, tentar selecionar automaticamente o plano ativo
       nextTick(() => {
@@ -784,24 +931,37 @@ const loadPlans = async () => {
     }
   } catch (err) {
     console.error("❌ Erro ao carregar planos:", err);
-    error.value = err.message;
+    if (err.name === "AbortError") {
+      error.value =
+        "Tempo limite ao carregar planos. Mostrando dados em cache, tente novamente.";
+    } else {
+      error.value = err.message;
+    }
   } finally {
     loading.value = false;
+    refreshingPlans.value = false;
   }
 };
 
 // Funções auxiliares
-const getPlanPrice = (plan) => {
-  // Usar o preço real da API
-  const priceData = plan.prices?.data?.[0];
-  if (!priceData) {
-    console.warn("⚠️ Preço não encontrado para o plano:", plan.name);
-    return "0,00";
+const formatCurrencyFromCents = (valueInCents) => {
+  if (typeof valueInCents !== "number") {
+    return null;
   }
 
-  // unit_amount está em centavos, converter para reais
-  const priceInReais = priceData.unit_amount / 100;
-  return priceInReais.toFixed(2).replace(".", ",");
+  return (valueInCents / 100).toFixed(2).replace(".", ",");
+};
+
+const getPlanPrice = (plan) => {
+  const priceData = getPlanPrimaryPrice(plan);
+
+  if (!priceData || typeof priceData.unit_amount !== "number") {
+    console.warn("⚠️ Preço não encontrado para o plano:", plan?.name);
+    return "—";
+  }
+
+  const formatted = formatCurrencyFromCents(priceData.unit_amount);
+  return formatted ?? "—";
 };
 
 // Calcular desconto anual baseado nos preços reais
@@ -815,10 +975,12 @@ const getYearlyDiscount = (plan) => {
       p.metadata?.type === "monthly"
   );
 
-  if (!monthlyPlan || !monthlyPlan.prices?.data?.[0]) return null;
+  const monthlyPrice = getPlanPrimaryPrice(monthlyPlan)?.unit_amount;
+  const yearlyPrice = getPlanPrimaryPrice(plan)?.unit_amount;
 
-  const monthlyPrice = monthlyPlan.prices.data[0].unit_amount;
-  const yearlyPrice = plan.prices.data[0].unit_amount;
+  if (!monthlyPrice || !yearlyPrice) {
+    return null;
+  }
   const yearlyTotal = monthlyPrice * 12;
 
   if (yearlyTotal <= yearlyPrice) return null;
@@ -836,10 +998,12 @@ const getLifetimeSavings = (plan) => {
     (p) => p.metadata?.plan_type === "pro" && p.metadata?.type === "yearly"
   );
 
-  if (!proYearlyPlan || !proYearlyPlan.prices?.data?.[0]) return null;
+  const proYearlyPrice = getPlanPrimaryPrice(proYearlyPlan)?.unit_amount;
+  const lifetimePrice = getPlanPrimaryPrice(plan)?.unit_amount;
 
-  const proYearlyPrice = proYearlyPlan.prices.data[0].unit_amount;
-  const lifetimePrice = plan.prices.data[0].unit_amount;
+  if (!proYearlyPrice || !lifetimePrice) {
+    return null;
+  }
 
   // Assumir que o usuário usaria o plano por 3 anos
   const threeYearTotal = proYearlyPrice * 3;
@@ -854,7 +1018,7 @@ const getLifetimeSavings = (plan) => {
 const getPlanPeriod = (plan) => {
   if (plan.metadata?.plan_type === "lifetime") return "";
 
-  const priceData = plan.prices?.data?.[0];
+  const priceData = getPlanPrimaryPrice(plan);
   if (!priceData?.recurring) return "";
 
   const interval = priceData.recurring.interval;
@@ -994,12 +1158,14 @@ const selectPlan = (plan) => {
   }
 
   // Bloquear seleção de plano vitalício se já foi comprado
-  if (
-    plan.metadata?.plan_type === "lifetime" &&
-    hasPurchasedLifetimePlan()
-  ) {
-    console.log("⚠️ Tentativa de selecionar plano vitalício já comprado:", plan.name);
-    alert("Você já comprou o plano vitalício. O plano vitalício só pode ser adquirido uma vez.");
+  if (plan.metadata?.plan_type === "lifetime" && hasPurchasedLifetimePlan()) {
+    console.log(
+      "⚠️ Tentativa de selecionar plano vitalício já comprado:",
+      plan.name
+    );
+    alert(
+      "Você já comprou o plano vitalício. O plano vitalício só pode ser adquirido uma vez."
+    );
     return;
   }
 
@@ -1076,7 +1242,7 @@ const hasPurchasedLifetimePlan = () => {
 
   // Verificar se o flag has_purchased_lifetime está presente
   const hasPurchased = activePlanData.value.has_purchased_lifetime === true;
-  
+
   // Também verificar se o plano ativo é vitalício (se está ativo, já comprou)
   const isLifetimeActive =
     activePlanData.value.plan_type === "one_time_payment" ||
@@ -1333,12 +1499,14 @@ const handleSubscriptionAction = () => {
   console.log("🔍 hasActivePlan:", hasActivePlan);
 
   // Verificar se o plano ativo é vitalício (one_time_payment)
-  const isLifetimePlan = activePlanData.value?.plan_type === 'one_time_payment' || 
-                         activePlanData.value?.subscription?.type === 'one_time_payment';
-  
+  const isLifetimePlan =
+    activePlanData.value?.plan_type === "one_time_payment" ||
+    activePlanData.value?.subscription?.type === "one_time_payment";
+
   // Verificar se o plano selecionado é recorrente (subscription)
-  const selectedPlanIsRecurring = selectedPlan.value?.prices?.data?.[0]?.recurring !== null &&
-                                   selectedPlan.value?.prices?.data?.[0]?.type !== 'one_time';
+  const selectedPlanIsRecurring =
+    selectedPlan.value?.prices?.data?.[0]?.recurring !== null &&
+    selectedPlan.value?.prices?.data?.[0]?.type !== "one_time";
 
   console.log("🔍 isLifetimePlan:", isLifetimePlan);
   console.log("🔍 selectedPlanIsRecurring:", selectedPlanIsRecurring);
@@ -1347,7 +1515,9 @@ const handleSubscriptionAction = () => {
     // Se o usuário tem plano vitalício e está tentando comprar um plano recorrente,
     // permitir checkout normal (upgrade de vitalício para assinatura)
     if (isLifetimePlan && selectedPlanIsRecurring) {
-      console.log("💎 Usuário com plano vitalício tentando fazer upgrade para plano recorrente - permitindo checkout normal");
+      console.log(
+        "💎 Usuário com plano vitalício tentando fazer upgrade para plano recorrente - permitindo checkout normal"
+      );
       subscribeToPlan();
       return;
     }
@@ -2013,6 +2183,65 @@ p {
   text-align: center;
   padding: 60px 20px;
   color: white;
+}
+
+.refreshing-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 12px 20px;
+  border-radius: 12px;
+  margin: 0 auto 20px;
+  backdrop-filter: blur(10px);
+  font-size: 0.95rem;
+  justify-content: center;
+  max-width: 360px;
+}
+
+.mini-spinner {
+  width: 18px;
+  height: 18px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top: 3px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.error-feedback {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  border-radius: 12px;
+  padding: 16px 20px;
+  color: white;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.error-feedback p {
+  margin: 0 0 12px 0;
+  font-size: 0.95rem;
+}
+
+.empty-plans-state {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px dashed rgba(255, 255, 255, 0.3);
+  border-radius: 16px;
+  padding: 30px 20px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 30px;
+}
+
+.empty-plans-state p {
+  margin: 0 0 15px 0;
+}
+
+.empty-actions {
+  display: flex;
+  justify-content: center;
 }
 
 .loading-spinner {
