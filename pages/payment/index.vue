@@ -393,9 +393,7 @@
                   selectedPlan?.id === plan.id &&
                   selectedPlan?.billing === plan.billing,
                 'active-plan': isPlanActive(plan),
-                'purchased-lifetime':
-                  plan.metadata?.plan_type === 'lifetime' &&
-                  hasPurchasedLifetimePlan(),
+                'purchased-lifetime': isLifetimePlanPurchased(plan),
                 disabled: isPlanDisabled(plan),
               }"
               :disabled="isPlanDisabled(plan)"
@@ -403,12 +401,13 @@
             >
               <span v-if="isPlanActive(plan)"> Plano ativo </span>
               <span
-                v-else-if="
-                  plan.metadata?.plan_type === 'lifetime' &&
-                  hasPurchasedLifetimePlan()
-                "
+                v-else-if="isLifetimePlanPurchased(plan)"
+                class="lifetime-purchased-label"
               >
-                💎 Já Comprado
+                💎 Vitalício comprado
+                <span v-if="lifetimePurchaseLabel" class="purchase-date">
+                  {{ lifetimePurchaseLabel }}
+                </span>
               </span>
               <span
                 v-else-if="
@@ -584,6 +583,19 @@ const matchesPlanTier = (plan, tier) => {
   return planTier.billingType === tier.billingType;
 };
 
+const formatDateBR = (dateString) => {
+  if (!dateString) return null;
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+  return date.toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+};
+
 // Estados para validação de email do customer
 const emailValidation = ref({
   loading: false,
@@ -603,6 +615,25 @@ const activeProductMetadata = computed(() =>
 const activePlanTier = computed(() =>
   getPlanTierInfo(activePlanData.value?.product?.metadata)
 );
+const lifetimePlanData = computed(
+  () => activePlanData.value?.lifetime_plan ?? null
+);
+const lifetimePlanTier = computed(() =>
+  getPlanTierInfo(lifetimePlanData.value?.product?.metadata)
+);
+const lifetimePlanPriceId = computed(
+  () =>
+    lifetimePlanData.value?.price?.stripe_id ??
+    lifetimePlanData.value?.price?.id ??
+    null
+);
+const lifetimePurchaseDate = computed(
+  () => lifetimePlanData.value?.subscription?.purchased_at ?? null
+);
+const lifetimePurchaseLabel = computed(() => {
+  const formatted = formatDateBR(lifetimePurchaseDate.value);
+  return formatted ? `Comprado em ${formatted}` : null;
+});
 
 // Removido: Estado do modal de troca de planos (agora redirecionamos para rota específica)
 
@@ -1313,29 +1344,23 @@ const hasPurchasedLifetimePlan = () => {
     return false;
   }
 
+  if (lifetimePlanData.value) {
+    return true;
+  }
+
   const hasPurchased = Boolean(activePlanData.value.has_purchased_lifetime);
   const isLifetimeActive =
     activePlanData.value.plan_type === "one_time_payment" ||
     activePlanData.value.subscription?.type === "one_time_payment";
 
-  const lifetimePriceId = plans.value
-    .filter((plan) => plan.metadata?.plan_type === "lifetime")
-    .map((plan) => plan.prices?.data?.[0]?.id)
-    .filter(Boolean);
-
-  const selectedLifetime = lifetimePriceId.includes(
-    activePlanData.value.subscription?.price_id
-  );
-
   console.log("🔍 hasPurchasedLifetimePlan:", {
     hasPurchased,
     isLifetimeActive,
-    selectedLifetime,
-    lifetimePriceId,
+    lifetimePlan: lifetimePlanData.value,
     activePlanData: activePlanData.value,
   });
 
-  return hasPurchased || isLifetimeActive || selectedLifetime;
+  return hasPurchased || isLifetimeActive;
 };
 
 const isPlanDisabled = (plan) => {
@@ -1347,11 +1372,21 @@ const isPlanDisabled = (plan) => {
     return true;
   }
 
-  if (plan.metadata?.plan_type === "lifetime" && hasPurchasedLifetimePlan()) {
+  if (isLifetimePlanPurchased(plan)) {
     return true;
   }
 
   return false;
+};
+
+const isLifetimePlanPurchased = (plan) => {
+  if (plan.metadata?.plan_type !== "lifetime") {
+    return false;
+  }
+
+  // Se o backend informar que já existe compra vitalícia, consideramos
+  // qualquer cartão de plano vitalício como já comprado.
+  return hasPurchasedLifetimePlan();
 };
 
 // Detectar se o plano ativo é anual baseado nos dados retornados
@@ -3065,6 +3100,19 @@ p {
   color: white;
   cursor: not-allowed;
   opacity: 0.8;
+}
+
+.plan-button .lifetime-purchased-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font-size: 0.9rem;
+}
+
+.plan-button .purchase-date {
+  font-size: 0.75rem;
+  opacity: 0.85;
 }
 
 .plan-button.purchased-lifetime:hover {

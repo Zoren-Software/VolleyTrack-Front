@@ -333,6 +333,48 @@ const getAuthToken = () => {
   return null;
 };
 
+const shouldEmitPlanData = (data) => {
+  if (!data) return false;
+  if (data.has_active_plan === true) {
+    return true;
+  }
+  return Boolean(data.has_purchased_lifetime && data.lifetime_plan);
+};
+
+const buildPlanPayload = (data) => {
+  if (!data) return null;
+
+  const payload = {
+    ...data,
+  };
+
+  const lifetimePlan = data.lifetime_plan;
+
+  if (lifetimePlan) {
+    if (!payload.subscription && lifetimePlan.subscription) {
+      payload.subscription = lifetimePlan.subscription;
+    }
+
+    if (!payload.product && lifetimePlan.product) {
+      payload.product = lifetimePlan.product;
+    }
+
+    if (!payload.price && lifetimePlan.price) {
+      payload.price = lifetimePlan.price;
+    }
+
+    if (!payload.plan_type) {
+      payload.plan_type = "one_time_payment";
+    }
+
+    payload.isLifetimePurchaseOnly =
+      data.has_active_plan !== true &&
+      Boolean(data.has_purchased_lifetime && lifetimePlan);
+  }
+
+  return payload;
+};
+
 // Verificar plano ativo
 const checkActivePlan = async () => {
   loading.value = true;
@@ -352,36 +394,40 @@ const checkActivePlan = async () => {
     console.log("🔍 Resposta completa do getActivePlan:", response);
 
     if (response.success) {
-      console.log("🔍 response.data:", response.data);
+      const responseData = response.data;
+
+      console.log("🔍 response.data:", responseData);
       console.log(
         "🔍 response.data.has_active_plan:",
-        response.data.has_active_plan
+        responseData.has_active_plan
       );
       console.log(
         "🔍 Tipo de response.data.has_active_plan:",
-        typeof response.data.has_active_plan
+        typeof responseData.has_active_plan
       );
       console.log(
         "🔍 Comparação response.data.has_active_plan === true:",
-        response.data.has_active_plan === true
+        responseData.has_active_plan === true
       );
       console.log(
         "🔍 Comparação response.data.has_active_plan == true:",
-        response.data.has_active_plan == true
+        responseData.has_active_plan == true
       );
       console.log(
         "🔍 Comparação Boolean(response.data.has_active_plan):",
-        Boolean(response.data.has_active_plan)
+        Boolean(responseData.has_active_plan)
       );
 
-      if (response.data.has_active_plan === true) {
-        activePlan.value = response.data;
+      const emitPlan = shouldEmitPlanData(responseData);
+
+      if (emitPlan) {
+        activePlan.value = buildPlanPayload(responseData);
 
         // Extrair customer_id da nova estrutura da API
-        const customerId = response.data.customer_id;
+        const customerId = activePlan.value.customer_id;
 
         console.log("🔍 Tentando extrair customer_id:", {
-          "response.data.customer_id": response.data.customer_id,
+          "response.data.customer_id": responseData.customer_id,
           "customerId final": customerId,
         });
 
@@ -401,11 +447,11 @@ const checkActivePlan = async () => {
           );
         } else {
           console.log("❌ Customer ID não encontrado na resposta");
-          console.log("🔍 Estrutura completa da resposta:", response.data);
+          console.log("🔍 Estrutura completa da resposta:", responseData);
         }
 
         // Salvar dados completos do plano ativo no localStorage
-        localStorage.setItem("activePlanData", JSON.stringify(response.data));
+        localStorage.setItem("activePlanData", JSON.stringify(activePlan.value));
         console.log("💾 Dados do plano ativo salvos no localStorage");
 
         emit("plan-loaded", activePlan.value);
@@ -435,7 +481,7 @@ const checkActivePlan = async () => {
         emit("plan-loaded", null);
         console.log(
           "ℹ️ Nenhum plano ativo encontrado - has_active_plan:",
-          response.data.has_active_plan
+          responseData.has_active_plan
         );
       }
     } else {
