@@ -396,19 +396,12 @@
                 'purchased-lifetime':
                   plan.metadata?.plan_type === 'lifetime' &&
                   hasPurchasedLifetimePlan(),
-                disabled:
-                  isPlanActive(plan) ||
-                  (plan.metadata?.plan_type === 'lifetime' &&
-                    hasPurchasedLifetimePlan()),
+                disabled: isPlanDisabled(plan),
               }"
-              :disabled="
-                isPlanActive(plan) ||
-                (plan.metadata?.plan_type === 'lifetime' &&
-                  hasPurchasedLifetimePlan())
-              "
+              :disabled="isPlanDisabled(plan)"
               @click.stop="handlePlanClick(plan)"
             >
-              <span v-if="isPlanActive(plan)"> ✅ Plano em Uso </span>
+              <span v-if="isPlanActive(plan)"> Plano ativo </span>
               <span
                 v-else-if="
                   plan.metadata?.plan_type === 'lifetime' &&
@@ -542,6 +535,55 @@ const PLANS_CACHE_VERSION = "v2";
 const PLANS_CACHE_TTL_MS = 1000 * 60 * 60 * 4; // 4 horas
 const PLANS_REQUEST_TIMEOUT_MS = 15000; // 15 segundos
 
+const normalizeMetadata = (metadata) => {
+  if (!metadata) return {};
+
+  if (typeof metadata === "string") {
+    try {
+      return JSON.parse(metadata);
+    } catch (error) {
+      console.warn("Erro ao converter metadata string:", error);
+      return {};
+    }
+  }
+
+  if (typeof metadata === "object") {
+    return { ...metadata };
+  }
+
+  return {};
+};
+
+const getPlanTierInfo = (metadata) => {
+  const normalized = normalizeMetadata(metadata);
+  return {
+    planType: normalized.plan_type ? normalized.plan_type.toLowerCase() : null,
+    billingType: normalized.type ? normalized.type.toLowerCase() : null,
+  };
+};
+
+const matchesPlanTier = (plan, tier) => {
+  if (!plan || !tier || !tier.planType) {
+    return false;
+  }
+
+  const planTier = getPlanTierInfo(plan.metadata);
+
+  if (!planTier.planType) {
+    return false;
+  }
+
+  if (planTier.planType !== tier.planType) {
+    return false;
+  }
+
+  if (!tier.billingType || !planTier.billingType) {
+    return true;
+  }
+
+  return planTier.billingType === tier.billingType;
+};
+
 // Estados para validação de email do customer
 const emailValidation = ref({
   loading: false,
@@ -555,6 +597,12 @@ const emailValidation = ref({
 const activePlanData = ref(null);
 const activePlanLoading = ref(true);
 const showUpgradeAnimations = ref(false);
+const activeProductMetadata = computed(() =>
+  normalizeMetadata(activePlanData.value?.product?.metadata)
+);
+const activePlanTier = computed(() =>
+  getPlanTierInfo(activePlanData.value?.product?.metadata)
+);
 
 // Removido: Estado do modal de troca de planos (agora redirecionamos para rota específica)
 
@@ -1154,21 +1202,8 @@ const getGeneralYearlyDiscount = computed(() => {
 
 // Selecionar plano
 const selectPlan = (plan) => {
-  // Não permitir seleção se o plano já está ativo
-  if (isPlanActive(plan)) {
-    console.log("⚠️ Tentativa de selecionar plano já ativo:", plan.name);
-    return;
-  }
-
-  // Bloquear seleção de plano vitalício se já foi comprado
-  if (plan.metadata?.plan_type === "lifetime" && hasPurchasedLifetimePlan()) {
-    console.log(
-      "⚠️ Tentativa de selecionar plano vitalício já comprado:",
-      plan.name
-    );
-    alert(
-      "Você já comprou o plano vitalício. O plano vitalício só pode ser adquirido uma vez."
-    );
+  if (isPlanDisabled(plan)) {
+    console.log("⚠️ Tentativa de selecionar plano indisponível:", plan.name);
     return;
   }
 
@@ -1179,10 +1214,8 @@ const selectPlan = (plan) => {
 // NOTA: Não selecionamos o plano ativo automaticamente, pois ele já aparece
 // com o badge "Plano em Uso" e não deve ser selecionável
 const autoSelectActivePlan = () => {
-  // Removido: não selecionar automaticamente o plano ativo
-  // O plano ativo já aparece com badge "Plano em Uso" e não deve ser selecionável
   console.log(
-    "ℹ️ Plano ativo detectado - não será selecionado automaticamente (já aparece com badge)"
+    "ℹ️ Plano ativo detectado - botões serão bloqueados via isPlanDisabled()"
   );
 };
 
@@ -1195,21 +1228,58 @@ const isPlanActive = (plan) => {
   const activePriceId = activePlanData.value.subscription.price_id;
   const planPriceId = plan.prices?.data?.[0]?.id;
 
+  const activeProduct = activePlanData.value.product || {};
+  const activeProductId = activeProduct.stripe_id || activeProduct.id || null;
+  const planProductId = plan.id || plan.stripe_id || null;
+  const planMetadata = normalizeMetadata(plan.metadata);
+  const activeMetadata = activeProductMetadata.value;
+
   console.log("🔍 isPlanActive - Comparando planos:", {
     activePriceId,
     planPriceId,
     planName: plan.name,
     activeProductName: activePlanData.value.product?.name,
+    activeProductId,
+    planProductId,
+    planMetadata,
+    activeMetadata,
   });
 
   // Comparar por ID do preço (método mais confiável)
   if (activePriceId && planPriceId) {
     const isActive = activePriceId === planPriceId;
     console.log("🔍 isPlanActive - Comparação por price_id:", isActive);
-    return isActive;
+    if (isActive) {
+      return true;
+    }
   }
 
-  // Fallback: comparar por nome e tipo
+  if (activeProductId && planProductId && activeProductId === planProductId) {
+    console.log("🔍 isPlanActive - Comparação por produto:", true);
+    return true;
+  }
+
+  if (
+    activeMetadata.plan_type &&
+    planMetadata.plan_type &&
+    activeMetadata.plan_type === planMetadata.plan_type
+  ) {
+    if (
+      !activeMetadata.type ||
+      !planMetadata.type ||
+      activeMetadata.type === planMetadata.type
+    ) {
+      console.log("🔍 isPlanActive - Comparação por metadata:", true);
+      return true;
+    }
+  }
+
+  if (matchesPlanTier(plan, activePlanTier.value)) {
+    console.log("🔍 isPlanActive - Comparação por tier:", true);
+    return true;
+  }
+
+  // Fallback: comparar por nome
   const activeProductName = activePlanData.value.product?.name?.toLowerCase();
   const planName = plan.name?.toLowerCase();
 
@@ -1243,21 +1313,45 @@ const hasPurchasedLifetimePlan = () => {
     return false;
   }
 
-  // Verificar se o flag has_purchased_lifetime está presente
-  const hasPurchased = activePlanData.value.has_purchased_lifetime === true;
-
-  // Também verificar se o plano ativo é vitalício (se está ativo, já comprou)
+  const hasPurchased = Boolean(activePlanData.value.has_purchased_lifetime);
   const isLifetimeActive =
     activePlanData.value.plan_type === "one_time_payment" ||
     activePlanData.value.subscription?.type === "one_time_payment";
 
+  const lifetimePriceId = plans.value
+    .filter((plan) => plan.metadata?.plan_type === "lifetime")
+    .map((plan) => plan.prices?.data?.[0]?.id)
+    .filter(Boolean);
+
+  const selectedLifetime = lifetimePriceId.includes(
+    activePlanData.value.subscription?.price_id
+  );
+
   console.log("🔍 hasPurchasedLifetimePlan:", {
     hasPurchased,
     isLifetimeActive,
+    selectedLifetime,
+    lifetimePriceId,
     activePlanData: activePlanData.value,
   });
 
-  return hasPurchased || isLifetimeActive;
+  return hasPurchased || isLifetimeActive || selectedLifetime;
+};
+
+const isPlanDisabled = (plan) => {
+  if (!plan) {
+    return false;
+  }
+
+  if (isPlanActive(plan)) {
+    return true;
+  }
+
+  if (plan.metadata?.plan_type === "lifetime" && hasPurchasedLifetimePlan()) {
+    return true;
+  }
+
+  return false;
 };
 
 // Detectar se o plano ativo é anual baseado nos dados retornados
@@ -2939,6 +3033,7 @@ p {
   background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
   cursor: default;
+  opacity: 1;
 }
 
 .plan-button.active-plan:hover {
@@ -2951,6 +3046,13 @@ p {
   color: #9ca3af;
   cursor: not-allowed;
   opacity: 0.7;
+}
+
+.plan-button.active-plan.disabled,
+.plan-button.purchased-lifetime.disabled {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  opacity: 1;
 }
 
 .plan-button.disabled:hover {
@@ -3037,6 +3139,28 @@ p {
   height: 100%;
   display: flex;
   flex-direction: column;
+}
+
+.active-plan-info {
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(8px);
+  color: white;
+  font-size: 0.95rem;
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.active-plan-label {
+  font-weight: 600;
+  opacity: 0.85;
+}
+
+.active-plan-name {
+  font-weight: 700;
 }
 
 /* Responsividade */
