@@ -2,9 +2,24 @@
  * Service para gerenciar informações do Plano Vitalício
  */
 
-const API_BASE_URL = process.client 
-  ? window.origin.replace(window.location.hostname.split('.')[0], 'api') 
-  : '';
+const getApiBaseUrl = () => {
+  if (!process.client) return '';
+  
+  const protocol = window.location.protocol;
+  const hostname = window.location.hostname;
+  
+  // Se for localhost ou apenas hostname sem subdomínio, usar api.volleytrack.local
+  if (hostname === 'localhost' || !hostname.includes('.')) {
+    return `${protocol}//api.volleytrack.local`;
+  }
+  
+  // Substituir primeiro subdomínio por 'api' (ex: app.volleytrack.local -> api.volleytrack.local)
+  const parts = hostname.split('.');
+  parts[0] = 'api';
+  return `${protocol}//${parts.join('.')}`;
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 /**
  * Buscar contador de planos vitalícios vendidos
