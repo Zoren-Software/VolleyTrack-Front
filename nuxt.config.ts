@@ -15,9 +15,8 @@ export default defineNuxtConfig({
   vite: {
     server: {
       allowedHosts: [
-        'test.volleytrack.local',
-        'test.volleytrack.localhost',
         'localhost',
+        'local',
       ],
     },
   },
