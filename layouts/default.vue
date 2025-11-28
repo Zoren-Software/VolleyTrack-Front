@@ -31,6 +31,13 @@
 
     <!-- Sidebar flutuante à direita -->
     <ZSidebarSettings v-model="enabledSettings" />
+
+    <!-- Modal de erro de limite de plano -->
+    <PlanLimitErrorModal
+      v-model="isModalOpen"
+      :error-data="errorData"
+      @upgrade-clicked="onUpgradeClicked"
+    />
   </va-card>
 </template>
 
@@ -38,12 +45,22 @@
 import ZSidebar from "~/components/molecules/Sidebar/ZSidebar";
 import ZSidebarSettings from "~/components/molecules/Sidebar/ZSidebarSettings";
 import ZNavBar from "~/components/organisms/NavBar/ZNavBar";
+import PlanLimitErrorModal from "~/components/PlanLimitErrorModal.vue";
+import { usePlanLimitError } from "~/composables/usePlanLimitError";
 
 export default {
   components: {
     ZSidebar,
     ZNavBar,
     ZSidebarSettings,
+    PlanLimitErrorModal,
+  },
+  setup() {
+    const { isModalOpen, errorData } = usePlanLimitError();
+    return {
+      isModalOpen,
+      errorData,
+    };
   },
   data() {
     return {
@@ -65,6 +82,9 @@ export default {
       } else if (item.to) {
         this.$router.push(item.to);
       }
+    },
+    onUpgradeClicked() {
+      console.log("🚀 Redirecionando para página de upgrade de planos");
     },
   },
 };
