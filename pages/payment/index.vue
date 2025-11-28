@@ -384,6 +384,39 @@
                   </div>
                 </div>
               </div>
+              
+              <!-- Disponibilidade do Plano Vitalício -->
+              <div
+                v-if="plan.metadata?.plan_type === 'lifetime' && lifetimeCounter"
+                class="lifetime-availability"
+                :class="{
+                  'availability-danger': lifetimeCounter.is_sold_out,
+                  'availability-warning': !lifetimeCounter.is_sold_out && lifetimeCounter.remaining <= 50,
+                  'availability-success': !lifetimeCounter.is_sold_out && lifetimeCounter.remaining > 50
+                }"
+              >
+                <div class="availability-icon">
+                  <span v-if="lifetimeCounter.is_sold_out">🔴</span>
+                  <span v-else-if="lifetimeCounter.remaining <= 10">🔥</span>
+                  <span v-else-if="lifetimeCounter.remaining <= 50">⚡</span>
+                  <span v-else>✨</span>
+                </div>
+                <div class="availability-content">
+                  <span class="availability-label">Disponibilidade</span>
+                  <span class="availability-value">
+                    <span v-if="lifetimeCounter.is_sold_out">ESGOTADO</span>
+                    <span v-else-if="lifetimeCounter.remaining <= 10">
+                      Últimas {{ lifetimeCounter.remaining }} vagas!
+                    </span>
+                    <span v-else-if="lifetimeCounter.remaining <= 50">
+                      {{ lifetimeCounter.remaining }}/{{ lifetimeCounter.limit }}
+                    </span>
+                    <span v-else>
+                      {{ lifetimeCounter.remaining }}/{{ lifetimeCounter.limit }} disponíveis
+                    </span>
+                  </span>
+                </div>
+              </div>
             </div>
 
             <button
@@ -494,6 +527,7 @@ import {
   redirectToCheckout,
   validateCheckoutData,
 } from "~/services/stripeCheckoutService.js";
+import { getLifetimePlansCount } from "~/services/lifetimePlanService.js";
 import ActivePlanChecker from "~/components/ActivePlanChecker.vue";
 import PaymentMethodCard from "~/components/PaymentMethodCard.vue";
 
@@ -528,6 +562,7 @@ const plans = ref([]);
 const error = ref(null);
 const stripe = ref(null);
 const refreshingPlans = ref(false);
+const lifetimeCounter = ref(null);
 
 const PLANS_CACHE_KEY = "subscription_plans_cache";
 const PLANS_CACHE_VERSION = "v2";
@@ -1905,6 +1940,32 @@ const subscribeToPlan = async () => {
 };
 
 // Inicialização
+// Carregar contador de planos vitalícios
+const loadLifetimeCounter = async () => {
+  try {
+    console.log('📊 Carregando contador de planos vitalícios...');
+    
+    const result = await getLifetimePlansCount();
+    
+    if (result.success) {
+      lifetimeCounter.value = result.data;
+      console.log('✅ Contador carregado:', lifetimeCounter.value);
+    } else {
+      console.warn('⚠️ Erro ao carregar contador, usando valores padrão');
+      lifetimeCounter.value = {
+        total_sold: 0,
+        limit: 500,
+        remaining: 500,
+        percentage: 0,
+        is_sold_out: false
+      };
+    }
+  } catch (error) {
+    console.error('❌ Erro ao carregar contador:', error);
+    lifetimeCounter.value = null;
+  }
+};
+
 onMounted(async () => {
   try {
     console.log("🚀 Iniciando carregamento da página...");
@@ -1918,6 +1979,9 @@ onMounted(async () => {
 
     // Carregar planos da API
     await loadPlans();
+
+    // Carregar contador de planos vitalícios
+    await loadLifetimeCounter();
 
     // Verificar se a chave do Stripe está configurada
     if (!stripeKey || stripeKey === "undefined") {
@@ -2763,6 +2827,88 @@ p {
   font-weight: 600;
   text-align: center;
   word-break: break-word;
+}
+
+/* Disponibilidade do Plano Vitalício */
+.lifetime-availability {
+  margin-top: 12px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.lifetime-availability.availability-success {
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  border-color: #10b981;
+}
+
+.lifetime-availability.availability-warning {
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  border-color: #f59e0b;
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.lifetime-availability.availability-danger {
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  border-color: #ef4444;
+  animation: pulse-glow 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+  }
+  50% {
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.availability-icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.availability-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.availability-label {
+  font-size: 0.7rem;
+  color: #666;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.availability-value {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #333;
+  line-height: 1.3;
+}
+
+.availability-success .availability-value {
+  color: #059669;
+}
+
+.availability-warning .availability-value {
+  color: #d97706;
+}
+
+.availability-danger .availability-value {
+  color: #dc2626;
 }
 
 .offer-floating-badge {
