@@ -20,7 +20,19 @@
               <span class="info-label">Seu plano atual:</span>
               <span class="info-value">{{ planInfo }}</span>
             </div>
-            <div v-if="limitInfo" class="info-item">
+            <!-- Mostrar ambos os limites quando ambos excedem -->
+            <template v-if="errorData.bothExceeded && errorData.playersData && errorData.teamsData">
+              <div class="info-item">
+                <span class="info-label">Limite de usuários:</span>
+                <span class="info-value">{{ errorData.playersData.current }}/{{ errorData.playersData.max }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Limite de times:</span>
+                <span class="info-value">{{ errorData.teamsData.current }}/{{ errorData.teamsData.max }}</span>
+              </div>
+            </template>
+            <!-- Mostrar apenas um limite quando apenas um excede -->
+            <div v-else-if="limitInfo" class="info-item">
               <span class="info-label">{{ limitType }}:</span>
               <span class="info-value">{{ limitInfo }}</span>
             </div>
@@ -97,7 +109,9 @@ const isOpen = computed({
 });
 
 const title = computed(() => {
-  if (props.errorData.type === 'users') {
+  if (props.errorData.type === 'both') {
+    return 'Limites do Plano Atingidos';
+  } else if (props.errorData.type === 'users') {
     return 'Limite de Usuários Atingido';
   } else if (props.errorData.type === 'teams') {
     return 'Limite de Times Atingido';

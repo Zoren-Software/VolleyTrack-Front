@@ -1708,6 +1708,9 @@ const handleSubscriptionAction = async () => {
       current: limitValidation.current,
       max: limitValidation.max,
       planName: selectedPlan.value.name || 'Plano Selecionado',
+      bothExceeded: limitValidation.bothExceeded || false,
+      playersData: limitValidation.playersData || null,
+      teamsData: limitValidation.teamsData || null,
     };
     
     console.log('🚨 Modal data preparado:', modalData);
@@ -1954,14 +1957,26 @@ const validatePlanLimits = async (plan) => {
       let type = "users";
       let current = 0;
       let max = 0;
+      let bothExceeded = false;
+      let playersData = null;
+      let teamsData = null;
 
       if (playersExceeded && teamsExceeded) {
-        console.log('❌ Ambos excedem - priorizando jogadores');
-        // Se ambos excedem, priorizar jogadores
-        type = "users";
+        console.log('❌ Ambos excedem - mostrando ambos os limites');
+        // Se ambos excedem, mostrar ambos
+        bothExceeded = true;
+        type = "both";
         message = `Você possui ${currentPlayers} jogador(es) e ${currentTeams} time(s), mas o plano selecionado permite apenas ${maxPlayers} jogador(es) e ${maxTeams} time(s).`;
         current = currentPlayers;
         max = maxPlayers;
+        playersData = {
+          current: currentPlayers,
+          max: maxPlayers,
+        };
+        teamsData = {
+          current: currentTeams,
+          max: maxTeams,
+        };
       } else if (playersExceeded) {
         console.log('❌ Apenas jogadores excedem');
         // Apenas jogadores excedem
@@ -1985,6 +2000,9 @@ const validatePlanLimits = async (plan) => {
         max,
         playersExceeded,
         teamsExceeded,
+        bothExceeded,
+        playersData,
+        teamsData,
       });
 
       console.log('❌ Retornando canSubscribe: false');
@@ -1996,6 +2014,9 @@ const validatePlanLimits = async (plan) => {
         type,
         current,
         max,
+        bothExceeded,
+        playersData,
+        teamsData,
       };
     }
 
@@ -2062,6 +2083,9 @@ const subscribeToPlan = async () => {
         current: limitValidation.current,
         max: limitValidation.max,
         planName: selectedPlan.value.name || 'Plano Selecionado',
+        bothExceeded: limitValidation.bothExceeded || false,
+        playersData: limitValidation.playersData || null,
+        teamsData: limitValidation.teamsData || null,
       };
       
       console.log('🚨 Modal data preparado:', modalData);
