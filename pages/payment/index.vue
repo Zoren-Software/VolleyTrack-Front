@@ -1658,7 +1658,7 @@ const initializeStripe = async () => {
 };
 
 // Função para lidar com ação de assinatura/troca
-const handleSubscriptionAction = () => {
+const handleSubscriptionAction = async () => {
   console.log("🔍 handleSubscriptionAction chamada");
   console.log("🔍 activePlanData.value:", activePlanData.value);
   console.log("🔍 selectedPlan.value:", selectedPlan.value);
@@ -1689,6 +1689,38 @@ const handleSubscriptionAction = () => {
 
   console.log("🔍 isLifetimePlan:", isLifetimePlan);
   console.log("🔍 selectedPlanIsRecurring:", selectedPlanIsRecurring);
+
+  // Validar limites do plano antes de prosseguir
+  console.log('🔍 ========== CHAMANDO validatePlanLimits (handleSubscriptionAction) ==========');
+  console.log('🔍 selectedPlan.value:', selectedPlan.value);
+  const limitValidation = await validatePlanLimits(selectedPlan.value);
+  console.log('🔍 Resultado da validação:', limitValidation);
+  console.log('🔍 limitValidation.canSubscribe:', limitValidation.canSubscribe);
+  
+  if (!limitValidation.canSubscribe) {
+    console.log('🚨 ========== BLOQUEANDO ASSINATURA - EXIBINDO MODAL (handleSubscriptionAction) ==========');
+    subscriptionLoading.value = false;
+    stripeLoading.value = false;
+    
+    const modalData = {
+      type: limitValidation.type || 'general',
+      message: limitValidation.message,
+      current: limitValidation.current,
+      max: limitValidation.max,
+      planName: selectedPlan.value.name || 'Plano Selecionado',
+    };
+    
+    console.log('🚨 Modal data preparado:', modalData);
+    console.log('🚨 Chamando showModal...');
+    
+    // Mostrar modal de erro
+    showModal(modalData);
+    
+    console.log('🚨 showModal chamado, retornando...');
+    return;
+  }
+  
+  console.log('✅ Validação passou - continuando com handleSubscriptionAction');
 
   if (hasActivePlan) {
     // Se o usuário tem plano vitalício e está tentando comprar um plano recorrente,
@@ -1735,21 +1767,46 @@ const handleSubscriptionAction = () => {
 
 // Função para validar limites do plano antes de assinar
 const validatePlanLimits = async (plan) => {
+  console.log('🚀 ========== INÍCIO validatePlanLimits ==========');
+  console.log('🚀 Plan recebido:', plan);
+  console.log('🚀 Plan name:', plan?.name);
+  console.log('🚀 Plan metadata:', plan?.metadata);
+  
   try {
     // Se está em trial, permitir tudo
+    console.log('🔍 Verificando se está em trial...');
+    console.log('🔍 activePlanData.value:', activePlanData.value);
+    console.log('🔍 activePlanData.value?.isTrial:', activePlanData.value?.isTrial);
+    
     if (activePlanData.value?.isTrial) {
+      console.log('✅ Está em trial - permitindo tudo');
       return { canSubscribe: true };
     }
 
     // Buscar limites do plano
+    console.log('🔍 Normalizando metadata...');
     const metadata = normalizeMetadata(plan.metadata);
+    console.log('🔍 Metadata normalizada:', metadata);
+    
     const maxPlayers = parseInt(metadata.max_players || "0");
     const maxTeams = parseInt(metadata.max_teams || "0");
+    
+    console.log('🔍 Limites extraídos:', {
+      max_players_raw: metadata.max_players,
+      max_teams_raw: metadata.max_teams,
+      maxPlayers,
+      maxTeams,
+      maxPlayersType: typeof maxPlayers,
+      maxTeamsType: typeof maxTeams,
+    });
 
     // Se o plano é ilimitado, permitir
     if (maxPlayers === 0 && maxTeams === 0) {
+      console.log('✅ Plano ilimitado - permitindo');
       return { canSubscribe: true };
     }
+    
+    console.log('🔍 Plano tem limites definidos, continuando validação...');
 
     // Buscar totais usando GraphQL via useAsyncQuery
     const usersQuery = gql`
@@ -1772,54 +1829,184 @@ const validatePlanLimits = async (plan) => {
       }
     `;
 
-    // Buscar totais em paralelo usando useAsyncQuery
-    const [usersResult, teamsResult] = await Promise.all([
-      useAsyncQuery(usersQuery, {
-        filter: { rolesIds: [3] }, // Apenas jogadores (role 3)
-        first: 1,
-        page: 1,
-      }).catch(() => ({ data: { value: { users: { paginatorInfo: { total: 0 } } } } })),
-      useAsyncQuery(teamsQuery, {
-        filter: {},
-        first: 1,
-        page: 1,
-      }).catch(() => ({ data: { value: { teams: { paginatorInfo: { total: 0 } } } } })),
-    ]);
+    // Buscar totais em paralelo usando Apollo Client
+    console.log('🔍 ========== INICIANDO QUERIES GRAPHQL ==========');
+    console.log('🔍 Parâmetros das queries:', {
+      planName: plan.name,
+      metadataRaw: typeof plan.metadata === 'string' ? plan.metadata : 'object',
+      normalizedMetadata: metadata,
+      maxPlayers,
+      maxTeams,
+    });
 
-    const currentPlayers = usersResult?.data?.value?.users?.paginatorInfo?.total || 0;
-    const currentTeams = teamsResult?.data?.value?.teams?.paginatorInfo?.total || 0;
+    let currentPlayers = 0;
+    let currentTeams = 0;
 
+    try {
+      console.log('🔍 Criando queries GraphQL...');
+      console.log('🔍 IMPORTANTE: Contando TODOS os usuários (sem filtro de role), como o backend faz');
+      
+      // Usar o cliente Apollo diretamente
+      const nuxtApp = useNuxtApp();
+      const apolloClient = nuxtApp._apolloClients?.default;
+      
+      if (!apolloClient) {
+        console.error('❌ Cliente Apollo não encontrado');
+        return { canSubscribe: true };
+      }
+      
+      console.log('🔍 Executando queries com Apollo Client...');
+      
+      const [usersResult, teamsResult] = await Promise.all([
+        apolloClient.query({
+          query: usersQuery,
+          variables: {
+            // NÃO filtrar por role - contar TODOS os usuários (como o backend faz)
+            // O backend usa User::count() sem filtro, então precisamos fazer o mesmo
+            filter: {}, // Contar todos os usuários, não apenas jogadores
+            first: 1,
+            page: 1,
+          },
+          fetchPolicy: 'network-only', // Sempre buscar dados atualizados
+        }),
+        apolloClient.query({
+          query: teamsQuery,
+          variables: {
+            filter: {},
+            first: 1,
+            page: 1,
+          },
+          fetchPolicy: 'network-only', // Sempre buscar dados atualizados
+        }),
+      ]);
+
+      console.log('🔍 ========== RESULTADOS DAS QUERIES ==========');
+      console.log('🔍 usersResult:', usersResult);
+      console.log('🔍 teamsResult:', teamsResult);
+      console.log('🔍 usersResult?.data:', usersResult?.data);
+      console.log('🔍 teamsResult?.data:', teamsResult?.data);
+
+      // Apollo Client retorna { data: { users: {...} } }
+      const usersData = usersResult?.data?.users;
+      const teamsData = teamsResult?.data?.teams;
+      
+      console.log('🔍 usersData:', usersData);
+      console.log('🔍 teamsData:', teamsData);
+      console.log('🔍 usersData?.paginatorInfo:', usersData?.paginatorInfo);
+      console.log('🔍 teamsData?.paginatorInfo:', teamsData?.paginatorInfo);
+      
+      currentPlayers = usersData?.paginatorInfo?.total || 0;
+      currentTeams = teamsData?.paginatorInfo?.total || 0;
+
+      console.log('🔍 ========== DADOS EXTRAÍDOS ==========');
+      console.log('🔍 currentPlayers:', currentPlayers, '(tipo:', typeof currentPlayers, ')');
+      console.log('🔍 currentTeams:', currentTeams, '(tipo:', typeof currentTeams, ')');
+    } catch (error) {
+      console.error('❌ ========== ERRO AO BUSCAR DADOS ==========');
+      console.error('❌ Erro completo:', error);
+      console.error('❌ Mensagem:', error.message);
+      console.error('❌ Stack trace:', error.stack);
+      // Em caso de erro, permitir para não bloquear o sistema
+      return { canSubscribe: true };
+    }
+
+    console.log('🔍 ========== COMPARANDO LIMITES ==========');
+    console.log('🔍 maxPlayers:', maxPlayers, '(tipo:', typeof maxPlayers, ')');
+    console.log('🔍 maxTeams:', maxTeams, '(tipo:', typeof maxTeams, ')');
+    console.log('🔍 currentPlayers:', currentPlayers, '(tipo:', typeof currentPlayers, ')');
+    console.log('🔍 currentTeams:', currentTeams, '(tipo:', typeof currentTeams, ')');
+    
     // Verificar se excede limites
+    // maxPlayers > 0 significa que o plano tem limite (não é ilimitado)
+    // currentPlayers > maxPlayers significa que excede o limite
     const playersExceeded = maxPlayers > 0 && currentPlayers > maxPlayers;
     const teamsExceeded = maxTeams > 0 && currentTeams > maxTeams;
+    
+    console.log('🔍 ========== CÁLCULOS DE VALIDAÇÃO ==========');
+    console.log('🔍 maxPlayers > 0:', maxPlayers > 0);
+    console.log('🔍 currentPlayers > maxPlayers:', currentPlayers > maxPlayers);
+    console.log('🔍 playersExceeded:', playersExceeded, '(maxPlayers > 0 && currentPlayers > maxPlayers)');
+    console.log('🔍 maxTeams > 0:', maxTeams > 0);
+    console.log('🔍 currentTeams > maxTeams:', currentTeams > maxTeams);
+    console.log('🔍 teamsExceeded:', teamsExceeded, '(maxTeams > 0 && currentTeams > maxTeams)');
+    console.log('🔍 Comparação detalhada jogadores:', {
+      current: currentPlayers,
+      max: maxPlayers,
+      comparison: `${currentPlayers} > ${maxPlayers}`,
+      result: currentPlayers > maxPlayers,
+      andCondition: maxPlayers > 0,
+      final: playersExceeded,
+    });
+    console.log('🔍 Comparação detalhada times:', {
+      current: currentTeams,
+      max: maxTeams,
+      comparison: `${currentTeams} > ${maxTeams}`,
+      result: currentTeams > maxTeams,
+      andCondition: maxTeams > 0,
+      final: teamsExceeded,
+    });
+    console.log('🔍 willBlock:', playersExceeded || teamsExceeded);
 
     if (playersExceeded || teamsExceeded) {
+      console.log('❌ ========== LIMITE EXCEDIDO - BLOQUEANDO ==========');
+      
       let message = "";
       let type = "users";
+      let current = 0;
+      let max = 0;
 
       if (playersExceeded && teamsExceeded) {
-        type = "users"; // Mostrar ambos, mas usar tipo users como principal
+        console.log('❌ Ambos excedem - priorizando jogadores');
+        // Se ambos excedem, priorizar jogadores
+        type = "users";
         message = `Você possui ${currentPlayers} jogador(es) e ${currentTeams} time(s), mas o plano selecionado permite apenas ${maxPlayers} jogador(es) e ${maxTeams} time(s).`;
+        current = currentPlayers;
+        max = maxPlayers;
       } else if (playersExceeded) {
+        console.log('❌ Apenas jogadores excedem');
+        // Apenas jogadores excedem
         type = "users";
         message = `Você possui ${currentPlayers} jogador(es), mas o plano selecionado permite apenas ${maxPlayers} jogador(es).`;
+        current = currentPlayers;
+        max = maxPlayers;
       } else if (teamsExceeded) {
+        console.log('❌ Apenas times excedem');
+        // Apenas times excedem
         type = "teams";
         message = `Você possui ${currentTeams} time(s), mas o plano selecionado permite apenas ${maxTeams} time(s).`;
+        current = currentTeams;
+        max = maxTeams;
       }
 
+      console.log('❌ Dados do modal:', {
+        type,
+        message,
+        current,
+        max,
+        playersExceeded,
+        teamsExceeded,
+      });
+
+      console.log('❌ Retornando canSubscribe: false');
+      console.log('🚀 ========== FIM validatePlanLimits (BLOQUEADO) ==========');
+      
       return {
         canSubscribe: false,
         message,
         type,
-        current: playersExceeded ? currentPlayers : currentTeams,
-        max: playersExceeded ? maxPlayers : maxTeams,
+        current,
+        max,
       };
     }
 
+    console.log('✅ Nenhum limite excedido - permitindo assinatura');
+    console.log('🚀 ========== FIM validatePlanLimits (PERMITIDO) ==========');
     return { canSubscribe: true };
   } catch (error) {
-    console.error("Erro ao validar limites do plano:", error);
+    console.error('❌ ========== ERRO NA VALIDAÇÃO ==========');
+    console.error("❌ Erro ao validar limites do plano:", error);
+    console.error("❌ Mensagem:", error.message);
+    console.error("❌ Stack:", error.stack);
     // Em caso de erro, permitir para não bloquear o sistema
     return { canSubscribe: true };
   }
@@ -1858,21 +2045,36 @@ const subscribeToPlan = async () => {
     }
 
     // Validar limites do plano antes de prosseguir
+    console.log('🔍 ========== CHAMANDO validatePlanLimits (subscribeToPlan) ==========');
+    console.log('🔍 selectedPlan.value:', selectedPlan.value);
     const limitValidation = await validatePlanLimits(selectedPlan.value);
+    console.log('🔍 Resultado da validação:', limitValidation);
+    console.log('🔍 limitValidation.canSubscribe:', limitValidation.canSubscribe);
+    
     if (!limitValidation.canSubscribe) {
+      console.log('🚨 ========== BLOQUEANDO ASSINATURA - EXIBINDO MODAL ==========');
       subscriptionLoading.value = false;
       stripeLoading.value = false;
       
-      // Mostrar modal de erro
-      showModal({
+      const modalData = {
         type: limitValidation.type || 'general',
         message: limitValidation.message,
         current: limitValidation.current,
         max: limitValidation.max,
         planName: selectedPlan.value.name || 'Plano Selecionado',
-      });
+      };
+      
+      console.log('🚨 Modal data preparado:', modalData);
+      console.log('🚨 Chamando showModal...');
+      
+      // Mostrar modal de erro
+      showModal(modalData);
+      
+      console.log('🚨 showModal chamado, retornando...');
       return;
     }
+    
+    console.log('✅ Validação passou - continuando com assinatura');
 
     // Logs para debug detalhado
 
