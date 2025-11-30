@@ -515,12 +515,17 @@
       </div>
     </div>
 
-    <!-- Modal removido - agora redirecionamos para rota específica de troca -->
+    <!-- Modal de erro de limite de plano -->
+    <PlanLimitErrorModal
+      v-model="isModalOpen"
+      :error-data="errorData"
+      @upgrade-clicked="hideModal"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick } from "vue";
+import { ref, computed, onMounted, nextTick, watch } from "vue";
 import { loadStripe } from "@stripe/stripe-js";
 import {
   createCheckoutSession,
@@ -530,6 +535,10 @@ import {
 import { getLifetimePlansCount } from "~/services/lifetimePlanService.js";
 import ActivePlanChecker from "~/components/ActivePlanChecker.vue";
 import PaymentMethodCard from "~/components/PaymentMethodCard.vue";
+import PlanLimitErrorModal from "~/components/PlanLimitErrorModal.vue";
+import { usePlanLimitError } from "~/composables/usePlanLimitError.js";
+import { useQuery } from "@vue/apollo-composable";
+import gql from "graphql-tag";
 
 // Configurações do Stripe
 const runtimeConfig = useRuntimeConfig();
@@ -537,6 +546,9 @@ const stripeKey = runtimeConfig.public.stripePublishableKey;
 
 // Composable para usuário
 const { user, getUserInfo, getUserEmail } = useUser();
+
+// Composable para modal de limite de plano
+const { isModalOpen, errorData, showModal, hideModal } = usePlanLimitError();
 
 // Função para obter tenant_id (salvo pelo middleware Apollo)
 const getTenantId = () => {
@@ -1721,6 +1733,98 @@ const handleSubscriptionAction = () => {
   }
 };
 
+// Função para validar limites do plano antes de assinar
+const validatePlanLimits = async (plan) => {
+  try {
+    // Se está em trial, permitir tudo
+    if (activePlanData.value?.isTrial) {
+      return { canSubscribe: true };
+    }
+
+    // Buscar limites do plano
+    const metadata = normalizeMetadata(plan.metadata);
+    const maxPlayers = parseInt(metadata.max_players || "0");
+    const maxTeams = parseInt(metadata.max_teams || "0");
+
+    // Se o plano é ilimitado, permitir
+    if (maxPlayers === 0 && maxTeams === 0) {
+      return { canSubscribe: true };
+    }
+
+    // Buscar totais usando GraphQL via useAsyncQuery
+    const usersQuery = gql`
+      query users($filter: UserSearchInput, $first: Int, $page: Int) {
+        users(filter: $filter, first: $first, page: $page) {
+          paginatorInfo {
+            total
+          }
+        }
+      }
+    `;
+
+    const teamsQuery = gql`
+      query teams($filter: TeamSearchInput, $first: Int, $page: Int) {
+        teams(filter: $filter, first: $first, page: $page) {
+          paginatorInfo {
+            total
+          }
+        }
+      }
+    `;
+
+    // Buscar totais em paralelo usando useAsyncQuery
+    const [usersResult, teamsResult] = await Promise.all([
+      useAsyncQuery(usersQuery, {
+        filter: { rolesIds: [3] }, // Apenas jogadores (role 3)
+        first: 1,
+        page: 1,
+      }).catch(() => ({ data: { value: { users: { paginatorInfo: { total: 0 } } } } })),
+      useAsyncQuery(teamsQuery, {
+        filter: {},
+        first: 1,
+        page: 1,
+      }).catch(() => ({ data: { value: { teams: { paginatorInfo: { total: 0 } } } } })),
+    ]);
+
+    const currentPlayers = usersResult?.data?.value?.users?.paginatorInfo?.total || 0;
+    const currentTeams = teamsResult?.data?.value?.teams?.paginatorInfo?.total || 0;
+
+    // Verificar se excede limites
+    const playersExceeded = maxPlayers > 0 && currentPlayers > maxPlayers;
+    const teamsExceeded = maxTeams > 0 && currentTeams > maxTeams;
+
+    if (playersExceeded || teamsExceeded) {
+      let message = "";
+      let type = "users";
+
+      if (playersExceeded && teamsExceeded) {
+        type = "users"; // Mostrar ambos, mas usar tipo users como principal
+        message = `Você possui ${currentPlayers} jogador(es) e ${currentTeams} time(s), mas o plano selecionado permite apenas ${maxPlayers} jogador(es) e ${maxTeams} time(s).`;
+      } else if (playersExceeded) {
+        type = "users";
+        message = `Você possui ${currentPlayers} jogador(es), mas o plano selecionado permite apenas ${maxPlayers} jogador(es).`;
+      } else if (teamsExceeded) {
+        type = "teams";
+        message = `Você possui ${currentTeams} time(s), mas o plano selecionado permite apenas ${maxTeams} time(s).`;
+      }
+
+      return {
+        canSubscribe: false,
+        message,
+        type,
+        current: playersExceeded ? currentPlayers : currentTeams,
+        max: playersExceeded ? maxPlayers : maxTeams,
+      };
+    }
+
+    return { canSubscribe: true };
+  } catch (error) {
+    console.error("Erro ao validar limites do plano:", error);
+    // Em caso de erro, permitir para não bloquear o sistema
+    return { canSubscribe: true };
+  }
+};
+
 // Assinar plano
 const subscribeToPlan = async () => {
   try {
@@ -1750,6 +1854,23 @@ const subscribeToPlan = async () => {
     const priceId = selectedPlan.value.prices?.data?.[0]?.id;
     if (!priceId) {
       alert("Erro: Preço não encontrado para este plano. Tente novamente.");
+      return;
+    }
+
+    // Validar limites do plano antes de prosseguir
+    const limitValidation = await validatePlanLimits(selectedPlan.value);
+    if (!limitValidation.canSubscribe) {
+      subscriptionLoading.value = false;
+      stripeLoading.value = false;
+      
+      // Mostrar modal de erro
+      showModal({
+        type: limitValidation.type || 'general',
+        message: limitValidation.message,
+        current: limitValidation.current,
+        max: limitValidation.max,
+        planName: selectedPlan.value.name || 'Plano Selecionado',
+      });
       return;
     }
 

@@ -25,6 +25,24 @@
               <span class="info-value">{{ limitInfo }}</span>
             </div>
           </div>
+
+          <div class="options-box">
+            <p class="options-title">Para continuar, você tem duas opções:</p>
+            <div class="options-list">
+              <div class="option-item">
+                <span class="option-icon">🗑️</span>
+                <span class="option-text">
+                  <strong>Remover registros</strong> para se enquadrar no limite do seu plano atual
+                </span>
+              </div>
+              <div class="option-item">
+                <span class="option-icon">⬆️</span>
+                <span class="option-text">
+                  <strong>Fazer upgrade</strong> para um plano que suporte sua quantidade atual
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="modal-footer">
@@ -272,6 +290,62 @@ const goToUpgrade = () => {
   font-size: 16px;
   color: #2d3748;
   font-weight: 700;
+}
+
+.options-box {
+  margin-top: 24px;
+  padding: 20px;
+  background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.options-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #4a5568;
+  margin: 0 0 16px 0;
+  text-align: left;
+}
+
+.options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.option-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
+}
+
+.option-item:hover {
+  border-color: #cbd5e0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.option-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.option-text {
+  font-size: 14px;
+  color: #4a5568;
+  line-height: 1.5;
+  text-align: left;
+}
+
+.option-text strong {
+  color: #2d3748;
+  font-weight: 600;
 }
 
 .modal-footer {
