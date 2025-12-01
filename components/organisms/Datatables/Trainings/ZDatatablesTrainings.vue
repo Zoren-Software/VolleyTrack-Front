@@ -13,8 +13,9 @@
     :paginatorInfo="paginatorInfo"
     :filter="true"
     @search="searchTrainings"
-    @actionSearch="getTrainings"
+    @actionSearch="handleSearch"
     @actionClear="clearSearch"
+    @update:search="searchTrainings"
     @add="addTraining"
     @edit="editTraining"
     @delete="deleteTraining"
@@ -271,7 +272,18 @@ export default defineComponent({
     },
 
     searchTrainings(search) {
-      this.variablesGetTrainings.filter.search = `%${search}%`;
+      // Se search for vazio ou undefined, usar %%
+      if (!search || search === "") {
+        this.variablesGetTrainings.filter.search = "%%";
+      } else {
+        this.variablesGetTrainings.filter.search = `%${search}%`;
+      }
+    },
+
+    handleSearch() {
+      // Garantir que o search está atualizado antes de buscar
+      // O search já foi atualizado pelo evento @search
+      this.getTrainings({ fetchPolicy: "network-only" });
     },
 
     clearSearch() {
@@ -280,9 +292,11 @@ export default defineComponent({
         usersIds: [],
         playersIds: [],
         search: "%%",
-        dateStart: null, // data de hoje
-        dateEnd: null, // data de hoje
+        dateStart: null,
+        dateEnd: null,
       };
+      // Recarregar dados após limpar filtros
+      this.getTrainings({ fetchPolicy: "network-only" });
     },
 
     getTrainings(fetchPolicyOptions = {}) {
@@ -293,17 +307,17 @@ export default defineComponent({
         ${TRAININGS}
       `;
 
-      let teamsIdsValues = this.variablesGetTrainings.filter.teamsIds.map(
-        (team) => parseInt(team.value)
-      );
+      let teamsIdsValues = this.variablesGetTrainings.filter.teamsIds?.map(
+        (team) => parseInt(team?.value || team)
+      ) || [];
 
-      let usersIdsValues = this.variablesGetTrainings.filter.usersIds.map(
-        (user) => parseInt(user.value)
-      );
+      let usersIdsValues = this.variablesGetTrainings.filter.usersIds?.map(
+        (user) => parseInt(user?.value || user)
+      ) || [];
 
-      let playersIdsValues = this.variablesGetTrainings.filter.playersIds.map(
-        (player) => parseInt(player.value)
-      );
+      let playersIdsValues = this.variablesGetTrainings.filter.playersIds?.map(
+        (player) => parseInt(player?.value || player)
+      ) || [];
 
       let dateEnd = this.variablesGetTrainings.filter.dateEnd;
 
@@ -329,28 +343,20 @@ export default defineComponent({
         },
       };
 
-      const {
-        result: { value },
-      } = useQuery(query, consult);
-
       const { onResult } = useQuery(query, consult, {
-        fetchPolicy: fetchPolicyOptions.fetchPolicy || "cache-first", // Usa 'network-only' quando quer buscar nova consulta, senão 'cache-first'
+        fetchPolicy: fetchPolicyOptions.fetchPolicy || "network-only", // Sempre buscar dados atualizados
       });
 
       onResult((result) => {
-        if (result?.data?.trainings?.data.length > 0) {
-          this.paginatorInfo = result.data.trainings.paginatorInfo;
-          this.items = result.data.trainings.data;
+        this.loading = false;
+        if (result?.data?.trainings) {
+          this.paginatorInfo = result.data.trainings.paginatorInfo || this.paginatorInfo;
+          // Sempre atualizar items, mesmo se for array vazio
+          this.items = result.data.trainings.data || [];
+        } else {
+          this.items = [];
         }
       });
-
-      if (value) {
-        if (value?.trainings?.data.length > 0) {
-          this.paginatorInfo = value.trainings.paginatorInfo;
-          this.items = value.trainings.data;
-        }
-      }
-      this.loading = false;
     },
   },
 });

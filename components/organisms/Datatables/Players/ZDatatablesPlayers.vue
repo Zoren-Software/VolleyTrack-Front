@@ -13,8 +13,9 @@
     :paginatorInfo="paginatorInfo"
     :filter="true"
     @search="searchPlayers"
-    @actionSearch="getPlayers"
+    @actionSearch="handleSearch"
     @actionClear="clearSearch"
+    @update:search="searchPlayers"
     @add="addPlayer"
     @edit="editPlayer"
     @delete="deletePlayer"
@@ -226,7 +227,18 @@ export default defineComponent({
     },
 
     searchPlayers(search) {
-      this.variablesGetPlayers.filter.search = `%${search}%`;
+      // Se search for vazio ou undefined, usar %%
+      if (!search || search === "") {
+        this.variablesGetPlayers.filter.search = "%%";
+      } else {
+        this.variablesGetPlayers.filter.search = `%${search}%`;
+      }
+    },
+
+    handleSearch() {
+      // Garantir que o search está atualizado antes de buscar
+      // O search já foi atualizado pelo evento @search
+      this.getPlayers({ fetchPolicy: "network-only" });
     },
 
     clearSearch() {
@@ -235,6 +247,8 @@ export default defineComponent({
         positionsIds: [],
         teamsIds: [],
       };
+      // Recarregar dados após limpar filtros
+      this.getPlayers({ fetchPolicy: "network-only" });
     },
 
     getPlayers(fetchPolicyOptions = {}) {
@@ -245,13 +259,15 @@ export default defineComponent({
         ${PLAYERS}
       `;
 
-      let positionsIdsValues = this.variablesGetPlayers.filter.positionsIds.map(
-        (position) => position.value
-      );
+      let positionsIdsValues =
+        this.variablesGetPlayers.filter.positionsIds?.map(
+          (position) => position?.value || position
+        ) || [];
 
-      let teamsIdsValues = this.variablesGetPlayers.filter.teamsIds.map(
-        (team) => team.value
-      );
+      let teamsIdsValues =
+        this.variablesGetPlayers.filter.teamsIds?.map(
+          (team) => team?.value || team
+        ) || [];
 
       const consult = {
         ...this.variablesGetPlayers,
@@ -262,28 +278,21 @@ export default defineComponent({
         },
       };
 
-      const {
-        result: { value },
-      } = useQuery(query, consult, {
-        fetchPolicy: fetchPolicyOptions.fetchPolicy || "cache-first", // Usa 'network-only' quando quer buscar nova consulta, senão 'cache-first'
+      const { onResult } = useQuery(query, consult, {
+        fetchPolicy: fetchPolicyOptions.fetchPolicy || "network-only", // Sempre buscar dados atualizados
       });
-
-      const { onResult } = useQuery(query, consult);
 
       onResult((result) => {
-        if (result?.data?.users?.data.length > 0) {
-          this.paginatorInfo = result.data.users.paginatorInfo;
-          this.items = result.data.users.data;
+        this.loading = false;
+        if (result?.data?.users) {
+          this.paginatorInfo =
+            result.data.users.paginatorInfo || this.paginatorInfo;
+          // Sempre atualizar items, mesmo se for array vazio
+          this.items = result.data.users.data || [];
+        } else {
+          this.items = [];
         }
       });
-
-      if (value) {
-        if (value?.users?.data.length > 0) {
-          this.paginatorInfo = value.users.paginatorInfo;
-          this.items = value.users.data;
-        }
-      }
-      this.loading = false;
     },
   },
 });
