@@ -1,6 +1,10 @@
 <template>
   <div class="sidebar-custom">
-    <va-sidebar :minimized="toggle" color="background-primary">
+    <va-sidebar
+      :minimized="toggle"
+      :minimized-width="minimizedWidth"
+      color="background-primary"
+    >
       <ZSidebarItem
         v-for="item in computedTitles"
         :key="item.title"
@@ -24,6 +28,10 @@ export default {
     toggle: {
       type: Boolean,
       default: false,
+    },
+    minimizedWidth: {
+      type: String,
+      default: "4rem",
     },
   },
   data() {

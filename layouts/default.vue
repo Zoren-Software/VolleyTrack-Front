@@ -1,6 +1,7 @@
 <template>
   <va-card color="background-border" class="pb-3" style="height: 100%">
     <ZNavBar
+      :minimized="minimized"
       @toggle-minimize="valueToggle"
       @menu-settings-minimize="onMenuSettingsMinimize"
     />

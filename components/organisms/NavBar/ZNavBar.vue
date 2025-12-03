@@ -41,11 +41,17 @@ export default {
     ZNavBarItemSettings,
   },
 
+  props: {
+    minimized: {
+      type: Boolean,
+      default: false,
+    },
+  },
+
   emits: ["menuSettingsMinimize", "toggleMinimize"],
 
   data() {
     return {
-      minimized: false,
       titles: [
         {
           title: "Treinos",
@@ -143,11 +149,11 @@ export default {
 
   methods: {
     onMenuSettingsMinimize(value) {
-      this.minimized = value;
-      this.$emit("menuSettingsMinimize", this.minimized);
+      this.$emit("menuSettingsMinimize", value);
     },
-    toggleMinimize(value) {
-      this.$emit("toggleMinimize", value);
+    toggleMinimize() {
+      // Inverte o estado atual e emite o novo valor
+      this.$emit("toggleMinimize", !this.minimized);
     },
 
     async getUser() {
