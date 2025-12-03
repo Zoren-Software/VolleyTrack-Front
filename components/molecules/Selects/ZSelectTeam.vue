@@ -5,6 +5,7 @@
     :label="label"
     :options="items"
     :loading="loading"
+    multiple
     @click="getTeams(true)"
     @scroll-bottom="loadMore"
     @update-search="newSearch"

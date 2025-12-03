@@ -127,7 +127,7 @@
 import ZCard from "~/components/atoms/Cards/ZCard";
 import ZButton from "~/components/atoms/Buttons/ZButton";
 import ZCardRegisters from "~/components/molecules/Cards/ZCardRegisters.vue";
-import { ref, watch, defineProps } from "vue";
+import { ref, watch, computed } from "vue";
 import { VaIcon } from "vuestic-ui";
 
 export default {
@@ -163,19 +163,6 @@ export default {
 </script>
 
 <script setup>
-const step = computed(() => {
-  if (props.totalTrainings >= 1) {
-    return 3;
-  } else if (props.totalTeams >= 1) {
-    return 2;
-  } else if (props.totalUsers >= 1) {
-    return 1;
-  }
-  return 0;
-});
-
-let valueAccordion = ref([true]);
-
 const props = defineProps({
   totalUsers: {
     type: Number,
@@ -190,29 +177,40 @@ const props = defineProps({
     default: 0,
   },
 });
-watch(step, (newValue) => {
-  if (newValue === 3) {
-    valueAccordion = [false];
-  } else {
-    valueAccordion = [true];
+
+// step precisa ser um ref para poder ser usado com v-model no VaStepper
+const step = ref(0);
+
+// Computed para calcular o step baseado nas props
+const computedStep = computed(() => {
+  if (props.totalTrainings >= 1) {
+    return 3;
+  } else if (props.totalTeams >= 1) {
+    return 2;
+  } else if (props.totalUsers >= 1) {
+    return 1;
   }
+  return 0;
 });
 
+// Sincronizar o step ref com o computedStep
 watch(
-  () => [props.totalUsers, props.totalTeams, props.totalTrainings],
-  ([users, teams, trainings]) => {
-    if (trainings >= 1) {
-      step.value = 3;
-    } else if (teams >= 1) {
-      step.value = 2;
-    } else if (users >= 1) {
-      step.value = 1;
-    } else {
-      step.value = 0;
-    }
+  computedStep,
+  (newValue) => {
+    step.value = newValue;
   },
   { immediate: true }
 );
+
+let valueAccordion = ref([true]);
+
+watch(step, (newValue) => {
+  if (newValue === 3) {
+    valueAccordion.value = [false];
+  } else {
+    valueAccordion.value = [true];
+  }
+});
 
 let steps = [
   {
