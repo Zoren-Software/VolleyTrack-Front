@@ -5,7 +5,17 @@ import { onError } from '@apollo/client/link/error'
 
 export default defineNuxtPlugin(nuxtAppMain => {
   
-  const getTenant = () => (window ? window.location.hostname.split('.')[0] : '')
+  const getTenant = () => {
+    if (window) {
+      const tenant = window.location.hostname.split('.')[0];
+      // Salvar o tenant_id no localStorage para uso posterior
+      if (tenant && tenant !== 'localhost' && tenant !== 'www') {
+        localStorage.setItem('tenant_id', tenant);
+      }
+      return tenant;
+    }
+    return '';
+  }
   const getApiUrl = () => (window ? window.origin.replace(getTenant(), 'graphql').replace(':3000', '') : '')
 
   const httpLink = new HttpLink({ uri: `${getApiUrl()}/graphql`, })

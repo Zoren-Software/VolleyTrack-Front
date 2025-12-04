@@ -27,12 +27,14 @@ Make sure to install the dependencies:
 pnpm install
 ```
 
-Node version: v20.11.1
+Node version: v20.11.1 (recomendado) ou superior
 
 ```
 node --version
 v20.11.1
 ```
+
+**Nota:** Versões mais recentes do Node.js (v24+) podem exibir warnings de depreciação que são suprimidos automaticamente no script de desenvolvimento.
 
 ## Development Server
 

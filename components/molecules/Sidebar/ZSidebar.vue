@@ -1,8 +1,12 @@
 <template>
   <div class="sidebar-custom">
-    <va-sidebar :hoverable="toggle" color="background-primary">
+    <va-sidebar
+      :minimized="toggle"
+      :minimized-width="minimizedWidth"
+      color="background-primary"
+    >
       <ZSidebarItem
-        v-for="item in titles"
+        v-for="item in computedTitles"
         :key="item.title"
         :title="item.title"
         :link="item.link"
@@ -25,6 +29,10 @@ export default {
       type: Boolean,
       default: false,
     },
+    minimizedWidth: {
+      type: String,
+      default: "4rem",
+    },
   },
   data() {
     return {
@@ -33,44 +41,33 @@ export default {
           title: "Home",
           link: "/",
           icon: "dashboard",
-          active: false,
         },
         {
           title: "Treinos",
           link: "/trainings",
           icon: "fitness_center",
-          active: false,
         },
         {
           title: "Times",
           link: "/teams",
           icon: "group",
-          active: false,
         },
         {
           title: "Jogadores",
           link: "/players",
           icon: "person",
-          active: false,
         },
       ],
     };
   },
   computed: {
     computedTitles() {
-      return this.titles.map((title) => {
-        title.active = this.$route.path === title.link;
-        return title;
-      });
+      // Retorna um novo array sem mutar o original
+      return this.titles.map((title) => ({
+        ...title,
+        active: this.$route.path === title.link,
+      }));
     },
-  },
-  watch: {
-    $route() {
-      this.computedTitles;
-    },
-  },
-  created() {
-    this.computedTitles;
   },
 };
 </script>

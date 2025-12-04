@@ -12,9 +12,10 @@
     :loading="loading"
     :paginatorInfo="paginatorInfo"
     :filter="true"
-    @search="searchTrainings"
-    @actionSearch="getTeams"
+    @search="searchTeams"
+    @actionSearch="handleSearch"
     @actionClear="clearSearch"
+    @update:search="searchTeams"
     @add="addTeam"
     @edit="editTeam"
     @delete="deleteTeam"
@@ -221,15 +222,30 @@ export default defineComponent({
       this.getTeams();
     },
 
-    searchTrainings(search) {
-      this.variablesGetTeams.filter.search = `%${search}%`;
+    searchTeams(search) {
+      // Se search for vazio ou undefined, usar %%
+      if (!search || search === "") {
+        this.variablesGetTeams.filter.search = "%%";
+      } else {
+        this.variablesGetTeams.filter.search = `%${search}%`;
+      }
+    },
+
+    handleSearch() {
+      // Garantir que o search está atualizado antes de buscar
+      // O search já foi atualizado pelo evento @search
+      this.getTeams({ fetchPolicy: "network-only" });
     },
 
     clearSearch() {
       this.variablesGetTeams.filter = {
         search: "%%",
-        teamsIds: [],
+        usersIds: [],
+        playersIds: [],
+        positionsIds: [],
       };
+      // Recarregar dados após limpar filtros
+      this.getTeams({ fetchPolicy: "network-only" });
     },
 
     getTeams(fetchPolicyOptions = {}) {
@@ -240,17 +256,17 @@ export default defineComponent({
         ${TEAMS}
       `;
 
-      let positionsIdsValues = this.variablesGetTeams.filter.positionsIds.map(
-        (position) => position.value
-      );
+      let positionsIdsValues = this.variablesGetTeams.filter.positionsIds?.map(
+        (position) => position?.value || position
+      ) || [];
 
-      let usersIdsValues = this.variablesGetTeams.filter.usersIds.map(
-        (user) => user.value
-      );
+      let usersIdsValues = this.variablesGetTeams.filter.usersIds?.map(
+        (user) => user?.value || user
+      ) || [];
 
-      let playersIdsValues = this.variablesGetTeams.filter.playersIds.map(
-        (player) => player.value
-      );
+      let playersIdsValues = this.variablesGetTeams.filter.playersIds?.map(
+        (player) => player?.value || player
+      ) || [];
 
       const consult = {
         ...this.variablesGetTeams,
@@ -262,28 +278,20 @@ export default defineComponent({
         },
       };
 
-      const {
-        result: { value },
-      } = useQuery(query, consult, {
-        fetchPolicy: fetchPolicyOptions.fetchPolicy || "cache-first", // Usa 'network-only' quando quer buscar nova consulta, senão 'cache-first'
+      const { onResult } = useQuery(query, consult, {
+        fetchPolicy: fetchPolicyOptions.fetchPolicy || "network-only", // Sempre buscar dados atualizados
       });
-
-      const { onResult } = useQuery(query, consult);
 
       onResult((result) => {
-        if (result?.data?.teams?.data.length > 0) {
-          this.paginatorInfo = result.data.teams.paginatorInfo;
-          this.items = result.data.teams.data;
+        this.loading = false;
+        if (result?.data?.teams) {
+          this.paginatorInfo = result.data.teams.paginatorInfo || this.paginatorInfo;
+          // Sempre atualizar items, mesmo se for array vazio
+          this.items = result.data.teams.data || [];
+        } else {
+          this.items = [];
         }
       });
-
-      if (value) {
-        if (value?.teams?.data.length > 0) {
-          this.paginatorInfo = value.teams.paginatorInfo;
-          this.items = value.teams.data;
-        }
-      }
-      this.loading = false;
     },
   },
 });

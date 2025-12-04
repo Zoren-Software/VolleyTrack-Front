@@ -1,13 +1,25 @@
 
 import * as dotenv from 'dotenv'
 
+// Configurar dotenv para ser silencioso e obter variáveis de ambiente
+const env = dotenv.config({ quiet: true }).parsed || {}
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  compatibilityDate: '2025-11-21',
   modules: [
     '@vuestic/nuxt',
     '@nuxtjs/apollo',
   ],
   ssr: false,
+  vite: {
+    server: {
+      allowedHosts: [
+        'localhost',
+        'local',
+      ],
+    },
+  },
   apollo: {
     autoImports: true,
     authType: 'Bearer',
@@ -16,7 +28,7 @@ export default defineNuxtConfig({
     proxyCookies: true,
     clients: {
       default: {
-        httpEndpoint: dotenv.config().parsed?.GRAPHQL_ENDPOINT,
+        httpEndpoint: env.GRAPHQL_ENDPOINT,
         tokenStorage: 'localStorage',
       }
     },
@@ -25,6 +37,9 @@ export default defineNuxtConfig({
     public: {
       tawkto: '', // can be overridden by NUXT_PUBLIC_TAWKTO environment variable
       nameApplication: '', // can be overridden by NUXT_PUBLIC_NAME_APPLICATION environment variable
+      stripeSecretKey: '', // can be overridden by NUXT_PUBLIC_STRIPE_SECRET_KEY environment variable
+      stripePublishableKey: '', // can be overridden by NUXT_PUBLIC_STRIPE_PUBLISHABLE_KEY environment variable
+      apiEndpoint: env.API_ENDPOINT || 'http://api.volleytrack.local',
     }
   },
   vuestic: {
@@ -63,5 +78,6 @@ export default defineNuxtConfig({
   },
   css: [
     '~/node_modules/material-design-icons-iconfont/dist/material-design-icons.css',
+    'sweetalert2/dist/sweetalert2.css',
   ],
 })

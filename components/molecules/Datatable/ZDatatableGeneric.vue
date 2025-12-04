@@ -196,6 +196,7 @@ export default defineComponent({
       selectedColor: "primary",
       selectModeOptions: ["single", "multiple"],
       selectColorOptions: ["primary", "danger", "warning", "#EF467F"],
+      localSearchValue: this.search || "",
     };
   },
 
@@ -223,10 +224,18 @@ export default defineComponent({
     },
 
     actionSearch() {
-      this.$emit("actionSearch", this.search);
+      // Usar o valor local que está sempre atualizado
+      const searchValue = this.localSearchValue || "";
+      // Primeiro atualizar o search no componente pai
+      this.$emit("search", searchValue);
+      // Depois emitir o actionSearch para executar a busca
+      this.$emit("actionSearch", searchValue);
     },
 
     actionClear() {
+      // Limpar o campo de busca visualmente
+      this.localSearchValue = "";
+      // Emitir eventos para limpar filtros
       this.$emit("update:search", "");
       this.$emit("actionClear", true);
     },
@@ -250,15 +259,18 @@ export default defineComponent({
     },
     internalSearch: {
       get() {
-        return this.search;
+        return this.localSearchValue;
       },
       set(value) {
+        this.localSearchValue = value;
         this.$emit("update:search", value);
       },
     },
   },
   watch: {
     search(newVal) {
+      // Sincronizar o valor local quando o prop mudar externamente
+      this.localSearchValue = newVal || "";
       this.$emit("search", newVal);
     },
     currentPageActive(newVal) {
