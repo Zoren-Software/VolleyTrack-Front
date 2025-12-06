@@ -181,6 +181,116 @@
           </span>
         </div>
 
+        <!-- Informações de Exclusão -->
+        <div v-if="deletionInfo" class="deletion-info-section">
+          <!-- Aviso de Exclusão Pendente -->
+          <div
+            v-if="deletionInfo.is_pending_deletion"
+            class="deletion-warning critical"
+          >
+            <div class="warning-header">
+              <span class="warning-icon">⚠️</span>
+              <h4 class="warning-title">Exclusão Agendada</h4>
+            </div>
+            <p class="warning-message">
+              <span v-if="deletionCountdown">
+                Seu tenant será excluído em
+                <strong class="countdown-highlight critical">
+                  {{ deletionCountdown.days }}d {{ deletionCountdown.hours }}h
+                  {{ deletionCountdown.minutes }}m
+                  {{ deletionCountdown.seconds }}s
+                </strong>
+                caso nenhum plano seja contratado.
+              </span>
+              <span v-else>
+                {{ deletionInfo.message }}
+              </span>
+            </p>
+            <div
+              v-if="deletionInfo.scheduled_deletion_at"
+              class="deletion-details"
+            >
+              <div class="detail-item">
+                <span class="detail-label">Data de exclusão:</span>
+                <span class="detail-value critical-date">
+                  {{ formatDate(deletionInfo.scheduled_deletion_at) }}
+                </span>
+              </div>
+              <div
+                v-if="
+                  deletionInfo.days_until_deletion !== null || deletionCountdown
+                "
+                class="detail-item"
+              >
+                <span class="detail-label">Dias restantes:</span>
+                <span
+                  v-if="deletionCountdown"
+                  class="detail-value critical-countdown countdown-display"
+                >
+                  {{ deletionCountdown.days }}d {{ deletionCountdown.hours }}h
+                  {{ deletionCountdown.minutes }}m
+                  {{ deletionCountdown.seconds }}s
+                </span>
+                <span v-else class="detail-value critical-countdown">
+                  {{ Math.ceil(deletionInfo.days_until_deletion) }} dia(s)
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Aviso de Deadline (90 dias após trial) - Só mostra se trial já expirou -->
+          <div
+            v-else-if="
+              !trialInfo?.in_trial &&
+              deletionInfo.deadline_no_plan &&
+              deletionInfo.days_until_deadline !== null &&
+              deletionInfo.days_until_deadline > 0
+            "
+            class="deletion-warning warning"
+          >
+            <div class="warning-header">
+              <span class="warning-icon">⏰</span>
+              <h4 class="warning-title">Prazo para Contratação</h4>
+            </div>
+            <p class="warning-message">
+              <span v-if="deadlineCountdown">
+                Você tem
+                <strong class="countdown-highlight">
+                  {{ deadlineCountdown.days }}d {{ deadlineCountdown.hours }}h
+                  {{ deadlineCountdown.minutes }}m
+                  {{ deadlineCountdown.seconds }}s
+                </strong>
+                para contratar um plano antes do deadline de exclusão.
+              </span>
+              <span v-else>
+                {{ deletionInfo.message }}
+              </span>
+            </p>
+            <div class="deletion-details">
+              <div class="detail-item">
+                <span class="detail-label">Deadline:</span>
+                <span class="detail-value warning-date">
+                  {{ formatDate(deletionInfo.deadline_no_plan) }}
+                </span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Tempo restante:</span>
+                <span
+                  v-if="deadlineCountdown"
+                  class="detail-value warning-countdown countdown-display"
+                >
+                  {{ deadlineCountdown.days }}d {{ deadlineCountdown.hours }}h
+                  {{ deadlineCountdown.minutes }}m
+                  {{ deadlineCountdown.seconds }}s
+                </span>
+                <span v-else class="detail-value warning-countdown">
+                  {{ Math.ceil(deletionInfo.days_until_deadline) }} dia(s)
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div class="plan-actions">
           <button
             @click="upgradePlan"
@@ -242,7 +352,10 @@ const loading = ref(true);
 const error = ref(null);
 const refreshTimer = ref(null);
 const trialInfo = ref(null);
-const timeRemaining = ref(null); // Para contagem regressiva
+const deletionInfo = ref(null);
+const timeRemaining = ref(null); // Para contagem regressiva do trial
+const deadlineCountdown = ref(null); // Para contagem regressiva do deadline
+const deletionCountdown = ref(null); // Para contagem regressiva da exclusão agendada
 
 // Verificar se o plano está cancelado
 const isCanceled = computed(() => {
@@ -320,6 +433,106 @@ const startTrialCountdown = () => {
   // Limpar intervalo ao desmontar
   onUnmounted(() => {
     clearInterval(countdownInterval);
+  });
+};
+
+// Contagem regressiva do deadline de exclusão
+const startDeadlineCountdown = () => {
+  if (!deletionInfo.value || !deletionInfo.value.deadline_no_plan) {
+    return;
+  }
+
+  const updateCountdown = () => {
+    const now = new Date();
+    const deadline = new Date(deletionInfo.value.deadline_no_plan);
+    const diff = deadline - now;
+
+    if (diff <= 0) {
+      deadlineCountdown.value = null;
+      return;
+    }
+
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+    deadlineCountdown.value = {
+      days,
+      hours,
+      minutes,
+      seconds,
+    };
+  };
+
+  // Atualizar imediatamente
+  updateCountdown();
+
+  // Atualizar a cada segundo
+  const deadlineInterval = setInterval(() => {
+    updateCountdown();
+
+    // Se o deadline passou, limpar intervalo
+    if (!deadlineCountdown.value) {
+      clearInterval(deadlineInterval);
+    }
+  }, 1000);
+
+  // Limpar intervalo ao desmontar
+  onUnmounted(() => {
+    clearInterval(deadlineInterval);
+  });
+};
+
+// Contagem regressiva da exclusão agendada
+const startDeletionCountdown = () => {
+  if (
+    !deletionInfo.value ||
+    !deletionInfo.value.is_pending_deletion ||
+    !deletionInfo.value.scheduled_deletion_at
+  ) {
+    return;
+  }
+
+  const updateCountdown = () => {
+    const now = new Date();
+    const deletionDate = new Date(deletionInfo.value.scheduled_deletion_at);
+    const diff = deletionDate - now;
+
+    if (diff <= 0) {
+      deletionCountdown.value = null;
+      return;
+    }
+
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+    deletionCountdown.value = {
+      days,
+      hours,
+      minutes,
+      seconds,
+    };
+  };
+
+  // Atualizar imediatamente
+  updateCountdown();
+
+  // Atualizar a cada segundo
+  const deletionInterval = setInterval(() => {
+    updateCountdown();
+
+    // Se a data de exclusão passou, limpar intervalo
+    if (!deletionCountdown.value) {
+      clearInterval(deletionInterval);
+    }
+  }, 1000);
+
+  // Limpar intervalo ao desmontar
+  onUnmounted(() => {
+    clearInterval(deletionInterval);
   });
 };
 
@@ -451,7 +664,10 @@ const checkActivePlan = async () => {
         }
 
         // Salvar dados completos do plano ativo no localStorage
-        localStorage.setItem("activePlanData", JSON.stringify(activePlan.value));
+        localStorage.setItem(
+          "activePlanData",
+          JSON.stringify(activePlan.value)
+        );
         console.log("💾 Dados do plano ativo salvos no localStorage");
 
         emit("plan-loaded", activePlan.value);
@@ -471,6 +687,39 @@ const checkActivePlan = async () => {
           }
         } else {
           trialInfo.value = null;
+        }
+
+        // Extrair informações de exclusão se disponível
+        if (response.data.deletion_info) {
+          deletionInfo.value = response.data.deletion_info;
+          console.log(
+            "🗑️ Informações de exclusão encontradas:",
+            deletionInfo.value
+          );
+
+          // Iniciar contagem regressiva da exclusão agendada se disponível
+          if (
+            deletionInfo.value.is_pending_deletion &&
+            deletionInfo.value.scheduled_deletion_at
+          ) {
+            startDeletionCountdown();
+            console.log("⏱️ Contagem regressiva da exclusão agendada iniciada");
+          }
+
+          // Iniciar contagem regressiva do deadline se disponível
+          if (
+            deletionInfo.value.deadline_no_plan &&
+            deletionInfo.value.days_until_deadline !== null &&
+            deletionInfo.value.days_until_deadline > 0 &&
+            !trialInfo.value?.in_trial
+          ) {
+            startDeadlineCountdown();
+            console.log("⏱️ Contagem regressiva do deadline iniciada");
+          }
+        } else {
+          deletionInfo.value = null;
+          deadlineCountdown.value = null;
+          deletionCountdown.value = null;
         }
 
         // Limpar dados do localStorage quando não há plano ativo
@@ -1211,6 +1460,18 @@ onUnmounted(() => {
   letter-spacing: 1px;
 }
 
+.countdown-highlight {
+  color: #d97706;
+  font-weight: 700;
+  font-size: 1.1rem;
+  font-family: "Courier New", monospace;
+  letter-spacing: 1px;
+}
+
+.countdown-highlight.critical {
+  color: #dc2626;
+}
+
 /* Responsividade */
 @media (max-width: 768px) {
   .active-plan-checker {
@@ -1266,5 +1527,116 @@ onUnmounted(() => {
   .upgrade-sparkle {
     font-size: 1rem;
   }
+}
+
+/* Estilos para Informações de Exclusão */
+.deletion-info-section {
+  margin: 24px 0;
+}
+
+.deletion-warning {
+  border-radius: 16px;
+  padding: 24px 28px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.deletion-warning.critical {
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  border: 2px solid #dc2626;
+  border-left: 6px solid #b91c1c;
+}
+
+.deletion-warning.warning {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border: 2px solid #f59e0b;
+  border-left: 6px solid #d97706;
+}
+
+.warning-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.warning-icon {
+  font-size: 28px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.warning-title {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.deletion-warning.critical .warning-title {
+  color: #991b1b;
+}
+
+.deletion-warning.warning .warning-title {
+  color: #92400e;
+}
+
+.warning-message {
+  margin: 0 0 16px 0;
+  line-height: 1.6;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.deletion-warning.critical .warning-message {
+  color: #7f1d1d;
+}
+
+.deletion-warning.warning .warning-message {
+  color: #78350f;
+}
+
+.deletion-details {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+}
+
+.detail-label {
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.deletion-warning.critical .detail-label {
+  color: #991b1b;
+}
+
+.deletion-warning.warning .detail-label {
+  color: #92400e;
+}
+
+.detail-value {
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.critical-date,
+.critical-countdown {
+  color: #dc2626;
+  font-size: 1.1rem;
+}
+
+.warning-date,
+.warning-countdown {
+  color: #d97706;
+  font-size: 1.1rem;
 }
 </style>
