@@ -2,10 +2,10 @@
   <Transition name="modal">
     <div v-if="isOpen" class="modal-overlay" @click.self="close">
       <div class="modal-content">
-        <div class="modal-header">
+        <div class="modal-header" :class="{ 'trial-expired': errorData.type === 'trial_expired' }">
           <div class="icon-container">
             <div class="icon-wrapper">
-              <span class="icon">⚠️</span>
+              <span class="icon">{{ errorData.type === 'trial_expired' ? '⏰' : '⚠️' }}</span>
               <div class="pulse-ring"></div>
             </div>
           </div>
@@ -15,54 +15,79 @@
           <h2 class="modal-title">{{ title }}</h2>
           <p class="modal-message">{{ message }}</p>
 
-          <div class="info-box">
-            <div class="info-item">
-              <span class="info-label">Seu plano atual:</span>
-              <span class="info-value">{{ planInfo }}</span>
-            </div>
-            <!-- Mostrar ambos os limites quando ambos excedem -->
-            <template v-if="errorData.bothExceeded && errorData.playersData && errorData.teamsData">
+          <!-- Conteúdo para trial expirado -->
+          <template v-if="errorData.type === 'trial_expired'">
+            <div class="info-box">
               <div class="info-item">
-                <span class="info-label">Limite de usuários:</span>
-                <span class="info-value">{{ errorData.playersData.current }}/{{ errorData.playersData.max }}</span>
+                <span class="info-label">Status do plano:</span>
+                <span class="info-value">Trial Expirado</span>
               </div>
-              <div class="info-item">
-                <span class="info-label">Limite de times:</span>
-                <span class="info-value">{{ errorData.teamsData.current }}/{{ errorData.teamsData.max }}</span>
-              </div>
-            </template>
-            <!-- Mostrar apenas um limite quando apenas um excede -->
-            <div v-else-if="limitInfo" class="info-item">
-              <span class="info-label">{{ limitType }}:</span>
-              <span class="info-value">{{ limitInfo }}</span>
             </div>
-          </div>
 
-          <div class="options-box">
-            <p class="options-title">Para continuar, você tem duas opções:</p>
-            <div class="options-list">
-              <div class="option-item">
-                <span class="option-icon">🗑️</span>
-                <span class="option-text">
-                  <strong>Remover registros</strong> para se enquadrar no limite do seu plano atual
-                </span>
-              </div>
-              <div class="option-item">
-                <span class="option-icon">⬆️</span>
-                <span class="option-text">
-                  <strong>Fazer upgrade</strong> para um plano que suporte sua quantidade atual
-                </span>
+            <div class="options-box">
+              <p class="options-title">Para continuar usando o sistema:</p>
+              <div class="options-list">
+                <div class="option-item">
+                  <span class="option-icon">💳</span>
+                  <span class="option-text">
+                    <strong>Assine um plano</strong> para desbloquear todas as funcionalidades
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
+          </template>
+
+          <!-- Conteúdo para limite de plano -->
+          <template v-else>
+            <div class="info-box">
+              <div class="info-item">
+                <span class="info-label">Seu plano atual:</span>
+                <span class="info-value">{{ planInfo }}</span>
+              </div>
+              <!-- Mostrar ambos os limites quando ambos excedem -->
+              <template v-if="errorData.bothExceeded && errorData.playersData && errorData.teamsData">
+                <div class="info-item">
+                  <span class="info-label">Limite de usuários:</span>
+                  <span class="info-value">{{ errorData.playersData.current }}/{{ errorData.playersData.max }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Limite de times:</span>
+                  <span class="info-value">{{ errorData.teamsData.current }}/{{ errorData.teamsData.max }}</span>
+                </div>
+              </template>
+              <!-- Mostrar apenas um limite quando apenas um excede -->
+              <div v-else-if="limitInfo" class="info-item">
+                <span class="info-label">{{ limitType }}:</span>
+                <span class="info-value">{{ limitInfo }}</span>
+              </div>
+            </div>
+
+            <div class="options-box">
+              <p class="options-title">Para continuar, você tem duas opções:</p>
+              <div class="options-list">
+                <div class="option-item">
+                  <span class="option-icon">🗑️</span>
+                  <span class="option-text">
+                    <strong>Remover registros</strong> para se enquadrar no limite do seu plano atual
+                  </span>
+                </div>
+                <div class="option-item">
+                  <span class="option-icon">⬆️</span>
+                  <span class="option-text">
+                    <strong>Fazer upgrade</strong> para um plano que suporte sua quantidade atual
+                  </span>
+                </div>
+              </div>
+            </div>
+          </template>
         </div>
 
         <div class="modal-footer">
-          <button class="btn-secondary" @click="close">
+          <button v-if="errorData.type !== 'trial_expired'" class="btn-secondary" @click="close">
             Fechar
           </button>
           <button class="btn-upgrade" @click="goToUpgrade">
-            <span class="btn-text">Fazer Upgrade</span>
+            <span class="btn-text">{{ errorData.type === 'trial_expired' ? 'Ver Planos' : 'Fazer Upgrade' }}</span>
             <span class="btn-icon">
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                 <path
@@ -109,7 +134,9 @@ const isOpen = computed({
 });
 
 const title = computed(() => {
-  if (props.errorData.type === 'both') {
+  if (props.errorData.type === 'trial_expired') {
+    return 'Trial Expirado';
+  } else if (props.errorData.type === 'both') {
     return 'Limites do Plano Atingidos';
   } else if (props.errorData.type === 'users') {
     return 'Limite de Usuários Atingido';
@@ -189,6 +216,10 @@ const goToUpgrade = () => {
   background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%);
   position: relative;
   overflow: hidden;
+}
+
+.modal-header.trial-expired {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
 .modal-header::before {

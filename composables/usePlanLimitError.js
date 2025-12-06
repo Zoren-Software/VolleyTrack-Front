@@ -27,22 +27,40 @@ export const usePlanLimitError = () => {
     if (graphQLError.extensions?.validation) {
       const validationErrors = graphQLError.extensions.validation
       
-      // Procurar por mensagens de limite em todas as chaves de validação
+      // Procurar por mensagens de limite ou trial expirado em todas as chaves de validação
       for (const field in validationErrors) {
         const fieldErrors = validationErrors[field]
         
         if (Array.isArray(fieldErrors)) {
           for (const errorMsg of fieldErrors) {
-            if (typeof errorMsg === 'string' && errorMsg.includes('Você atingiu o limite de')) {
-              message = errorMsg
-              break
+            if (typeof errorMsg === 'string') {
+              // Verificar se é erro de trial expirado
+              if (errorMsg.includes('trial expirou') || errorMsg.includes('assinar um plano')) {
+                message = errorMsg
+                break
+              }
+              // Verificar se é erro de limite
+              if (errorMsg.includes('Você atingiu o limite de')) {
+                message = errorMsg
+                break
+              }
             }
           }
         }
         
-        if (message.includes('Você atingiu o limite de')) {
+        if (message.includes('trial expirou') || message.includes('assinar um plano') || message.includes('Você atingiu o limite de')) {
           break
         }
+      }
+    }
+
+    // Verificar se é erro de trial expirado
+    if (message.includes('trial expirou') || message.includes('assinar um plano')) {
+      return {
+        type: 'trial_expired',
+        message: message,
+        planName: 'Nenhum plano ativo',
+        fullMessage: message
       }
     }
 
