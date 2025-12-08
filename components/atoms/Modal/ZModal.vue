@@ -38,9 +38,3 @@ export default {
   inheritAttrs: false, // 🔥 necessário para evitar duplicação com `v-bind="$attrs"`
 };
 </script>
-
-<style scoped>
-.z-modal {
-  max-width: 600px;
-}
-</style>

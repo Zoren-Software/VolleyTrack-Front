@@ -28,8 +28,11 @@
             <NuxtLink to="/settings" class="dropdown-item"
               >Configuração de Conta</NuxtLink
             >
-            <NuxtLink to="/settings/notifications" class="dropdown-item"
-              >Configuração de Notificações</NuxtLink
+            <a
+              href="#"
+              class="dropdown-item"
+              @click.prevent="openNotificationSettings"
+              >Configuração de Notificações</a
             >
           </div>
         </div>
@@ -46,10 +49,16 @@
   <div class="content-wrapper">
     <NuxtPage />
   </div>
+  <ZNotificationSettingsForm v-model="openNotificationModal" />
 </template>
 
 <script>
+import ZNotificationSettingsForm from "~/components/organisms/Settings/ZNotificationSettingsForm.vue";
+
 export default {
+  components: {
+    ZNotificationSettingsForm,
+  },
   data() {
     return {
       navItems: [
@@ -61,6 +70,7 @@ export default {
       ],
       dropdownOpen: false,
       hasUnreadNotifications: true, // Simula notificações não lidas
+      openNotificationModal: false,
     };
   },
   methods: {
@@ -76,6 +86,10 @@ export default {
     },
     onUpgradeClicked() {
       console.log("🚀 Redirecionando para página de upgrade de planos");
+    },
+    openNotificationSettings() {
+      this.openNotificationModal = true;
+      this.dropdownOpen = false; // Fechar o dropdown ao abrir o modal
     },
   },
 };
