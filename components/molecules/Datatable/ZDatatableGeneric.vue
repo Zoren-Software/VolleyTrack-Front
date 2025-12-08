@@ -1,5 +1,5 @@
 <template>
-  <div class="row justify-start">
+  <div v-if="buttonActionAdd || buttonActionDelete" class="row justify-start">
     <div class="flex flex-col xs2">
       <div class="item">
         <ZDataTableActionButtons
@@ -81,6 +81,7 @@
               :pages="paginatorInfo.lastPage"
               :visible-pages="5"
               buttons-preset="secondary"
+              size="small"
               rounded
               gapped
               class="mb-3"
