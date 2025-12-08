@@ -1,5 +1,7 @@
 <template>
-  <ZDatatablesTraining />
+  <div class="list-page-container">
+    <ZDatatablesTraining />
+  </div>
 </template>
 
 <script>
@@ -17,3 +19,12 @@ useHead({
   titleTemplate: "Treinos",
 });
 </script>
+
+<style scoped>
+.list-page-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 0 20px;
+}
+</style>
