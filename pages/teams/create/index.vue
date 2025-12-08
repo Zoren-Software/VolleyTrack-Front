@@ -14,7 +14,8 @@
 <script>
 import ZTeamForm from "~/components/organisms/Forms/Team/ZTeamForm";
 import TEAMCREATE from "~/graphql/team/mutation/teamCreate.graphql";
-import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
+import { confirmSuccess } from "~/utils/sweetAlert2/swalHelper";
+import { handleMutation } from "~/utils/graphql/mutationHandler";
 import moment from "moment";
 
 export default {
@@ -39,57 +40,50 @@ export default {
       };
     },
     async create(form) {
+      this.loading = true;
+      this.error = false;
+
       try {
-        this.loading = true;
-        this.error = false;
+        await handleMutation(
+          async () => {
+            const query = gql`
+              ${TEAMCREATE}
+            `;
 
-        const query = gql`
-          ${TEAMCREATE}
-        `;
+            const variables = {
+              name: form.name,
+              playerId: form.users.map((item) => item.id),
+              teamCategoryId: form.teamCategory.value,
+              teamLevelId: form.teamLevel.value,
+            };
 
-        const variables = {
-          name: form.name,
-          playerId: form.users.map((item) => item.id),
-          teamCategoryId: form.teamCategory.value,
-          teamLevelId: form.teamLevel.value,
-        };
+            const { mutate } = await useMutation(query, { variables });
+            return await mutate();
+          },
+          {
+            onSuccess: (data) => {
+              confirmSuccess("Time salvo com sucesso!", () => {
+                this.errors = this.errorsDefault();
+                this.$router.push("/teams");
+              });
+            },
+            onError: (error) => {
+              this.error = true;
 
-        const { mutate } = await useMutation(query, { variables });
-
-        const { data } = await mutate();
-
-        confirmSuccess("Time salvo com sucesso!", () => {
-          this.errors = this.errorsDefault();
-
-          this.$router.push("/teams");
-        });
-      } catch (error) {
-        console.error(error);
-        this.error = true;
-
-        if (
-          error.graphQLErrors &&
-          error.graphQLErrors[0] &&
-          error.graphQLErrors[0].extensions &&
-          error.graphQLErrors[0].extensions.validation
-        ) {
-          this.errors = error.graphQLErrors[0].extensions.validation;
-
-          const errorMessages = Object.values(this.errors).map((item) => {
-            return item[0];
-          });
-
-          this.errorFields = Object.keys(this.errors);
-
-          // criar um título para essas validacões que seram mostradas
-          const footer = errorMessages.join("<br>");
-
-          confirmError("Ocorreu um erro ao salvar o time!", footer);
-        } else {
-          confirmError("Ocorreu um erro ao salvar o time!");
-        }
+              if (
+                error.graphQLErrors &&
+                error.graphQLErrors[0]?.extensions?.validation
+              ) {
+                this.errors = error.graphQLErrors[0].extensions.validation;
+                this.errorFields = Object.keys(this.errors);
+              }
+            },
+            errorTitle: "Ocorreu um erro ao salvar o time!",
+          }
+        );
+      } finally {
+        this.loading = false;
       }
-      this.loading = false;
     },
   },
 };

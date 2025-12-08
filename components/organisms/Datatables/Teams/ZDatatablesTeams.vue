@@ -12,9 +12,10 @@
     :loading="loading"
     :paginatorInfo="paginatorInfo"
     :filter="true"
-    @search="searchTrainings"
-    @actionSearch="getTeams"
+    @search="searchTeams"
+    @actionSearch="handleSearch"
     @actionClear="clearSearch"
+    @update:search="searchTeams"
     @add="addTeam"
     @edit="editTeam"
     @delete="deleteTeam"
@@ -108,9 +109,19 @@ export default defineComponent({
 
     const columns = [
       { key: "team", name: "team", label: "Time", sortable: false },
-      { key: "category", name: "category", label: "Categoria", sortable: false },
+      {
+        key: "category",
+        name: "category",
+        label: "Categoria",
+        sortable: false,
+      },
       { key: "level", name: "level", label: "Nível Técnico", sortable: false },
-      { key: "players", name: "players", label: "Total de Jogadores", sortable: false },
+      {
+        key: "players",
+        name: "players",
+        label: "Total de Jogadores",
+        sortable: false,
+      },
     ];
 
     return {
@@ -220,15 +231,30 @@ export default defineComponent({
       this.getTeams();
     },
 
-    searchTrainings(search) {
-      this.variablesGetTeams.filter.search = `%${search}%`;
+    searchTeams(search) {
+      // Se search for vazio ou undefined, usar %%
+      if (!search || search === "") {
+        this.variablesGetTeams.filter.search = "%%";
+      } else {
+        this.variablesGetTeams.filter.search = `%${search}%`;
+      }
+    },
+
+    handleSearch() {
+      // Garantir que o search está atualizado antes de buscar
+      // O search já foi atualizado pelo evento @search
+      this.getTeams({ fetchPolicy: "network-only" });
     },
 
     clearSearch() {
       this.variablesGetTeams.filter = {
         search: "%%",
-        teamsIds: [],
+        usersIds: [],
+        playersIds: [],
+        positionsIds: [],
       };
+      // Recarregar dados após limpar filtros
+      this.getTeams({ fetchPolicy: "network-only" });
     },
 
     getTeams(fetchPolicyOptions = {}) {
@@ -239,17 +265,20 @@ export default defineComponent({
         ${TEAMS}
       `;
 
-      let positionsIdsValues = this.variablesGetTeams.filter.positionsIds.map(
-        (position) => position.value
-      );
+      let positionsIdsValues =
+        this.variablesGetTeams.filter.positionsIds?.map(
+          (position) => position?.value || position
+        ) || [];
 
-      let usersIdsValues = this.variablesGetTeams.filter.usersIds.map(
-        (user) => user.value
-      );
+      let usersIdsValues =
+        this.variablesGetTeams.filter.usersIds?.map(
+          (user) => user?.value || user
+        ) || [];
 
-      let playersIdsValues = this.variablesGetTeams.filter.playersIds.map(
-        (player) => player.value
-      );
+      let playersIdsValues =
+        this.variablesGetTeams.filter.playersIds?.map(
+          (player) => player?.value || player
+        ) || [];
 
       const consult = {
         ...this.variablesGetTeams,
@@ -266,8 +295,6 @@ export default defineComponent({
       } = useQuery(query, consult, {
         fetchPolicy: fetchPolicyOptions.fetchPolicy || "cache-first",
       });
-
-      const { onResult } = useQuery(query, consult);
 
       onResult((result) => {
         if (result?.data?.teams?.data.length > 0) {

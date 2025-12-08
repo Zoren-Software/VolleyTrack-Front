@@ -38,8 +38,16 @@
     <div class="row">
       <div class="flex flex-col md6 py-1">
         <div class="item">
-          <ZButton label="Filtrar" color="orange" class="mr-3" @click="actionSearch">Filtrar</ZButton>
-          <ZButton label="Limpar" color="info" class="mr-3" @click="actionClear">Limpar</ZButton>
+          <ZButton
+            label="Filtrar"
+            color="orange"
+            class="mr-3"
+            @click="actionSearch"
+            >Filtrar</ZButton
+          >
+          <ZButton label="Limpar" color="info" class="mr-3" @click="actionClear"
+            >Limpar</ZButton
+          >
         </div>
       </div>
     </div>
@@ -97,8 +105,6 @@ import ZDataTableActionButtons from "~/components/molecules/Datatable/ZDataTable
 import ZDataTableActions from "~/components/molecules/Datatable/ZDataTableActions";
 import ZDataTableInputSearch from "~/components/molecules/Datatable/ZDataTableInputSearch";
 import ZDataTable from "~/components/molecules/Datatable/ZDataTable";
-import ZInput from "~/components/atoms/Inputs/ZInput";
-import ZIcon from "~/components/atoms/Icons/ZIcon";
 import ZFilter from "~/components/molecules/Filters/ZFilter";
 import ZButton from "~/components/atoms/Buttons/ZButton";
 export default defineComponent({
@@ -107,8 +113,6 @@ export default defineComponent({
     ZDataTableActions,
     ZDataTableInputSearch,
     ZDataTable,
-    ZInput,
-    ZIcon,
     ZFilter,
     ZButton,
   },
@@ -121,6 +125,7 @@ export default defineComponent({
     "actionSearch",
     "actionClear",
     "update:currentPageActive",
+    "update:search",
   ],
   props: {
     textAdvancedFilters: {
@@ -182,17 +187,21 @@ export default defineComponent({
       type: Boolean,
       default: false,
     },
+    search: {
+      type: String,
+      default: "",
+    },
   },
   data() {
     return {
-      search: this.search,
-      currentPageActive: this.paginatorInfo.currentPage,
+      currentPageActive: this.paginatorInfo?.currentPage || 1,
       selectedItems: [],
       selectedItemsEmitted: [],
       selectMode: "multiple",
       selectedColor: "primary",
       selectModeOptions: ["single", "multiple"],
       selectColorOptions: ["primary", "danger", "warning", "#EF467F"],
+      localSearchValue: this.search || "",
     };
   },
 
@@ -220,11 +229,19 @@ export default defineComponent({
     },
 
     actionSearch() {
-      this.$emit("actionSearch", this.search);
+      // Usar o valor local que está sempre atualizado
+      const searchValue = this.localSearchValue || "";
+      // Primeiro atualizar o search no componente pai
+      this.$emit("search", searchValue);
+      // Depois emitir o actionSearch para executar a busca
+      this.$emit("actionSearch", searchValue);
     },
 
     actionClear() {
-      this.search = "";
+      // Limpar o campo de busca visualmente
+      this.localSearchValue = "";
+      // Emitir eventos para limpar filtros
+      this.$emit("update:search", "");
       this.$emit("actionClear", true);
     },
 
@@ -245,9 +262,20 @@ export default defineComponent({
         return this.items;
       }
     },
+    internalSearch: {
+      get() {
+        return this.localSearchValue;
+      },
+      set(value) {
+        this.localSearchValue = value;
+        this.$emit("update:search", value);
+      },
+    },
   },
   watch: {
     search(newVal) {
+      // Sincronizar o valor local quando o prop mudar externamente
+      this.localSearchValue = newVal || "";
       this.$emit("search", newVal);
     },
     currentPageActive(newVal) {

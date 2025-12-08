@@ -18,17 +18,19 @@
         >
           {{ item.title }}
         </NuxtLink>
-        <div 
+        <div
           class="dropdown"
           @mouseover="openDropdown"
           @mouseleave="closeDropdown"
         >
-          <span class="nav-link dropdown-toggle">
-            Configurações
-          </span>
+          <span class="nav-link dropdown-toggle"> Configurações </span>
           <div v-if="dropdownOpen" class="dropdown-menu">
-            <NuxtLink to="/settings" class="dropdown-item">Configuração de Conta</NuxtLink>
-            <NuxtLink to="/settings/notifications" class="dropdown-item">Configuração de Notificações</NuxtLink>
+            <NuxtLink to="/settings" class="dropdown-item"
+              >Configuração de Conta</NuxtLink
+            >
+            <NuxtLink to="/settings/notifications" class="dropdown-item"
+              >Configuração de Notificações</NuxtLink
+            >
           </div>
         </div>
       </nav>
@@ -72,19 +74,22 @@ export default {
       // Lógica para abrir ou fechar o menu de notificações
       console.log("Abrir notificações");
     },
+    onUpgradeClicked() {
+      console.log("🚀 Redirecionando para página de upgrade de planos");
+    },
   },
 };
 </script>
 
 <style scoped>
 .top-bar {
-  background-color: #0B1E3A;
+  background-color: #0b1e3a;
   height: 60px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
-  border-bottom: 1px solid #C0C0C0;
+  border-bottom: 1px solid #c0c0c0;
 }
 
 .top-bar-left {
@@ -98,7 +103,7 @@ export default {
 }
 
 .logo-circle {
-  background-color: #E9742B;
+  background-color: #e9742b;
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -108,12 +113,12 @@ export default {
 }
 
 .logo-icon {
-  color: #FFFFFF;
+  color: #ffffff;
   font-size: 16px;
 }
 
 .system-name {
-  color: #FFFFFF;
+  color: #ffffff;
   font-weight: bold;
   font-size: 1.2rem;
   margin-left: 8px;
@@ -131,18 +136,18 @@ export default {
 }
 
 .nav-link {
-  color: #FFFFFF;
+  color: #ffffff;
   text-decoration: none;
   font-weight: 500;
   cursor: pointer;
 }
 
 .nav-link.active {
-  color: #E9742B; /* Cor laranja para a rota ativa */
+  color: #e9742b; /* Cor laranja para a rota ativa */
 }
 
 .nav-link:hover {
-  color: #B0C4DE;
+  color: #b0c4de;
 }
 
 .nav-link.dropdown-toggle {
@@ -195,14 +200,14 @@ export default {
   right: 0;
   width: 8px;
   height: 8px;
-  background-color: #E9742B;
+  background-color: #e9742b;
   border-radius: 50%;
 }
 
 .user-avatar {
   width: 40px;
   height: 40px;
-  border: 1px solid #2C2C2C;
+  border: 1px solid #2c2c2c;
 }
 .content-wrapper {
   margin-top: 60px;

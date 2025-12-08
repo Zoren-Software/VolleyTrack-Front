@@ -24,9 +24,6 @@
 
 <script>
 import ZNavBarItem from "~/components/atoms/NavBar/ZNavBarItem";
-import ZButtonDropdown from "~/components/atoms/Buttons/ZButtonDropdown";
-import ZBadge from "~/components/atoms/Badges/ZBadge";
-import ZIcon from "~/components/atoms/Icons/ZIcon";
 import ZListItemsNotification from "~/components/organisms/List/Notification/ZListItemsNotification";
 import NOTIFICATIONSTOTAL from "~/graphql/notification/query/notificationsTotal.graphql";
 
@@ -39,9 +36,7 @@ export default {
   },
   components: {
     ZNavBarItem,
-    ZButtonDropdown,
-    ZBadge,
-    ZIcon,
+
     ZListItemsNotification,
   },
   mounted() {

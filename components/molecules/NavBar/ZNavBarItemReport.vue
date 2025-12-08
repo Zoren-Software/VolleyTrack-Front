@@ -6,7 +6,7 @@
         target="blank"
         color="background-primary"
       >
-        <ZIcon name="report" color="text-primary" />
+        <ZIcon name="assessment" color="text-primary" />
       </ZButton>
     </ZPopover>
   </ZNavBarItem>

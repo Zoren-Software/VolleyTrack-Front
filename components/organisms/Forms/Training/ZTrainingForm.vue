@@ -1,15 +1,34 @@
 <template>
   <va-card class="my-3 mr-3">
     <va-form ref="myForm" class="flex flex-col gap-6 mb-2">
-      <va-stepper v-model="step" :steps="steps" controls-hidden>
-        <template #controls="{ nextStep, prevStep }">
+      <va-stepper
+        v-model="controlledStep"
+        :steps="dynamicSteps"
+        controls-hidden
+      >
+        <template #controls="{ prevStep }">
           <va-button color="primary" @click="prevStep()" v-if="prevStepButton"
             >Anterior</va-button
           >
-          <va-button color="primary" @click="nextStep()" v-if="nextStepButton"
+          <va-button
+            color="primary"
+            @click="handleNextStep()"
+            v-if="nextStepButton"
             >Próximo</va-button
           >
           <va-button color="primary" @click="save()">Salvar</va-button>
+          <va-button
+            color="success"
+            @click="saveAndContinue()"
+            v-if="!isTrainingSaved && step <= 3"
+            >Salvar e Continuar</va-button
+          >
+          <va-button
+            color="success"
+            @click="saveScoutsOnly()"
+            v-if="isTrainingSaved && step >= 4"
+            >Salvar Scouts</va-button
+          >
         </template>
         <template #step-content-0>
           <ZTextInput
@@ -142,6 +161,16 @@
             </template>
           </ZListRelationConfirmationTrainings>
         </template>
+        <template #step-content-4>
+          <ZListRelationPlayersWithScouts
+            ref="listRelationPlayersWithScoutsRef"
+            :training-id="form.id"
+            :items="[...(form.players || []), ...(form.scouts || [])]"
+            @add="addPlayers"
+            @delete="actionDeletePlayer"
+          >
+          </ZListRelationPlayersWithScouts>
+        </template>
       </va-stepper>
     </va-form>
   </va-card>
@@ -164,6 +193,7 @@ import ZCardViewMetricsPresenceIntention from "~/components/molecules/Cards/ZCar
 import ZProgressBarMetricsTraining from "~/components/molecules/ProgressBar/ZProgressBarMetricsTraining";
 import CONFIRMTRAINING from "~/graphql/training/mutation/confirmTraining.graphql";
 import CONFIRMPRESENCE from "~/graphql/training/mutation/confirmPresence.graphql";
+import ZListRelationPlayersWithScouts from "~/components/molecules/Datatable/ZListRelationPlayersWithScouts";
 
 const { formData } = useForm("myForm");
 
@@ -181,6 +211,7 @@ export default {
           teams: [],
           fundamentals: [],
           specificFundamentals: [],
+          players: [],
         };
       },
     },
@@ -221,9 +252,16 @@ export default {
     ZCardViewMetricsPresenceIntention,
     ZCardViewMetricsRealPresence,
     ZProgressBarMetricsTraining,
+    ZListRelationPlayersWithScouts,
   },
 
-  emits: ["refresh"],
+  emits: [
+    "refresh",
+    "update:errors",
+    "update:errorFields",
+    "saveAndContinue",
+    "saveScouts",
+  ],
 
   data() {
     return {
@@ -231,7 +269,7 @@ export default {
       user: localStorage.getItem("user")
         ? JSON.parse(localStorage.getItem("user"))
         : null,
-      step: 0,
+      internalStep: 0, // Propriedade interna controlada
       nextStepButton: true,
       prevStepButton: false,
       yearView: { type: "year" },
@@ -244,43 +282,267 @@ export default {
         { label: "Fundamentos Treinados" },
         { label: "Time" },
         { label: "Lista de Presença" },
+        { label: "Jogadores e Scouts" },
       ],
       positions: [],
       teams: [],
       form: {
         ...this.data,
+        players: this.data.players || [],
+        scouts: this.data.scouts || [],
       },
       fundamentals: [],
       specificFundamentals: [],
       users: [],
+      players: [],
+      scouts: [],
     };
   },
 
-  watch: {
-    step(val) {
-      if (val === 4) {
-        this.nextStepButton = false;
-      } else {
-        this.nextStepButton = true;
-      }
+  computed: {
+    // Verifica se o treino está salvo (tem ID)
+    isTrainingSaved() {
+      return this.form.id && this.form.id > 0;
+    },
 
-      if (val === 0) {
-        this.prevStepButton = false;
-      } else {
-        this.prevStepButton = true;
-      }
+    // Verifica se pode prosseguir para as etapas 4 e 5
+    canProceedToAdvancedSteps() {
+      return this.isTrainingSaved;
+    },
+
+    // Computed property para controlar o step de forma segura
+    controlledStep: {
+      get() {
+        return this.internalStep;
+      },
+      set(newStep) {
+        // Se for uma mudança válida, permitir
+        this.internalStep = newStep;
+      },
+    },
+
+    // Computed property para acessar o step de forma controlada
+    step: {
+      get() {
+        return this.internalStep;
+      },
+      set(newStep) {
+        // Se for uma mudança válida, permitir
+        this.internalStep = newStep;
+      },
+    },
+
+    // Steps dinâmicos com validação
+    dynamicSteps() {
+      return [
+        { label: "Informações Essenciais" },
+        { label: "Fundamentos Treinados" },
+        { label: "Time" },
+        {
+          label: "Lista de Presença",
+          disabled: !this.isTrainingSaved,
+          tooltip: !this.isTrainingSaved ? "Salve o treino primeiro" : "",
+        },
+        {
+          label: "Jogadores e Scouts",
+          disabled: !this.isTrainingSaved,
+          tooltip: !this.isTrainingSaved ? "Salve o treino primeiro" : "",
+        },
+      ];
+    },
+  },
+
+  mounted() {
+    try {
+      // Ler a etapa da URL quando o componente for montado
+      this.readStepFromURL();
+    } catch (error) {
+      console.error("Erro no mounted:", error);
+    }
+  },
+
+  watch: {
+    internalStep: {
+      handler(val, oldVal) {
+        try {
+          if (val !== oldVal) {
+            // Atualizar a URL com a etapa atual
+            this.updateURLWithStep(val);
+          }
+
+          if (val === 4) {
+            this.nextStepButton = false;
+          } else {
+            this.nextStepButton = true;
+          }
+
+          if (val === 0) {
+            this.prevStepButton = false;
+          } else {
+            this.prevStepButton = true;
+          }
+        } catch (error) {
+          console.error("Erro no watcher internalStep:", error);
+        }
+      },
+      immediate: true,
     },
     data(val) {
-      this.form = { ...val };
+      const currentStep = this.internalStep;
+
+      // Preservar o step ANTES de atualizar o form
+      const stepToPreserve = currentStep;
+
+      // Preservar dados existentes que podem ser perdidos
+      const existingTeams = this.form.teams || [];
+      const existingFundamentals = this.form.fundamentals || [];
+      const existingSpecificFundamentals = this.form.specificFundamentals || [];
+
+      console.log("DEBUG - data watcher: Teams existentes:", existingTeams);
+      console.log("DEBUG - data watcher: Teams recebidos:", val.teams);
+
+      this.form = {
+        ...val,
+        players: val.players || [],
+        scouts: val.scouts || [],
+        // Preservar dados que podem ser perdidos na atualização
+        teams: val.teams && val.teams.length > 0 ? val.teams : existingTeams,
+        fundamentals:
+          val.fundamentals && val.fundamentals.length > 0
+            ? val.fundamentals
+            : existingFundamentals,
+        specificFundamentals:
+          val.specificFundamentals && val.specificFundamentals.length > 0
+            ? val.specificFundamentals
+            : existingSpecificFundamentals,
+      };
+
+      console.log(
+        "DEBUG - data watcher: Teams após atualização:",
+        this.form.teams
+      );
+
+      // PRESERVAÇÃO AGESSIVA: Múltiplas tentativas de preservar o step
+      const preserveStep = () => {
+        if (this.internalStep !== stepToPreserve) {
+          this.internalStep = stepToPreserve;
+        }
+      };
+
+      // Tentativa imediata
+      preserveStep();
+
+      // Tentativa no nextTick
+      this.$nextTick(preserveStep);
+
+      // Tentativa com setTimeout (última chance)
+      setTimeout(preserveStep, 0);
+      setTimeout(preserveStep, 10);
+      setTimeout(preserveStep, 50);
     },
     "data.team": function (newVal) {
-      if (newVal) {
+      if (newVal && (!this.form.teams || this.form.teams.length === 0)) {
         this.form.teams = [{ id: newVal.id, team: newVal.name }];
       }
     },
   },
 
   methods: {
+    // Valida se os campos obrigatórios estão preenchidos
+    validateRequiredFields() {
+      const requiredFields = {
+        name: "Nome do treino",
+        description: "Descrição do treino",
+        dateValue: "Data do treino",
+        timeStartValue: "Horário de início",
+        timeEndValue: "Horário de término",
+      };
+
+      const missingFields = [];
+
+      for (const [field, label] of Object.entries(requiredFields)) {
+        if (
+          !this.form[field] ||
+          (Array.isArray(this.form[field]) && this.form[field].length === 0)
+        ) {
+          missingFields.push(label);
+        }
+      }
+
+      // Validação específica para arrays
+      console.log(
+        "DEBUG - validateRequiredFields: Teams no form:",
+        this.form.teams
+      );
+      if (!this.form.teams || this.form.teams.length === 0) {
+        console.log("DEBUG - validateRequiredFields: Time está vazio!");
+        missingFields.push("Time");
+      }
+
+      if (missingFields.length > 0) {
+        confirmError(
+          "Campos obrigatórios não preenchidos!",
+          `Por favor, preencha os seguintes campos antes de salvar: ${missingFields.join(
+            ", "
+          )}`
+        );
+        return false;
+      }
+
+      return true;
+    },
+
+    // Valida se pode prosseguir para as etapas 4 e 5
+    validateAdvancedStepsAccess() {
+      if (!this.canProceedToAdvancedSteps) {
+        confirmError(
+          "Ação não permitida!",
+          "Você precisa salvar as informações básicas do treino antes de acessar as etapas de Lista de Presença e Jogadores/Scouts. Por favor, salve o treino primeiro."
+        );
+        return false;
+      }
+      return true;
+    },
+
+    // Sobrescreve o método de navegação do stepper para adicionar validação
+    handleNextStep() {
+      // Se está tentando ir para as etapas 4 ou 5, valida se o treino está salvo
+      if (this.step === 2 && !this.validateAdvancedStepsAccess()) {
+        return;
+      }
+
+      // Se está na etapa 3 e tentando ir para a 4, também valida
+      if (this.step === 3 && !this.validateAdvancedStepsAccess()) {
+        return;
+      }
+
+      // Se passou pela validação, permite a navegação
+      this.step++;
+    },
+
+    handleGraphQLError(error) {
+      if (
+        error.graphQLErrors &&
+        error.graphQLErrors[0] &&
+        error.graphQLErrors[0].extensions &&
+        error.graphQLErrors[0].extensions.validation
+      ) {
+        const validationErrors = error.graphQLErrors[0].extensions.validation;
+        this.$emit("update:errors", validationErrors);
+
+        const errorMessages = Object.values(validationErrors).map((item) => {
+          return item[0];
+        });
+
+        this.$emit("update:errorFields", Object.keys(validationErrors));
+
+        const footer = errorMessages.join("<br>");
+
+        confirmError("Ocorreu um erro ao ler todas as notificações!", footer);
+      } else {
+        confirmError("Ocorreu um erro ao ler todas as notificações!");
+      }
+    },
     errorsDefault() {
       return {
         name: [],
@@ -291,6 +553,8 @@ export default {
         teams: [],
         fundamentals: [],
         specificFundamentals: [],
+        players: [],
+        scouts: [],
       };
     },
     async actionReject(id, playerId, trainingId) {
@@ -325,13 +589,14 @@ export default {
           error.graphQLErrors[0].extensions &&
           error.graphQLErrors[0].extensions.validation
         ) {
-          this.errors = error.graphQLErrors[0].extensions.validation;
+          const validationErrors = error.graphQLErrors[0].extensions.validation;
+          this.$emit("update:errors", validationErrors);
 
-          const errorMessages = Object.values(this.errors).map((item) => {
+          const errorMessages = Object.values(validationErrors).map((item) => {
             return item[0];
           });
 
-          this.errorFields = Object.keys(this.errors);
+          this.$emit("update:errorFields", Object.keys(validationErrors));
 
           const footer = errorMessages.join("<br>");
 
@@ -373,13 +638,14 @@ export default {
           error.graphQLErrors[0].extensions &&
           error.graphQLErrors[0].extensions.validation
         ) {
-          this.errors = error.graphQLErrors[0].extensions.validation;
+          const validationErrors = error.graphQLErrors[0].extensions.validation;
+          this.$emit("update:errors", validationErrors);
 
-          const errorMessages = Object.values(this.errors).map((item) => {
+          const errorMessages = Object.values(validationErrors).map((item) => {
             return item[0];
           });
 
-          this.errorFields = Object.keys(this.errors);
+          this.$emit("update:errorFields", Object.keys(validationErrors));
 
           const footer = errorMessages.join("<br>");
 
@@ -421,13 +687,14 @@ export default {
           error.graphQLErrors[0].extensions &&
           error.graphQLErrors[0].extensions.validation
         ) {
-          this.errors = error.graphQLErrors[0].extensions.validation;
+          const validationErrors = error.graphQLErrors[0].extensions.validation;
+          this.$emit("update:errors", validationErrors);
 
-          const errorMessages = Object.values(this.errors).map((item) => {
+          const errorMessages = Object.values(validationErrors).map((item) => {
             return item[0];
           });
 
-          this.errorFields = Object.keys(this.errors);
+          this.$emit("update:errorFields", Object.keys(validationErrors));
 
           const footer = errorMessages.join("<br>");
 
@@ -528,6 +795,70 @@ export default {
       confirmSuccess("Fundamento Específico removido com sucesso!");
     },
 
+    addPlayers() {
+      const transformedPlayers = this.players.map((item) => {
+        return {
+          id: item.value,
+          user: {
+            id: item.value,
+            name: item.text,
+            email: item.email,
+            information: item.information,
+            positions: item.positions,
+          },
+        };
+      });
+
+      transformedPlayers.forEach((newPlayer) => {
+        const isAlreadyAdded = this.form.players.some(
+          (existingPlayer) => existingPlayer.id === newPlayer.id
+        );
+
+        if (!isAlreadyAdded) {
+          this.form.players.push(newPlayer);
+        }
+      });
+
+      this.players = [];
+    },
+
+    addScouts() {
+      const transformedScouts = this.scouts.map((item) => {
+        return {
+          id: item.value,
+          name: item.text,
+        };
+      });
+
+      transformedScouts.forEach((newScout) => {
+        const isAlreadyAdded = this.form.scouts.some(
+          (existingScout) => existingScout.id === newScout.id
+        );
+
+        if (!isAlreadyAdded) {
+          this.form.scouts.push(newScout);
+        }
+      });
+
+      this.scouts = [];
+    },
+
+    actionDeletePlayer(id) {
+      this.form.players = this.form.players.filter((player) => {
+        return player.id !== id;
+      });
+
+      confirmSuccess("Jogador removido com sucesso!");
+    },
+
+    actionDeleteScout(id) {
+      this.form.scouts = this.form.scouts.filter((scout) => {
+        return scout.id !== id;
+      });
+
+      confirmSuccess("Scout removido com sucesso!");
+    },
+
     messageSpecificFundamental() {
       if (!this.form.fundamentals.length) {
         return "Selecione um Fundamento para habilitar este campo";
@@ -537,7 +868,85 @@ export default {
     },
 
     async save() {
+      if (!this.validateRequiredFields()) {
+        return;
+      }
       this.$emit("save", this.form);
+    },
+
+    async saveAndContinue() {
+      if (!this.validateRequiredFields()) {
+        return;
+      }
+
+      // Só emite o evento saveAndContinue se estiver nas etapas iniciais (0-3)
+      // Para evitar redirecionamentos quando estiver salvando scouts na etapa 4-5
+      if (this.step <= 3) {
+        this.$emit("saveAndContinue", this.form);
+      } else {
+        // Se estiver nas etapas 4-5, usa o método específico para scouts
+        this.$emit("saveScouts", this.form);
+      }
+    },
+
+    // Método específico para salvar scouts sem redirecionamento
+    async saveScoutsOnly() {
+      console.log("DEBUG - saveScoutsOnly: Iniciando save forçado de scouts");
+
+      try {
+        // Forçar o save de todos os scouts pendentes
+        if (
+          this.$refs.listRelationPlayersWithScoutsRef &&
+          this.$refs.listRelationPlayersWithScoutsRef.forceSaveAllScouts
+        ) {
+          console.log("DEBUG - saveScoutsOnly: Chamando forceSaveAllScouts");
+          await this.$refs.listRelationPlayersWithScoutsRef.forceSaveAllScouts();
+        } else {
+          console.log(
+            "DEBUG - saveScoutsOnly: forceSaveAllScouts não disponível"
+          );
+        }
+
+        // Aguardar um pouco para garantir que o save foi processado
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
+        // Emite evento específico para salvar scouts sem redirecionamento
+        this.$emit("saveScouts", this.form);
+      } catch (error) {
+        console.error("DEBUG - saveScoutsOnly: Erro ao salvar scouts:", error);
+        // Emite evento mesmo com erro para não bloquear o fluxo
+        this.$emit("saveScouts", this.form);
+      }
+    },
+
+    // Atualiza a URL com a etapa atual
+    updateURLWithStep(step) {
+      try {
+        const currentUrl = new URL(window.location.href);
+        currentUrl.searchParams.set("step", step.toString());
+
+        // Atualizar a URL sem recarregar a página
+        window.history.replaceState({}, "", currentUrl.toString());
+      } catch (error) {
+        console.error("Erro ao atualizar URL:", error);
+      }
+    },
+
+    // Lê a etapa da URL e define o step inicial
+    readStepFromURL() {
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const stepParam = urlParams.get("step");
+
+        if (stepParam !== null) {
+          const step = parseInt(stepParam);
+          if (step >= 0 && step <= 4) {
+            this.internalStep = step;
+          }
+        }
+      } catch (error) {
+        console.error("Erro ao ler step da URL:", error);
+      }
     },
   },
 };

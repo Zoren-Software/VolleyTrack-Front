@@ -1,5 +1,8 @@
 <template>
-  <va-navbar color="background-primary" style="position: fixed; z-index: 1; width: 100%">
+  <va-navbar
+    color="background-primary"
+    style="position: fixed; z-index: 1; width: 100%"
+  >
     <template #left>
       <ZNavBarItemLogo
         :minimized="minimized"
@@ -42,7 +45,6 @@ export default {
   },
   data() {
     return {
-      minimized: false,
       titles: [
         { title: "Home", link: "/", active: false },
         { title: "Treinos", link: "/trainings", active: false },
