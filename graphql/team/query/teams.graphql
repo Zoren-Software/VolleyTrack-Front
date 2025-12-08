@@ -18,6 +18,21 @@ query teams($filter: TeamSearchInput, $first: Int, $page: Int) {
       id
       name
       userId
+      teamCategoryId
+      teamLevelId
+      teamCategory {
+        id
+        name
+      }
+      teamLevel {
+        id
+        name
+      }
+      players {
+        id
+        name
+        email
+      }
       user {
         id
         name

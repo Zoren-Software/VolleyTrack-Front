@@ -22,7 +22,7 @@
       <div v-if="optionSearch" class="flex flex-col md6 py-1">
         <div class="item">
           <ZDataTableInputSearch
-            v-model="search"
+            v-model="internalSearch"
             placeholder="Digite para pesquisar..."
             label="Pesquisar"
             @actionSearch="actionSearch"
@@ -229,11 +229,11 @@ export default defineComponent({
     },
 
     actionSearch() {
-      // Usar o valor local que está sempre atualizado
-      const searchValue = this.localSearchValue || "";
+      // Usar o valor do computed que está sempre sincronizado
+      const searchValue = this.internalSearch || "";
       // Primeiro atualizar o search no componente pai
       this.$emit("search", searchValue);
-      // Depois emitir o actionSearch para executar a busca
+      // Depois emitir o actionSearch para executar a busca com o valor
       this.$emit("actionSearch", searchValue);
     },
 

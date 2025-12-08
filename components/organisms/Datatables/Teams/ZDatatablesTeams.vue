@@ -236,13 +236,19 @@ export default defineComponent({
       if (!search || search === "") {
         this.variablesGetTeams.filter.search = "%%";
       } else {
-        this.variablesGetTeams.filter.search = `%${search}%`;
+        // Remover os % se já existirem para evitar duplicação
+        const cleanSearch = search.replace(/%/g, "");
+        this.variablesGetTeams.filter.search = `%${cleanSearch}%`;
       }
     },
 
-    handleSearch() {
-      // Garantir que o search está atualizado antes de buscar
-      // O search já foi atualizado pelo evento @search
+    handleSearch(searchValue) {
+      // O searchValue é passado pelo actionSearch do ZDatatableGeneric
+      // Se foi passado, atualizar o filtro antes de buscar
+      if (searchValue !== undefined && searchValue !== null) {
+        this.searchTeams(searchValue);
+      }
+      // Executar a busca com os filtros atualizados
       this.getTeams({ fetchPolicy: "network-only" });
     },
 
@@ -292,38 +298,64 @@ export default defineComponent({
 
       const {
         result: { value },
+        onResult,
       } = useQuery(query, consult, {
         fetchPolicy: fetchPolicyOptions.fetchPolicy || "cache-first",
       });
 
       onResult((result) => {
-        if (result?.data?.teams?.data.length > 0) {
-          this.paginatorInfo = result.data.teams.paginatorInfo;
-          this.items = result.data.teams.data.map((team) => ({
+        this.loading = false;
+        if (result?.data?.teams) {
+          this.paginatorInfo = result.data.teams.paginatorInfo || {
+            currentPage: 1,
+            lastPage: 1,
+            total: 0,
+            firstItem: 0,
+            lastItem: 0,
+            perPage: 10,
+          };
+          this.items = (result.data.teams.data || []).map((team) => ({
             ...team,
             teamCategory: team.teamCategory || { name: "Sem Categoria" },
             teamLevel: team.teamLevel || { name: "Sem Nível Técnico" },
             players: team.players || [],
-            technician: team.technician || "Sem Técnico",
-            assistant: team.assistant || "Sem Auxiliar",
           }));
+        } else {
+          this.items = [];
+          this.paginatorInfo = {
+            currentPage: 1,
+            lastPage: 1,
+            total: 0,
+            firstItem: 0,
+            lastItem: 0,
+            perPage: 10,
+          };
         }
       });
 
-      if (value) {
-        if (value?.teams?.data.length > 0) {
-          this.paginatorInfo = value.teams.paginatorInfo;
-          this.items = value.teams.data.map((team) => ({
-            ...team,
-            teamCategory: team.teamCategory || { name: "Sem Categoria" },
-            teamLevel: team.teamLevel || { name: "Sem Nível Técnico" },
-            players: team.players || [],
-            technician: team.technician || "Sem Técnico",
-            assistant: team.assistant || "Sem Auxiliar",
-          }));
-        }
+      // Tratar dados em cache
+      if (value?.teams) {
+        this.loading = false;
+        this.paginatorInfo = value.teams.paginatorInfo || {
+          currentPage: 1,
+          lastPage: 1,
+          total: 0,
+          firstItem: 0,
+          lastItem: 0,
+          perPage: 10,
+        };
+        this.items = (value.teams.data || []).map((team) => ({
+          ...team,
+          teamCategory: team.teamCategory || { name: "Sem Categoria" },
+          teamLevel: team.teamLevel || { name: "Sem Nível Técnico" },
+          players: team.players || [],
+        }));
+      } else if (value && !value.teams) {
+        // Se value existe mas não tem teams, pode ser que ainda esteja carregando
+        // ou que não há dados
+        this.loading = false;
+        this.items = [];
       }
-      this.loading = false;
     },
   },
 });
