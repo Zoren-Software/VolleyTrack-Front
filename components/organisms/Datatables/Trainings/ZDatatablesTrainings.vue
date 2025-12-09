@@ -1,113 +1,132 @@
 <template>
-  <ZDatatableGeneric
-    buttonActionAdd
-    buttonActionDelete
-    includeActionsColumn
-    includeActionEditList
-    includeActionDeleteList
-    textAdvancedFilters
-    selectable
-    :items="items"
-    :columns="columns"
-    :loading="loading"
-    :paginatorInfo="paginatorInfo"
-    :filter="true"
-    @search="searchTrainings"
-    @actionSearch="handleSearch"
-    @actionClear="clearSearch"
-    @update:search="searchTrainings"
-    @add="addTraining"
-    @edit="editTraining"
-    @delete="deleteTraining"
-    @deletes="deleteTrainings"
-    @update:currentPageActive="updateCurrentPageActive"
-  >
-    <!-- FILTER -->
-    <template #filter>
-      <!-- TODO - Pensar nos reais filtros que deveram existir aqui -->
-      <div class="row">
-        <div class="flex flex-col md6 mb-2">
-          <div class="item mr-2">
+  <div class="trainings-listing">
+    <!-- Filter Card -->
+    <va-card class="filter-card">
+      <div class="filter-content">
+        <div class="search-section">
+          <label class="filter-label">Buscar</label>
+          <ZDataTableInputSearch
+            v-model="internalSearchValue"
+            placeholder="Nome do treino..."
+            @actionSearch="handleSearch"
+          />
+        </div>
+        <div class="filters-section">
+          <div class="filter-item">
+            <label class="filter-label">Time</label>
             <ZSelectTeam
-              label="Times"
+              label=""
               multiple
               v-model="variablesGetTrainings.filter.teamsIds"
             />
           </div>
-        </div>
-        <div class="flex flex-col md6 mb-2">
-          <div class="item mr-2">
+          <div class="filter-item">
+            <label class="filter-label">Usuário Alteração</label>
             <ZSelectUser
-              label="Usuário Alteração"
+              label=""
               v-model="variablesGetTrainings.filter.usersIds"
             />
           </div>
-        </div>
-        <div class="flex flex-col md6 mb-2">
-          <div class="item mr-2">
+          <div class="filter-item">
+            <label class="filter-label">Jogador</label>
             <ZSelectUser
-              label="Jogadores"
+              label=""
               v-model="variablesGetTrainings.filter.playersIds"
             />
           </div>
-        </div>
-        <div class="flex flex-col md3 mb-2">
-          <div class="item mr-2">
+          <div class="filter-item">
+            <label class="filter-label">Data Início</label>
             <VaDateInput
               v-model="variablesGetTrainings.filter.dateStart"
               name="dateStart"
-              label="Inicio Data Treino"
-              id="date-training"
+              label=""
+              id="date-training-start"
               style="width: 100%"
-              class="mb-3"
             />
           </div>
-        </div>
-        <div class="flex flex-col md3 mb-2">
-          <div class="item mr-2">
+          <div class="filter-item">
+            <label class="filter-label">Data Fim</label>
             <VaDateInput
               v-model="variablesGetTrainings.filter.dateEnd"
               name="dateEnd"
-              label="Fim Data Treino"
-              id="date-training"
+              label=""
+              id="date-training-end"
               style="width: 100%"
-              class="mb-3"
             />
           </div>
         </div>
       </div>
-    </template>
+    </va-card>
 
-    <!-- CELL -->
-    <template
-      #cell(name)="{ rowKey: { name, dateStart, confirmationTrainingMetrics } }"
+    <!-- DataTable -->
+    <ZDatatableGeneric
+      :buttonActionAdd="false"
+      buttonActionDelete
+      includeActionsColumn
+      includeActionEditList
+      includeActionDeleteList
+      selectable
+      :items="items"
+      :columns="columns"
+      :loading="loading"
+      :paginatorInfo="paginatorInfo"
+      :filter="false"
+      @search="searchTrainings"
+      @actionSearch="handleSearch"
+      @actionClear="clearSearch"
+      @update:search="searchTrainings"
+      @add="addTraining"
+      @edit="editTraining"
+      @delete="deleteTraining"
+      @deletes="deleteTrainings"
+      @update:currentPageActive="updateCurrentPageActive"
     >
-      <ZTraining
-        :data="{ name, dateStart }"
-        :metrics="confirmationTrainingMetrics"
-      />
-    </template>
-    <template #cell(team)="{ rowKey: { team } }">
-      <div v-if="team">
-        <ZTeam :data="team" />
-      </div>
-    </template>
-    <template #cell(dateStart)="{ rowKey: { dateStart, dateEnd } }">
-      <ZDateTraining
-        :dateStart="formatTrainingDate(dateStart)"
-        :dateEnd="formatTrainingDate(dateEnd)"
-      />
-    </template>
-    <template #cell(user)="{ rowKey: { user, createdAt, updatedAt } }">
-      <ZUser
-        :data="user || {}"
-        :createdAt="createdAt"
-        :updatedAt="updatedAt"
-        showUpdatedAt
-        showCreatedAt
-      />
-    </template>
-  </ZDatatableGeneric>
+      <!-- CELL -->
+      <template
+        #cell(name)="{
+          rowKey: { name, dateStart, confirmationTrainingMetrics },
+        }"
+      >
+        <ZTraining
+          :data="{ name, dateStart }"
+          :metrics="confirmationTrainingMetrics"
+        />
+      </template>
+      <template #cell(team)="{ rowKey: { team } }">
+        <div v-if="team">
+          <ZTeam :data="team" />
+        </div>
+      </template>
+      <template #cell(dateStart)="{ rowKey: { dateStart, dateEnd } }">
+        <ZDateTraining
+          :dateStart="formatTrainingDate(dateStart)"
+          :dateEnd="formatTrainingDate(dateEnd)"
+        />
+      </template>
+      <template #cell(user)="{ rowKey: { user, createdAt, updatedAt } }">
+        <ZUser
+          :data="user || {}"
+          :createdAt="createdAt"
+          :updatedAt="updatedAt"
+          showUpdatedAt
+          showCreatedAt
+        />
+      </template>
+    </ZDatatableGeneric>
+
+    <!-- Summary Cards -->
+    <div class="summary-cards">
+      <va-card class="summary-card">
+        <div class="summary-content">
+          <div class="summary-icon">
+            <va-icon name="fitness_center" size="large" color="#E9742B" />
+          </div>
+          <div class="summary-number">{{ paginatorInfo.total || 0 }}</div>
+          <div class="summary-label">Total de Treinos</div>
+        </div>
+      </va-card>
+    </div>
+  </div>
 </template>
 
 <script>
@@ -118,6 +137,7 @@ import ZDatatableGeneric from "~/components/molecules/Datatable/ZDatatableGeneri
 import ZSelectPosition from "~/components/molecules/Selects/ZSelectPosition";
 import ZSelectTeam from "~/components/molecules/Selects/ZSelectTeam";
 import ZSelectUser from "~/components/molecules/Selects/ZSelectUser";
+import ZDataTableInputSearch from "~/components/molecules/Datatable/ZDataTableInputSearch";
 import ZUser from "~/components/molecules/Datatable/Slots/ZUser";
 import ZDateTraining from "~/components/molecules/Datatable/Slots/ZDateTraining";
 import ZTeam from "~/components/molecules/Datatable/Slots/ZTeam";
@@ -136,6 +156,7 @@ export default defineComponent({
     ZSelectPosition,
     ZSelectTeam,
     ZSelectUser,
+    ZDataTableInputSearch,
     ZTraining,
   },
 
@@ -192,6 +213,7 @@ export default defineComponent({
       selectedColor: "primary",
       selectModeOptions: ["single", "multiple"],
       selectColorOptions: ["primary", "danger", "warning", "#EF467F"],
+      internalSearchValue: "",
     };
   },
 
@@ -281,12 +303,19 @@ export default defineComponent({
     },
 
     handleSearch() {
-      // Garantir que o search está atualizado antes de buscar
-      // O search já foi atualizado pelo evento @search
+      // Atualizar o filtro de busca com o valor do campo de busca
+      if (
+        this.internalSearchValue !== undefined &&
+        this.internalSearchValue !== null
+      ) {
+        this.searchTrainings(this.internalSearchValue);
+      }
+      // Executar a busca com os filtros atualizados
       this.getTrainings({ fetchPolicy: "network-only" });
     },
 
     clearSearch() {
+      this.internalSearchValue = "";
       this.variablesGetTrainings.filter = {
         teamsIds: [],
         usersIds: [],
@@ -307,17 +336,20 @@ export default defineComponent({
         ${TRAININGS}
       `;
 
-      let teamsIdsValues = this.variablesGetTrainings.filter.teamsIds?.map(
-        (team) => parseInt(team?.value || team)
-      ) || [];
+      let teamsIdsValues =
+        this.variablesGetTrainings.filter.teamsIds?.map((team) =>
+          parseInt(team?.value || team)
+        ) || [];
 
-      let usersIdsValues = this.variablesGetTrainings.filter.usersIds?.map(
-        (user) => parseInt(user?.value || user)
-      ) || [];
+      let usersIdsValues =
+        this.variablesGetTrainings.filter.usersIds?.map((user) =>
+          parseInt(user?.value || user)
+        ) || [];
 
-      let playersIdsValues = this.variablesGetTrainings.filter.playersIds?.map(
-        (player) => parseInt(player?.value || player)
-      ) || [];
+      let playersIdsValues =
+        this.variablesGetTrainings.filter.playersIds?.map((player) =>
+          parseInt(player?.value || player)
+        ) || [];
 
       let dateEnd = this.variablesGetTrainings.filter.dateEnd;
 
@@ -350,7 +382,8 @@ export default defineComponent({
       onResult((result) => {
         this.loading = false;
         if (result?.data?.trainings) {
-          this.paginatorInfo = result.data.trainings.paginatorInfo || this.paginatorInfo;
+          this.paginatorInfo =
+            result.data.trainings.paginatorInfo || this.paginatorInfo;
           // Sempre atualizar items, mesmo se for array vazio
           this.items = result.data.trainings.data || [];
         } else {
@@ -361,3 +394,118 @@ export default defineComponent({
   },
 });
 </script>
+
+<style scoped>
+.trainings-listing {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.filter-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.filter-content {
+  display: flex;
+  gap: 20px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.search-section {
+  flex: 1;
+  min-width: 300px;
+}
+
+.filters-section {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.filter-item {
+  min-width: 200px;
+}
+
+.filter-item :deep(.va-input-wrapper) {
+  margin-bottom: 0;
+}
+
+.filter-item :deep(.va-select) {
+  margin-top: 0;
+}
+
+.filter-item :deep(.va-input-wrapper__field) {
+  margin-top: 0;
+}
+
+.filter-item :deep(.va-input-wrapper__label) {
+  display: none;
+}
+
+.filter-item :deep(.va-date-input-wrapper__label) {
+  display: none;
+}
+
+.filter-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #0b1e3a;
+  margin-bottom: 8px;
+}
+
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-top: 24px;
+}
+
+.summary-card {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  text-align: center;
+}
+
+.summary-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.summary-icon {
+  margin-bottom: 8px;
+}
+
+.summary-number {
+  font-size: 36px;
+  font-weight: 700;
+  color: #0b1e3a;
+}
+
+.summary-label {
+  font-size: 14px;
+  color: #6c757d;
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .filter-content {
+    flex-direction: column;
+  }
+
+  .search-section,
+  .filter-item {
+    width: 100%;
+    min-width: unset;
+  }
+}
+</style>

@@ -128,7 +128,7 @@
       <va-card class="summary-card">
         <div class="summary-content">
           <div class="summary-icon">
-            <va-icon name="people" size="large" color="#E9742B" />
+            <va-icon name="person" size="large" color="#E9742B" />
           </div>
           <div class="summary-number">{{ paginatorInfo.total || 0 }}</div>
           <div class="summary-label">Total de Jogadores</div>
