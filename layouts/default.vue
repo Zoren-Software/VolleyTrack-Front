@@ -60,7 +60,17 @@
           />
         </va-button-dropdown>
       </div>
-      <va-avatar class="user-avatar" />
+      <div class="user-menu-wrapper">
+        <va-button-dropdown color="background-primary" hide-icon>
+          <template #label>
+            <va-avatar v-if="user.id" class="user-avatar">
+              {{ firstLatter }}
+            </va-avatar>
+            <va-icon v-else name="account_circle" class="user-icon" />
+          </template>
+          <ZListItemsUser />
+        </va-button-dropdown>
+      </div>
     </div>
   </div>
   <div class="content-wrapper">
@@ -72,12 +82,15 @@
 <script>
 import ZNotificationSettingsForm from "~/components/organisms/Settings/ZNotificationSettingsForm.vue";
 import ZListItemsNotification from "~/components/organisms/List/Notification/ZListItemsNotification.vue";
+import ZListItemsUser from "~/components/molecules/List/ZListItemsUser.vue";
 import NOTIFICATIONSTOTAL from "~/graphql/notification/query/notificationsTotal.graphql";
+import ME from "~/graphql/user/query/me.graphql";
 
 export default {
   components: {
     ZNotificationSettingsForm,
     ZListItemsNotification,
+    ZListItemsUser,
   },
   data() {
     return {
@@ -91,10 +104,20 @@ export default {
       openNotificationModal: false,
       totalNotifications: 0,
       paginatorInfo: {},
+      user: {
+        id: null,
+        name: "Usuário",
+      },
     };
+  },
+  computed: {
+    firstLatter() {
+      return this.user.name?.charAt(0)?.toUpperCase() || "U";
+    },
   },
   mounted() {
     this.notificationsTotal();
+    this.getUser();
   },
   methods: {
     openDropdown() {
@@ -149,6 +172,23 @@ export default {
         if (value?.notifications?.paginatorInfo) {
           this.paginatorInfo = value.notifications.paginatorInfo;
           this.totalNotificationsChange(this.paginatorInfo.total);
+        }
+      }
+    },
+    async getUser() {
+      if (localStorage.getItem("user")) {
+        this.user = await JSON.parse(localStorage.getItem("user"));
+      } else {
+        const query = gql`
+          ${ME}
+        `;
+        const {
+          data: { value },
+        } = await useAsyncQuery(query, {});
+
+        if (value?.me) {
+          this.user = value.me;
+          localStorage.setItem("user", JSON.stringify(this.user));
         }
       }
     },
@@ -273,6 +313,12 @@ export default {
   border: none !important;
   box-shadow: none !important;
   padding: 0 !important;
+  --va-background-color: transparent !important;
+}
+
+.notification-wrapper :deep(.va-button-dropdown__anchor) {
+  --va-background-color: transparent !important;
+  background: transparent !important;
 }
 
 .notification-wrapper :deep(.va-button-dropdown__content) {
@@ -291,16 +337,64 @@ export default {
   color: #e9742b !important;
   cursor: pointer;
   transition: color 0.2s ease;
+  --va-background-color: transparent !important;
+  background: transparent !important;
 }
 
 .notification-icon:hover {
   color: #ff8c42 !important;
+  --va-background-color: transparent !important;
+  background: transparent !important;
+}
+
+.notification-wrapper :deep(.va-button-dropdown__label) {
+  --va-background-color: transparent !important;
+  background: transparent !important;
+}
+
+.user-menu-wrapper {
+  position: relative;
+}
+
+.user-menu-wrapper :deep(.va-button-dropdown) {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  --va-background-color: transparent !important;
+}
+
+.user-menu-wrapper :deep(.va-button-dropdown__content) {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  margin-top: 8px;
+  min-width: 200px;
+  max-width: 250px;
 }
 
 .user-avatar {
   width: 40px;
   height: 40px;
-  border: 1px solid #2c2c2c;
+  border: 2px solid #e9742b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: linear-gradient(135deg, #e9742b 0%, #ff6b35 100%);
+  color: white;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.user-avatar:hover {
+  border-color: #ff8c42;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(233, 116, 43, 0.3);
+}
+
+.user-icon {
+  font-size: 40px;
+  color: #ffffff;
+  cursor: pointer;
 }
 .content-wrapper {
   padding: 20px;
