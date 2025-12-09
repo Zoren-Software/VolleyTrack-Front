@@ -8,7 +8,7 @@
       :label="passwordLabel"
       :rules="passwordRules"
       @input="validatePassword"
-      :error-messages="errorMessages"
+      :error-messages="normalizedErrorMessages"
       :error="error"
     >
       <template #appendInner>
@@ -58,8 +58,8 @@ export default {
       ],
     },
     errorMessages: {
-      type: String,
-      default: "",
+      type: [String, Array],
+      default: () => "",
     },
     error: {
       type: Boolean,
@@ -72,6 +72,12 @@ export default {
     confirmPassword: "",
   }),
   computed: {
+    normalizedErrorMessages() {
+      if (Array.isArray(this.errorMessages)) {
+        return this.errorMessages.length > 0 ? this.errorMessages : "";
+      }
+      return this.errorMessages || "";
+    },
     passwordRules() {
       return [
         ...this.rules,
