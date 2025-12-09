@@ -240,6 +240,10 @@ export default {
       if (val.information) {
         val.birthDate = val.information.birthDate ?? null;
       }
+      // Garantir que roles seja sempre um array de IDs
+      if (!Array.isArray(val.roles)) {
+        val.roles = [];
+      }
       this.form = { ...val };
     },
   },

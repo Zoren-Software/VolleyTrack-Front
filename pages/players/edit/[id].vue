@@ -101,7 +101,9 @@ export default {
           rg: form.rg,
           phone: form.phone,
           birthDate: birthDate,
-          roleId: form.roles.map((item) => item.id).filter((id) => id != null),
+          roleId: Array.isArray(form.roles)
+            ? form.roles.filter((id) => id != null)
+            : [],
           positionId: form.positions
             .map((item) => item.id)
             .filter((id) => id != null),

@@ -77,7 +77,11 @@ export default {
               rg: form.rg || null,
               phone: form.phone || null,
               birthDate,
-              roleId: form.roles.map((item) => item.id),
+              roleId: Array.isArray(form.roles)
+                ? form.roles
+                    .map((item) => (typeof item === "object" ? item.id : item))
+                    .filter((id) => id != null)
+                : [],
               positionId: form.positions.map((item) => item.id),
               teamId: form.teams.map((item) => item.id),
               sendEmailNotification,

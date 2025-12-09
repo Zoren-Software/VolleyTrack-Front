@@ -98,7 +98,9 @@ export default {
           cpf: form.cpf,
           rg: form.rg,
           phone: form.phone,
-          roleId: form.roles.map((item) => item.id).filter((id) => id != null),
+          roleId: Array.isArray(form.roles)
+            ? form.roles.filter((id) => id != null)
+            : [],
           positionId: form.positions
             .map((item) => item.id)
             .filter((id) => id != null),

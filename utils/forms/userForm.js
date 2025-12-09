@@ -13,12 +13,9 @@ export function transformUserData(user) {
         team: team.name,
       };
     }),
-    roles: user.roles.map((role) => {
-      return {
-        id: Number(role.id),
-        text: role.name,
-      };
-    }),
+    roles: user.roles && Array.isArray(user.roles) 
+      ? user.roles.map((role) => Number(role.id))
+      : [],
     phone: user?.information?.phone,
     cpf: user?.information?.cpf,
     rg: user?.information?.rg,
