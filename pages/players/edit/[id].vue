@@ -101,9 +101,11 @@ export default {
           rg: form.rg,
           phone: form.phone,
           birthDate: birthDate,
-          roleId: form.roles.map((item) => item.id),
-          positionId: form.positions.map((item) => item.id),
-          teamId: form.teams.map((item) => item.id),
+          roleId: form.roles.map((item) => item.id).filter((id) => id != null),
+          positionId: form.positions
+            .map((item) => item.id)
+            .filter((id) => id != null),
+          teamId: form.teams.map((item) => item.id).filter((id) => id != null),
         };
 
         const { mutate } = await useMutation(query, { variables });

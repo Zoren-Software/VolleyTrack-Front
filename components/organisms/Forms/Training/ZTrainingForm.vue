@@ -65,6 +65,7 @@
           <div class="mb-5">
             <ZListRelationFundamentals
               :items="form.fundamentals"
+              :selected-value="fundamentals"
               @add="addFundamentals"
               @delete="actionDeleteFundamental"
             >
@@ -81,6 +82,7 @@
           <div>
             <ZListRelationSpecificFundamentals
               :items="form.specificFundamentals"
+              :selected-value="specificFundamentals"
               @add="addSpecificFundamental"
               @delete="actionDeleteSpecificFundamental"
             >
@@ -101,11 +103,13 @@
         <template #step-content-2>
           <ZListRelationTeams
             :items="form.teams"
+            :selected-value="teams"
             @add="addTeams"
             @delete="actionDeleteTeam"
           >
             <template #filter>
               <ZSelectTeam
+                ref="selectTeamRef"
                 v-model="teams"
                 class="mb-3"
                 label="Times"
@@ -706,12 +710,50 @@ export default {
     },
 
     addTeams() {
-      const newTeam = {
-        id: this.teams.value,
-        team: this.teams.text,
-      };
+      // Com return-object, o va-select retorna array de objetos {text, value}
+      if (
+        !this.teams ||
+        (Array.isArray(this.teams) && this.teams.length === 0)
+      ) {
+        return;
+      }
 
-      this.form.teams.push(newTeam);
+      let teamsToAdd = [];
+
+      if (Array.isArray(this.teams)) {
+        // Array de objetos {text, value}
+        teamsToAdd = this.teams
+          .filter(
+            (item) =>
+              item && typeof item === "object" && item.value !== undefined
+          )
+          .map((item) => ({
+            id: item.value,
+            team: item.text,
+          }));
+      } else if (
+        typeof this.teams === "object" &&
+        this.teams.value !== undefined
+      ) {
+        // Objeto único {text, value} (caso não seja múltiplo)
+        teamsToAdd = [
+          {
+            id: this.teams.value,
+            team: this.teams.text,
+          },
+        ];
+      }
+
+      // Adicionar apenas times que ainda não foram adicionados
+      teamsToAdd.forEach((newTeam) => {
+        const isAlreadyAdded = this.form.teams.some(
+          (existingTeam) => existingTeam.id === newTeam.id
+        );
+
+        if (!isAlreadyAdded) {
+          this.form.teams.push(newTeam);
+        }
+      });
 
       this.teams = [];
     },

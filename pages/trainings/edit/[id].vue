@@ -110,9 +110,20 @@ export default {
           id: parseInt(form.id),
           name: form.name,
           description: form.description,
-          teamId: parseInt(form.teams.map((item) => item.id)[0]),
-          fundamentalId: form.fundamentals.map((item) => item.id),
-          specificFundamentalId: form.fundamentals.map((item) => item.id),
+          teamId:
+            form.teams && form.teams.length > 0
+              ? parseInt(form.teams[0].id)
+              : null,
+          fundamentalId: form.fundamentals
+            ? form.fundamentals
+                .map((item) => item.id)
+                .filter((id) => id != null)
+            : [],
+          specificFundamentalId: form.specificFundamentals
+            ? form.specificFundamentals
+                .map((item) => item.id)
+                .filter((id) => id != null)
+            : [],
           dateStart,
           dateEnd,
         };
@@ -194,9 +205,20 @@ export default {
           id: parseInt(form.id),
           name: form.name,
           description: form.description,
-          teamId: parseInt(form.teams.map((item) => item.id)[0]),
-          fundamentalId: form.fundamentals.map((item) => item.id),
-          specificFundamentalId: form.fundamentals.map((item) => item.id),
+          teamId:
+            form.teams && form.teams.length > 0
+              ? parseInt(form.teams[0].id)
+              : null,
+          fundamentalId: form.fundamentals
+            ? form.fundamentals
+                .map((item) => item.id)
+                .filter((id) => id != null)
+            : [],
+          specificFundamentalId: form.specificFundamentals
+            ? form.specificFundamentals
+                .map((item) => item.id)
+                .filter((id) => id != null)
+            : [],
           dateStart,
           dateEnd,
         };
@@ -265,9 +287,20 @@ export default {
           id: parseInt(form.id),
           name: form.name,
           description: form.description,
-          teamId: parseInt(form.teams.map((item) => item.id)[0]),
-          fundamentalId: form.fundamentals.map((item) => item.id),
-          specificFundamentalId: form.fundamentals.map((item) => item.id),
+          teamId:
+            form.teams && form.teams.length > 0
+              ? parseInt(form.teams[0].id)
+              : null,
+          fundamentalId: form.fundamentals
+            ? form.fundamentals
+                .map((item) => item.id)
+                .filter((id) => id != null)
+            : [],
+          specificFundamentalId: form.specificFundamentals
+            ? form.specificFundamentals
+                .map((item) => item.id)
+                .filter((id) => id != null)
+            : [],
           dateStart,
           dateEnd,
         };

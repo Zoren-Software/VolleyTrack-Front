@@ -6,6 +6,7 @@
     :options="items"
     :loading="loading"
     multiple
+    return-object
     @click="getFundamentals(true)"
     @scrollBottom="loadMore"
     @updateSearch="newSearch"

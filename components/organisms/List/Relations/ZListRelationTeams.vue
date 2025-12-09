@@ -1,5 +1,5 @@
 <template>
-  <ZListRelationGeneric @add="add">
+  <ZListRelationGeneric @add="add" :has-selection="hasSelection">
     <template #filter>
       <slot name="filter" />
     </template>
@@ -46,6 +46,10 @@ export default {
       type: Array || Object,
       required: true,
     },
+    selectedValue: {
+      type: [Array, Object],
+      default: () => [],
+    },
     error: {
       type: Boolean,
       default: false,
@@ -53,6 +57,41 @@ export default {
     errorMessages: {
       type: String,
       default: "",
+    },
+  },
+  computed: {
+    hasSelection() {
+      // Se não houver valor, não há seleção
+      if (!this.selectedValue) {
+        return false;
+      }
+
+      // ZSelect em modo multiple retorna um array de valores (números)
+      if (Array.isArray(this.selectedValue)) {
+        // Verifica se há pelo menos um valor válido no array
+        return (
+          this.selectedValue.length > 0 &&
+          this.selectedValue.some(
+            (val) => val != null && val !== "" && val !== undefined
+          )
+        );
+      }
+
+      // Pode ser um objeto único com value/text ou id
+      if (
+        typeof this.selectedValue === "object" &&
+        this.selectedValue !== null
+      ) {
+        // Se for um objeto com propriedades value/text (formato do select)
+        if (this.selectedValue.value != null || this.selectedValue.id != null) {
+          return true;
+        }
+        // Se for um objeto vazio
+        return Object.keys(this.selectedValue).length > 0;
+      }
+
+      // Se for um valor primitivo (número, string)
+      return this.selectedValue != null && this.selectedValue !== "";
     },
   },
   data() {

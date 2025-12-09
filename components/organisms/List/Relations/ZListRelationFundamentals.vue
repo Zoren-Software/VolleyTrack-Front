@@ -1,5 +1,5 @@
 <template>
-  <ZListRelationGeneric @add="add">
+  <ZListRelationGeneric @add="add" :has-selection="hasSelection">
     <template #filter>
       <slot name="filter" />
     </template>
@@ -45,6 +45,15 @@ export default {
     items: {
       type: Array,
       required: true,
+    },
+    selectedValue: {
+      type: Array,
+      default: () => [],
+    },
+  },
+  computed: {
+    hasSelection() {
+      return this.selectedValue && this.selectedValue.length > 0;
     },
   },
   data() {

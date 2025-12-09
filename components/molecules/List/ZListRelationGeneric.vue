@@ -1,9 +1,9 @@
 <template>
   <!-- Aqui continha uma classe d-flex se algum layout quebrar deve ser reposto por parâmetros -->
-  <div class="align-items-center justify-content-between">
+  <div class="align-items-center justify-content-between d-flex">
     <slot name="filter" />
-    <!-- <ZButton
-      v-if="!disableRelation"
+    <ZButton
+      v-if="!disableRelation && hasSelection"
       class="mb-3 ml-2 custom-button"
       color="primary"
       icon="add"
@@ -11,7 +11,7 @@
       @click="add"
     >
       Relacionar
-    </ZButton> -->
+    </ZButton>
   </div>
   <slot name="list" />
 </template>
@@ -22,6 +22,10 @@ import ZButton from "~/components/atoms/Buttons/ZButton";
 export default {
   props: {
     disableRelation: {
+      type: Boolean,
+      default: false,
+    },
+    hasSelection: {
       type: Boolean,
       default: false,
     },
