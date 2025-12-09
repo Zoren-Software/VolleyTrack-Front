@@ -224,7 +224,6 @@ export default {
   border: 1px solid #2c2c2c;
 }
 .content-wrapper {
-  margin-top: 60px;
   padding: 20px;
 }
 </style>

@@ -45,7 +45,6 @@ useHead({
   max-width: 1400px;
   margin: 0 auto;
   width: 100%;
-  padding: 0 20px;
 }
 
 .page-header {

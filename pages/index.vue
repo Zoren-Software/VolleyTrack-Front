@@ -541,9 +541,12 @@ useHead({
 
 <style scoped>
 .welcome-page {
-  min-height: 100vh;
+  min-height: calc(100vh - 40px);
   background-color: #f5f5f5;
-  padding: 24px 20px;
+  padding: 24px 0;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .welcome-container {
