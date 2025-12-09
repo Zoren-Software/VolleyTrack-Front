@@ -73,6 +73,8 @@ export default {
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .va-data-table {
@@ -83,41 +85,147 @@ export default {
 
 .va-data-table__table {
   border-collapse: separate;
-  border-spacing: 0 4px; /* Espaçamento reduzido entre linhas */
+  border-spacing: 0 8px; /* Espaçamento entre linhas */
 }
 
 .va-data-table__table-thead th {
-  background-color: #f8f9fa; /* Cor de fundo do cabeçalho */
-  color: #0b1e3a; /* Cor do texto */
-  font-size: 13px; /* Tamanho da fonte reduzido */
-  font-weight: 700; /* Negrito */
-  text-align: left; /* Alinhamento do texto */
-  padding: 10px 12px; /* Espaçamento interno reduzido */
-  text-transform: none; /* Não transformar em maiúsculas */
+  background: linear-gradient(180deg, #f8f9fa 0%, #f1f3f5 100%);
+  color: #0b1e3a;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: left;
+  padding: 14px 16px;
+  text-transform: none;
+  border-bottom: 2px solid #e9ecef;
+  position: relative;
+}
+
+.va-data-table__table-thead th:first-child {
+  border-top-left-radius: 12px;
+}
+
+.va-data-table__table-thead th:last-child {
+  border-top-right-radius: 12px;
 }
 
 .va-data-table__table-tbody tr {
-  background-color: #ffffff; /* Cor de fundo das linhas */
-  border-radius: 6px; /* Bordas arredondadas menores */
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); /* Sombra mais leve */
-}
-
-.va-data-table__table-tbody td {
-  padding: 10px 12px; /* Espaçamento interno reduzido */
-  color: #0b1e3a; /* Cor do texto */
-  font-size: 13px; /* Tamanho da fonte reduzido */
-  vertical-align: middle;
+  background-color: #ffffff;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  transition: all 0.2s ease;
+  margin-bottom: 8px;
 }
 
 .va-data-table__table-tbody tr:hover {
-  background-color: #f1f1f1; /* Cor de fundo ao passar o mouse */
+  background-color: #f8f9fa;
+  border-color: #e9742b;
+  box-shadow: 0 4px 12px rgba(233, 116, 43, 0.15);
+  transform: translateY(-1px);
+}
+
+.va-data-table__table-tbody tr:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(233, 116, 43, 0.1);
+}
+
+.va-data-table__table-tbody td {
+  padding: 14px 16px;
+  color: #0b1e3a;
+  font-size: 13px;
+  vertical-align: middle;
+  border: none;
+}
+
+.va-data-table__table-tbody tr:first-child td:first-child {
+  border-top-left-radius: 8px;
+}
+
+.va-data-table__table-tbody tr:first-child td:last-child {
+  border-top-right-radius: 8px;
+}
+
+.va-data-table__table-tbody tr:last-child td:first-child {
+  border-bottom-left-radius: 8px;
+}
+
+.va-data-table__table-tbody tr:last-child td:last-child {
+  border-bottom-right-radius: 8px;
+}
+
+/* Efeito para linhas selecionadas */
+.va-data-table__table-tbody tr.va-data-table__table-tr--selected {
+  background-color: #fff4ec;
+  border-color: #e9742b;
+  box-shadow: 0 2px 8px rgba(233, 116, 43, 0.2);
+}
+
+.va-data-table__table-tbody tr.va-data-table__table-tr--selected:hover {
+  background-color: #ffe8d6;
+  box-shadow: 0 4px 12px rgba(233, 116, 43, 0.25);
+}
+
+/* Estilização do checkbox */
+.va-data-table__table-tbody tr td:first-child,
+.va-data-table__table-thead th:first-child {
+  padding-left: 16px;
+}
+
+/* Melhorar visualização de células vazias */
+.va-data-table__table-tbody td:empty::before {
+  content: "-";
+  color: #9ca3af;
+  font-style: italic;
+}
+
+/* Estilização para mensagem de "sem dados" */
+.va-data-table__table-tbody .va-data-table__table-tbody-empty {
+  padding: 40px 20px;
+  text-align: center;
+  color: #6c757d;
+  font-size: 14px;
 }
 
 .va-data-table .va-data-table__table .va-data-table__table-thead--sticky {
   z-index: 3;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 .no-data {
   padding: 2vh;
+}
+
+/* Estilos para melhorar checkboxes */
+:deep(.va-checkbox) {
+  transition: all 0.2s ease;
+}
+
+:deep(.va-checkbox:hover) {
+  transform: scale(1.1);
+}
+
+/* Melhorar espaçamento interno da tabela */
+:deep(.va-data-table__table) {
+  padding: 8px;
+}
+
+/* Estilização de células com conteúdo rico */
+:deep(.va-data-table__table-tbody td) {
+  transition: background-color 0.2s ease;
+}
+
+/* Adicionar separador visual sutil entre colunas */
+.va-data-table__table-thead th:not(:last-child) {
+  border-right: 1px solid #dee2e6;
+}
+
+/* Melhorar contraste e legibilidade */
+.va-data-table__table-tbody td {
+  line-height: 1.5;
+}
+
+/* Efeito de loading mais elegante */
+:deep(.va-data-table__table-tbody-loading) {
+  opacity: 0.6;
 }
 
 ::v-deep(.custom-table) {
