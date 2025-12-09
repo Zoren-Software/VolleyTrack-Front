@@ -63,7 +63,6 @@ export default {
     return {
       navItems: [
         { title: "Início", link: "/" },
-        { title: "Dashboard", link: "/dashboard" },
         { title: "Jogadores", link: "/players" },
         { title: "Times", link: "/teams" },
         { title: "Treinos", link: "/trainings" },
