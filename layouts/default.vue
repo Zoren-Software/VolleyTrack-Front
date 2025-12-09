@@ -39,9 +39,26 @@
       </nav>
     </div>
     <div class="top-bar-right">
-      <div class="notification-icon" @click="toggleNotifications">
-        <span class="notification-dot" v-if="hasUnreadNotifications"></span>
-        <va-icon name="notifications" />
+      <div class="notification-wrapper">
+        <va-button-dropdown color="background-primary" hide-icon>
+          <template #label>
+            <va-badge
+              v-if="totalNotifications > 0"
+              overlap
+              color="danger"
+              :text="
+                totalNotifications > 99 ? '99+' : String(totalNotifications)
+              "
+            >
+              <va-icon name="notifications" class="notification-icon" />
+            </va-badge>
+            <va-icon v-else name="notifications" class="notification-icon" />
+          </template>
+          <ZListItemsNotification
+            @updateTotalNotifications="totalNotificationsChange"
+            @oneLessNotification="oneLessNotification"
+          />
+        </va-button-dropdown>
       </div>
       <va-avatar class="user-avatar" />
     </div>
@@ -54,10 +71,13 @@
 
 <script>
 import ZNotificationSettingsForm from "~/components/organisms/Settings/ZNotificationSettingsForm.vue";
+import ZListItemsNotification from "~/components/organisms/List/Notification/ZListItemsNotification.vue";
+import NOTIFICATIONSTOTAL from "~/graphql/notification/query/notificationsTotal.graphql";
 
 export default {
   components: {
     ZNotificationSettingsForm,
+    ZListItemsNotification,
   },
   data() {
     return {
@@ -68,9 +88,13 @@ export default {
         { title: "Treinos", link: "/trainings" },
       ],
       dropdownOpen: false,
-      hasUnreadNotifications: true, // Simula notificações não lidas
       openNotificationModal: false,
+      totalNotifications: 0,
+      paginatorInfo: {},
     };
+  },
+  mounted() {
+    this.notificationsTotal();
   },
   methods: {
     openDropdown() {
@@ -79,16 +103,54 @@ export default {
     closeDropdown() {
       this.dropdownOpen = false;
     },
-    toggleNotifications() {
-      // Lógica para abrir ou fechar o menu de notificações
-      console.log("Abrir notificações");
-    },
     onUpgradeClicked() {
       console.log("🚀 Redirecionando para página de upgrade de planos");
     },
     openNotificationSettings() {
       this.openNotificationModal = true;
       this.dropdownOpen = false; // Fechar o dropdown ao abrir o modal
+    },
+    totalNotificationsChange(value) {
+      if (value > 99) {
+        this.totalNotifications = 99;
+      } else {
+        this.totalNotifications = value;
+      }
+    },
+    oneLessNotification() {
+      if (this.totalNotifications > 0) {
+        this.totalNotificationsChange(this.totalNotifications - 1);
+      }
+    },
+    notificationsTotal() {
+      const query = gql`
+        ${NOTIFICATIONSTOTAL}
+      `;
+
+      const consult = {
+        page: 1,
+        first: 5,
+      };
+
+      const {
+        result: { value },
+      } = useQuery(query, consult);
+
+      const { onResult } = useQuery(query, consult);
+
+      onResult((result) => {
+        if (result?.data?.notifications?.paginatorInfo) {
+          this.paginatorInfo = result.data.notifications.paginatorInfo;
+          this.totalNotificationsChange(this.paginatorInfo.total);
+        }
+      });
+
+      if (value) {
+        if (value?.notifications?.paginatorInfo) {
+          this.paginatorInfo = value.notifications.paginatorInfo;
+          this.totalNotificationsChange(this.paginatorInfo.total);
+        }
+      }
     },
   },
 };
@@ -202,19 +264,37 @@ export default {
   gap: 16px;
 }
 
-.notification-icon {
+.notification-wrapper {
   position: relative;
-  cursor: pointer;
 }
 
-.notification-dot {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 8px;
-  height: 8px;
-  background-color: #e9742b;
-  border-radius: 50%;
+.notification-wrapper :deep(.va-button-dropdown) {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+.notification-wrapper :deep(.va-button-dropdown__content) {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  margin-top: 8px;
+  min-width: 350px;
+  max-width: 400px;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.notification-icon {
+  font-size: 24px !important;
+  color: #e9742b !important;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.notification-icon:hover {
+  color: #ff8c42 !important;
 }
 
 .user-avatar {
