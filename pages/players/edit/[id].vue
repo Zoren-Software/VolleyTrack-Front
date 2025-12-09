@@ -104,10 +104,12 @@ export default {
           roleId: Array.isArray(form.roles)
             ? form.roles.filter((id) => id != null)
             : [],
-          positionId: form.positions
-            .map((item) => item.id)
-            .filter((id) => id != null),
-          teamId: form.teams.map((item) => item.id).filter((id) => id != null),
+          positionId: Array.isArray(form.positions)
+            ? form.positions.map((item) => item.id).filter((id) => id != null)
+            : [],
+          teamId: Array.isArray(form.teams)
+            ? form.teams.map((item) => item.id).filter((id) => id != null)
+            : [],
         };
 
         const { mutate } = await useMutation(query, { variables });

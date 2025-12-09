@@ -158,6 +158,8 @@ export default {
           phone: "",
           birthDate: null,
           roles: [],
+          positions: [],
+          teams: [],
         };
       },
     },
@@ -240,9 +242,15 @@ export default {
       if (val.information) {
         val.birthDate = val.information.birthDate ?? null;
       }
-      // Garantir que roles seja sempre um array de IDs
+      // Garantir que roles, positions e teams sejam sempre arrays
       if (!Array.isArray(val.roles)) {
         val.roles = [];
+      }
+      if (!Array.isArray(val.positions)) {
+        val.positions = [];
+      }
+      if (!Array.isArray(val.teams)) {
+        val.teams = [];
       }
       this.form = { ...val };
     },
