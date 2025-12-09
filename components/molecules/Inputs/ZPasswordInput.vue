@@ -102,3 +102,19 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+/* Remover apenas a borda da label do input de senha, mantendo a borda do campo */
+:deep(.va-input-wrapper__label) {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+:deep(.va-input-wrapper__label *) {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+</style>

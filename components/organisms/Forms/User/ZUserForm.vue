@@ -81,32 +81,39 @@
         <div
           v-for="role in rolesOptions"
           :key="role.id"
-          :class="['permission-card', { selected: Array.isArray(form.roles) && form.roles.includes(role.id) }]"
+          :class="[
+            'permission-card',
+            {
+              selected:
+                Array.isArray(form.roles) && form.roles.includes(role.id),
+            },
+          ]"
           @click="selectRole(role.id)"
         >
           <div class="permission-icon">
-            <div 
+            <div
               style="
-                background-color: #FFF4EC; 
-                border-radius: 50%; 
-                width: 40px; 
-                height: 40px; 
-                display: flex; 
-                align-items: center; 
-                justify-content: center; 
-                border: 1px solid #FFE3D1;">
-              <va-icon 
-                :name="role.iconName" 
-                color="#E9742B" 
-                size="20px" 
-              />
+                background-color: #fff4ec;
+                border-radius: 50%;
+                width: 40px;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border: 1px solid #ffe3d1;
+              "
+            >
+              <va-icon :name="role.iconName" color="#E9742B" size="20px" />
             </div>
           </div>
           <div class="permission-info">
             <h4 class="permission-title">{{ role.title }}</h4>
             <p class="permission-description">{{ role.description }}</p>
           </div>
-          <div v-if="Array.isArray(form.roles) && form.roles.includes(role.id)" class="permission-check">
+          <div
+            v-if="Array.isArray(form.roles) && form.roles.includes(role.id)"
+            class="permission-check"
+          >
             <i class="icon-check"></i>
           </div>
         </div>
@@ -115,7 +122,9 @@
 
     <!-- Botão de Salvar -->
     <div class="action-buttons">
-      <va-button color="primary" class="save-button" @click="save()">Salvar</va-button>
+      <va-button color="primary" class="save-button" @click="save()"
+        >Salvar</va-button
+      >
     </div>
   </div>
 </template>
@@ -261,7 +270,7 @@ export default {
 }
 
 .card {
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   padding: 20px;
@@ -275,7 +284,7 @@ export default {
 }
 
 .icon-circle {
-  background-color: #E9742B;
+  background-color: #e9742b;
   border-radius: 50%;
   width: 40px;
   height: 40px;
@@ -295,9 +304,34 @@ export default {
   gap: 16px;
 }
 
-.form-field {
-  border: 1px solid #DEE2E6;
-  border-radius: 4px;
+/* Removido estilo de borda do form-field para deixar igual ao date input */
+
+/* Remover borda estranha das labels dos inputs */
+.user-form :deep(.va-input-wrapper__label) {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+.user-form :deep(.va-input-wrapper__label *) {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Remover borda das labels do date input também */
+.user-form :deep(.va-date-input-wrapper__label) {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+.user-form :deep(.va-date-input-wrapper__label *) {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 .action-buttons {
@@ -306,9 +340,9 @@ export default {
 }
 
 .save-button {
-  background-color: #E9742B;
+  background-color: #e9742b;
   border-radius: 8px;
-  color: #FFFFFF;
+  color: #ffffff;
 }
 
 .permissions-grid {
@@ -317,8 +351,8 @@ export default {
 }
 
 .permission-card {
-  background-color: #FFFFFF;
-  border: 1px solid #E0E0E0;
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
   border-radius: 8px;
   padding: 16px;
   display: flex;
@@ -329,13 +363,13 @@ export default {
 }
 
 .permission-card.selected {
-  background-color: #E7F1FF;
-  border-color: #7AB8FF;
+  background-color: #e7f1ff;
+  border-color: #7ab8ff;
 }
 
 .permission-icon {
-  background-color: #FFFFFF;
-  border: 2px solid #FF7A00;
+  background-color: #ffffff;
+  border: 2px solid #ff7a00;
   border-radius: 50%;
   width: 40px;
   height: 40px;
@@ -350,14 +384,14 @@ export default {
 
 .permission-title {
   font-weight: bold;
-  color: #1A1A1A;
+  color: #1a1a1a;
 }
 
 .permission-description {
-  color: #9CA3AF;
+  color: #9ca3af;
 }
 
 .permission-check {
-  color: #007BFF;
+  color: #007bff;
 }
 </style>
