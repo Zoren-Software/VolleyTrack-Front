@@ -21,17 +21,35 @@
             />
           </div>
           <div class="filter-item">
-            <label class="filter-label">Usuário Alteração</label>
-            <ZSelectUser
-              label=""
-              v-model="variablesGetTrainings.filter.usersIds"
-            />
-          </div>
-          <div class="filter-item">
             <label class="filter-label">Jogador</label>
             <ZSelectUser
               label=""
               v-model="variablesGetTrainings.filter.playersIds"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Filtros Avançados -->
+      <div class="advanced-filters">
+        <va-button
+          preset="plain"
+          class="advanced-filters-toggle"
+          @click="showAdvancedFilters = !showAdvancedFilters"
+        >
+          <va-icon
+            :name="showAdvancedFilters ? 'expand_less' : 'expand_more'"
+            size="small"
+          />
+          <span>Filtros Avançados</span>
+        </va-button>
+
+        <div v-if="showAdvancedFilters" class="advanced-filters-content">
+          <div class="filter-item">
+            <label class="filter-label">Usuário Alteração</label>
+            <ZSelectUser
+              label=""
+              v-model="variablesGetTrainings.filter.usersIds"
             />
           </div>
           <div class="filter-item">
@@ -214,6 +232,7 @@ export default defineComponent({
       selectModeOptions: ["single", "multiple"],
       selectColorOptions: ["primary", "danger", "warning", "#EF467F"],
       internalSearchValue: "",
+      showAdvancedFilters: false,
     };
   },
 
@@ -457,6 +476,34 @@ export default defineComponent({
   font-weight: 500;
   color: #0b1e3a;
   margin-bottom: 8px;
+}
+
+/* Filtros Avançados */
+.advanced-filters {
+  margin-top: 20px;
+  padding-top: 0;
+}
+
+.advanced-filters-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #6c757d !important;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 0 !important;
+  margin-bottom: 16px;
+}
+
+.advanced-filters-toggle:hover {
+  color: #e9742b !important;
+}
+
+.advanced-filters-content {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-top: 8px;
 }
 
 .summary-cards {
