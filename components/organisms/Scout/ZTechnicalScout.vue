@@ -4,10 +4,22 @@
     <div class="sidebar">
       <div class="sidebar-header">
         <h2 class="sidebar-title">Jogadores</h2>
+        <div class="position-filter">
+          <va-select
+            v-model="selectedPosition"
+            :options="positionOptions"
+            label="Filtrar por Posição"
+            placeholder="Todas as posições"
+            clearable
+            class="position-select"
+            text-by="text"
+            value-by="value"
+          />
+        </div>
       </div>
       <div class="players-list">
         <div
-          v-for="player in players"
+          v-for="player in filteredPlayers"
           :key="player.id"
           class="player-item mr-3"
           :class="{ 'player-selected': selectedPlayer?.id === player.id }"
@@ -129,6 +141,7 @@ const saving = ref(false);
 const currentScoutId = ref(null);
 const data = ref({});
 const selectedFundamentals = ref([]); // Fundamentos selecionados para filtrar (array de IDs)
+const selectedPosition = ref(null); // Posição selecionada para filtrar jogadores
 const playerObservations = ref({}); // Armazenar observações por jogador
 const playerFeedback = ref({}); // Armazenar feedback por jogador
 const fundamentalFeedbacks = ref({}); // Armazenar feedbacks dos fundamentais por jogador
@@ -167,6 +180,7 @@ const getTraining = (fetchPolicyOptions = {}) => {
           name: confirmation.player.name,
           email: confirmation.player.email,
           position: confirmation.player.positions?.[0]?.name || "N/A",
+          positions: confirmation.player.positions || [],
         })) || [];
 
       players.value = trainingPlayers;
@@ -189,6 +203,7 @@ const getTraining = (fetchPolicyOptions = {}) => {
           name: confirmation.player.name,
           email: confirmation.player.email,
           position: confirmation.player.positions?.[0]?.name || "N/A",
+          positions: confirmation.player.positions || [],
         })) || [];
 
       players.value = trainingPlayers;
@@ -778,6 +793,77 @@ const filteredFundamentals = computed(() => {
   );
 });
 
+// Opções de posições para o filtro
+const positionOptions = computed(() => {
+  const positionsSet = new Set();
+  players.value.forEach((player) => {
+    if (player.positions && Array.isArray(player.positions)) {
+      player.positions.forEach((pos) => {
+        if (pos && pos.name) {
+          positionsSet.add(pos.name);
+        }
+      });
+    } else if (player.position && player.position !== "N/A") {
+      positionsSet.add(player.position);
+    }
+  });
+  return Array.from(positionsSet)
+    .sort()
+    .map((name) => ({ text: name, value: name }));
+});
+
+// Jogadores filtrados por posição
+const filteredPlayers = computed(() => {
+  // Se não há jogadores, retornar array vazio
+  if (!players.value || players.value.length === 0) {
+    return [];
+  }
+
+  // Se nenhuma posição está selecionada, retornar todos os jogadores
+  if (!selectedPosition.value) {
+    return players.value;
+  }
+
+  // Extrair o valor da posição (pode ser string ou objeto {text, value})
+  let positionValue = null;
+  if (
+    typeof selectedPosition.value === "object" &&
+    selectedPosition.value !== null
+  ) {
+    positionValue = selectedPosition.value.value || selectedPosition.value.text;
+  } else if (selectedPosition.value) {
+    positionValue = selectedPosition.value;
+  }
+
+  // Se não conseguiu extrair o valor, retornar todos os jogadores
+  if (!positionValue) {
+    return players.value;
+  }
+
+  // Filtrar jogadores pela posição
+  const filtered = players.value.filter((player) => {
+    // Verificar se o jogador tem a posição no array de positions
+    if (
+      player.positions &&
+      Array.isArray(player.positions) &&
+      player.positions.length > 0
+    ) {
+      return player.positions.some((pos) => {
+        if (!pos) return false;
+        const posName = typeof pos === "object" ? pos.name || pos : pos;
+        return posName === positionValue;
+      });
+    }
+    // Fallback para a propriedade position (string)
+    if (player.position && player.position !== "N/A") {
+      return player.position === positionValue;
+    }
+    return false;
+  });
+
+  return filtered;
+});
+
 const saveEvaluation = async () => {
   if (!selectedPlayer.value) return;
 
@@ -884,10 +970,18 @@ defineExpose({
 }
 
 .sidebar-title {
-  margin: 0;
+  margin: 0 0 16px 0;
   font-size: 1.5rem;
   font-weight: 600;
   color: #333;
+}
+
+.position-filter {
+  margin-top: 12px;
+}
+
+.position-select {
+  width: 100%;
 }
 
 .players-list {
@@ -1136,6 +1230,11 @@ defineExpose({
 
   .sidebar-title {
     font-size: 1.2rem;
+    margin-bottom: 12px;
+  }
+
+  .position-filter {
+    margin-top: 8px;
   }
 
   .players-list {
