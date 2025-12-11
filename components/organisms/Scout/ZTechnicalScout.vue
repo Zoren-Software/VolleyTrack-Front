@@ -23,12 +23,23 @@
       <!-- Cabeçalho do Jogador -->
       <div class="player-header">
         <ZUser :data="selectedPlayer" />
+        <div class="fundamentals-filter">
+          <va-select
+            v-model="selectedFundamentals"
+            :options="fundamentalsOptions"
+            label="Filtrar Fundamentos"
+            placeholder="Selecione os fundamentos"
+            multiple
+            clearable
+            class="fundamentals-select"
+          />
+        </div>
       </div>
 
       <!-- Cards dos Fundamentos -->
       <div class="fundamentals-grid">
         <ZFundamentalCard
-          v-for="fundamental in fundamentals"
+          v-for="fundamental in filteredFundamentals"
           :key="fundamental.id"
           :fundamental="fundamental"
           :evaluation="getEvaluation(fundamental.id)"
@@ -117,6 +128,7 @@ const feedback = ref("");
 const saving = ref(false);
 const currentScoutId = ref(null);
 const data = ref({});
+const selectedFundamentals = ref([]); // Fundamentos selecionados para filtrar (array de IDs)
 const playerObservations = ref({}); // Armazenar observações por jogador
 const playerFeedback = ref({}); // Armazenar feedback por jogador
 const fundamentalFeedbacks = ref({}); // Armazenar feedbacks dos fundamentais por jogador
@@ -744,6 +756,28 @@ const currentPlayerEvaluations = computed(() => {
   return getCurrentPlayerEvaluations();
 });
 
+// Opções para o select de filtro de fundamentos
+const fundamentalsOptions = computed(() => {
+  return fundamentals.value.map((fundamental) => ({
+    text: fundamental.name,
+    value: fundamental.id,
+  }));
+});
+
+// Fundamentos filtrados baseado na seleção
+const filteredFundamentals = computed(() => {
+  if (!selectedFundamentals.value || selectedFundamentals.value.length === 0) {
+    return fundamentals.value;
+  }
+  // Se selectedFundamentals contém objetos {text, value}, extrair apenas os values
+  const selectedIds = selectedFundamentals.value.map((item) =>
+    typeof item === "object" ? item.value : item
+  );
+  return fundamentals.value.filter((fundamental) =>
+    selectedIds.includes(fundamental.id)
+  );
+});
+
 const saveEvaluation = async () => {
   if (!selectedPlayer.value) return;
 
@@ -898,11 +932,35 @@ defineExpose({
 .player-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 20px;
   margin-bottom: 32px;
   padding: 20px;
   background-color: white;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.fundamentals-filter {
+  flex-shrink: 0;
+  min-width: 250px;
+  max-width: 350px;
+}
+
+.fundamentals-select {
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .player-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .fundamentals-filter {
+    min-width: 100%;
+    max-width: 100%;
+  }
 }
 
 .fundamentals-grid {
