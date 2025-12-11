@@ -4,7 +4,7 @@ export function transformUserData(user) {
     positions: user.positions.map((position) => {
       return {
         id: Number(position.id),
-        position: position.name,
+        name: position.name,
       };
     }),
     teams: user.teams.map((team) => {

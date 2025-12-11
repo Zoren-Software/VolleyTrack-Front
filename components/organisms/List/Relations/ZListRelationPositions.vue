@@ -1,11 +1,10 @@
 <template>
-  <ZListRelationGeneric @add="add">
+  <ZListRelationGeneric @add="add" :has-selection="hasSelection">
     <template #filter>
       <slot name="filter" />
     </template>
     <template #list>
-      <va-list>
-        <va-list-label> Relacionados </va-list-label>
+      <div class="positions-list-wrapper">
         <ZDatatableGeneric
           selectable
           includeActionsColumn
@@ -19,12 +18,11 @@
           <!-- FILTER -->
 
           <!-- CELL -->
-          <template #cell(positions)="{ rowKey: { name } }">
-            <!-- TODO - Personalizar depois -->
-            {{ name }}
+          <template #cell(name)="{ rowKey: { name } }">
+            <div class="position-name">{{ name }}</div>
           </template>
         </ZDatatableGeneric>
-      </va-list>
+      </div>
     </template>
   </ZListRelationGeneric>
 </template>
@@ -44,6 +42,35 @@ export default {
       type: Array,
       required: true,
     },
+    selectedValue: {
+      type: [Array, Object],
+      default: () => [],
+    },
+  },
+  computed: {
+    hasSelection() {
+      if (!this.selectedValue) {
+        return false;
+      }
+      if (Array.isArray(this.selectedValue)) {
+        return (
+          this.selectedValue.length > 0 &&
+          this.selectedValue.some(
+            (val) => val != null && val !== "" && val !== undefined
+          )
+        );
+      }
+      if (
+        typeof this.selectedValue === "object" &&
+        this.selectedValue !== null
+      ) {
+        if (this.selectedValue.value != null || this.selectedValue.id != null) {
+          return true;
+        }
+        return Object.keys(this.selectedValue).length > 0;
+      }
+      return this.selectedValue != null && this.selectedValue !== "";
+    },
   },
   data() {
     return {
@@ -58,13 +85,14 @@ export default {
         {
           key: "id",
           name: "id",
-          label: "Id",
+          label: "ID",
           sortable: true,
+          width: 80,
         },
         {
-          key: "position",
-          name: "position",
-          label: "Posições",
+          key: "name",
+          name: "name",
+          label: "Posição",
           sortable: true,
         },
       ],
@@ -80,3 +108,15 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.positions-list-wrapper {
+  margin-top: 16px;
+}
+
+.position-name {
+  font-weight: 500;
+  color: #0b1e3a;
+  font-size: 14px;
+}
+</style>

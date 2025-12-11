@@ -1,183 +1,207 @@
 <template>
-  <va-card class="my-3 mr-3">
-    <va-form ref="myForm" class="flex flex-col gap-6 mb-2">
-      <va-stepper
-        v-model="controlledStep"
-        :steps="dynamicSteps"
-        controls-hidden
-      >
-        <template #controls="{ prevStep }">
-          <va-button color="primary" @click="prevStep()" v-if="prevStepButton"
-            >Anterior</va-button
-          >
-          <va-button
-            color="primary"
-            @click="handleNextStep()"
-            v-if="nextStepButton"
-            >Próximo</va-button
-          >
-          <va-button color="primary" @click="save()">Salvar</va-button>
-          <va-button
-            color="success"
-            @click="saveAndContinue()"
-            v-if="!isTrainingSaved && step <= 3"
-            >Salvar e Continuar</va-button
-          >
-          <va-button
-            color="success"
-            @click="saveScoutsOnly()"
-            v-if="isTrainingSaved && step >= 4"
-            >Salvar Scouts</va-button
-          >
-        </template>
-        <template #step-content-0>
-          <ZTextInput
-            id="name"
-            v-model="form.name"
-            name="name"
-            label="Nome"
-            class="mb-3"
-            :error-messages="errors.name || []"
-          />
-          <ZDateTimeRangePicker
-            id="dateTimeRange"
-            label="Data Inicio"
-            clearable
-            :date="form.dateValue"
-            :time-start="form.timeStartValue"
-            :time-end="form.timeEndValue"
-            @update:date="form.dateValue = $event"
-            @update:time-start="form.timeStartValue = $event"
-            @update:time-end="form.timeEndValue = $event"
-          />
-          <VaTextarea
-            id="name"
-            v-model="form.description"
-            style="width: 100%"
-            name="description"
-            label="Descrição do Treino"
-            class="mb-3"
-            :error="errorFields.includes('description')"
-            :error-messages="errors.description || []"
-          />
-        </template>
-        <template #step-content-1>
-          <div class="mb-5">
-            <ZListRelationFundamentals
-              :items="form.fundamentals"
-              :selected-value="fundamentals"
-              @add="addFundamentals"
-              @delete="actionDeleteFundamental"
-            >
-              <template #filter>
-                <ZSelectFundamental
-                  v-model="fundamentals"
-                  class="mb-3"
-                  label="Fundamentos"
-                  :ignore-ids="form.fundamentals.map((item) => item.id)"
-                />
-              </template>
-            </ZListRelationFundamentals>
-          </div>
-          <div>
-            <ZListRelationSpecificFundamentals
-              :items="form.specificFundamentals"
-              :selected-value="specificFundamentals"
-              @add="addSpecificFundamental"
-              @delete="actionDeleteSpecificFundamental"
-            >
-              <template #filter>
-                <ZSelectSpecificFundamental
-                  v-model="specificFundamentals"
-                  class="mb-3"
-                  label="Fundamentos Específicos"
-                  :disabled="!form.fundamentals.length"
-                  :ignore-ids="form.specificFundamentals.map((item) => item.id)"
-                  :fundamentals-ids="form.fundamentals.map((item) => item.id)"
-                  :messages="messageSpecificFundamental()"
-                />
-              </template>
-            </ZListRelationSpecificFundamentals>
-          </div>
-        </template>
-        <template #step-content-2>
-          <ZListRelationTeams
-            :items="form.teams"
-            :selected-value="teams"
-            @add="addTeams"
-            @delete="actionDeleteTeam"
-          >
-            <template #filter>
-              <ZSelectTeam
-                ref="selectTeamRef"
-                v-model="teams"
+  <div class="form-container">
+    <va-card class="training-form-card">
+      <va-form ref="myForm" class="flex flex-col gap-6 mb-2">
+        <va-stepper v-model="controlledStep" :steps="steps" controls-hidden>
+          <!-- Etapa 1: Informações Essenciais -->
+          <template #step-content-0>
+            <div class="step-content">
+              <h2 class="section-title">Informações Essenciais</h2>
+              <ZTextInput
+                id="name"
+                v-model="form.name"
+                name="name"
+                label="Nome"
                 class="mb-3"
-                label="Times"
-                :disabled="form.teams.length >= 1"
-                :ignore-ids="form.teams.map((item) => item.id)"
-                :messages="
-                  form.teams.length >= 1 ? 'Você já selecionou um time' : ''
-                "
+                :error-messages="errors.name || []"
               />
-            </template>
-          </ZListRelationTeams>
-        </template>
-        <template #step-content-3>
-          <ZListRelationConfirmationTrainings
-            :items="form.confirmationsTraining"
-            :training-date="form.dateValue"
-            @action-confirm="actionConfirm"
-            @action-reject="actionReject"
-            @action-confirm-presence="actionConfirmPresence"
-          >
-            <template #head>
-              <div class="row">
-                <div class="flex flex-col md6">
-                  <div class="item">
-                    <ZCardViewMetricsPresenceIntention
-                      class="mr-2"
-                      title="Métricas do treino, intenção de presença"
-                      :strip="false"
-                      :data="form.confirmationTrainingMetrics"
+              <ZDateTimeRangePicker
+                id="dateTimeRange"
+                label="Data Inicio"
+                clearable
+                :date="form.dateValue"
+                :time-start="form.timeStartValue"
+                :time-end="form.timeEndValue"
+                @update:date="form.dateValue = $event"
+                @update:time-start="form.timeStartValue = $event"
+                @update:time-end="form.timeEndValue = $event"
+              />
+              <VaTextarea
+                id="description"
+                v-model="form.description"
+                style="width: 100%"
+                name="description"
+                label="Descrição do Treino"
+                class="mb-3"
+                :error="errorFields.includes('description')"
+                :error-messages="errors.description || []"
+              />
+
+              <h3 class="subsection-title">Fundamentos</h3>
+              <div class="mb-5">
+                <ZListRelationFundamentals
+                  :items="form.fundamentals"
+                  :selected-value="fundamentals"
+                  @add="addFundamentals"
+                  @delete="actionDeleteFundamental"
+                >
+                  <template #filter>
+                    <ZSelectFundamental
+                      v-model="fundamentals"
+                      class="mb-3"
+                      label="Fundamentos"
+                      :ignore-ids="form.fundamentals.map((item) => item.id)"
                     />
-                  </div>
+                  </template>
+                </ZListRelationFundamentals>
+              </div>
+              <div>
+                <ZListRelationSpecificFundamentals
+                  :items="form.specificFundamentals"
+                  :selected-value="specificFundamentals"
+                  @add="addSpecificFundamental"
+                  @delete="actionDeleteSpecificFundamental"
+                >
+                  <template #filter>
+                    <ZSelectSpecificFundamental
+                      v-model="specificFundamentals"
+                      class="mb-3"
+                      label="Fundamentos Específicos"
+                      :disabled="!form.fundamentals.length"
+                      :ignore-ids="
+                        form.specificFundamentals.map((item) => item.id)
+                      "
+                      :fundamentals-ids="
+                        form.fundamentals.map((item) => item.id)
+                      "
+                      :messages="messageSpecificFundamental()"
+                    />
+                  </template>
+                </ZListRelationSpecificFundamentals>
+              </div>
+
+              <h3 class="subsection-title">Relacionar Time</h3>
+              <ZListRelationTeams
+                :items="form.teams"
+                :selected-value="teams"
+                @add="addTeams"
+                @delete="actionDeleteTeam"
+              >
+                <template #filter>
+                  <ZSelectTeam
+                    ref="selectTeamRef"
+                    v-model="teams"
+                    class="mb-3"
+                    label="Times"
+                    :disabled="form.teams.length >= 1"
+                    :ignore-ids="form.teams.map((item) => item.id)"
+                    :messages="
+                      form.teams.length >= 1 ? 'Você já selecionou um time' : ''
+                    "
+                  />
+                </template>
+              </ZListRelationTeams>
+            </div>
+          </template>
+
+          <!-- Etapa 2: Chamada do Treino -->
+          <template #step-content-1>
+            <div class="step-content">
+              <h2 class="section-title">Chamada do Treino</h2>
+
+              <!-- Métricas Cards -->
+              <div class="metrics-section">
+                <div class="metrics-cards">
+                  <ZCardViewMetricsPresenceIntention
+                    title="Métricas do treino, intenção de presença"
+                    :strip="false"
+                    :data="form.confirmationTrainingMetrics"
+                  />
+                  <ZCardViewMetricsRealPresence
+                    title="Métricas do treino, presença real"
+                    :strip="false"
+                    :data="form.confirmationTrainingMetrics"
+                  />
                 </div>
-                <div class="flex flex-col md6">
-                  <div class="item">
-                    <ZCardViewMetricsRealPresence
-                      title="Métricas do treino, presença real"
-                      :strip="false"
-                      :data="form.confirmationTrainingMetrics"
-                    />
-                  </div>
+
+                <!-- Progress Bars -->
+                <div class="progress-bars-section">
+                  <ZProgressBarMetricsTraining
+                    :metrics="form.confirmationTrainingMetrics"
+                    :data="form"
+                  />
                 </div>
               </div>
-              <div class="row">
-                <div class="flex flex-col md12">
-                  <div class="item">
-                    <ZProgressBarMetricsTraining
-                      :metrics="form.confirmationTrainingMetrics"
-                      :data="form"
-                    />
-                  </div>
-                </div>
+
+              <!-- Lista de Jogadores -->
+              <div class="players-list-section">
+                <ZListRelationConfirmationTrainings
+                  :items="form.confirmationsTraining"
+                  :training-date="form.dateValue"
+                  @action-confirm="actionConfirm"
+                  @action-reject="actionReject"
+                  @action-confirm-presence="actionConfirmPresence"
+                />
               </div>
-            </template>
-          </ZListRelationConfirmationTrainings>
-        </template>
-        <template #step-content-4>
-          <ZListRelationPlayersWithScouts
-            ref="listRelationPlayersWithScoutsRef"
-            :training-id="form.id"
-            :items="[...(form.players || []), ...(form.scouts || [])]"
-            @add="addPlayers"
-            @delete="actionDeletePlayer"
-          >
-          </ZListRelationPlayersWithScouts>
-        </template>
-      </va-stepper>
-    </va-form>
-  </va-card>
+            </div>
+          </template>
+
+          <!-- Etapa 3: Marcação dos Scouts -->
+          <template #step-content-2>
+            <div class="step-content">
+              <h2 class="section-title">Marcação dos Scouts</h2>
+              <ZListRelationPlayersWithScouts
+                ref="listRelationPlayersWithScoutsRef"
+                :training-id="form.id"
+                :items="[...(form.players || []), ...(form.scouts || [])]"
+                @add="addPlayers"
+                @delete="actionDeletePlayer"
+              >
+              </ZListRelationPlayersWithScouts>
+            </div>
+          </template>
+
+          <!-- Controles do Stepper -->
+          <template #controls="{ prevStep, nextStep }">
+            <div class="stepper-controls">
+              <va-button color="secondary" @click="goBack" class="mr-1"
+                >Voltar</va-button
+              >
+              <va-button
+                v-if="controlledStep > 0"
+                color="secondary"
+                @click="prevStep()"
+                class="mr-1"
+                >Anterior</va-button
+              >
+              <va-button
+                v-if="controlledStep < steps.length - 1"
+                color="primary"
+                @click="handleNextStep(nextStep)"
+                class="mr-1"
+                >Próximo</va-button
+              >
+              <va-button
+                color="success"
+                @click="saveAndContinue()"
+                v-if="!isTrainingSaved && controlledStep === 0"
+                class="mr-1"
+                >Salvar e Continuar</va-button
+              >
+              <va-button
+                color="success"
+                @click="saveScoutsOnly()"
+                v-if="isTrainingSaved && controlledStep === 2"
+                class="mr-1"
+                >Salvar Scouts</va-button
+              >
+              <va-button color="primary" @click="save()">Salvar</va-button>
+            </div>
+          </template>
+        </va-stepper>
+      </va-form>
+    </va-card>
+  </div>
 </template>
 
 <script>
@@ -273,21 +297,7 @@ export default {
       user: localStorage.getItem("user")
         ? JSON.parse(localStorage.getItem("user"))
         : null,
-      internalStep: 0, // Propriedade interna controlada
-      nextStepButton: true,
-      prevStepButton: false,
-      yearView: { type: "year" },
-      monthView: {
-        type: "month",
-        year: new Date().getFullYear(),
-      },
-      steps: [
-        { label: "Informações Essenciais" },
-        { label: "Fundamentos Treinados" },
-        { label: "Time" },
-        { label: "Lista de Presença" },
-        { label: "Jogadores e Scouts" },
-      ],
+      internalStep: 0,
       positions: [],
       teams: [],
       form: {
@@ -308,102 +318,45 @@ export default {
     isTrainingSaved() {
       return this.form.id && this.form.id > 0;
     },
-
-    // Verifica se pode prosseguir para as etapas 4 e 5
-    canProceedToAdvancedSteps() {
-      return this.isTrainingSaved;
-    },
-
     // Computed property para controlar o step de forma segura
     controlledStep: {
       get() {
         return this.internalStep;
       },
       set(newStep) {
-        // Se for uma mudança válida, permitir
+        // Validar se pode acessar a etapa
+        if (newStep > 0 && !this.isTrainingSaved) {
+          confirmError(
+            "Ação não permitida!",
+            "Você precisa salvar as informações básicas do treino antes de acessar as etapas de Chamada e Scouts. Por favor, salve o treino primeiro."
+          );
+          return;
+        }
         this.internalStep = newStep;
       },
     },
-
-    // Computed property para acessar o step de forma controlada
-    step: {
-      get() {
-        return this.internalStep;
-      },
-      set(newStep) {
-        // Se for uma mudança válida, permitir
-        this.internalStep = newStep;
-      },
-    },
-
     // Steps dinâmicos com validação
-    dynamicSteps() {
+    steps() {
       return [
         { label: "Informações Essenciais" },
-        { label: "Fundamentos Treinados" },
-        { label: "Time" },
         {
-          label: "Lista de Presença",
+          label: "Chamada do Treino",
           disabled: !this.isTrainingSaved,
-          tooltip: !this.isTrainingSaved ? "Salve o treino primeiro" : "",
         },
         {
-          label: "Jogadores e Scouts",
+          label: "Marcação dos Scouts",
           disabled: !this.isTrainingSaved,
-          tooltip: !this.isTrainingSaved ? "Salve o treino primeiro" : "",
         },
       ];
     },
   },
 
-  mounted() {
-    try {
-      // Ler a etapa da URL quando o componente for montado
-      this.readStepFromURL();
-    } catch (error) {
-      console.error("Erro no mounted:", error);
-    }
-  },
-
   watch: {
-    internalStep: {
-      handler(val, oldVal) {
-        try {
-          if (val !== oldVal) {
-            // Atualizar a URL com a etapa atual
-            this.updateURLWithStep(val);
-          }
-
-          if (val === 4) {
-            this.nextStepButton = false;
-          } else {
-            this.nextStepButton = true;
-          }
-
-          if (val === 0) {
-            this.prevStepButton = false;
-          } else {
-            this.prevStepButton = true;
-          }
-        } catch (error) {
-          console.error("Erro no watcher internalStep:", error);
-        }
-      },
-      immediate: true,
-    },
     data(val) {
-      const currentStep = this.internalStep;
-
-      // Preservar o step ANTES de atualizar o form
-      const stepToPreserve = currentStep;
-
       // Preservar dados existentes que podem ser perdidos
       const existingTeams = this.form.teams || [];
       const existingFundamentals = this.form.fundamentals || [];
       const existingSpecificFundamentals = this.form.specificFundamentals || [];
-
-      console.log("DEBUG - data watcher: Teams existentes:", existingTeams);
-      console.log("DEBUG - data watcher: Teams recebidos:", val.teams);
 
       this.form = {
         ...val,
@@ -420,29 +373,6 @@ export default {
             ? val.specificFundamentals
             : existingSpecificFundamentals,
       };
-
-      console.log(
-        "DEBUG - data watcher: Teams após atualização:",
-        this.form.teams
-      );
-
-      // PRESERVAÇÃO AGESSIVA: Múltiplas tentativas de preservar o step
-      const preserveStep = () => {
-        if (this.internalStep !== stepToPreserve) {
-          this.internalStep = stepToPreserve;
-        }
-      };
-
-      // Tentativa imediata
-      preserveStep();
-
-      // Tentativa no nextTick
-      this.$nextTick(preserveStep);
-
-      // Tentativa com setTimeout (última chance)
-      setTimeout(preserveStep, 0);
-      setTimeout(preserveStep, 10);
-      setTimeout(preserveStep, 50);
     },
     "data.team": function (newVal) {
       if (newVal && (!this.form.teams || this.form.teams.length === 0)) {
@@ -496,32 +426,19 @@ export default {
       return true;
     },
 
-    // Valida se pode prosseguir para as etapas 4 e 5
-    validateAdvancedStepsAccess() {
-      if (!this.canProceedToAdvancedSteps) {
+    goBack() {
+      this.$router.push("/trainings");
+    },
+    handleNextStep(nextStep) {
+      // Se está tentando ir para as etapas 2 ou 3, valida se o treino está salvo
+      if (this.controlledStep === 0 && !this.isTrainingSaved) {
         confirmError(
           "Ação não permitida!",
-          "Você precisa salvar as informações básicas do treino antes de acessar as etapas de Lista de Presença e Jogadores/Scouts. Por favor, salve o treino primeiro."
+          "Você precisa salvar as informações básicas do treino antes de acessar as etapas de Chamada e Scouts. Por favor, salve o treino primeiro."
         );
-        return false;
-      }
-      return true;
-    },
-
-    // Sobrescreve o método de navegação do stepper para adicionar validação
-    handleNextStep() {
-      // Se está tentando ir para as etapas 4 ou 5, valida se o treino está salvo
-      if (this.step === 2 && !this.validateAdvancedStepsAccess()) {
         return;
       }
-
-      // Se está na etapa 3 e tentando ir para a 4, também valida
-      if (this.step === 3 && !this.validateAdvancedStepsAccess()) {
-        return;
-      }
-
-      // Se passou pela validação, permite a navegação
-      this.step++;
+      nextStep();
     },
 
     handleGraphQLError(error) {
@@ -920,15 +837,7 @@ export default {
       if (!this.validateRequiredFields()) {
         return;
       }
-
-      // Só emite o evento saveAndContinue se estiver nas etapas iniciais (0-3)
-      // Para evitar redirecionamentos quando estiver salvando scouts na etapa 4-5
-      if (this.step <= 3) {
-        this.$emit("saveAndContinue", this.form);
-      } else {
-        // Se estiver nas etapas 4-5, usa o método específico para scouts
-        this.$emit("saveScouts", this.form);
-      }
+      this.$emit("saveAndContinue", this.form);
     },
 
     // Método específico para salvar scouts sem redirecionamento
@@ -960,36 +869,95 @@ export default {
         this.$emit("saveScouts", this.form);
       }
     },
-
-    // Atualiza a URL com a etapa atual
-    updateURLWithStep(step) {
-      try {
-        const currentUrl = new URL(window.location.href);
-        currentUrl.searchParams.set("step", step.toString());
-
-        // Atualizar a URL sem recarregar a página
-        window.history.replaceState({}, "", currentUrl.toString());
-      } catch (error) {
-        console.error("Erro ao atualizar URL:", error);
-      }
-    },
-
-    // Lê a etapa da URL e define o step inicial
-    readStepFromURL() {
-      try {
-        const urlParams = new URLSearchParams(window.location.search);
-        const stepParam = urlParams.get("step");
-
-        if (stepParam !== null) {
-          const step = parseInt(stepParam);
-          if (step >= 0 && step <= 4) {
-            this.internalStep = step;
-          }
-        }
-      } catch (error) {
-        console.error("Erro ao ler step da URL:", error);
-      }
-    },
   },
 };
 </script>
+
+<style scoped>
+.form-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.training-form-card {
+  width: 100%;
+  max-width: 800px;
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: bold;
+  color: #0b1e3a;
+  margin-bottom: 20px;
+}
+
+.subsection-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #0b1e3a;
+  margin-top: 24px;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.step-content {
+  padding: 20px 0;
+}
+
+.metrics-section {
+  margin-bottom: 32px;
+}
+
+.metrics-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.progress-bars-section {
+  margin-top: 24px;
+}
+
+.players-list-section {
+  margin-top: 32px;
+}
+
+.stepper-controls {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #e9ecef;
+  flex-wrap: wrap;
+}
+
+.stepper-controls va-button {
+  border-radius: 8px;
+}
+
+@media (max-width: 768px) {
+  .metrics-cards {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .stepper-controls {
+    justify-content: stretch;
+  }
+
+  .stepper-controls va-button {
+    flex: 1;
+    min-width: 120px;
+  }
+}
+</style>

@@ -5,8 +5,8 @@
       <slot name="filter" />
     </template>
     <template #list>
-      <va-list>
-        <va-list-label> Jogadores Relacionados </va-list-label>
+      <div class="players-list-wrapper">
+        <h3 class="players-list-title">Jogadores Relacionados</h3>
         <ZDatatableGeneric
           selectable
           includeActionsColumn
@@ -27,32 +27,38 @@
           <template
             #cell(actions)="{ rowKey: { id, player, presence, trainingId } }"
           >
-            <ZButton
-              v-if="
-                !isBeforeTrainingDate && hasAdminOrTechnicianRole() && !presence
-              "
-              color="success"
-              icon-right
-              class="mr-2"
-              @click="
-                actionConfirmPresence(id, player.id, trainingId, !presence)
-              "
-            >
-              Compareceu
-            </ZButton>
-            <ZButton
-              v-if="
-                !isBeforeTrainingDate && hasAdminOrTechnicianRole() && presence
-              "
-              color="danger"
-              icon-right
-              class="mr-2"
-              @click="
-                actionConfirmPresence(id, player.id, trainingId, !presence)
-              "
-            >
-              Não Compareceu
-            </ZButton>
+            <div class="actions-cell">
+              <ZButton
+                v-if="
+                  !isBeforeTrainingDate &&
+                  hasAdminOrTechnicianRole() &&
+                  !presence
+                "
+                color="success"
+                size="small"
+                class="action-button"
+                @click="
+                  actionConfirmPresence(id, player.id, trainingId, !presence)
+                "
+              >
+                Compareceu
+              </ZButton>
+              <ZButton
+                v-if="
+                  !isBeforeTrainingDate &&
+                  hasAdminOrTechnicianRole() &&
+                  presence
+                "
+                color="danger"
+                size="small"
+                class="action-button"
+                @click="
+                  actionConfirmPresence(id, player.id, trainingId, !presence)
+                "
+              >
+                Não Compareceu
+              </ZButton>
+            </div>
           </template>
           <template
             #cell(positions)="{
@@ -64,88 +70,78 @@
             <ZPosition :data="positions" />
           </template>
           <template #cell(presence)="{ rowKey: { presence } }">
-            <VaIcon
-              v-if="!presence && !isBeforeTrainingDate"
-              class="mr-2"
-              color="danger"
-              name="close"
-              :size="44"
-            />
-            <VaIcon
-              v-if="presence && !isBeforeTrainingDate"
-              class="mr-2"
-              color="success"
-              name="checked"
-              :size="44"
-            />
+            <div class="presence-cell">
+              <VaIcon v-if="!presence" color="danger" name="close" :size="32" />
+              <VaIcon
+                v-if="presence"
+                color="success"
+                name="checked"
+                :size="32"
+              />
+            </div>
           </template>
           <template
             #cell(presenceIntention)="{
               rowKey: { id, player, status, trainingId },
             }"
           >
-            <ZButton
-              v-if="
-                (isBeforeTrainingDate && hasAdminOrTechnicianRole()) ||
-                (isBeforeTrainingDate &&
-                  user.id === player.id &&
-                  hasPlayerRole())
-              "
-              color="success"
-              icon-right
-              class="mr-2"
-              @click="actionConfirm(id, player.id, trainingId)"
-            >
-              Confirmar
-            </ZButton>
-            <ZButton
-              v-else
-              :color="defineColorStatus(status)"
-              disabled
-              icon-right
-              class="mr-2"
-              @click="actionConfirm(id, player.id, trainingId)"
-            >
-              {{ transformText(status) }}
-            </ZButton>
-            <ZButton
-              v-if="
-                (isBeforeTrainingDate && hasAdminOrTechnicianRole()) ||
-                (isBeforeTrainingDate &&
-                  user.id === player.id &&
-                  hasPlayerRole())
-              "
-              color="danger"
-              icon-right
-              class="mr-2"
-              @click="actionReject(id, player.id, trainingId)"
-            >
-              Rejeitar
-            </ZButton>
-            <VaIcon
-              v-if="status == 'REJECTED'"
-              class="mr-2"
-              color="danger"
-              name="close"
-              :size="44"
-            />
-            <VaIcon
-              v-if="status == 'CONFIRMED'"
-              class="mr-2"
-              color="success"
-              name="checked"
-              :size="44"
-            />
-            <VaIcon
-              v-if="status == 'PENDING'"
-              class="mr-2"
-              color="secondary"
-              name="pending"
-              :size="44"
-            />
+            <div class="presence-intention-cell">
+              <!-- Status Badge -->
+              <div class="status-badge-wrapper">
+                <ZButton
+                  :color="defineColorStatus(status)"
+                  size="small"
+                  :disabled="true"
+                  class="status-badge"
+                >
+                  <VaIcon
+                    v-if="status == 'REJECTED'"
+                    name="close"
+                    :size="16"
+                    class="status-icon"
+                  />
+                  <VaIcon
+                    v-if="status == 'CONFIRMED'"
+                    name="checked"
+                    :size="16"
+                    class="status-icon"
+                  />
+                  <VaIcon
+                    v-if="status == 'PENDING'"
+                    name="pending"
+                    :size="16"
+                    class="status-icon"
+                  />
+                  {{ transformText(status) }}
+                </ZButton>
+              </div>
+
+              <!-- Action Buttons - Only show if user can interact -->
+              <div
+                v-if="canInteractWithStatus(player)"
+                class="intention-buttons"
+              >
+                <ZButton
+                  color="success"
+                  size="small"
+                  class="intention-button"
+                  @click="actionConfirm(id, player.id, trainingId)"
+                >
+                  Confirmar
+                </ZButton>
+                <ZButton
+                  color="danger"
+                  size="small"
+                  class="intention-button"
+                  @click="actionReject(id, player.id, trainingId)"
+                >
+                  Rejeitar
+                </ZButton>
+              </div>
+            </div>
           </template>
         </ZDatatableGeneric>
-      </va-list>
+      </div>
     </template>
   </ZListRelationGeneric>
 </template>
@@ -203,38 +199,7 @@ export default {
         lastPage: 1,
         total: 0,
       },
-      columns: [
-        {
-          key: "id",
-          name: "id",
-          label: "Id",
-          sortable: true,
-        },
-        {
-          key: "user",
-          name: "user",
-          label: "Jogador",
-          sortable: true,
-        },
-        {
-          key: "positions",
-          name: "positions",
-          label: "Posições",
-          sortable: true,
-        },
-        {
-          key: "presenceIntention",
-          name: "presenceIntention",
-          label: "Intenção de Presença",
-          sortable: true,
-        },
-        {
-          key: "presence",
-          name: "presence",
-          label: "Presença",
-          sortable: true,
-        },
-      ],
+      columns: [],
       user: {},
     };
   },
@@ -302,11 +267,181 @@ export default {
           return "primary";
       }
     },
+    canInteractWithStatus(player) {
+      if (!player || !this.user) return false;
+
+      // Técnico/Admin pode confirmar/rejeitar a qualquer momento
+      if (this.hasAdminOrTechnicianRole()) {
+        return true;
+      }
+
+      // Jogador só pode confirmar/rejeitar antes do treino (intenção)
+      if (
+        this.isBeforeTrainingDate &&
+        this.user.id === player.id &&
+        this.hasPlayerRole()
+      ) {
+        return true;
+      }
+
+      return false;
+    },
   },
   computed: {
     isBeforeTrainingDate() {
+      if (!this.trainingDate) return true;
       return new Date(this.trainingDate) > new Date();
+    },
+    columns() {
+      const baseColumns = [
+        {
+          key: "id",
+          name: "id",
+          label: "ID",
+          sortable: true,
+          width: 80,
+        },
+        {
+          key: "user",
+          name: "user",
+          label: "Jogador",
+          sortable: true,
+        },
+        {
+          key: "positions",
+          name: "positions",
+          label: "Posições",
+          sortable: true,
+          width: 150,
+        },
+      ];
+
+      // Se o treino ainda vai acontecer, mostra "Intenção de Presença"
+      // Se o treino já passou, mostra "Presença"
+      const intentionColumn = {
+        key: "presenceIntention",
+        name: "presenceIntention",
+        label: this.isBeforeTrainingDate ? "Intenção de Presença" : "Presença",
+        sortable: true,
+        width: 200,
+      };
+
+      baseColumns.push(intentionColumn);
+
+      // Coluna de presença real só aparece se o treino já passou
+      if (!this.isBeforeTrainingDate) {
+        baseColumns.push({
+          key: "presence",
+          name: "presence",
+          label: "Presença Real",
+          sortable: true,
+          width: 120,
+        });
+      }
+
+      return baseColumns;
     },
   },
 };
 </script>
+
+<style scoped>
+.players-list-wrapper {
+  margin-top: 24px;
+}
+
+.players-list-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #e9742b;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.presence-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+}
+
+.presence-pending {
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+.presence-intention-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.status-badge-wrapper {
+  width: 100%;
+}
+
+.status-badge {
+  font-size: 12px;
+  padding: 6px 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  justify-content: center;
+}
+
+.status-icon {
+  flex-shrink: 0;
+}
+
+.intention-buttons {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.intention-button {
+  font-size: 12px;
+  padding: 6px 14px;
+  flex: 1;
+  min-width: 100px;
+}
+
+.actions-cell {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.action-button {
+  font-size: 12px;
+  padding: 4px 12px;
+}
+
+@media (max-width: 768px) {
+  .players-list-title {
+    font-size: 14px;
+  }
+
+  .intention-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .intention-button {
+    width: 100%;
+  }
+
+  .actions-cell {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .action-button {
+    width: 100%;
+  }
+}
+</style>

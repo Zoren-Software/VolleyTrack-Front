@@ -1,4 +1,8 @@
 <template>
+  <div class="page-header">
+    <h1 class="title">Cadastro de Jogador</h1>
+    <p class="subtitle">Crie um novo jogador para sua equipe</p>
+  </div>
   <ZUserForm
     @save="create"
     :loading="loading"
@@ -127,3 +131,21 @@ useHead({
   titleTemplate: "Criar Jogador",
 });
 </script>
+
+<style scoped>
+.page-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.title {
+  font-size: 30px;
+  font-weight: bold;
+  color: #0b1e3a;
+}
+
+.subtitle {
+  font-size: 16px;
+  color: #6c757d;
+}
+</style>
