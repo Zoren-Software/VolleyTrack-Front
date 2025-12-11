@@ -1,29 +1,21 @@
 <template>
-  <ZListRelationGeneric @add="add" :disable-relation="true">
-    <template #filter>
-      <slot name="filter" />
-    </template>
-    <template #list>
-      <ZTechnicalScout
-        ref="technicalScoutRef"
-        @save-evaluation="handleSaveEvaluation"
-        :training-id="trainingId"
-        :is-inside-training-form="true"
-      />
-    </template>
-  </ZListRelationGeneric>
+  <div class="scouts-container">
+    <ZTechnicalScout
+      ref="technicalScoutRef"
+      @save-evaluation="handleSaveEvaluation"
+      :training-id="trainingId"
+      :is-inside-training-form="true"
+    />
+  </div>
 </template>
 
 <script>
-import ZListRelationGeneric from "~/components/molecules/List/ZListRelationGeneric";
 import ZTechnicalScout from "~/components/organisms/Scout/ZTechnicalScout.vue";
 
 export default {
   components: {
-    ZListRelationGeneric,
     ZTechnicalScout,
   },
-  mounted() {},
   emits: ["add", "delete"],
   props: {
     trainingId: {
@@ -131,3 +123,12 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.scouts-container {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+}
+</style>

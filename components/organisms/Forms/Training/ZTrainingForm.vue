@@ -1,6 +1,12 @@
 <template>
-  <div class="form-container">
-    <va-card class="training-form-card">
+  <div
+    class="form-container"
+    :class="{ 'form-container-full-width': controlledStep === 2 }"
+  >
+    <va-card
+      class="training-form-card"
+      :class="{ 'training-form-card-full-width': controlledStep === 2 }"
+    >
       <va-form ref="myForm" class="flex flex-col gap-6 mb-2">
         <va-stepper v-model="controlledStep" :steps="steps" controls-hidden>
           <!-- Etapa 1: Informações Essenciais -->
@@ -148,8 +154,7 @@
 
           <!-- Etapa 3: Marcação dos Scouts -->
           <template #step-content-2>
-            <div class="step-content">
-              <h2 class="section-title">Marcação dos Scouts</h2>
+            <div class="step-content step-content-full-width">
               <ZListRelationPlayersWithScouts
                 ref="listRelationPlayersWithScoutsRef"
                 :training-id="form.id"
@@ -882,6 +887,12 @@ export default {
   padding: 20px;
 }
 
+.form-container-full-width {
+  align-items: stretch;
+  padding: 0;
+  max-width: 100%;
+}
+
 .training-form-card {
   width: 100%;
   max-width: 800px;
@@ -889,6 +900,16 @@ export default {
   background-color: #ffffff;
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Quando estiver na etapa 3 (scouts), expandir para usar toda a largura */
+.training-form-card-full-width {
+  max-width: 100% !important;
+  width: 100% !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+  background-color: transparent !important;
+  border: none !important;
 }
 
 .section-title {
@@ -910,6 +931,24 @@ export default {
 
 .step-content {
   padding: 20px 0;
+}
+
+/* Etapa 3 - Usar toda a largura disponível */
+.step-content-full-width {
+  padding: 0;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+}
+
+/* Ajustar o stepper quando estiver na etapa 3 */
+.training-form-card-full-width .va-stepper {
+  padding: 0 20px;
+  margin-bottom: 0;
+}
+
+.training-form-card-full-width .va-stepper__content {
+  padding: 0;
 }
 
 .metrics-section {

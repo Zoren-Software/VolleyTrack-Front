@@ -1,5 +1,5 @@
 <template>
-  <div class="technical-scout">
+  <div class="technical-scout" :class="{ 'inside-form': isInsideTrainingForm }">
     <!-- Sidebar - Lista de Jogadores -->
     <div class="sidebar">
       <div class="sidebar-header">
@@ -804,12 +804,44 @@ defineExpose({
   background-color: #f5f5f5;
 }
 
+.technical-scout.inside-form {
+  height: auto;
+  min-height: 600px;
+  max-height: calc(100vh - 250px);
+  background-color: transparent;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.technical-scout.inside-form .sidebar {
+  border-radius: 8px 0 0 8px;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.05);
+}
+
+.technical-scout.inside-form .main-content {
+  border-radius: 0 8px 8px 0;
+  background-color: #f8f9fa;
+}
+
+.technical-scout.inside-form .sidebar,
+.technical-scout.inside-form .main-content {
+  max-height: calc(100vh - 250px);
+  overflow-y: auto;
+}
+
 .sidebar {
   width: 300px;
+  min-width: 280px;
   background-color: white;
   border-right: 1px solid #e0e0e0;
   display: flex;
   flex-direction: column;
+}
+
+.technical-scout.inside-form .sidebar {
+  width: 320px;
+  min-width: 300px;
 }
 
 .sidebar-header {
@@ -838,6 +870,9 @@ defineExpose({
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .player-item:hover {
@@ -853,6 +888,11 @@ defineExpose({
   flex: 1;
   padding: 24px;
   overflow-y: auto;
+  min-width: 0;
+}
+
+.technical-scout.inside-form .main-content {
+  padding: 20px;
 }
 
 .player-header {
@@ -870,6 +910,11 @@ defineExpose({
   grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
   gap: 20px;
   margin-bottom: 24px;
+}
+
+.technical-scout.inside-form .fundamentals-grid {
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
 }
 
 .summary-section {
