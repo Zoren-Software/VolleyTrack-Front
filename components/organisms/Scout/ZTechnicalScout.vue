@@ -907,14 +907,36 @@ defineExpose({
 
 .fundamentals-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 20px;
   margin-bottom: 24px;
 }
 
 .technical-scout.inside-form .fundamentals-grid {
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 16px;
+}
+
+/* Responsividade: 2 colunas em tablets */
+@media (max-width: 1200px) {
+  .fundamentals-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .technical-scout.inside-form .fundamentals-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Responsividade: 1 coluna em dispositivos móveis */
+@media (max-width: 768px) {
+  .fundamentals-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .technical-scout.inside-form .fundamentals-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .summary-section {
