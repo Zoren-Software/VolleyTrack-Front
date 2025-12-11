@@ -34,8 +34,34 @@
     <div class="main-content" v-if="selectedPlayer">
       <!-- Cabeçalho do Jogador -->
       <div class="player-header">
-        <ZUser :data="selectedPlayer" />
-        <div class="fundamentals-filter">
+        <!-- Informações do Jogador -->
+        <div class="player-info-section">
+          <ZUser :data="selectedPlayer" />
+        </div>
+
+        <!-- Botões de Navegação (Centralizados) -->
+        <div class="navigation-tabs">
+          <va-button
+            :preset="activeView === 'marking' ? 'primary' : 'secondary'"
+            @click="activeView = 'marking'"
+            class="tab-button"
+          >
+            Marcação
+          </va-button>
+          <va-button
+            :preset="activeView === 'statistics' ? 'primary' : 'secondary'"
+            @click="activeView = 'statistics'"
+            class="tab-button"
+          >
+            Estatísticas
+          </va-button>
+        </div>
+
+        <!-- Filtro de Fundamentos (Centralizado, apenas na visualização de Marcação) -->
+        <div
+          class="fundamentals-filter-wrapper"
+          v-if="activeView === 'marking'"
+        >
           <va-select
             v-model="selectedFundamentals"
             :options="fundamentalsOptions"
@@ -48,47 +74,50 @@
         </div>
       </div>
 
-      <!-- Cards dos Fundamentos -->
-      <div class="fundamentals-grid">
-        <ZFundamentalCard
-          v-for="fundamental in filteredFundamentals"
-          :key="fundamental.id"
-          :fundamental="fundamental"
-          :evaluation="getEvaluation(fundamental.id)"
-          :feedback="
-            fundamentalFeedbacks[selectedPlayer.id]?.[fundamental.id] || ''
-          "
-          @update-evaluation="updateEvaluation"
-          @update-feedback="updateFundamentalFeedback"
-        />
+      <!-- Conteúdo de Marcação -->
+      <div v-if="activeView === 'marking'" class="marking-content">
+        <!-- Cards dos Fundamentos -->
+        <div class="fundamentals-grid">
+          <ZFundamentalCard
+            v-for="fundamental in filteredFundamentals"
+            :key="fundamental.id"
+            :fundamental="fundamental"
+            :evaluation="getEvaluation(fundamental.id)"
+            :feedback="
+              fundamentalFeedbacks[selectedPlayer.id]?.[fundamental.id] || ''
+            "
+            @update-evaluation="updateEvaluation"
+            @update-feedback="updateFundamentalFeedback"
+          />
+        </div>
+
+        <!-- Observações Técnicas -->
+        <div class="observations-section">
+          <h3 class="section-title">Observações Técnicas Gerais</h3>
+          <va-textarea
+            v-model="observations"
+            placeholder="Digite suas observações técnicas sobre o jogador..."
+            :rows="4"
+            class="observations-textarea"
+            @input="updateObservations"
+          />
+        </div>
+
+        <!-- Feedback -->
+        <div class="feedback-section">
+          <h3 class="section-title">Feedback</h3>
+          <va-textarea
+            v-model="feedback"
+            placeholder="Digite seu feedback sobre o desempenho do jogador..."
+            :rows="4"
+            class="feedback-textarea"
+            @input="updateFeedback"
+          />
+        </div>
       </div>
 
-      <!-- Observações Técnicas -->
-      <div class="observations-section">
-        <h3 class="section-title">Observações Técnicas Gerais</h3>
-        <va-textarea
-          v-model="observations"
-          placeholder="Digite suas observações técnicas sobre o jogador..."
-          :rows="4"
-          class="observations-textarea"
-          @input="updateObservations"
-        />
-      </div>
-
-      <!-- Feedback -->
-      <div class="feedback-section">
-        <h3 class="section-title">Feedback</h3>
-        <va-textarea
-          v-model="feedback"
-          placeholder="Digite seu feedback sobre o desempenho do jogador..."
-          :rows="4"
-          class="feedback-textarea"
-          @input="updateFeedback"
-        />
-      </div>
-
-      <!-- Resumo da Avaliação -->
-      <div class="summary-section">
+      <!-- Conteúdo de Estatísticas -->
+      <div v-if="activeView === 'statistics'" class="statistics-content">
         <ZEvaluationSummary :evaluations="currentPlayerEvaluations" />
       </div>
     </div>
@@ -142,6 +171,7 @@ const currentScoutId = ref(null);
 const data = ref({});
 const selectedFundamentals = ref([]); // Fundamentos selecionados para filtrar (array de IDs)
 const selectedPosition = ref(null); // Posição selecionada para filtrar jogadores
+const activeView = ref("marking"); // Visualização ativa: 'marking' ou 'statistics'
 const playerObservations = ref({}); // Armazenar observações por jogador
 const playerFeedback = ref({}); // Armazenar feedback por jogador
 const fundamentalFeedbacks = ref({}); // Armazenar feedbacks dos fundamentais por jogador
@@ -1024,36 +1054,106 @@ defineExpose({
 }
 
 .player-header {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: space-between;
-  gap: 20px;
+  gap: 24px;
   margin-bottom: 32px;
-  padding: 20px;
+  padding: 24px;
   background-color: white;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.player-info-section {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.navigation-tabs {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+}
+
+.tab-button {
+  min-width: 140px;
+  padding: 10px 24px;
+  font-weight: 600;
+}
+
+.fundamentals-filter-wrapper {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.fundamentals-filter-wrapper .fundamentals-select {
+  width: 100%;
+  max-width: 350px;
+  min-width: 250px;
 }
 
 .fundamentals-filter {
   flex-shrink: 0;
   min-width: 250px;
   max-width: 350px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }
 
 .fundamentals-select {
   width: 100%;
 }
 
-@media (max-width: 768px) {
+.marking-content,
+.statistics-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+@media (max-width: 1024px) {
   .player-header {
-    flex-direction: column;
-    align-items: stretch;
+    grid-template-columns: 1fr;
+    gap: 20px;
   }
 
-  .fundamentals-filter {
-    min-width: 100%;
+  .player-info-section {
+    justify-content: center;
+  }
+
+  .fundamentals-filter-wrapper {
+    justify-content: center;
+  }
+
+  .fundamentals-filter-wrapper .fundamentals-select {
     max-width: 100%;
+    min-width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .player-header {
+    gap: 16px;
+    padding: 20px;
+  }
+
+  .navigation-tabs {
+    flex-direction: column;
+    width: 100%;
+    gap: 8px;
+    padding: 0;
+  }
+
+  .tab-button {
+    width: 100%;
+    min-width: auto;
+    max-width: none;
   }
 }
 
