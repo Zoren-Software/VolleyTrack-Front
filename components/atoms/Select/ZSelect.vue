@@ -32,12 +32,12 @@ export default {
   emits: ["update:modelValue"],
   data() {
     return {
-      value: this.modelValue || [],
+      value: this.modelValue ?? null,
     };
   },
   watch: {
     modelValue(newVal) {
-      this.value = newVal || [];
+      this.value = newVal ?? null;
     },
     value(newVal) {
       this.$emit("update:modelValue", newVal);

@@ -78,7 +78,7 @@ useHead({
   font-weight: 500;
   white-space: nowrap;
   background-color: #e9742b !important;
-  color: white !important;
+  color: #ffffff !important;
   box-shadow: 0 2px 8px rgba(233, 116, 43, 0.3);
   border: none;
   display: inline-flex;
@@ -101,13 +101,13 @@ useHead({
 
 .button-icon {
   font-size: 20px;
-  color: white;
+  color: #ffffff;
 }
 
 .button-text {
   font-size: 14px;
   font-weight: 500;
-  color: white;
+  color: #ffffff;
   letter-spacing: 0.3px;
 }
 

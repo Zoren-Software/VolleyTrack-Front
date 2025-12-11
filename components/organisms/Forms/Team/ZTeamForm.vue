@@ -42,19 +42,23 @@
             label="Buscar e selecionar jogadores"
             placeholder="Digite o nome do jogador"
           />
-          <va-button class="custom-button" color="primary" icon="add" @click="addUsers">
+          <va-button
+            class="custom-button"
+            color="primary"
+            icon="add"
+            @click="addUsers"
+          >
             Relacionar
           </va-button>
         </div>
-        <ZListRelationUsers
-          :items="form.users"
-          @delete="actionDeleteUser"
-        />
+        <ZListRelationUsers :items="form.users" @delete="actionDeleteUser" />
       </va-card>
 
       <!-- Botões -->
       <div class="action-buttons">
-        <va-button color="secondary" @click="goBack" class="mr-1">Voltar</va-button>
+        <va-button color="secondary" @click="goBack" class="mr-1"
+          >Voltar</va-button
+        >
         <va-button color="primary" @click="save">Salvar</va-button>
       </div>
     </va-form>
@@ -107,13 +111,19 @@ export default {
       users: [],
       form: {
         ...this.data,
+        teamCategory: this.data.teamCategory || null,
+        teamLevel: this.data.teamLevel || null,
       },
     };
   },
 
   watch: {
     data(val) {
-      this.form = { ...val };
+      this.form = {
+        ...val,
+        teamCategory: val.teamCategory || null,
+        teamLevel: val.teamLevel || null,
+      };
     },
   },
 
@@ -168,7 +178,7 @@ export default {
   width: 100%;
   max-width: 600px;
   padding: 20px;
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   margin-bottom: 20px;
@@ -184,7 +194,7 @@ export default {
 .section-title {
   font-size: 18px;
   font-weight: bold;
-  color: #0B1E3A;
+  color: #0b1e3a;
   margin-bottom: 10px;
 }
 
@@ -200,7 +210,7 @@ textarea::placeholder {
 }
 
 .custom-button {
-  padding: 0 1.0rem; /* Espaçamento apenas nas laterais */
+  padding: 0 1rem; /* Espaçamento apenas nas laterais */
   font-size: 14px; /* Ajuste do tamanho da fonte */
   border-radius: 8px; /* Bordas arredondadas */
 }
