@@ -1,7 +1,9 @@
 <template>
   <div class="header-section">
     <h1 class="main-title">Configurações Gerais</h1>
-    <p class="main-subtitle">Atualize as informações do tenant e a linguagem padrão do sistema.</p>
+    <p class="main-subtitle">
+      Atualize as informações do tenant e a linguagem padrão do sistema.
+    </p>
   </div>
   <div class="card-container">
     <va-card class="my-3">
@@ -43,6 +45,7 @@ import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
 const { formData } = useForm("myForm");
 
 export default {
+  emits: ["save"],
   mounted() {
     this.getLanguage();
   },
@@ -133,12 +136,12 @@ export default {
 .main-title {
   font-size: 24px;
   font-weight: bold;
-  color: #0B1E3A;
+  color: #0b1e3a;
 }
 
 .main-subtitle {
   font-size: 16px;
-  color: #6C757D;
+  color: #6c757d;
 }
 
 .card-container {
