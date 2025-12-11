@@ -46,7 +46,7 @@
               <h3 class="subsection-title">Fundamentos</h3>
               <div class="mb-5">
                 <ZListRelationFundamentals
-                  :items="form.fundamentals"
+                  :items="form.fundamentals || []"
                   :selected-value="fundamentals"
                   @add="addFundamentals"
                   @delete="actionDeleteFundamental"
@@ -63,7 +63,7 @@
               </div>
               <div>
                 <ZListRelationSpecificFundamentals
-                  :items="form.specificFundamentals"
+                  :items="form.specificFundamentals || []"
                   :selected-value="specificFundamentals"
                   @add="addSpecificFundamental"
                   @delete="actionDeleteSpecificFundamental"
@@ -88,7 +88,7 @@
 
               <h3 class="subsection-title">Relacionar Time</h3>
               <ZListRelationTeams
-                :items="form.teams"
+                :items="form.teams || []"
                 :selected-value="teams"
                 @add="addTeams"
                 @delete="actionDeleteTeam"
@@ -210,7 +210,6 @@
 </template>
 
 <script>
-import { useForm } from "vuestic-ui";
 import ZTextInput from "~/components/molecules/Inputs/ZTextInput";
 import ZSelectTeam from "~/components/molecules/Selects/ZSelectTeam";
 import ZListRelationFundamentals from "~/components/organisms/List/Relations/ZListRelationFundamentals";
@@ -227,8 +226,6 @@ import ZProgressBarMetricsTraining from "~/components/molecules/ProgressBar/ZPro
 import CONFIRMTRAINING from "~/graphql/training/mutation/confirmTraining.graphql";
 import CONFIRMPRESENCE from "~/graphql/training/mutation/confirmPresence.graphql";
 import ZListRelationPlayersWithScouts from "~/components/molecules/Datatable/ZListRelationPlayersWithScouts";
-
-const { formData } = useForm("myForm");
 
 export default {
   props: {
@@ -298,7 +295,6 @@ export default {
 
   data() {
     return {
-      formData,
       user: localStorage.getItem("user")
         ? JSON.parse(localStorage.getItem("user"))
         : null,
@@ -309,6 +305,10 @@ export default {
         ...this.data,
         players: this.data.players || [],
         scouts: this.data.scouts || [],
+        teams: this.data.teams || [],
+        fundamentals: this.data.fundamentals || [],
+        specificFundamentals: this.data.specificFundamentals || [],
+        confirmationsTraining: this.data.confirmationsTraining || [],
       },
       fundamentals: [],
       specificFundamentals: [],
@@ -367,16 +367,27 @@ export default {
         ...val,
         players: val.players || [],
         scouts: val.scouts || [],
+        confirmationsTraining: val.confirmationsTraining || [],
         // Preservar dados que podem ser perdidos na atualização
-        teams: val.teams && val.teams.length > 0 ? val.teams : existingTeams,
+        teams:
+          Array.isArray(val.teams) && val.teams.length > 0
+            ? val.teams
+            : Array.isArray(existingTeams)
+            ? existingTeams
+            : [],
         fundamentals:
-          val.fundamentals && val.fundamentals.length > 0
+          Array.isArray(val.fundamentals) && val.fundamentals.length > 0
             ? val.fundamentals
-            : existingFundamentals,
+            : Array.isArray(existingFundamentals)
+            ? existingFundamentals
+            : [],
         specificFundamentals:
-          val.specificFundamentals && val.specificFundamentals.length > 0
+          Array.isArray(val.specificFundamentals) &&
+          val.specificFundamentals.length > 0
             ? val.specificFundamentals
-            : existingSpecificFundamentals,
+            : Array.isArray(existingSpecificFundamentals)
+            ? existingSpecificFundamentals
+            : [],
       };
     },
     "data.team": function (newVal) {

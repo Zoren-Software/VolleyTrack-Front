@@ -199,7 +199,6 @@ export default {
         lastPage: 1,
         total: 0,
       },
-      columns: [],
       user: {},
     };
   },
