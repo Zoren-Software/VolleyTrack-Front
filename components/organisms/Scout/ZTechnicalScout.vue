@@ -1063,29 +1063,212 @@ defineExpose({
 }
 
 /* Responsividade */
-@media (max-width: 768px) {
+/* Responsividade para tablets */
+@media (max-width: 1024px) {
   .technical-scout {
     flex-direction: column;
+    height: auto;
+  }
+
+  .technical-scout.inside-form {
+    max-height: none;
   }
 
   .sidebar {
     width: 100%;
+    min-width: 100%;
+    max-width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #e0e0e0;
+    max-height: 300px;
     height: auto;
-    max-height: 200px;
   }
 
-  .fundamentals-grid {
-    grid-template-columns: 1fr;
+  .technical-scout.inside-form .sidebar {
+    width: 100%;
+    min-width: 100%;
+    max-width: 100%;
+    border-radius: 8px 8px 0 0;
+  }
+
+  .main-content {
+    padding: 16px;
+    width: 100%;
+  }
+
+  .technical-scout.inside-form .main-content {
+    border-radius: 0 0 8px 8px;
+    padding: 16px;
+  }
+}
+
+/* Responsividade para dispositivos móveis */
+@media (max-width: 768px) {
+  .technical-scout {
+    flex-direction: column;
+    height: auto;
+  }
+
+  .technical-scout.inside-form {
+    max-height: none;
+  }
+
+  .sidebar {
+    width: 100%;
+    min-width: 100%;
+    max-width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #e0e0e0;
+    max-height: 250px;
+    height: auto;
+  }
+
+  .technical-scout.inside-form .sidebar {
+    width: 100%;
+    min-width: 100%;
+    max-width: 100%;
+    border-radius: 8px 8px 0 0;
+  }
+
+  .sidebar-header {
+    padding: 12px 16px;
+  }
+
+  .sidebar-title {
+    font-size: 1.2rem;
+  }
+
+  .players-list {
+    padding: 8px;
+  }
+
+  .player-item {
+    padding: 10px;
+    margin-bottom: 6px;
+  }
+
+  .main-content {
+    padding: 12px;
+    width: 100%;
+  }
+
+  .technical-scout.inside-form .main-content {
+    border-radius: 0 0 8px 8px;
+    padding: 12px;
   }
 
   .player-header {
     flex-direction: column;
-    text-align: center;
+    align-items: stretch;
+    gap: 12px;
+    padding: 16px;
+    margin-bottom: 20px;
+    text-align: left;
   }
 
-  .header-avatar {
-    margin-right: 0;
+  .fundamentals-filter {
+    min-width: 100%;
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .fundamentals-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .technical-scout.inside-form .fundamentals-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .observations-section,
+  .feedback-section {
+    padding: 16px;
     margin-bottom: 16px;
+  }
+
+  .section-title {
+    font-size: 1.1rem;
+    margin-bottom: 12px;
+  }
+}
+
+/* Responsividade para telas muito pequenas (celulares pequenos) */
+@media (max-width: 480px) {
+  .technical-scout {
+    height: auto;
+  }
+
+  .technical-scout.inside-form {
+    max-height: none;
+    min-height: auto;
+  }
+
+  .sidebar {
+    max-height: 200px;
+  }
+
+  .sidebar-header {
+    padding: 10px 12px;
+  }
+
+  .sidebar-title {
+    font-size: 1rem;
+  }
+
+  .players-list {
+    padding: 6px;
+  }
+
+  .player-item {
+    padding: 8px;
+    margin-bottom: 4px;
+  }
+
+  .main-content {
+    padding: 10px;
+  }
+
+  .technical-scout.inside-form .main-content {
+    padding: 10px;
+  }
+
+  .player-header {
+    padding: 12px;
+    margin-bottom: 16px;
+    gap: 10px;
+  }
+
+  .fundamentals-grid {
+    gap: 10px;
+  }
+
+  .technical-scout.inside-form .fundamentals-grid {
+    gap: 10px;
+  }
+
+  .observations-section,
+  .feedback-section {
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+
+  .section-title {
+    font-size: 1rem;
+    margin-bottom: 10px;
+  }
+
+  .empty-state {
+    padding: 20px;
+  }
+
+  .empty-content h2 {
+    font-size: 1.2rem;
+  }
+
+  .empty-content p {
+    font-size: 0.9rem;
   }
 }
 </style>

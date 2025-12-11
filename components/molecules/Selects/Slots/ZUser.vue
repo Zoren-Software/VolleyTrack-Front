@@ -143,4 +143,50 @@ export default {
   min-width: 0;
   flex: 1;
 }
+
+@media (max-width: 768px) {
+  .user-wrapper {
+    gap: 8px;
+  }
+
+  .user-avatar,
+  .user-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .user-name {
+    font-size: 13px;
+  }
+
+  .user-detail {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  .user-wrapper {
+    gap: 6px;
+  }
+
+  .user-avatar,
+  .user-icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .user-name {
+    font-size: 12px;
+  }
+
+  .user-detail {
+    font-size: 10px;
+    gap: 4px;
+  }
+
+  .detail-icon {
+    width: 14px;
+    height: 14px;
+  }
+}
 </style>
