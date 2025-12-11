@@ -121,7 +121,7 @@ export default {
 .user-avatar {
   flex-shrink: 0;
   width: 40px;
-  height: 40px;
+  /* height: 40px; */
 }
 
 .user-icon {
