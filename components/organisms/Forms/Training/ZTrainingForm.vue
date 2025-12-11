@@ -165,47 +165,45 @@
               </ZListRelationPlayersWithScouts>
             </div>
           </template>
-
-          <!-- Controles do Stepper -->
-          <template #controls="{ prevStep, nextStep }">
-            <div class="stepper-controls">
-              <va-button color="secondary" @click="goBack" class="mr-1"
-                >Voltar</va-button
-              >
-              <va-button
-                v-if="controlledStep > 0"
-                color="secondary"
-                @click="prevStep()"
-                class="mr-1"
-                >Anterior</va-button
-              >
-              <va-button
-                v-if="controlledStep < steps.length - 1"
-                color="primary"
-                @click="handleNextStep(nextStep)"
-                class="mr-1"
-                >Próximo</va-button
-              >
-              <va-button
-                color="success"
-                @click="saveAndContinue()"
-                v-if="!isTrainingSaved && controlledStep === 0"
-                class="mr-1"
-                >Salvar e Continuar</va-button
-              >
-              <va-button
-                color="success"
-                @click="saveScoutsOnly()"
-                v-if="isTrainingSaved && controlledStep === 2"
-                class="mr-1"
-                >Salvar Scouts</va-button
-              >
-              <va-button color="primary" @click="save()">Salvar</va-button>
-            </div>
-          </template>
         </va-stepper>
       </va-form>
     </va-card>
+
+    <!-- Botões de Ação (Fora do Card) -->
+    <div class="action-buttons">
+      <va-button color="secondary" @click="goBack" class="mr-1"
+        >Voltar</va-button
+      >
+      <va-button
+        v-if="controlledStep > 0"
+        color="secondary"
+        @click="handlePrevStep()"
+        class="mr-1"
+        >Anterior</va-button
+      >
+      <va-button
+        v-if="controlledStep < steps.length - 1"
+        color="primary"
+        @click="handleNextStep()"
+        class="mr-1"
+        >Próximo</va-button
+      >
+      <va-button
+        color="success"
+        @click="saveAndContinue()"
+        v-if="!isTrainingSaved && controlledStep === 0"
+        class="mr-1"
+        >Salvar e Continuar</va-button
+      >
+      <va-button
+        color="success"
+        @click="saveScoutsOnly()"
+        v-if="isTrainingSaved && controlledStep === 2"
+        class="mr-1"
+        >Salvar Scouts</va-button
+      >
+      <va-button color="primary" @click="save()">Salvar</va-button>
+    </div>
   </div>
 </template>
 
@@ -445,7 +443,7 @@ export default {
     goBack() {
       this.$router.push("/trainings");
     },
-    handleNextStep(nextStep) {
+    handleNextStep() {
       // Se está tentando ir para as etapas 2 ou 3, valida se o treino está salvo
       if (this.controlledStep === 0 && !this.isTrainingSaved) {
         confirmError(
@@ -454,7 +452,14 @@ export default {
         );
         return;
       }
-      nextStep();
+      if (this.controlledStep < this.steps.length - 1) {
+        this.controlledStep = this.controlledStep + 1;
+      }
+    },
+    handlePrevStep() {
+      if (this.controlledStep > 0) {
+        this.controlledStep = this.controlledStep - 1;
+      }
     },
 
     handleGraphQLError(error) {
@@ -981,18 +986,22 @@ export default {
   margin-top: 32px;
 }
 
-.stepper-controls {
+.action-buttons {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
   margin-top: 24px;
-  padding-top: 20px;
-  border-top: 1px solid #e9ecef;
-  flex-wrap: wrap;
+  width: 100%;
+  max-width: 800px;
 }
 
-.stepper-controls va-button {
+.action-buttons va-button {
   border-radius: 8px;
+}
+
+.form-container-full-width .action-buttons {
+  max-width: 100%;
+  padding: 0 20px;
 }
 
 @media (max-width: 768px) {
@@ -1001,13 +1010,15 @@ export default {
     gap: 16px;
   }
 
-  .stepper-controls {
-    justify-content: stretch;
+  .action-buttons {
+    flex-direction: column;
+    width: 100%;
+    max-width: 100%;
   }
 
-  .stepper-controls va-button {
-    flex: 1;
-    min-width: 120px;
+  .action-buttons va-button {
+    width: 100%;
+    min-width: auto;
   }
 }
 </style>
