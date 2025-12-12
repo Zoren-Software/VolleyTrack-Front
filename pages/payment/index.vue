@@ -49,85 +49,99 @@
       </div>
 
       <!-- Header -->
-      <div class="page-header-modern">
-        <h1 class="main-title">Escolha o plano ideal para sua equipe</h1>
-        <p class="main-subtitle">
-          Compare os recursos e selecione o plano que melhor atende às suas
-          necessidades
-        </p>
-      </div>
-
-      <!-- Botão Ver Faturamentos (acima dos cards) -->
-      <div class="billing-button-top">
-        <NuxtLink to="/billing" class="billing-link-modern">
-          <span class="billing-icon">📄</span>
-          <span>Ver Faturamentos</span>
-        </NuxtLink>
-      </div>
-
-      <!-- Status do Plano Ativo e Método de Pagamento -->
-      <div class="active-plan-container">
-        <!-- Plano Ativo -->
-        <div class="active-plan-section">
-          <ActivePlanChecker
-            :auto-refresh="false"
-            :tenant-id="getTenantId()"
-            :show-upgrade-animations="showUpgradeAnimations"
-            @plan-loaded="onActivePlanLoaded"
-            @plan-error="onActivePlanError"
-            @upgrade-clicked="onUpgradeClicked"
-          />
+      <Transition name="fade" mode="out-in">
+        <div
+          v-if="!showPlansSelection"
+          key="header-current"
+          class="page-header-modern"
+        >
+          <h1 class="main-title">Seu Plano Atual</h1>
+          <p class="main-subtitle">
+            Gerencie sua assinatura e método de pagamento
+          </p>
         </div>
+        <div v-else key="header-plans" class="page-header-modern">
+          <h1 class="main-title">Escolha o plano ideal para sua equipe</h1>
+          <p class="main-subtitle">
+            Compare os recursos e selecione o plano que melhor atende às suas
+            necessidades
+          </p>
+        </div>
+      </Transition>
 
-        <!-- Método de Pagamento (apenas se tiver plano ativo) -->
-        <template v-if="activePlanData && !activePlanData.isTrial">
-          <div class="payment-method-section">
-            <PaymentMethodCard :customer-id="activePlanData.customer_id" />
+      <!-- Botão Ver Faturamentos (apenas na etapa 1) -->
+      <Transition name="fade">
+        <div v-if="!showPlansSelection" class="billing-button-top">
+          <NuxtLink to="/billing" class="billing-link-modern">
+            <span class="billing-icon">📄</span>
+            <span>Ver Faturamentos</span>
+          </NuxtLink>
+        </div>
+      </Transition>
+
+      <!-- Botão Voltar (apenas na etapa 2) -->
+      <Transition name="fade">
+        <div v-if="showPlansSelection" class="back-button-top">
+          <button @click="showPlansSelection = false" class="back-link-modern">
+            <span class="back-icon">←</span>
+            <span>Voltar para meu plano</span>
+          </button>
+        </div>
+      </Transition>
+
+      <!-- Status do Plano Ativo e Método de Pagamento (Etapa 1) -->
+      <Transition name="slide-fade">
+        <div v-if="!showPlansSelection" class="active-plan-container">
+          <!-- Plano Ativo -->
+          <div class="active-plan-section">
+            <ActivePlanChecker
+              :auto-refresh="false"
+              :tenant-id="getTenantId()"
+              :show-upgrade-animations="showUpgradeAnimations"
+              @plan-loaded="onActivePlanLoaded"
+              @plan-error="onActivePlanError"
+              @upgrade-clicked="onUpgradeClicked"
+            />
           </div>
-        </template>
-      </div>
 
-      <!-- Seletor de Periodicidade -->
-      <div class="billing-toggle">
-        <span class="toggle-label">Planos:</span>
-        <div class="toggle-buttons">
-          <button
-            class="toggle-btn"
-            :class="{
-              active: selectedBilling === 'monthly',
-              'auto-selected':
-                activePlanData && !detectYearlyPlan(activePlanData),
-            }"
-            @click="selectedBilling = 'monthly'"
-          >
-            Mensal
-            <span
-              v-if="activePlanData && !detectYearlyPlan(activePlanData)"
-              class="auto-selected-badge"
-            >
-              (Seu Plano)
-            </span>
-          </button>
-          <button
-            class="toggle-btn"
-            :class="{
-              active: selectedBilling === 'yearly',
-              'auto-selected':
-                activePlanData && detectYearlyPlan(activePlanData),
-            }"
-            @click="selectedBilling = 'yearly'"
-          >
-            Anual
-            <span class="discount-badge">-{{ getGeneralYearlyDiscount }}%</span>
-            <span
-              v-if="activePlanData && detectYearlyPlan(activePlanData)"
-              class="auto-selected-badge"
-            >
-              (Seu Plano)
-            </span>
-          </button>
+          <!-- Método de Pagamento (apenas se tiver plano ativo) -->
+          <template v-if="activePlanData && !activePlanData.isTrial">
+            <div class="payment-method-section">
+              <PaymentMethodCard :customer-id="activePlanData.customer_id" />
+            </div>
+          </template>
         </div>
-      </div>
+      </Transition>
+
+      <!-- Seletor de Periodicidade (apenas na etapa 2) -->
+      <Transition name="slide-fade">
+        <div v-if="showPlansSelection" class="billing-toggle">
+          <span class="toggle-label">Planos:</span>
+          <div class="toggle-buttons">
+            <button
+              class="toggle-btn"
+              :class="{
+                active: selectedBilling === 'monthly',
+              }"
+              @click="selectedBilling = 'monthly'"
+            >
+              Mensal
+            </button>
+            <button
+              class="toggle-btn"
+              :class="{
+                active: selectedBilling === 'yearly',
+              }"
+              @click="selectedBilling = 'yearly'"
+            >
+              Anual
+              <span class="discount-badge"
+                >-{{ getGeneralYearlyDiscount }}%</span
+              >
+            </button>
+          </div>
+        </div>
+      </Transition>
 
       <!-- Loading State -->
       <div v-if="loading" class="loading-container">
@@ -248,230 +262,242 @@
         </div>
       </div>
 
-      <!-- Planos de Assinatura -->
-      <div v-if="!loading && plans.length > 0" class="plans-container-modern">
-        <!-- Grid Horizontal de Planos -->
-        <div class="plans-grid-modern">
-          <div
-            v-for="plan in displayedPlans"
-            :key="`${plan.id}-${plan.billing}`"
-            class="plan-card-modern"
-            :class="{
-              selected:
-                selectedPlan?.id === plan.id &&
-                selectedPlan?.billing === plan.billing,
-              'plan-trial': plan.metadata?.plan_type === 'trial',
-              'plan-pro': plan.metadata?.plan_type === 'pro',
-              'plan-clubers': plan.metadata?.plan_type === 'clubes',
-              'plan-lifetime': plan.metadata?.plan_type === 'lifetime',
-              'plan-active': isPlanActive(plan),
-              'plan-disabled': isPlanDisabled(plan),
-            }"
-            @click="selectPlan(plan)"
-          >
-            <!-- Badge no topo direito -->
-            <div class="plan-badge-top">
-              <span
-                v-if="plan.metadata?.plan_type === 'trial'"
-                class="badge badge-trial"
-              >
-                15 dias grátis
-              </span>
-              <span
-                v-else-if="plan.metadata?.plan_type === 'pro'"
-                class="badge badge-pro"
-              >
-                Recomendado
-              </span>
-              <span
-                v-else-if="plan.metadata?.plan_type === 'clubes'"
-                class="badge badge-clubers"
-              >
-                Equipes Grandes
-              </span>
-              <span
-                v-else-if="plan.metadata?.plan_type === 'lifetime'"
-                class="badge badge-lifetime"
-              >
-                Oferta Vitalícia
-              </span>
-              <span v-if="isPlanActive(plan)" class="badge badge-active">
-                Plano Ativo
-              </span>
-            </div>
-
-            <!-- Ícone do Plano -->
-            <div class="plan-icon">
-              <va-icon
-                v-if="plan.metadata?.plan_type === 'trial'"
-                name="card_giftcard"
-                size="48px"
-                :color="getPlanColor(plan)"
-              />
-              <va-icon
-                v-else-if="plan.metadata?.plan_type === 'pro'"
-                name="star"
-                size="48px"
-                :color="getPlanColor(plan)"
-              />
-              <va-icon
-                v-else-if="plan.metadata?.plan_type === 'clubes'"
-                name="emoji_events"
-                size="48px"
-                :color="getPlanColor(plan)"
-              />
-              <va-icon
-                v-else-if="plan.metadata?.plan_type === 'lifetime'"
-                name="all_inclusive"
-                size="48px"
-                :color="getPlanColor(plan)"
-              />
-              <va-icon
-                v-else
-                name="workspace_premium"
-                size="48px"
-                :color="getPlanColor(plan)"
-              />
-            </div>
-
-            <!-- Nome do Plano -->
-            <h3 class="plan-name">{{ plan.name }}</h3>
-
-            <!-- Preço -->
-            <div class="plan-price-modern">
-              <span class="price-amount">R$ {{ getPlanPrice(plan) }}</span>
-              <span v-if="getPlanPeriod(plan)" class="price-period">{{
-                getPlanPeriod(plan)
-              }}</span>
-              <span
-                v-if="plan.metadata?.plan_type === 'lifetime'"
-                class="price-lifetime"
-              >
-                Pagamento único
-              </span>
-              <span v-else-if="getYearlyDiscount(plan)" class="price-yearly">
-                ou R$ {{ getYearlyPrice(plan) }}/ano
-              </span>
-            </div>
-
-            <!-- Duração (para trial) -->
+      <!-- Planos de Assinatura (apenas na etapa 2) -->
+      <Transition name="slide-fade">
+        <div
+          v-if="showPlansSelection && !loading && plans.length > 0"
+          class="plans-container-modern"
+        >
+          <!-- Grid Horizontal de Planos -->
+          <div class="plans-grid-modern">
             <div
-              v-if="plan.metadata?.plan_type === 'trial'"
-              class="plan-duration"
+              v-for="plan in displayedPlans"
+              :key="`${plan.id}-${plan.billing}`"
+              class="plan-card-modern"
+              :class="{
+                selected:
+                  selectedPlan?.id === plan.id &&
+                  selectedPlan?.billing === plan.billing,
+                'plan-trial': plan.metadata?.plan_type === 'trial',
+                'plan-pro': plan.metadata?.plan_type === 'pro',
+                'plan-clubers': plan.metadata?.plan_type === 'clubes',
+                'plan-lifetime': plan.metadata?.plan_type === 'lifetime',
+                'plan-active': isPlanActive(plan),
+                'plan-disabled': isPlanDisabled(plan),
+              }"
+              @click="selectPlan(plan)"
             >
-              Duração: 15 dias
-            </div>
-
-            <!-- Features -->
-            <div class="plan-features-modern">
-              <div
-                v-for="feature in getMainPlanFeatures(plan)"
-                :key="feature"
-                class="feature-item"
-              >
-                <va-icon
-                  name="check_circle"
-                  size="20px"
-                  :color="getPlanColor(plan)"
-                />
-                <span>{{ feature }}</span>
-              </div>
-            </div>
-
-            <!-- Notas Especiais -->
-            <div v-if="getPlanSpecialNotes(plan)" class="plan-special-notes">
-              <div
-                v-for="note in getPlanSpecialNotes(plan)"
-                :key="note.text"
-                class="special-note"
-              >
-                <va-icon
-                  :name="note.icon"
-                  size="16px"
-                  :color="getPlanColor(plan)"
-                />
-                <span>{{ note.text }}</span>
-              </div>
-            </div>
-
-            <!-- Disponibilidade do Plano Vitalício -->
-            <div
-              v-if="plan.metadata?.plan_type === 'lifetime' && lifetimeCounter"
-              class="lifetime-availability-modern"
-            >
-              <div class="availability-progress">
-                <div class="progress-bar">
-                  <div
-                    class="progress-fill"
-                    :style="{
-                      width: `${
-                        (lifetimeCounter.remaining / lifetimeCounter.limit) *
-                        100
-                      }%`,
-                    }"
-                  ></div>
-                </div>
-                <span class="progress-text">
-                  {{ lifetimeCounter.remaining }}/{{ lifetimeCounter.limit }}
+              <!-- Badge no topo direito -->
+              <div class="plan-badge-top">
+                <span
+                  v-if="plan.metadata?.plan_type === 'trial'"
+                  class="badge badge-trial"
+                >
+                  15 dias grátis
+                </span>
+                <span
+                  v-else-if="plan.metadata?.plan_type === 'pro'"
+                  class="badge badge-pro"
+                >
+                  Recomendado
+                </span>
+                <span
+                  v-else-if="plan.metadata?.plan_type === 'clubes'"
+                  class="badge badge-clubers"
+                >
+                  Equipes Grandes
+                </span>
+                <span
+                  v-else-if="plan.metadata?.plan_type === 'lifetime'"
+                  class="badge badge-lifetime"
+                >
+                  Oferta Vitalícia
+                </span>
+                <span v-if="isPlanActive(plan)" class="badge badge-active">
+                  Plano Ativo
                 </span>
               </div>
-              <div class="availability-note">
-                <va-icon name="schedule" size="14px" color="#6b7280" />
-                <span>Só para as primeiras {{ lifetimeCounter.limit }}</span>
-              </div>
-            </div>
 
-            <!-- Botão de Ação -->
-            <button
-              class="plan-button-modern"
-              :class="{
-                'button-trial': plan.metadata?.plan_type === 'trial',
-                'button-pro': plan.metadata?.plan_type === 'pro',
-                'button-clubers': plan.metadata?.plan_type === 'clubes',
-                'button-lifetime': plan.metadata?.plan_type === 'lifetime',
-                'button-active': isPlanActive(plan),
-                disabled: isPlanDisabled(plan),
-              }"
-              :disabled="isPlanDisabled(plan)"
-              @click.stop="handlePlanClick(plan)"
-            >
-              <va-icon
-                v-if="isPlanActive(plan)"
-                name="check_circle"
-                size="18px"
-              />
-              <va-icon
-                v-else-if="plan.metadata?.plan_type === 'pro'"
-                name="bolt"
-                size="18px"
-              />
-              <va-icon
-                v-else-if="plan.metadata?.plan_type === 'clubes'"
-                name="groups"
-                size="18px"
-              />
-              <va-icon
-                v-else-if="plan.metadata?.plan_type === 'lifetime'"
-                name="diamond"
-                size="18px"
-              />
-              <span v-if="isPlanActive(plan)">Plano Ativo</span>
-              <span v-else-if="plan.metadata?.plan_type === 'pro'"
-                >Escolher Pro</span
+              <!-- Ícone do Plano -->
+              <div class="plan-icon">
+                <va-icon
+                  v-if="plan.metadata?.plan_type === 'trial'"
+                  name="card_giftcard"
+                  size="48px"
+                  :color="getPlanColor(plan)"
+                />
+                <va-icon
+                  v-else-if="plan.metadata?.plan_type === 'pro'"
+                  name="star"
+                  size="48px"
+                  :color="getPlanColor(plan)"
+                />
+                <va-icon
+                  v-else-if="plan.metadata?.plan_type === 'clubes'"
+                  name="emoji_events"
+                  size="48px"
+                  :color="getPlanColor(plan)"
+                />
+                <va-icon
+                  v-else-if="plan.metadata?.plan_type === 'lifetime'"
+                  name="all_inclusive"
+                  size="48px"
+                  :color="getPlanColor(plan)"
+                />
+                <va-icon
+                  v-else
+                  name="workspace_premium"
+                  size="48px"
+                  :color="getPlanColor(plan)"
+                />
+              </div>
+
+              <!-- Nome do Plano -->
+              <h3 class="plan-name">{{ plan.name }}</h3>
+
+              <!-- Preço -->
+              <div class="plan-price-modern">
+                <span class="price-amount">R$ {{ getPlanPrice(plan) }}</span>
+                <span v-if="getPlanPeriod(plan)" class="price-period">{{
+                  getPlanPeriod(plan)
+                }}</span>
+                <span
+                  v-if="plan.metadata?.plan_type === 'lifetime'"
+                  class="price-lifetime"
+                >
+                  Pagamento único
+                </span>
+                <span v-else-if="getYearlyDiscount(plan)" class="price-yearly">
+                  ou R$ {{ getYearlyPrice(plan) }}/ano
+                </span>
+              </div>
+
+              <!-- Duração (para trial) -->
+              <div
+                v-if="plan.metadata?.plan_type === 'trial'"
+                class="plan-duration"
               >
-              <span v-else-if="plan.metadata?.plan_type === 'clubes'"
-                >Escolher Clubers</span
+                Duração: 15 dias
+              </div>
+
+              <!-- Features -->
+              <div class="plan-features-modern">
+                <div
+                  v-for="feature in getMainPlanFeatures(plan)"
+                  :key="feature"
+                  class="feature-item"
+                >
+                  <va-icon
+                    name="check_circle"
+                    size="20px"
+                    :color="getPlanColor(plan)"
+                  />
+                  <span>{{ feature }}</span>
+                </div>
+              </div>
+
+              <!-- Notas Especiais -->
+              <div v-if="getPlanSpecialNotes(plan)" class="plan-special-notes">
+                <div
+                  v-for="note in getPlanSpecialNotes(plan)"
+                  :key="note.text"
+                  class="special-note"
+                >
+                  <va-icon
+                    :name="note.icon"
+                    size="16px"
+                    :color="getPlanColor(plan)"
+                  />
+                  <span>{{ note.text }}</span>
+                </div>
+              </div>
+
+              <!-- Disponibilidade do Plano Vitalício -->
+              <div
+                v-if="
+                  plan.metadata?.plan_type === 'lifetime' && lifetimeCounter
+                "
+                class="lifetime-availability-modern"
               >
-              <span v-else-if="plan.metadata?.plan_type === 'lifetime'"
-                >Escolher Vitalícia</span
+                <div class="availability-progress">
+                  <div class="progress-bar">
+                    <div
+                      class="progress-fill"
+                      :style="{
+                        width: `${
+                          (lifetimeCounter.remaining / lifetimeCounter.limit) *
+                          100
+                        }%`,
+                      }"
+                    ></div>
+                  </div>
+                  <span class="progress-text">
+                    {{ lifetimeCounter.remaining }}/{{ lifetimeCounter.limit }}
+                  </span>
+                </div>
+                <div class="availability-note">
+                  <va-icon name="schedule" size="14px" color="#6b7280" />
+                  <span>Só para as primeiras {{ lifetimeCounter.limit }}</span>
+                </div>
+              </div>
+
+              <!-- Botão de Ação -->
+              <button
+                class="plan-button-modern"
+                :class="{
+                  'button-trial': plan.metadata?.plan_type === 'trial',
+                  'button-pro': plan.metadata?.plan_type === 'pro',
+                  'button-clubers': plan.metadata?.plan_type === 'clubes',
+                  'button-lifetime': plan.metadata?.plan_type === 'lifetime',
+                  'button-active': isPlanActive(plan),
+                  disabled: isPlanDisabled(plan),
+                }"
+                :disabled="isPlanDisabled(plan)"
+                @click.stop="handlePlanClick(plan)"
               >
-              <span v-else>Escolher Plano</span>
-            </button>
+                <va-icon
+                  v-if="isPlanActive(plan)"
+                  name="check_circle"
+                  size="18px"
+                />
+                <va-icon
+                  v-else-if="plan.metadata?.plan_type === 'pro'"
+                  name="bolt"
+                  size="18px"
+                />
+                <va-icon
+                  v-else-if="plan.metadata?.plan_type === 'clubes'"
+                  name="groups"
+                  size="18px"
+                />
+                <va-icon
+                  v-else-if="plan.metadata?.plan_type === 'lifetime'"
+                  name="diamond"
+                  size="18px"
+                />
+                <span v-if="isPlanActive(plan)">Plano Ativo</span>
+                <span v-else-if="plan.metadata?.plan_type === 'pro'"
+                  >Escolher Pro</span
+                >
+                <span v-else-if="plan.metadata?.plan_type === 'clubes'"
+                  >Escolher Clubers</span
+                >
+                <span v-else-if="plan.metadata?.plan_type === 'lifetime'"
+                  >Escolher Vitalícia</span
+                >
+                <span v-else>Escolher Plano</span>
+              </button>
+            </div>
           </div>
         </div>
+      </Transition>
 
-        <!-- Botão de Assinatura/Troca -->
-        <div v-if="selectedPlan" class="subscription-actions">
+      <!-- Botão de Assinatura/Troca -->
+      <Transition name="slide-fade">
+        <div
+          v-if="showPlansSelection && selectedPlan"
+          class="subscription-actions"
+        >
           <button
             :disabled="
               subscriptionLoading ||
@@ -515,19 +541,26 @@
             }}
           </button>
         </div>
-      </div>
+      </Transition>
 
       <!-- Loading do Stripe -->
-      <div v-if="stripeLoading" class="stripe-loading">
-        <div class="loading-spinner" />
-        <p>Redirecionando para o Stripe...</p>
-      </div>
+      <Transition name="slide-fade">
+        <div v-if="showPlansSelection && stripeLoading" class="stripe-loading">
+          <div class="loading-spinner" />
+          <p>Redirecionando para o Stripe...</p>
+        </div>
+      </Transition>
 
       <!-- Resultado da Assinatura -->
-      <div v-if="subscriptionResult" class="subscription-result">
-        <h3>Resultado da Assinatura</h3>
-        <pre>{{ JSON.stringify(subscriptionResult, null, 2) }}</pre>
-      </div>
+      <Transition name="slide-fade">
+        <div
+          v-if="showPlansSelection && subscriptionResult"
+          class="subscription-result"
+        >
+          <h3>Resultado da Assinatura</h3>
+          <pre>{{ JSON.stringify(subscriptionResult, null, 2) }}</pre>
+        </div>
+      </Transition>
     </div>
 
     <!-- Modal de erro de limite de plano -->
@@ -671,6 +704,7 @@ const emailValidation = ref({
 const activePlanData = ref(null);
 const activePlanLoading = ref(true);
 const showUpgradeAnimations = ref(false);
+const showPlansSelection = ref(false); // Controla qual etapa está sendo exibida
 const activeProductMetadata = computed(() =>
   normalizeMetadata(activePlanData.value?.product?.metadata)
 );
@@ -1710,14 +1744,13 @@ const onActivePlanError = (error) => {
 };
 
 const onUpgradeClicked = () => {
-  // Toggle das animações (liga/desliga)
-  showUpgradeAnimations.value = !showUpgradeAnimations.value;
+  // Alternar para a etapa de seleção de planos
+  showPlansSelection.value = true;
 
-  if (showUpgradeAnimations.value) {
-    console.log("🚀 Upgrade clicado - ativando animações nos planos");
-  } else {
-    console.log("⏹️ Upgrade clicado - desativando animações nos planos");
-  }
+  // Scroll suave para o topo
+  window.scrollTo({ top: 0, behavior: "smooth" });
+
+  console.log("🚀 Upgrade clicado - mostrando seleção de planos");
 };
 
 // Métodos para seleção de planos
@@ -2546,6 +2579,76 @@ onMounted(async () => {
   margin-right: auto;
   width: 100%;
   box-sizing: border-box;
+}
+
+/* Botão Voltar */
+.back-button-top {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 20px;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.back-link-modern {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 24px;
+  background: white;
+  color: #374151;
+  text-decoration: none;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 2px solid #e5e7eb;
+  cursor: pointer;
+}
+
+.back-link-modern:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+  transform: translateX(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.back-link-modern .back-icon {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+/* Transições */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.slide-fade-enter-active {
+  transition: all 0.4s ease-out;
+}
+
+.slide-fade-leave-active {
+  transition: all 0.3s ease-in;
+}
+
+.slide-fade-enter-from {
+  transform: translateY(-20px);
+  opacity: 0;
+}
+
+.slide-fade-leave-to {
+  transform: translateY(20px);
+  opacity: 0;
 }
 
 .payment-method-section {
