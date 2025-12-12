@@ -2501,7 +2501,6 @@ onMounted(async () => {
 
 <style scoped>
 .subscription-plans-page {
-  padding: 40px 20px;
   background: #f9fafb;
   min-height: 100vh;
 }
@@ -2509,24 +2508,30 @@ onMounted(async () => {
 .container {
   max-width: 1400px;
   margin: 0 auto;
+  width: 100%;
 }
 
 /* Header Moderno */
 .page-header-modern {
   text-align: center;
   margin-bottom: 32px;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .page-header-modern .main-title {
-  font-size: 2.5rem;
+  font-size: 2rem;
   font-weight: 700;
   color: #e9742b;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   margin-top: 0;
 }
 
 .page-header-modern .main-subtitle {
-  font-size: 1.125rem;
+  font-size: 1rem;
   color: #6b7280;
   margin: 0;
 }
@@ -2535,8 +2540,12 @@ onMounted(async () => {
 .billing-button-top {
   display: flex;
   justify-content: flex-end;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
   width: 100%;
+  box-sizing: border-box;
 }
 
 .payment-method-section {
@@ -2655,23 +2664,26 @@ p {
   margin-top: 5px;
   display: flex;
   justify-content: center;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .validation-loading,
 .validation-success,
 .validation-error {
-  background: rgba(255, 255, 255, 0.1);
-  padding: 20px;
-  border-radius: 16px;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: white;
+  padding: 16px 20px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 20px;
+  gap: 16px;
   text-align: left;
   max-width: 600px;
   width: 100%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .validation-loading {
@@ -2695,16 +2707,16 @@ p {
 .validation-loading .loading-spinner {
   width: 30px;
   height: 30px;
-  border: 3px solid rgba(255, 255, 255, 0.3);
-  border-top: 3px solid white;
+  border: 3px solid #e5e7eb;
+  border-top: 3px solid #3b82f6;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 10px;
 }
 
 .validation-success {
-  border-color: rgba(16, 185, 129, 0.3);
-  background: rgba(16, 185, 129, 0.1);
+  border-color: #10b981;
+  background: #f0fdf4;
 }
 
 .validation-success-discrete-fixed {
@@ -2741,8 +2753,8 @@ p {
 }
 
 .validation-error {
-  border-color: rgba(239, 68, 68, 0.3);
-  background: rgba(239, 68, 68, 0.1);
+  border-color: #ef4444;
+  background: #fef2f2;
 }
 
 .validation-icon {
@@ -2824,25 +2836,29 @@ p {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 20px;
-  margin-bottom: 40px;
-  background: rgba(255, 255, 255, 0.1);
-  padding: 20px;
-  border-radius: 16px;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  gap: 16px;
+  margin-bottom: 32px;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 16px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .toggle-label {
-  color: white;
+  color: #374151;
   font-weight: 600;
-  font-size: 1.1rem;
+  font-size: 1rem;
 }
 
 .toggle-buttons {
   display: flex;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
+  background: #f3f4f6;
+  border-radius: 8px;
   padding: 4px;
   position: relative;
 }
@@ -2916,21 +2932,25 @@ p {
 /* Loading State */
 .loading-container {
   text-align: center;
-  padding: 60px 20px;
-  color: white;
+  padding: 40px 20px;
+  color: #6b7280;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .refreshing-indicator {
   display: inline-flex;
   align-items: center;
   gap: 12px;
-  color: rgba(255, 255, 255, 0.9);
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #6b7280;
+  background: white;
+  border: 1px solid #e5e7eb;
   padding: 12px 20px;
-  border-radius: 12px;
+  border-radius: 8px;
   margin: 0 auto 20px;
-  backdrop-filter: blur(10px);
+  max-width: 1200px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   font-size: 0.95rem;
   justify-content: center;
   max-width: 360px;
@@ -2946,13 +2966,16 @@ p {
 }
 
 .error-feedback {
-  background: rgba(239, 68, 68, 0.15);
-  border: 1px solid rgba(239, 68, 68, 0.4);
-  border-radius: 12px;
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
   padding: 16px 20px;
-  color: white;
+  color: #991b1b;
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 24px;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .error-feedback p {
@@ -2961,13 +2984,17 @@ p {
 }
 
 .empty-plans-state {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px dashed rgba(255, 255, 255, 0.3);
-  border-radius: 16px;
-  padding: 30px 20px;
+  background: white;
+  border: 1px dashed #d1d5db;
+  border-radius: 12px;
+  padding: 24px 20px;
   text-align: center;
-  color: rgba(255, 255, 255, 0.9);
-  margin-bottom: 30px;
+  color: #6b7280;
+  margin-bottom: 24px;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .empty-plans-state p {
@@ -2982,8 +3009,8 @@ p {
 .loading-spinner {
   width: 50px;
   height: 50px;
-  border: 4px solid rgba(255, 255, 255, 0.3);
-  border-top: 4px solid white;
+  border: 4px solid #e5e7eb;
+  border-top: 4px solid #3b82f6;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto 20px;
@@ -3027,44 +3054,53 @@ p {
 }
 
 .debug-info {
-  background: rgba(255, 255, 255, 0.1);
-  padding: 15px;
+  background: white;
+  padding: 16px;
   margin: 20px 0;
   border-radius: 8px;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid #e5e7eb;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .debug-info h4 {
   margin: 0 0 10px 0;
-  color: white;
+  color: #1f2937;
 }
 
 .debug-info p {
   margin: 5px 0;
   text-align: left;
-  color: rgba(255, 255, 255, 0.9);
+  color: #6b7280;
 }
 
 /* Container de Planos Moderno */
 .plans-container-modern {
   margin-bottom: 40px;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* Grid Horizontal de Planos */
 .plans-grid-modern {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 24px;
-  margin-bottom: 40px;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
   align-items: stretch;
+  max-width: 100%;
 }
 
 /* Card de Plano Moderno */
 .plan-card-modern {
   background: white;
   border-radius: 12px;
-  padding: 32px 24px;
+  padding: 24px 20px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: all 0.3s ease;
   cursor: pointer;
@@ -3073,7 +3109,7 @@ p {
   display: flex;
   flex-direction: column;
   height: 100%;
-  min-height: 500px;
+  min-height: 480px;
 }
 
 .plan-card-modern:hover {
@@ -3169,16 +3205,16 @@ p {
 .plan-icon {
   display: flex;
   justify-content: center;
-  margin: 24px 0 16px;
+  margin: 16px 0 12px;
 }
 
 /* Nome do Plano */
 .plan-name {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 700;
   color: #1f2937;
   text-align: center;
-  margin: 0 0 20px;
+  margin: 0 0 16px;
 }
 
 /* Preço Moderno */
@@ -3188,7 +3224,7 @@ p {
 }
 
 .plan-price-modern .price-amount {
-  font-size: 2.5rem;
+  font-size: 2rem;
   font-weight: 700;
   color: #1f2937;
   display: block;
@@ -3220,22 +3256,22 @@ p {
 /* Features Modernas */
 .plan-features-modern {
   flex-grow: 1;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 
 .plan-features-modern .feature-item {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 0;
-  font-size: 0.9375rem;
+  padding: 6px 0;
+  font-size: 0.875rem;
   color: #374151;
 }
 
 /* Notas Especiais */
 .plan-special-notes {
-  margin-bottom: 24px;
-  padding-top: 16px;
+  margin-bottom: 16px;
+  padding-top: 12px;
   border-top: 1px solid #e5e7eb;
 }
 
@@ -3254,8 +3290,8 @@ p {
 
 /* Disponibilidade Vitalícia */
 .lifetime-availability-modern {
-  margin-bottom: 24px;
-  padding-top: 16px;
+  margin-bottom: 16px;
+  padding-top: 12px;
   border-top: 1px solid #e5e7eb;
 }
 
@@ -3299,9 +3335,9 @@ p {
 /* Botão Moderno */
 .plan-button-modern {
   width: 100%;
-  padding: 12px 24px;
+  padding: 10px 20px;
   border-radius: 8px;
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   font-weight: 600;
   border: none;
   cursor: pointer;
@@ -3309,7 +3345,7 @@ p {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
   margin-top: auto;
 }
 
@@ -3934,11 +3970,14 @@ p {
 
 .subscription-actions {
   background: white;
-  border-radius: 16px;
-  padding: 30px;
+  border-radius: 12px;
+  padding: 24px;
   text-align: center;
-  margin-bottom: 40px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  margin-bottom: 32px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .subscription-actions h3 {
@@ -3999,9 +4038,13 @@ p {
 
 .subscription-result {
   background: white;
-  border-radius: 16px;
-  padding: 30px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 32px;
 }
 
 .subscription-result h3 {
@@ -4145,22 +4188,32 @@ p {
 
 /* Container do plano ativo e método de pagamento */
 .active-plan-container {
-  display: flex;
-  gap: 24px;
-  margin-bottom: 40px;
+  display: grid;
+  gap: 20px;
+  margin-bottom: 32px;
   align-items: stretch;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* Grid quando tiver método de pagamento */
 .active-plan-container:has(.payment-method-section) {
-  display: grid;
-  grid-template-columns: 1fr 0.8fr;
+  grid-template-columns: 1fr 0.75fr;
 }
 
 /* Centralizar quando NÃO tiver método de pagamento */
-.active-plan-container > :only-child {
+.active-plan-container:not(:has(.payment-method-section)) {
+  grid-template-columns: 1fr;
   max-width: 800px;
-  margin: 0 auto;
+}
+
+.active-plan-section {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .active-plan-section > * {
@@ -4169,10 +4222,18 @@ p {
   flex-direction: column;
 }
 
+.payment-method-section {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
 .payment-method-section > *:not(.billing-button-wrapper) {
   height: 100%;
   display: flex;
   flex-direction: column;
+  flex: 1;
+  min-height: 0;
 }
 
 .active-plan-info {
@@ -4403,7 +4464,7 @@ p {
   }
 
   .plan-icon va-icon {
-    font-size: 40px !important;
+    font-size: 36px !important;
   }
 
   .plan-name {
