@@ -2835,13 +2835,12 @@ p {
 .billing-toggle {
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 16px;
   margin-bottom: 32px;
   max-width: 1200px;
   margin-left: auto;
   margin-right: auto;
-  padding: 16px;
+  padding: 16px 30px;
   background: white;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
@@ -2853,6 +2852,8 @@ p {
   color: #374151;
   font-weight: 600;
   font-size: 1rem;
+  flex-shrink: 0;
+  width: auto;
 }
 
 .toggle-buttons {
@@ -2861,6 +2862,8 @@ p {
   border-radius: 8px;
   padding: 4px;
   position: relative;
+  flex: 1;
+  justify-content: center;
 }
 
 .toggle-btn {
@@ -3084,6 +3087,8 @@ p {
   margin-right: auto;
   width: 100%;
   box-sizing: border-box;
+  padding-left: 0;
+  padding-right: 0;
 }
 
 /* Grid Horizontal de Planos */
@@ -3100,7 +3105,7 @@ p {
 .plan-card-modern {
   background: white;
   border-radius: 12px;
-  padding: 24px 20px;
+  padding: 24px 30px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: all 0.3s ease;
   cursor: pointer;
@@ -4197,6 +4202,8 @@ p {
   margin-right: auto;
   width: 100%;
   box-sizing: border-box;
+  padding-left: 0;
+  padding-right: 0;
 }
 
 /* Grid quando tiver método de pagamento */
@@ -4234,6 +4241,16 @@ p {
   flex-direction: column;
   flex: 1;
   min-height: 0;
+}
+
+/* Alinhar padding do PaymentMethodCard com ActivePlanChecker */
+.payment-method-section :deep(.payment-method-card) {
+  padding: 30px !important;
+}
+
+/* Garantir que ActivePlanChecker também tenha padding consistente */
+.active-plan-section :deep(.active-plan) {
+  padding: 30px !important;
 }
 
 .active-plan-info {
@@ -4451,7 +4468,7 @@ p {
   }
 
   .plan-card-modern {
-    padding: 24px 20px;
+    padding: 20px 24px;
     min-height: auto;
   }
 

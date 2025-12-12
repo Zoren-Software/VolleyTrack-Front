@@ -942,8 +942,8 @@ onUnmounted(() => {
 
 <style scoped>
 .active-plan-checker {
-  max-width: 600px;
   margin: 0 auto;
+  margin-right: 30px;
 }
 
 .loading,
