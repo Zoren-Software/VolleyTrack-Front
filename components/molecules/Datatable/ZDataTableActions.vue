@@ -1,21 +1,21 @@
 <template>
   <div class="action-buttons">
-    <va-button
-      v-if="includeActionEditList"
-      icon="edit"
+  <va-button
+    v-if="includeActionEditList"
+    icon="edit"
       color="#1976d2"
       size="small"
       class="action-btn action-btn-edit"
-      @click="actEdit(this.id)"
-    />
-    <va-button
-      v-if="includeActionDeleteList"
-      icon="delete"
+    @click="actEdit(this.id)"
+  />
+  <va-button
+    v-if="includeActionDeleteList"
+    icon="delete"
       color="#d32f2f"
       size="small"
       class="action-btn action-btn-delete"
-      @click="actionDelete(this.id)"
-    />
+    @click="actionDelete(this.id)"
+  />
   </div>
 </template>
 

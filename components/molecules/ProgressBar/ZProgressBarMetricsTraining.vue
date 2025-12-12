@@ -8,30 +8,30 @@
         <span class="progress-bar-percentage"
           >{{ formatPercentage(metricsConfirmationTraining) }}%</span
         >
-      </div>
-      <VaProgressBar
-        size="large"
-        :model-value="formattedMetricsConfirmationTraining"
-        show-percent
-        content-inside
-        class="custom-progress-bar"
-      />
     </div>
+    <VaProgressBar
+      size="large"
+        :model-value="formattedMetricsConfirmationTraining"
+      show-percent
+      content-inside
+        class="custom-progress-bar"
+    />
+  </div>
     <div class="progress-bar-item">
       <div class="progress-bar-header">
         <span class="progress-bar-label">Presença no Treino</span>
         <span class="progress-bar-percentage success"
           >{{ formatPercentage(metricsConfirmationPresence) }}%</span
         >
-      </div>
-      <VaProgressBar
-        size="large"
+    </div>
+    <VaProgressBar
+      size="large"
         :model-value="formattedMetricsConfirmationPresence"
-        show-percent
-        content-inside
-        color="success"
+      show-percent
+      content-inside
+      color="success"
         class="custom-progress-bar"
-      />
+    />
     </div>
   </div>
 </template>

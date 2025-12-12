@@ -9,14 +9,6 @@
         </div>
 
         <div
-          v-else-if="emailValidation.validated && emailValidation.valid"
-          class="validation-success-discrete"
-        >
-          <div class="validation-icon-small">✅</div>
-          <span>E-mail válido - Pronto para pagamento</span>
-        </div>
-
-        <div
           v-else-if="emailValidation.validated && !emailValidation.valid"
           class="validation-error"
         >
@@ -47,17 +39,30 @@
         </div>
       </div>
 
-      <div class="page-header">
-        <div class="header-content">
-          <h1>Planos de Assinatura</h1>
-          <p>Escolha o plano ideal para o seu clube de vôlei</p>
-        </div>
-        <div class="header-actions">
-          <NuxtLink to="/billing" class="billing-link">
-            <span class="billing-icon">📄</span>
-            <span>Ver Faturamentos</span>
-          </NuxtLink>
-        </div>
+      <!-- Mensagem de Sucesso Discreta (Canto Inferior Esquerdo) -->
+      <div
+        v-if="emailValidation.validated && emailValidation.valid"
+        class="validation-success-discrete-fixed"
+      >
+        <div class="validation-icon-small">✅</div>
+        <span>E-mail válido - Pronto para pagamento</span>
+      </div>
+
+      <!-- Header -->
+      <div class="page-header-modern">
+        <h1 class="main-title">Escolha o plano ideal para sua equipe</h1>
+        <p class="main-subtitle">
+          Compare os recursos e selecione o plano que melhor atende às suas
+          necessidades
+        </p>
+      </div>
+
+      <!-- Botão Ver Faturamentos (acima dos cards) -->
+      <div class="billing-button-top">
+        <NuxtLink to="/billing" class="billing-link-modern">
+          <span class="billing-icon">📄</span>
+          <span>Ver Faturamentos</span>
+        </NuxtLink>
       </div>
 
       <!-- Status do Plano Ativo e Método de Pagamento -->
@@ -244,213 +249,223 @@
       </div>
 
       <!-- Planos de Assinatura -->
-      <div v-if="!loading && plans.length > 0" class="plans-container">
-        <!-- Grid de 3 opções -->
-        <div class="plans-grid">
+      <div v-if="!loading && plans.length > 0" class="plans-container-modern">
+        <!-- Grid Horizontal de Planos -->
+        <div class="plans-grid-modern">
           <div
             v-for="plan in displayedPlans"
             :key="`${plan.id}-${plan.billing}`"
-            class="plan-card"
+            class="plan-card-modern"
             :class="{
               selected:
                 selectedPlan?.id === plan.id &&
                 selectedPlan?.billing === plan.billing,
-              'lifetime-card': plan.metadata?.plan_type === 'lifetime',
-              'popular-plan': plan.metadata?.plan_type === 'pro',
-              'upgrade-plan':
-                showUpgradeAnimations &&
-                isBetterPlan(plan) &&
-                !isPlanActive(plan),
-              'upgrade-high':
-                showUpgradeAnimations &&
-                isBetterPlan(plan) &&
-                getUpgradeAnimationLevel(plan) === 'high',
-              'upgrade-medium':
-                showUpgradeAnimations &&
-                isBetterPlan(plan) &&
-                getUpgradeAnimationLevel(plan) === 'medium',
-              'upgrade-low':
-                showUpgradeAnimations &&
-                isBetterPlan(plan) &&
-                getUpgradeAnimationLevel(plan) === 'low',
+              'plan-trial': plan.metadata?.plan_type === 'trial',
+              'plan-pro': plan.metadata?.plan_type === 'pro',
+              'plan-clubers': plan.metadata?.plan_type === 'clubes',
+              'plan-lifetime': plan.metadata?.plan_type === 'lifetime',
+              'plan-active': isPlanActive(plan),
+              'plan-disabled': isPlanDisabled(plan),
             }"
             @click="selectPlan(plan)"
           >
-            <!-- Badge de Popular -->
-            <div v-if="plan.metadata?.plan_type === 'pro'" class="plan-popular">
-              <span>Mais Popular</span>
-            </div>
-
-            <!-- Badge de Vitalício -->
-            <div
-              v-if="plan.metadata?.plan_type === 'lifetime'"
-              class="lifetime-badge"
-            >
-              <span>Pagamento Único</span>
-            </div>
-
-            <!-- Badge de Plano Ativo -->
-            <div v-if="isPlanActive(plan)" class="active-plan-badge">
-              <span>Plano em Uso</span>
-            </div>
-
-            <!-- Badge de Plano Vitalício Comprado -->
-            <div
-              v-if="
-                plan.metadata?.plan_type === 'lifetime' &&
-                hasPurchasedLifetimePlan()
-              "
-              class="purchased-lifetime-badge"
-            >
-              <span>💎 Já Comprado</span>
-            </div>
-
-            <!-- Badge de Upgrade Disponível -->
-            <div
-              v-if="
-                showUpgradeAnimations &&
-                isBetterPlan(plan) &&
-                !isPlanActive(plan)
-              "
-              class="upgrade-available-badge"
-              :class="`upgrade-${getUpgradeAnimationLevel(plan)}`"
-            >
-              <span class="upgrade-icon">🚀</span>
-              <span class="upgrade-text">
-                {{ getUpgradeText(plan) }}
+            <!-- Badge no topo direito -->
+            <div class="plan-badge-top">
+              <span
+                v-if="plan.metadata?.plan_type === 'trial'"
+                class="badge badge-trial"
+              >
+                15 dias grátis
+              </span>
+              <span
+                v-else-if="plan.metadata?.plan_type === 'pro'"
+                class="badge badge-pro"
+              >
+                Recomendado
+              </span>
+              <span
+                v-else-if="plan.metadata?.plan_type === 'clubes'"
+                class="badge badge-clubers"
+              >
+                Equipes Grandes
+              </span>
+              <span
+                v-else-if="plan.metadata?.plan_type === 'lifetime'"
+                class="badge badge-lifetime"
+              >
+                Oferta Vitalícia
+              </span>
+              <span v-if="isPlanActive(plan)" class="badge badge-active">
+                Plano Ativo
               </span>
             </div>
 
-            <!-- Badge de Oferta Especial (Flutuante) -->
-            <div v-if="getOfferType(plan)" class="offer-floating-badge">
-              <span class="offer-badge-icon">🎁</span>
-              <div class="offer-badge-content">
-                <span class="offer-badge-label">Oferta Especial</span>
-                <span class="offer-badge-value">{{ getOfferType(plan) }}</span>
-              </div>
+            <!-- Ícone do Plano -->
+            <div class="plan-icon">
+              <va-icon
+                v-if="plan.metadata?.plan_type === 'trial'"
+                name="card_giftcard"
+                size="48px"
+                :color="getPlanColor(plan)"
+              />
+              <va-icon
+                v-else-if="plan.metadata?.plan_type === 'pro'"
+                name="star"
+                size="48px"
+                :color="getPlanColor(plan)"
+              />
+              <va-icon
+                v-else-if="plan.metadata?.plan_type === 'clubes'"
+                name="emoji_events"
+                size="48px"
+                :color="getPlanColor(plan)"
+              />
+              <va-icon
+                v-else-if="plan.metadata?.plan_type === 'lifetime'"
+                name="all_inclusive"
+                size="48px"
+                :color="getPlanColor(plan)"
+              />
+              <va-icon
+                v-else
+                name="workspace_premium"
+                size="48px"
+                :color="getPlanColor(plan)"
+              />
             </div>
 
-            <div class="plan-header">
-              <h3>{{ plan.name }}</h3>
-              <div class="plan-price">
-                <span class="currency">R$</span>
-                <span class="amount">{{ getPlanPrice(plan) }}</span>
-                <span class="period">{{ getPlanPeriod(plan) }}</span>
-              </div>
+            <!-- Nome do Plano -->
+            <h3 class="plan-name">{{ plan.name }}</h3>
 
-              <!-- Desconto anual -->
-              <div v-if="getYearlyDiscount(plan)" class="yearly-savings">
-                Economia de {{ getYearlyDiscount(plan) }}%
-              </div>
-
-              <!-- Economia vitalícia -->
-              <div
+            <!-- Preço -->
+            <div class="plan-price-modern">
+              <span class="price-amount">R$ {{ getPlanPrice(plan) }}</span>
+              <span v-if="getPlanPeriod(plan)" class="price-period">{{
+                getPlanPeriod(plan)
+              }}</span>
+              <span
                 v-if="plan.metadata?.plan_type === 'lifetime'"
-                class="lifetime-savings"
+                class="price-lifetime"
               >
-                Economia de {{ getLifetimeSavings(plan) }}%
-              </div>
+                Pagamento único
+              </span>
+              <span v-else-if="getYearlyDiscount(plan)" class="price-yearly">
+                ou R$ {{ getYearlyPrice(plan) }}/ano
+              </span>
             </div>
 
-            <div class="plan-description">
-              <p>{{ plan.description || "Descrição não disponível" }}</p>
+            <!-- Duração (para trial) -->
+            <div
+              v-if="plan.metadata?.plan_type === 'trial'"
+              class="plan-duration"
+            >
+              Duração: 15 dias
             </div>
 
-            <div class="plan-features">
-              <ul>
-                <li v-for="feature in getPlanFeatures(plan)" :key="feature">
-                  <span class="feature-icon">✓</span>
-                  {{ feature }}
-                </li>
-              </ul>
-            </div>
-
-            <!-- Limites e Benefícios -->
-            <div v-if="hasPlanLimits(plan)" class="plan-limits">
-              <h4 class="limits-title">Limites e Benefícios</h4>
-              <div class="limits-grid">
-                <div v-if="getMaxPlayers(plan)" class="limit-item">
-                  <span class="limit-icon">👥</span>
-                  <div class="limit-content">
-                    <span class="limit-label">Jogadores</span>
-                    <span class="limit-value">{{ getMaxPlayers(plan) }}</span>
-                  </div>
-                </div>
-                <div v-if="getMaxTeams(plan)" class="limit-item">
-                  <span class="limit-icon">🏐</span>
-                  <div class="limit-content">
-                    <span class="limit-label">Times</span>
-                    <span class="limit-value">{{ getMaxTeams(plan) }}</span>
-                  </div>
-                </div>
-              </div>
-              
-              <!-- Disponibilidade do Plano Vitalício -->
+            <!-- Features -->
+            <div class="plan-features-modern">
               <div
-                v-if="plan.metadata?.plan_type === 'lifetime' && lifetimeCounter"
-                class="lifetime-availability"
-                :class="{
-                  'availability-danger': lifetimeCounter.is_sold_out,
-                  'availability-warning': !lifetimeCounter.is_sold_out && lifetimeCounter.remaining <= 50,
-                  'availability-success': !lifetimeCounter.is_sold_out && lifetimeCounter.remaining > 50
-                }"
+                v-for="feature in getMainPlanFeatures(plan)"
+                :key="feature"
+                class="feature-item"
               >
-                <div class="availability-icon">
-                  <span v-if="lifetimeCounter.is_sold_out">🔴</span>
-                  <span v-else-if="lifetimeCounter.remaining <= 10">🔥</span>
-                  <span v-else-if="lifetimeCounter.remaining <= 50">⚡</span>
-                  <span v-else>✨</span>
-                </div>
-                <div class="availability-content">
-                  <span class="availability-label">Disponibilidade</span>
-                  <span class="availability-value">
-                    <span v-if="lifetimeCounter.is_sold_out">ESGOTADO</span>
-                    <span v-else-if="lifetimeCounter.remaining <= 10">
-                      Últimas {{ lifetimeCounter.remaining }} vagas!
-                    </span>
-                    <span v-else-if="lifetimeCounter.remaining <= 50">
-                      {{ lifetimeCounter.remaining }}/{{ lifetimeCounter.limit }}
-                    </span>
-                    <span v-else>
-                      {{ lifetimeCounter.remaining }}/{{ lifetimeCounter.limit }} disponíveis
-                    </span>
-                  </span>
-                </div>
+                <va-icon
+                  name="check_circle"
+                  size="20px"
+                  :color="getPlanColor(plan)"
+                />
+                <span>{{ feature }}</span>
               </div>
             </div>
 
+            <!-- Notas Especiais -->
+            <div v-if="getPlanSpecialNotes(plan)" class="plan-special-notes">
+              <div
+                v-for="note in getPlanSpecialNotes(plan)"
+                :key="note.text"
+                class="special-note"
+              >
+                <va-icon
+                  :name="note.icon"
+                  size="16px"
+                  :color="getPlanColor(plan)"
+                />
+                <span>{{ note.text }}</span>
+              </div>
+            </div>
+
+            <!-- Disponibilidade do Plano Vitalício -->
+            <div
+              v-if="plan.metadata?.plan_type === 'lifetime' && lifetimeCounter"
+              class="lifetime-availability-modern"
+            >
+              <div class="availability-progress">
+                <div class="progress-bar">
+                  <div
+                    class="progress-fill"
+                    :style="{
+                      width: `${
+                        (lifetimeCounter.remaining / lifetimeCounter.limit) *
+                        100
+                      }%`,
+                    }"
+                  ></div>
+                </div>
+                <span class="progress-text">
+                  {{ lifetimeCounter.remaining }}/{{ lifetimeCounter.limit }}
+                </span>
+              </div>
+              <div class="availability-note">
+                <va-icon name="schedule" size="14px" color="#6b7280" />
+                <span>Só para as primeiras {{ lifetimeCounter.limit }}</span>
+              </div>
+            </div>
+
+            <!-- Botão de Ação -->
             <button
-              class="plan-button"
+              class="plan-button-modern"
               :class="{
-                selected:
-                  selectedPlan?.id === plan.id &&
-                  selectedPlan?.billing === plan.billing,
-                'active-plan': isPlanActive(plan),
-                'purchased-lifetime': isLifetimePlanPurchased(plan),
+                'button-trial': plan.metadata?.plan_type === 'trial',
+                'button-pro': plan.metadata?.plan_type === 'pro',
+                'button-clubers': plan.metadata?.plan_type === 'clubes',
+                'button-lifetime': plan.metadata?.plan_type === 'lifetime',
+                'button-active': isPlanActive(plan),
                 disabled: isPlanDisabled(plan),
               }"
               :disabled="isPlanDisabled(plan)"
               @click.stop="handlePlanClick(plan)"
             >
-              <span v-if="isPlanActive(plan)"> Plano ativo </span>
-              <span
-                v-else-if="isLifetimePlanPurchased(plan)"
-                class="lifetime-purchased-label"
+              <va-icon
+                v-if="isPlanActive(plan)"
+                name="check_circle"
+                size="18px"
+              />
+              <va-icon
+                v-else-if="plan.metadata?.plan_type === 'pro'"
+                name="bolt"
+                size="18px"
+              />
+              <va-icon
+                v-else-if="plan.metadata?.plan_type === 'clubes'"
+                name="groups"
+                size="18px"
+              />
+              <va-icon
+                v-else-if="plan.metadata?.plan_type === 'lifetime'"
+                name="diamond"
+                size="18px"
+              />
+              <span v-if="isPlanActive(plan)">Plano Ativo</span>
+              <span v-else-if="plan.metadata?.plan_type === 'pro'"
+                >Escolher Pro</span
               >
-                💎 Vitalício comprado
-                <span v-if="lifetimePurchaseLabel" class="purchase-date">
-                  {{ lifetimePurchaseLabel }}
-                </span>
-              </span>
-              <span
-                v-else-if="
-                  selectedPlan?.id === plan.id &&
-                  selectedPlan?.billing === plan.billing
-                "
+              <span v-else-if="plan.metadata?.plan_type === 'clubes'"
+                >Escolher Clubers</span
               >
-                Selecionado
-              </span>
-              <span v-else> Selecionar Plano </span>
+              <span v-else-if="plan.metadata?.plan_type === 'lifetime'"
+                >Escolher Vitalícia</span
+              >
+              <span v-else>Escolher Plano</span>
             </button>
           </div>
         </div>
@@ -1162,6 +1177,89 @@ const getPlanPeriod = (plan) => {
   return "";
 };
 
+// Obter cor do plano baseado no tipo
+const getPlanColor = (plan) => {
+  if (plan.metadata?.plan_type === "trial") return "#e9742b"; // Laranja
+  if (plan.metadata?.plan_type === "pro") return "#3b82f6"; // Azul
+  if (plan.metadata?.plan_type === "clubes") return "#10b981"; // Verde
+  if (plan.metadata?.plan_type === "lifetime") return "#2563eb"; // Azul vibrante (vôlei)
+  return "#6b7280"; // Cinza padrão
+};
+
+// Obter features principais do plano (limitado para exibição)
+const getMainPlanFeatures = (plan) => {
+  const allFeatures = getPlanFeatures(plan);
+  // Retornar apenas as 2-3 primeiras features principais
+  if (plan.metadata?.plan_type === "trial") {
+    return ["Times ilimitados", "Jogadores ilimitados"];
+  }
+  if (plan.metadata?.plan_type === "pro") {
+    const maxTeams = getMaxTeams(plan);
+    const maxPlayers = getMaxPlayers(plan);
+    return [maxTeams || "Até 5 times", maxPlayers || "Até 50 jogadores"];
+  }
+  if (plan.metadata?.plan_type === "clubes") {
+    return [
+      "Times ilimitados",
+      "Jogadores ilimitados",
+      "Acesso completo à plataforma",
+    ];
+  }
+  if (plan.metadata?.plan_type === "lifetime") {
+    const maxTeams = getMaxTeams(plan);
+    const maxPlayers = getMaxPlayers(plan);
+    return [maxTeams || "1 time", maxPlayers || "Até 20 jogadores"];
+  }
+  return allFeatures.slice(0, 3);
+};
+
+// Obter notas especiais do plano
+const getPlanSpecialNotes = (plan) => {
+  const notes = [];
+  if (plan.metadata?.plan_type === "trial") {
+    notes.push({
+      icon: "email",
+      text: "E-mail automático 3 dias antes do fim do trial",
+    });
+    notes.push({
+      icon: "lock",
+      text: "Acesso será bloqueado ao expirar",
+    });
+  }
+  if (plan.metadata?.plan_type === "pro") {
+    notes.push({
+      icon: "refresh",
+      text: "Migração automática pós-trial",
+    });
+  }
+  return notes;
+};
+
+// Obter preço anual formatado
+const getYearlyPrice = (plan) => {
+  if (plan.metadata?.type === "yearly") {
+    return getPlanPrice(plan);
+  }
+  // Se for mensal, buscar o plano anual correspondente
+  if (plan.metadata?.type === "monthly") {
+    const yearlyPlan = plans.value.find(
+      (p) =>
+        p.metadata?.plan_type === plan.metadata?.plan_type &&
+        p.metadata?.type === "yearly"
+    );
+    if (yearlyPlan) {
+      return getPlanPrice(yearlyPlan);
+    }
+    // Fallback: calcular o preço anual baseado no mensal
+    const monthlyPrice = getPlanPrimaryPrice(plan)?.unit_amount;
+    if (monthlyPrice) {
+      const yearlyPrice = monthlyPrice * 12;
+      return formatCurrencyFromCents(yearlyPrice);
+    }
+  }
+  return null;
+};
+
 // Obter recursos do plano
 const getPlanFeatures = (plan) => {
   // Tentar ler features dos metadados (com prefixo display_)
@@ -1691,39 +1789,43 @@ const handleSubscriptionAction = async () => {
   console.log("🔍 selectedPlanIsRecurring:", selectedPlanIsRecurring);
 
   // Validar limites do plano antes de prosseguir
-  console.log('🔍 ========== CHAMANDO validatePlanLimits (handleSubscriptionAction) ==========');
-  console.log('🔍 selectedPlan.value:', selectedPlan.value);
+  console.log(
+    "🔍 ========== CHAMANDO validatePlanLimits (handleSubscriptionAction) =========="
+  );
+  console.log("🔍 selectedPlan.value:", selectedPlan.value);
   const limitValidation = await validatePlanLimits(selectedPlan.value);
-  console.log('🔍 Resultado da validação:', limitValidation);
-  console.log('🔍 limitValidation.canSubscribe:', limitValidation.canSubscribe);
-  
+  console.log("🔍 Resultado da validação:", limitValidation);
+  console.log("🔍 limitValidation.canSubscribe:", limitValidation.canSubscribe);
+
   if (!limitValidation.canSubscribe) {
-    console.log('🚨 ========== BLOQUEANDO ASSINATURA - EXIBINDO MODAL (handleSubscriptionAction) ==========');
+    console.log(
+      "🚨 ========== BLOQUEANDO ASSINATURA - EXIBINDO MODAL (handleSubscriptionAction) =========="
+    );
     subscriptionLoading.value = false;
     stripeLoading.value = false;
-    
+
     const modalData = {
-      type: limitValidation.type || 'general',
+      type: limitValidation.type || "general",
       message: limitValidation.message,
       current: limitValidation.current,
       max: limitValidation.max,
-      planName: selectedPlan.value.name || 'Plano Selecionado',
+      planName: selectedPlan.value.name || "Plano Selecionado",
       bothExceeded: limitValidation.bothExceeded || false,
       playersData: limitValidation.playersData || null,
       teamsData: limitValidation.teamsData || null,
     };
-    
-    console.log('🚨 Modal data preparado:', modalData);
-    console.log('🚨 Chamando showModal...');
-    
+
+    console.log("🚨 Modal data preparado:", modalData);
+    console.log("🚨 Chamando showModal...");
+
     // Mostrar modal de erro
     showModal(modalData);
-    
-    console.log('🚨 showModal chamado, retornando...');
+
+    console.log("🚨 showModal chamado, retornando...");
     return;
   }
-  
-  console.log('✅ Validação passou - continuando com handleSubscriptionAction');
+
+  console.log("✅ Validação passou - continuando com handleSubscriptionAction");
 
   if (hasActivePlan) {
     // Se o usuário tem plano vitalício e está tentando comprar um plano recorrente,
@@ -1770,31 +1872,34 @@ const handleSubscriptionAction = async () => {
 
 // Função para validar limites do plano antes de assinar
 const validatePlanLimits = async (plan) => {
-  console.log('🚀 ========== INÍCIO validatePlanLimits ==========');
-  console.log('🚀 Plan recebido:', plan);
-  console.log('🚀 Plan name:', plan?.name);
-  console.log('🚀 Plan metadata:', plan?.metadata);
-  
+  console.log("🚀 ========== INÍCIO validatePlanLimits ==========");
+  console.log("🚀 Plan recebido:", plan);
+  console.log("🚀 Plan name:", plan?.name);
+  console.log("🚀 Plan metadata:", plan?.metadata);
+
   try {
     // Se está em trial, permitir tudo
-    console.log('🔍 Verificando se está em trial...');
-    console.log('🔍 activePlanData.value:', activePlanData.value);
-    console.log('🔍 activePlanData.value?.isTrial:', activePlanData.value?.isTrial);
-    
+    console.log("🔍 Verificando se está em trial...");
+    console.log("🔍 activePlanData.value:", activePlanData.value);
+    console.log(
+      "🔍 activePlanData.value?.isTrial:",
+      activePlanData.value?.isTrial
+    );
+
     if (activePlanData.value?.isTrial) {
-      console.log('✅ Está em trial - permitindo tudo');
+      console.log("✅ Está em trial - permitindo tudo");
       return { canSubscribe: true };
     }
 
     // Buscar limites do plano
-    console.log('🔍 Normalizando metadata...');
+    console.log("🔍 Normalizando metadata...");
     const metadata = normalizeMetadata(plan.metadata);
-    console.log('🔍 Metadata normalizada:', metadata);
-    
+    console.log("🔍 Metadata normalizada:", metadata);
+
     const maxPlayers = parseInt(metadata.max_players || "0");
     const maxTeams = parseInt(metadata.max_teams || "0");
-    
-    console.log('🔍 Limites extraídos:', {
+
+    console.log("🔍 Limites extraídos:", {
       max_players_raw: metadata.max_players,
       max_teams_raw: metadata.max_teams,
       maxPlayers,
@@ -1805,11 +1910,11 @@ const validatePlanLimits = async (plan) => {
 
     // Se o plano é ilimitado, permitir
     if (maxPlayers === 0 && maxTeams === 0) {
-      console.log('✅ Plano ilimitado - permitindo');
+      console.log("✅ Plano ilimitado - permitindo");
       return { canSubscribe: true };
     }
-    
-    console.log('🔍 Plano tem limites definidos, continuando validação...');
+
+    console.log("🔍 Plano tem limites definidos, continuando validação...");
 
     // Buscar totais usando GraphQL via useAsyncQuery
     const usersQuery = gql`
@@ -1833,10 +1938,10 @@ const validatePlanLimits = async (plan) => {
     `;
 
     // Buscar totais em paralelo usando Apollo Client
-    console.log('🔍 ========== INICIANDO QUERIES GRAPHQL ==========');
-    console.log('🔍 Parâmetros das queries:', {
+    console.log("🔍 ========== INICIANDO QUERIES GRAPHQL ==========");
+    console.log("🔍 Parâmetros das queries:", {
       planName: plan.name,
-      metadataRaw: typeof plan.metadata === 'string' ? plan.metadata : 'object',
+      metadataRaw: typeof plan.metadata === "string" ? plan.metadata : "object",
       normalizedMetadata: metadata,
       maxPlayers,
       maxTeams,
@@ -1846,20 +1951,22 @@ const validatePlanLimits = async (plan) => {
     let currentTeams = 0;
 
     try {
-      console.log('🔍 Criando queries GraphQL...');
-      console.log('🔍 IMPORTANTE: Contando TODOS os usuários (sem filtro de role), como o backend faz');
-      
+      console.log("🔍 Criando queries GraphQL...");
+      console.log(
+        "🔍 IMPORTANTE: Contando TODOS os usuários (sem filtro de role), como o backend faz"
+      );
+
       // Usar o cliente Apollo diretamente
       const nuxtApp = useNuxtApp();
       const apolloClient = nuxtApp._apolloClients?.default;
-      
+
       if (!apolloClient) {
-        console.error('❌ Cliente Apollo não encontrado');
+        console.error("❌ Cliente Apollo não encontrado");
         return { canSubscribe: true };
       }
-      
-      console.log('🔍 Executando queries com Apollo Client...');
-      
+
+      console.log("🔍 Executando queries com Apollo Client...");
+
       const [usersResult, teamsResult] = await Promise.all([
         apolloClient.query({
           query: usersQuery,
@@ -1870,7 +1977,7 @@ const validatePlanLimits = async (plan) => {
             first: 1,
             page: 1,
           },
-          fetchPolicy: 'network-only', // Sempre buscar dados atualizados
+          fetchPolicy: "network-only", // Sempre buscar dados atualizados
         }),
         apolloClient.query({
           query: teamsQuery,
@@ -1879,60 +1986,92 @@ const validatePlanLimits = async (plan) => {
             first: 1,
             page: 1,
           },
-          fetchPolicy: 'network-only', // Sempre buscar dados atualizados
+          fetchPolicy: "network-only", // Sempre buscar dados atualizados
         }),
       ]);
 
-      console.log('🔍 ========== RESULTADOS DAS QUERIES ==========');
-      console.log('🔍 usersResult:', usersResult);
-      console.log('🔍 teamsResult:', teamsResult);
-      console.log('🔍 usersResult?.data:', usersResult?.data);
-      console.log('🔍 teamsResult?.data:', teamsResult?.data);
+      console.log("🔍 ========== RESULTADOS DAS QUERIES ==========");
+      console.log("🔍 usersResult:", usersResult);
+      console.log("🔍 teamsResult:", teamsResult);
+      console.log("🔍 usersResult?.data:", usersResult?.data);
+      console.log("🔍 teamsResult?.data:", teamsResult?.data);
 
       // Apollo Client retorna { data: { users: {...} } }
       const usersData = usersResult?.data?.users;
       const teamsData = teamsResult?.data?.teams;
-      
-      console.log('🔍 usersData:', usersData);
-      console.log('🔍 teamsData:', teamsData);
-      console.log('🔍 usersData?.paginatorInfo:', usersData?.paginatorInfo);
-      console.log('🔍 teamsData?.paginatorInfo:', teamsData?.paginatorInfo);
-      
+
+      console.log("🔍 usersData:", usersData);
+      console.log("🔍 teamsData:", teamsData);
+      console.log("🔍 usersData?.paginatorInfo:", usersData?.paginatorInfo);
+      console.log("🔍 teamsData?.paginatorInfo:", teamsData?.paginatorInfo);
+
       currentPlayers = usersData?.paginatorInfo?.total || 0;
       currentTeams = teamsData?.paginatorInfo?.total || 0;
 
-      console.log('🔍 ========== DADOS EXTRAÍDOS ==========');
-      console.log('🔍 currentPlayers:', currentPlayers, '(tipo:', typeof currentPlayers, ')');
-      console.log('🔍 currentTeams:', currentTeams, '(tipo:', typeof currentTeams, ')');
+      console.log("🔍 ========== DADOS EXTRAÍDOS ==========");
+      console.log(
+        "🔍 currentPlayers:",
+        currentPlayers,
+        "(tipo:",
+        typeof currentPlayers,
+        ")"
+      );
+      console.log(
+        "🔍 currentTeams:",
+        currentTeams,
+        "(tipo:",
+        typeof currentTeams,
+        ")"
+      );
     } catch (error) {
-      console.error('❌ ========== ERRO AO BUSCAR DADOS ==========');
-      console.error('❌ Erro completo:', error);
-      console.error('❌ Mensagem:', error.message);
-      console.error('❌ Stack trace:', error.stack);
+      console.error("❌ ========== ERRO AO BUSCAR DADOS ==========");
+      console.error("❌ Erro completo:", error);
+      console.error("❌ Mensagem:", error.message);
+      console.error("❌ Stack trace:", error.stack);
       // Em caso de erro, permitir para não bloquear o sistema
       return { canSubscribe: true };
     }
 
-    console.log('🔍 ========== COMPARANDO LIMITES ==========');
-    console.log('🔍 maxPlayers:', maxPlayers, '(tipo:', typeof maxPlayers, ')');
-    console.log('🔍 maxTeams:', maxTeams, '(tipo:', typeof maxTeams, ')');
-    console.log('🔍 currentPlayers:', currentPlayers, '(tipo:', typeof currentPlayers, ')');
-    console.log('🔍 currentTeams:', currentTeams, '(tipo:', typeof currentTeams, ')');
-    
+    console.log("🔍 ========== COMPARANDO LIMITES ==========");
+    console.log("🔍 maxPlayers:", maxPlayers, "(tipo:", typeof maxPlayers, ")");
+    console.log("🔍 maxTeams:", maxTeams, "(tipo:", typeof maxTeams, ")");
+    console.log(
+      "🔍 currentPlayers:",
+      currentPlayers,
+      "(tipo:",
+      typeof currentPlayers,
+      ")"
+    );
+    console.log(
+      "🔍 currentTeams:",
+      currentTeams,
+      "(tipo:",
+      typeof currentTeams,
+      ")"
+    );
+
     // Verificar se excede limites
     // maxPlayers > 0 significa que o plano tem limite (não é ilimitado)
     // currentPlayers > maxPlayers significa que excede o limite
     const playersExceeded = maxPlayers > 0 && currentPlayers > maxPlayers;
     const teamsExceeded = maxTeams > 0 && currentTeams > maxTeams;
-    
-    console.log('🔍 ========== CÁLCULOS DE VALIDAÇÃO ==========');
-    console.log('🔍 maxPlayers > 0:', maxPlayers > 0);
-    console.log('🔍 currentPlayers > maxPlayers:', currentPlayers > maxPlayers);
-    console.log('🔍 playersExceeded:', playersExceeded, '(maxPlayers > 0 && currentPlayers > maxPlayers)');
-    console.log('🔍 maxTeams > 0:', maxTeams > 0);
-    console.log('🔍 currentTeams > maxTeams:', currentTeams > maxTeams);
-    console.log('🔍 teamsExceeded:', teamsExceeded, '(maxTeams > 0 && currentTeams > maxTeams)');
-    console.log('🔍 Comparação detalhada jogadores:', {
+
+    console.log("🔍 ========== CÁLCULOS DE VALIDAÇÃO ==========");
+    console.log("🔍 maxPlayers > 0:", maxPlayers > 0);
+    console.log("🔍 currentPlayers > maxPlayers:", currentPlayers > maxPlayers);
+    console.log(
+      "🔍 playersExceeded:",
+      playersExceeded,
+      "(maxPlayers > 0 && currentPlayers > maxPlayers)"
+    );
+    console.log("🔍 maxTeams > 0:", maxTeams > 0);
+    console.log("🔍 currentTeams > maxTeams:", currentTeams > maxTeams);
+    console.log(
+      "🔍 teamsExceeded:",
+      teamsExceeded,
+      "(maxTeams > 0 && currentTeams > maxTeams)"
+    );
+    console.log("🔍 Comparação detalhada jogadores:", {
       current: currentPlayers,
       max: maxPlayers,
       comparison: `${currentPlayers} > ${maxPlayers}`,
@@ -1940,7 +2079,7 @@ const validatePlanLimits = async (plan) => {
       andCondition: maxPlayers > 0,
       final: playersExceeded,
     });
-    console.log('🔍 Comparação detalhada times:', {
+    console.log("🔍 Comparação detalhada times:", {
       current: currentTeams,
       max: maxTeams,
       comparison: `${currentTeams} > ${maxTeams}`,
@@ -1948,11 +2087,11 @@ const validatePlanLimits = async (plan) => {
       andCondition: maxTeams > 0,
       final: teamsExceeded,
     });
-    console.log('🔍 willBlock:', playersExceeded || teamsExceeded);
+    console.log("🔍 willBlock:", playersExceeded || teamsExceeded);
 
     if (playersExceeded || teamsExceeded) {
-      console.log('❌ ========== LIMITE EXCEDIDO - BLOQUEANDO ==========');
-      
+      console.log("❌ ========== LIMITE EXCEDIDO - BLOQUEANDO ==========");
+
       let message = "";
       let type = "users";
       let current = 0;
@@ -1962,7 +2101,7 @@ const validatePlanLimits = async (plan) => {
       let teamsData = null;
 
       if (playersExceeded && teamsExceeded) {
-        console.log('❌ Ambos excedem - mostrando ambos os limites');
+        console.log("❌ Ambos excedem - mostrando ambos os limites");
         // Se ambos excedem, mostrar ambos
         bothExceeded = true;
         type = "both";
@@ -1978,14 +2117,14 @@ const validatePlanLimits = async (plan) => {
           max: maxTeams,
         };
       } else if (playersExceeded) {
-        console.log('❌ Apenas jogadores excedem');
+        console.log("❌ Apenas jogadores excedem");
         // Apenas jogadores excedem
         type = "users";
         message = `Você possui ${currentPlayers} jogador(es), mas o plano selecionado permite apenas ${maxPlayers} jogador(es).`;
         current = currentPlayers;
         max = maxPlayers;
       } else if (teamsExceeded) {
-        console.log('❌ Apenas times excedem');
+        console.log("❌ Apenas times excedem");
         // Apenas times excedem
         type = "teams";
         message = `Você possui ${currentTeams} time(s), mas o plano selecionado permite apenas ${maxTeams} time(s).`;
@@ -1993,7 +2132,7 @@ const validatePlanLimits = async (plan) => {
         max = maxTeams;
       }
 
-      console.log('❌ Dados do modal:', {
+      console.log("❌ Dados do modal:", {
         type,
         message,
         current,
@@ -2005,9 +2144,11 @@ const validatePlanLimits = async (plan) => {
         teamsData,
       });
 
-      console.log('❌ Retornando canSubscribe: false');
-      console.log('🚀 ========== FIM validatePlanLimits (BLOQUEADO) ==========');
-      
+      console.log("❌ Retornando canSubscribe: false");
+      console.log(
+        "🚀 ========== FIM validatePlanLimits (BLOQUEADO) =========="
+      );
+
       return {
         canSubscribe: false,
         message,
@@ -2020,11 +2161,11 @@ const validatePlanLimits = async (plan) => {
       };
     }
 
-    console.log('✅ Nenhum limite excedido - permitindo assinatura');
-    console.log('🚀 ========== FIM validatePlanLimits (PERMITIDO) ==========');
+    console.log("✅ Nenhum limite excedido - permitindo assinatura");
+    console.log("🚀 ========== FIM validatePlanLimits (PERMITIDO) ==========");
     return { canSubscribe: true };
   } catch (error) {
-    console.error('❌ ========== ERRO NA VALIDAÇÃO ==========');
+    console.error("❌ ========== ERRO NA VALIDAÇÃO ==========");
     console.error("❌ Erro ao validar limites do plano:", error);
     console.error("❌ Mensagem:", error.message);
     console.error("❌ Stack:", error.stack);
@@ -2066,39 +2207,46 @@ const subscribeToPlan = async () => {
     }
 
     // Validar limites do plano antes de prosseguir
-    console.log('🔍 ========== CHAMANDO validatePlanLimits (subscribeToPlan) ==========');
-    console.log('🔍 selectedPlan.value:', selectedPlan.value);
+    console.log(
+      "🔍 ========== CHAMANDO validatePlanLimits (subscribeToPlan) =========="
+    );
+    console.log("🔍 selectedPlan.value:", selectedPlan.value);
     const limitValidation = await validatePlanLimits(selectedPlan.value);
-    console.log('🔍 Resultado da validação:', limitValidation);
-    console.log('🔍 limitValidation.canSubscribe:', limitValidation.canSubscribe);
-    
+    console.log("🔍 Resultado da validação:", limitValidation);
+    console.log(
+      "🔍 limitValidation.canSubscribe:",
+      limitValidation.canSubscribe
+    );
+
     if (!limitValidation.canSubscribe) {
-      console.log('🚨 ========== BLOQUEANDO ASSINATURA - EXIBINDO MODAL ==========');
+      console.log(
+        "🚨 ========== BLOQUEANDO ASSINATURA - EXIBINDO MODAL =========="
+      );
       subscriptionLoading.value = false;
       stripeLoading.value = false;
-      
+
       const modalData = {
-        type: limitValidation.type || 'general',
+        type: limitValidation.type || "general",
         message: limitValidation.message,
         current: limitValidation.current,
         max: limitValidation.max,
-        planName: selectedPlan.value.name || 'Plano Selecionado',
+        planName: selectedPlan.value.name || "Plano Selecionado",
         bothExceeded: limitValidation.bothExceeded || false,
         playersData: limitValidation.playersData || null,
         teamsData: limitValidation.teamsData || null,
       };
-      
-      console.log('🚨 Modal data preparado:', modalData);
-      console.log('🚨 Chamando showModal...');
-      
+
+      console.log("🚨 Modal data preparado:", modalData);
+      console.log("🚨 Chamando showModal...");
+
       // Mostrar modal de erro
       showModal(modalData);
-      
-      console.log('🚨 showModal chamado, retornando...');
+
+      console.log("🚨 showModal chamado, retornando...");
       return;
     }
-    
-    console.log('✅ Validação passou - continuando com assinatura');
+
+    console.log("✅ Validação passou - continuando com assinatura");
 
     // Logs para debug detalhado
 
@@ -2290,25 +2438,25 @@ const subscribeToPlan = async () => {
 // Carregar contador de planos vitalícios
 const loadLifetimeCounter = async () => {
   try {
-    console.log('📊 Carregando contador de planos vitalícios...');
-    
+    console.log("📊 Carregando contador de planos vitalícios...");
+
     const result = await getLifetimePlansCount();
-    
+
     if (result.success) {
       lifetimeCounter.value = result.data;
-      console.log('✅ Contador carregado:', lifetimeCounter.value);
+      console.log("✅ Contador carregado:", lifetimeCounter.value);
     } else {
-      console.warn('⚠️ Erro ao carregar contador, usando valores padrão');
+      console.warn("⚠️ Erro ao carregar contador, usando valores padrão");
       lifetimeCounter.value = {
         total_sold: 0,
         limit: 500,
         remaining: 500,
         percentage: 0,
-        is_sold_out: false
+        is_sold_out: false,
       };
     }
   } catch (error) {
-    console.error('❌ Erro ao carregar contador:', error);
+    console.error("❌ Erro ao carregar contador:", error);
     lifetimeCounter.value = null;
   }
 };
@@ -2354,47 +2502,74 @@ onMounted(async () => {
 <style scoped>
 .subscription-plans-page {
   padding: 40px 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #f9fafb;
   min-height: 100vh;
 }
 
 .container {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
 }
 
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 40px;
-  flex-wrap: wrap;
-  gap: 20px;
+/* Header Moderno */
+.page-header-modern {
+  text-align: center;
+  margin-bottom: 32px;
 }
 
-.header-content {
-  flex: 1;
-}
-
-.header-content h1 {
-  text-align: left;
-  color: white;
-  margin-bottom: 10px;
-  margin-top: 0;
+.page-header-modern .main-title {
   font-size: 2.5rem;
   font-weight: 700;
+  color: #e9742b;
+  margin-bottom: 12px;
+  margin-top: 0;
 }
 
-.header-content p {
-  text-align: left;
-  color: rgba(255, 255, 255, 0.9);
-  margin-bottom: 0;
-  font-size: 1.1rem;
+.page-header-modern .main-subtitle {
+  font-size: 1.125rem;
+  color: #6b7280;
+  margin: 0;
 }
 
-.header-actions {
+/* Botão Ver Faturamentos acima dos cards */
+.billing-button-top {
   display: flex;
-  gap: 15px;
+  justify-content: flex-end;
+  margin-bottom: 24px;
+  width: 100%;
+}
+
+.payment-method-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.billing-link-modern {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 24px;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  text-decoration: none;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  white-space: nowrap;
+  width: auto;
+  min-width: auto;
+}
+
+.billing-link-modern:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+}
+
+.billing-link-modern .billing-icon {
+  font-size: 1.25rem;
 }
 
 .billing-link {
@@ -2532,19 +2707,33 @@ p {
   background: rgba(16, 185, 129, 0.1);
 }
 
-.validation-success-discrete {
-  background: rgba(16, 185, 129, 0.1);
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  border-radius: 8px;
-  padding: 8px 16px;
+.validation-success-discrete-fixed {
+  position: fixed;
+  bottom: 16px;
+  left: 16px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 6px;
+  padding: 6px 10px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin: 0 auto 20px;
-  max-width: 400px;
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.9);
+  gap: 6px;
+  font-size: 0.75rem;
+  color: #059669;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  backdrop-filter: blur(8px);
+  opacity: 0.85;
+  transition: opacity 0.3s ease;
+}
+
+.validation-success-discrete-fixed:hover {
+  opacity: 1;
+}
+
+.validation-success-discrete-fixed .validation-icon-small {
+  font-size: 0.75rem;
+  opacity: 0.8;
 }
 
 .validation-icon-small {
@@ -2659,9 +2848,9 @@ p {
 }
 
 .toggle-btn {
-  background: transparent;
-  border: none;
-  color: white;
+  background: #f3f4f6;
+  border: 2px solid #e5e7eb;
+  color: #6b7280;
   padding: 12px 24px;
   border-radius: 8px;
   cursor: pointer;
@@ -2675,11 +2864,14 @@ p {
 .toggle-btn.active {
   background: white;
   color: #667eea;
+  border-color: #667eea;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
 .toggle-btn:hover:not(.active) {
-  background: rgba(255, 255, 255, 0.1);
+  background: #e5e7eb;
+  border-color: #d1d5db;
+  color: #374151;
 }
 
 .toggle-btn.auto-selected {
@@ -2854,43 +3046,338 @@ p {
   color: rgba(255, 255, 255, 0.9);
 }
 
-.plans-container {
+/* Container de Planos Moderno */
+.plans-container-modern {
   margin-bottom: 40px;
 }
 
-/* Grid de 3 opções */
-.plans-grid {
+/* Grid Horizontal de Planos */
+.plans-grid-modern {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 30px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
   margin-bottom: 40px;
   align-items: stretch;
 }
 
-.plan-card {
+/* Card de Plano Moderno */
+.plan-card-modern {
   background: white;
-  border-radius: 16px;
-  padding: 30px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  padding: 32px 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: all 0.3s ease;
   cursor: pointer;
   position: relative;
-  border: 3px solid transparent;
-  min-height: 500px;
+  border: 2px solid #e5e7eb;
   display: flex;
   flex-direction: column;
   height: 100%;
+  min-height: 500px;
 }
 
-.plan-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+.plan-card-modern:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
-.plan-card.selected {
-  border-color: #667eea;
-  transform: translateY(-5px);
-  box-shadow: 0 20px 40px rgba(102, 126, 234, 0.3);
+.plan-card-modern.selected {
+  border-width: 2px;
+  transform: translateY(-4px);
+}
+
+.plan-card-modern.plan-trial {
+  border-color: #e9742b;
+}
+
+.plan-card-modern.plan-trial.selected {
+  box-shadow: 0 8px 24px rgba(233, 116, 43, 0.25);
+}
+
+.plan-card-modern.plan-pro {
+  border-color: #3b82f6;
+}
+
+.plan-card-modern.plan-pro.selected {
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.25);
+}
+
+.plan-card-modern.plan-clubers {
+  border-color: #10b981;
+}
+
+.plan-card-modern.plan-clubers.selected {
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.25);
+}
+
+.plan-card-modern.plan-lifetime {
+  border-color: #2563eb;
+}
+
+.plan-card-modern.plan-lifetime.selected {
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.3);
+}
+
+.plan-card-modern.plan-active {
+  border-color: #10b981;
+  border-width: 2px;
+}
+
+.plan-card-modern.plan-disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Badge no topo direito */
+.plan-badge-top {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 10;
+}
+
+.plan-badge-top .badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: white;
+}
+
+.plan-badge-top .badge-trial {
+  background: #e9742b;
+}
+
+.plan-badge-top .badge-pro {
+  background: #3b82f6;
+}
+
+.plan-badge-top .badge-clubers {
+  background: #10b981;
+}
+
+.plan-badge-top .badge-lifetime {
+  background: #2563eb;
+}
+
+.plan-badge-top .badge-active {
+  background: #10b981;
+}
+
+/* Ícone do Plano */
+.plan-icon {
+  display: flex;
+  justify-content: center;
+  margin: 24px 0 16px;
+}
+
+/* Nome do Plano */
+.plan-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937;
+  text-align: center;
+  margin: 0 0 20px;
+}
+
+/* Preço Moderno */
+.plan-price-modern {
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.plan-price-modern .price-amount {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #1f2937;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.plan-price-modern .price-period {
+  font-size: 1rem;
+  color: #6b7280;
+  display: block;
+}
+
+.plan-price-modern .price-lifetime,
+.plan-price-modern .price-yearly {
+  font-size: 0.875rem;
+  color: #6b7280;
+  display: block;
+  margin-top: 4px;
+}
+
+/* Duração */
+.plan-duration {
+  text-align: center;
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-bottom: 24px;
+}
+
+/* Features Modernas */
+.plan-features-modern {
+  flex-grow: 1;
+  margin-bottom: 24px;
+}
+
+.plan-features-modern .feature-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  font-size: 0.9375rem;
+  color: #374151;
+}
+
+/* Notas Especiais */
+.plan-special-notes {
+  margin-bottom: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.plan-special-notes .special-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8125rem;
+  color: #6b7280;
+  margin-bottom: 8px;
+}
+
+.plan-special-notes .special-note:last-child {
+  margin-bottom: 0;
+}
+
+/* Disponibilidade Vitalícia */
+.lifetime-availability-modern {
+  margin-bottom: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.lifetime-availability-modern .availability-progress {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.lifetime-availability-modern .progress-bar {
+  flex: 1;
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.lifetime-availability-modern .progress-fill {
+  height: 100%;
+  background: #10b981;
+  transition: width 0.3s ease;
+}
+
+.lifetime-availability-modern .progress-text {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  min-width: 60px;
+  text-align: right;
+}
+
+.lifetime-availability-modern .availability-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+/* Botão Moderno */
+.plan-button-modern {
+  width: 100%;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.plan-button-modern.button-trial {
+  background: #e9742b;
+  color: white;
+}
+
+.plan-button-modern.button-trial:hover {
+  background: #d4631f;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(233, 116, 43, 0.3);
+}
+
+.plan-button-modern.button-pro {
+  background: #3b82f6;
+  color: white;
+}
+
+.plan-button-modern.button-pro:hover {
+  background: #2563eb;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.plan-button-modern.button-clubers {
+  background: #10b981;
+  color: white;
+}
+
+.plan-button-modern.button-clubers:hover {
+  background: #059669;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.plan-button-modern.button-lifetime {
+  background: #2563eb;
+  color: white;
+}
+
+.plan-button-modern.button-lifetime:hover {
+  background: #1d4ed8;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+}
+
+.plan-button-modern.button-active {
+  background: #10b981;
+  color: white;
+  cursor: default;
+}
+
+.plan-button-modern.button-active:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.plan-button-modern.disabled {
+  background: #e5e7eb;
+  color: #9ca3af;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.plan-button-modern.disabled:hover {
+  transform: none;
+  box-shadow: none;
 }
 
 /* Animações de Upgrade */
@@ -3206,7 +3693,8 @@ p {
 }
 
 @keyframes pulse-glow {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
     box-shadow: 0 0 0 rgba(0, 0, 0, 0);
   }
@@ -3675,8 +4163,13 @@ p {
   margin: 0 auto;
 }
 
-.active-plan-section > *,
-.payment-method-section > * {
+.active-plan-section > * {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.payment-method-section > *:not(.billing-button-wrapper) {
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -3875,6 +4368,46 @@ p {
   .header-content h1,
   .header-content p {
     text-align: center;
+  }
+
+  /* Responsivo para layout moderno */
+  .page-header-modern .main-title {
+    font-size: 2rem;
+  }
+
+  .page-header-modern .main-subtitle {
+    font-size: 1rem;
+  }
+
+  .payment-method-section .billing-button-wrapper,
+  .billing-button-standalone {
+    justify-content: flex-start;
+  }
+
+  .plans-grid-modern {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .plan-card-modern {
+    padding: 24px 20px;
+    min-height: auto;
+  }
+
+  .plan-price-modern .price-amount {
+    font-size: 2rem;
+  }
+
+  .plan-icon {
+    margin: 16px 0 12px;
+  }
+
+  .plan-icon va-icon {
+    font-size: 40px !important;
+  }
+
+  .plan-name {
+    font-size: 1.25rem;
   }
 }
 </style>

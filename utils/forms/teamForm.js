@@ -11,13 +11,13 @@ export function transformTeamData(team) {
     teamCategory: team.teamCategory
       ? {
           value: Number(team.teamCategoryId),
-          text: team.teamCategory.name,
+      text: team.teamCategory.name,
         }
       : null,
     teamLevel: team.teamLevel
       ? {
           value: Number(team.teamLevelId),
-          text: team.teamLevel.name,
+      text: team.teamLevel.name,
         }
       : null,
   };

@@ -36,8 +36,8 @@
       <div class="player-header">
         <!-- Informações do Jogador -->
         <div class="player-info-section">
-          <ZUser :data="selectedPlayer" />
-        </div>
+        <ZUser :data="selectedPlayer" />
+      </div>
 
         <!-- Botões de Navegação (Centralizados) -->
         <div class="navigation-tabs">
@@ -76,43 +76,43 @@
 
       <!-- Conteúdo de Marcação -->
       <div v-if="activeView === 'marking'" class="marking-content">
-        <!-- Cards dos Fundamentos -->
-        <div class="fundamentals-grid">
-          <ZFundamentalCard
+      <!-- Cards dos Fundamentos -->
+      <div class="fundamentals-grid">
+        <ZFundamentalCard
             v-for="fundamental in filteredFundamentals"
-            :key="fundamental.id"
-            :fundamental="fundamental"
-            :evaluation="getEvaluation(fundamental.id)"
-            :feedback="
-              fundamentalFeedbacks[selectedPlayer.id]?.[fundamental.id] || ''
-            "
-            @update-evaluation="updateEvaluation"
-            @update-feedback="updateFundamentalFeedback"
-          />
-        </div>
+          :key="fundamental.id"
+          :fundamental="fundamental"
+          :evaluation="getEvaluation(fundamental.id)"
+          :feedback="
+            fundamentalFeedbacks[selectedPlayer.id]?.[fundamental.id] || ''
+          "
+          @update-evaluation="updateEvaluation"
+          @update-feedback="updateFundamentalFeedback"
+        />
+      </div>
 
-        <!-- Observações Técnicas -->
-        <div class="observations-section">
-          <h3 class="section-title">Observações Técnicas Gerais</h3>
-          <va-textarea
-            v-model="observations"
-            placeholder="Digite suas observações técnicas sobre o jogador..."
-            :rows="4"
-            class="observations-textarea"
-            @input="updateObservations"
-          />
-        </div>
+      <!-- Observações Técnicas -->
+      <div class="observations-section">
+        <h3 class="section-title">Observações Técnicas Gerais</h3>
+        <va-textarea
+          v-model="observations"
+          placeholder="Digite suas observações técnicas sobre o jogador..."
+          :rows="4"
+          class="observations-textarea"
+          @input="updateObservations"
+        />
+      </div>
 
-        <!-- Feedback -->
-        <div class="feedback-section">
-          <h3 class="section-title">Feedback</h3>
-          <va-textarea
-            v-model="feedback"
-            placeholder="Digite seu feedback sobre o desempenho do jogador..."
-            :rows="4"
-            class="feedback-textarea"
-            @input="updateFeedback"
-          />
+      <!-- Feedback -->
+      <div class="feedback-section">
+        <h3 class="section-title">Feedback</h3>
+        <va-textarea
+          v-model="feedback"
+          placeholder="Digite seu feedback sobre o desempenho do jogador..."
+          :rows="4"
+          class="feedback-textarea"
+          @input="updateFeedback"
+        />
         </div>
       </div>
 

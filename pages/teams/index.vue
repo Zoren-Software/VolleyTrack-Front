@@ -15,7 +15,7 @@
     </div>
 
     <!-- Datatable Component -->
-    <ZDatatablesTeams />
+  <ZDatatablesTeams />
   </div>
 </template>
 

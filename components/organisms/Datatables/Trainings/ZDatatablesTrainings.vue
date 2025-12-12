@@ -8,7 +8,7 @@
           <ZDataTableInputSearch
             v-model="internalSearchValue"
             placeholder="Nome do treino..."
-            @actionSearch="handleSearch"
+    @actionSearch="handleSearch"
           />
         </div>
         <div class="filters-section">
@@ -99,38 +99,38 @@
       @deletes="deleteTrainings"
       @update:currentPageActive="updateCurrentPageActive"
     >
-      <!-- CELL -->
-      <template
+    <!-- CELL -->
+    <template
         #cell(name)="{
           rowKey: { name, dateStart, confirmationTrainingMetrics },
         }"
-      >
-        <ZTraining
-          :data="{ name, dateStart }"
-          :metrics="confirmationTrainingMetrics"
-        />
-      </template>
-      <template #cell(team)="{ rowKey: { team } }">
-        <div v-if="team">
-          <ZTeam :data="team" />
-        </div>
-      </template>
-      <template #cell(dateStart)="{ rowKey: { dateStart, dateEnd } }">
-        <ZDateTraining
-          :dateStart="formatTrainingDate(dateStart)"
-          :dateEnd="formatTrainingDate(dateEnd)"
-        />
-      </template>
-      <template #cell(user)="{ rowKey: { user, createdAt, updatedAt } }">
-        <ZUser
-          :data="user || {}"
-          :createdAt="createdAt"
-          :updatedAt="updatedAt"
-          showUpdatedAt
-          showCreatedAt
-        />
-      </template>
-    </ZDatatableGeneric>
+    >
+      <ZTraining
+        :data="{ name, dateStart }"
+        :metrics="confirmationTrainingMetrics"
+      />
+    </template>
+    <template #cell(team)="{ rowKey: { team } }">
+      <div v-if="team">
+        <ZTeam :data="team" />
+      </div>
+    </template>
+    <template #cell(dateStart)="{ rowKey: { dateStart, dateEnd } }">
+      <ZDateTraining
+        :dateStart="formatTrainingDate(dateStart)"
+        :dateEnd="formatTrainingDate(dateEnd)"
+      />
+    </template>
+    <template #cell(user)="{ rowKey: { user, createdAt, updatedAt } }">
+      <ZUser
+        :data="user || {}"
+        :createdAt="createdAt"
+        :updatedAt="updatedAt"
+        showUpdatedAt
+        showCreatedAt
+      />
+    </template>
+  </ZDatatableGeneric>
 
     <!-- Summary Cards -->
     <div class="summary-cards">
@@ -358,17 +358,17 @@ export default defineComponent({
       let teamsIdsValues =
         this.variablesGetTrainings.filter.teamsIds?.map((team) =>
           parseInt(team?.value || team)
-        ) || [];
+      ) || [];
 
       let usersIdsValues =
         this.variablesGetTrainings.filter.usersIds?.map((user) =>
           parseInt(user?.value || user)
-        ) || [];
+      ) || [];
 
       let playersIdsValues =
         this.variablesGetTrainings.filter.playersIds?.map((player) =>
           parseInt(player?.value || player)
-        ) || [];
+      ) || [];
 
       let dateEnd = this.variablesGetTrainings.filter.dateEnd;
 

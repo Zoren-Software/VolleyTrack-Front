@@ -6,109 +6,109 @@
     <va-card
       class="training-form-card"
       :class="{ 'training-form-card-full-width': controlledStep === 2 }"
-    >
+          >
       <va-form ref="myForm" class="flex flex-col gap-6 mb-2">
         <va-stepper v-model="controlledStep" :steps="steps" controls-hidden>
           <!-- Etapa 1: Informações Essenciais -->
-          <template #step-content-0>
+        <template #step-content-0>
             <div class="step-content">
               <h2 class="section-title">Informações Essenciais</h2>
-              <ZTextInput
-                id="name"
-                v-model="form.name"
-                name="name"
-                label="Nome"
-                class="mb-3"
-                :error-messages="errors.name || []"
-              />
-              <ZDateTimeRangePicker
-                id="dateTimeRange"
-                label="Data Inicio"
-                clearable
-                :date="form.dateValue"
-                :time-start="form.timeStartValue"
-                :time-end="form.timeEndValue"
-                @update:date="form.dateValue = $event"
-                @update:time-start="form.timeStartValue = $event"
-                @update:time-end="form.timeEndValue = $event"
-              />
-              <VaTextarea
+          <ZTextInput
+            id="name"
+            v-model="form.name"
+            name="name"
+            label="Nome"
+            class="mb-3"
+            :error-messages="errors.name || []"
+          />
+          <ZDateTimeRangePicker
+            id="dateTimeRange"
+            label="Data Inicio"
+            clearable
+            :date="form.dateValue"
+            :time-start="form.timeStartValue"
+            :time-end="form.timeEndValue"
+            @update:date="form.dateValue = $event"
+            @update:time-start="form.timeStartValue = $event"
+            @update:time-end="form.timeEndValue = $event"
+          />
+          <VaTextarea
                 id="description"
-                v-model="form.description"
-                style="width: 100%"
-                name="description"
-                label="Descrição do Treino"
-                class="mb-3"
-                :error="errorFields.includes('description')"
-                :error-messages="errors.description || []"
-              />
+            v-model="form.description"
+            style="width: 100%"
+            name="description"
+            label="Descrição do Treino"
+            class="mb-3"
+            :error="errorFields.includes('description')"
+            :error-messages="errors.description || []"
+          />
 
               <h3 class="subsection-title">Fundamentos</h3>
-              <div class="mb-5">
-                <ZListRelationFundamentals
+          <div class="mb-5">
+            <ZListRelationFundamentals
                   :items="form.fundamentals || []"
-                  :selected-value="fundamentals"
-                  @add="addFundamentals"
-                  @delete="actionDeleteFundamental"
-                >
-                  <template #filter>
-                    <ZSelectFundamental
-                      v-model="fundamentals"
-                      class="mb-3"
-                      label="Fundamentos"
-                      :ignore-ids="form.fundamentals.map((item) => item.id)"
-                    />
-                  </template>
-                </ZListRelationFundamentals>
-              </div>
-              <div>
-                <ZListRelationSpecificFundamentals
+              :selected-value="fundamentals"
+              @add="addFundamentals"
+              @delete="actionDeleteFundamental"
+            >
+              <template #filter>
+                <ZSelectFundamental
+                  v-model="fundamentals"
+                  class="mb-3"
+                  label="Fundamentos"
+                  :ignore-ids="form.fundamentals.map((item) => item.id)"
+                />
+              </template>
+            </ZListRelationFundamentals>
+          </div>
+          <div>
+            <ZListRelationSpecificFundamentals
                   :items="form.specificFundamentals || []"
-                  :selected-value="specificFundamentals"
-                  @add="addSpecificFundamental"
-                  @delete="actionDeleteSpecificFundamental"
-                >
-                  <template #filter>
-                    <ZSelectSpecificFundamental
-                      v-model="specificFundamentals"
-                      class="mb-3"
-                      label="Fundamentos Específicos"
-                      :disabled="!form.fundamentals.length"
+              :selected-value="specificFundamentals"
+              @add="addSpecificFundamental"
+              @delete="actionDeleteSpecificFundamental"
+            >
+              <template #filter>
+                <ZSelectSpecificFundamental
+                  v-model="specificFundamentals"
+                  class="mb-3"
+                  label="Fundamentos Específicos"
+                  :disabled="!form.fundamentals.length"
                       :ignore-ids="
                         form.specificFundamentals.map((item) => item.id)
                       "
                       :fundamentals-ids="
                         form.fundamentals.map((item) => item.id)
                       "
-                      :messages="messageSpecificFundamental()"
-                    />
-                  </template>
-                </ZListRelationSpecificFundamentals>
-              </div>
+                  :messages="messageSpecificFundamental()"
+                />
+              </template>
+            </ZListRelationSpecificFundamentals>
+          </div>
 
               <h3 class="subsection-title">Relacionar Time</h3>
-              <ZListRelationTeams
+          <ZListRelationTeams
                 :items="form.teams || []"
-                :selected-value="teams"
-                @add="addTeams"
-                @delete="actionDeleteTeam"
-              >
-                <template #filter>
-                  <ZSelectTeam
-                    ref="selectTeamRef"
-                    v-model="teams"
-                    class="mb-3"
-                    label="Times"
-                    :disabled="form.teams.length >= 1"
-                    :ignore-ids="form.teams.map((item) => item.id)"
-                    :messages="
-                      form.teams.length >= 1 ? 'Você já selecionou um time' : ''
-                    "
-                  />
-                </template>
-              </ZListRelationTeams>
+            :selected-value="teams"
+            @add="addTeams"
+            @delete="actionDeleteTeam"
+          >
+            <template #filter>
+              <ZSelectTeam
+                ref="selectTeamRef"
+                v-model="teams"
+                class="mb-3"
+                label="Times"
+                :disabled="form.teams.length >= 1"
+                :ignore-ids="form.teams.map((item) => item.id)"
+                :messages="
+                  form.teams.length >= 1 ? 'Você já selecionou um time' : ''
+                "
+              />
+            </template>
+          </ZListRelationTeams>
             </div>
-          </template>
+        </template>
 
           <!-- Etapa 2: Chamada do Treino -->
           <template #step-content-1>
@@ -118,26 +118,26 @@
               <!-- Métricas Cards -->
               <div class="metrics-section">
                 <div class="metrics-cards">
-                  <ZCardViewMetricsPresenceIntention
-                    title="Métricas do treino, intenção de presença"
-                    :strip="false"
-                    :data="form.confirmationTrainingMetrics"
-                  />
-                  <ZCardViewMetricsRealPresence
-                    title="Métricas do treino, presença real"
-                    :strip="false"
-                    :data="form.confirmationTrainingMetrics"
-                  />
-                </div>
+                    <ZCardViewMetricsPresenceIntention
+                      title="Métricas do treino, intenção de presença"
+                      :strip="false"
+                      :data="form.confirmationTrainingMetrics"
+                    />
+                    <ZCardViewMetricsRealPresence
+                      title="Métricas do treino, presença real"
+                      :strip="false"
+                      :data="form.confirmationTrainingMetrics"
+                    />
+                  </div>
 
                 <!-- Progress Bars -->
                 <div class="progress-bars-section">
-                  <ZProgressBarMetricsTraining
-                    :metrics="form.confirmationTrainingMetrics"
-                    :data="form"
-                  />
+                    <ZProgressBarMetricsTraining
+                      :metrics="form.confirmationTrainingMetrics"
+                      :data="form"
+                    />
+                  </div>
                 </div>
-              </div>
 
               <!-- Lista de Jogadores -->
               <div class="players-list-section">
@@ -149,25 +149,25 @@
                   @action-confirm-presence="actionConfirmPresence"
                 />
               </div>
-            </div>
-          </template>
+              </div>
+            </template>
 
           <!-- Etapa 3: Marcação dos Scouts -->
           <template #step-content-2>
             <div class="step-content step-content-full-width">
-              <ZListRelationPlayersWithScouts
-                ref="listRelationPlayersWithScoutsRef"
-                :training-id="form.id"
-                :items="[...(form.players || []), ...(form.scouts || [])]"
-                @add="addPlayers"
-                @delete="actionDeletePlayer"
-              >
-              </ZListRelationPlayersWithScouts>
+          <ZListRelationPlayersWithScouts
+            ref="listRelationPlayersWithScoutsRef"
+            :training-id="form.id"
+            :items="[...(form.players || []), ...(form.scouts || [])]"
+            @add="addPlayers"
+            @delete="actionDeletePlayer"
+          >
+          </ZListRelationPlayersWithScouts>
             </div>
-          </template>
-        </va-stepper>
-      </va-form>
-    </va-card>
+        </template>
+      </va-stepper>
+    </va-form>
+  </va-card>
 
     <!-- Botões de Ação (Fora do Card) -->
     <div class="action-buttons">
@@ -858,7 +858,7 @@ export default {
       if (!this.validateRequiredFields()) {
         return;
       }
-      this.$emit("saveAndContinue", this.form);
+        this.$emit("saveAndContinue", this.form);
     },
 
     // Método específico para salvar scouts sem redirecionamento
@@ -943,7 +943,7 @@ export default {
   margin-bottom: 16px;
   padding-bottom: 8px;
   border-bottom: 1px solid #e9ecef;
-}
+      }
 
 .step-content {
   padding: 20px 0;
@@ -1002,7 +1002,7 @@ export default {
 .form-container-full-width .action-buttons {
   max-width: 100%;
   padding: 0 20px;
-}
+          }
 
 @media (max-width: 768px) {
   .metrics-cards {
@@ -1019,6 +1019,6 @@ export default {
   .action-buttons va-button {
     width: 100%;
     min-width: auto;
-  }
+      }
 }
 </style>

@@ -33,28 +33,28 @@
     </va-card>
 
     <!-- DataTable -->
-    <ZDatatableGeneric
+  <ZDatatableGeneric
       :buttonActionAdd="false"
-      buttonActionDelete
-      includeActionsColumn
-      includeActionEditList
-      includeActionDeleteList
-      selectable
-      :items="items"
-      :columns="columns"
-      :loading="loading"
-      :paginatorInfo="paginatorInfo"
+    buttonActionDelete
+    includeActionsColumn
+    includeActionEditList
+    includeActionDeleteList
+    selectable
+    :items="items"
+    :columns="columns"
+    :loading="loading"
+    :paginatorInfo="paginatorInfo"
       :filter="false"
-      @search="searchPlayers"
-      @actionSearch="handleSearch"
-      @actionClear="clearSearch"
-      @update:search="searchPlayers"
-      @add="addPlayer"
-      @edit="editPlayer"
-      @delete="deletePlayer"
-      @deletes="deletePlayers"
-      @update:currentPageActive="updateCurrentPageActive"
-    >
+    @search="searchPlayers"
+    @actionSearch="handleSearch"
+    @actionClear="clearSearch"
+    @update:search="searchPlayers"
+    @add="addPlayer"
+    @edit="editPlayer"
+    @delete="deletePlayer"
+    @deletes="deletePlayers"
+    @update:currentPageActive="updateCurrentPageActive"
+  >
       <!-- CELL -->
       <template #cell(player)="{ rowKey }">
         <div class="player-cell">
@@ -98,9 +98,9 @@
             </span>
           </template>
           <span v-else class="no-data-text">-</span>
-        </div>
-      </template>
-      <template #cell(positions)="{ rowKey: { positions } }">
+      </div>
+    </template>
+    <template #cell(positions)="{ rowKey: { positions } }">
         <div class="positions-cell">
           <template
             v-if="
@@ -117,11 +117,11 @@
             >
               {{ position?.name }}
             </span>
-          </template>
+    </template>
           <span v-else class="no-data-text">-</span>
         </div>
-      </template>
-    </ZDatatableGeneric>
+    </template>
+  </ZDatatableGeneric>
 
     <!-- Summary Cards -->
     <div class="summary-cards">

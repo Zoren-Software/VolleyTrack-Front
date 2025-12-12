@@ -9,7 +9,7 @@
         >
           {{ normalizedData[0].name }}
         </ZButton>
-      </ZBadge>
+  </ZBadge>
     </template>
     <span v-else class="no-positions">-</span>
   </div>

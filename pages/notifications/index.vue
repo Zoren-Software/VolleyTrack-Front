@@ -11,7 +11,7 @@
     </div>
 
     <!-- Datatable Component -->
-    <ZDatatablesNotifications />
+  <ZDatatablesNotifications />
   </div>
 </template>
 

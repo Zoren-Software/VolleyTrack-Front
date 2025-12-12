@@ -8,7 +8,7 @@
           <ZDataTableInputSearch
             v-model="internalSearchValue"
             placeholder="Nome do time..."
-            @actionSearch="handleSearch"
+    @actionSearch="handleSearch"
           />
         </div>
         <div class="filters-section">
@@ -56,28 +56,28 @@
       @deletes="deleteTeams"
       @update:currentPageActive="updateCurrentPageActive"
     >
-      <!-- CELL -->
-      <template #cell(team)="{ rowKey }">
-        <ZTeam :data="rowKey" />
-      </template>
-      <template #cell(category)="{ rowKey: { teamCategory } }">
-        <ZBadgeCustom
-          :text="teamCategory?.name || 'Sem Categoria'"
-          backgroundColor="#F5F5F5"
-          textColor="#000000"
-        />
-      </template>
-      <template #cell(level)="{ rowKey: { teamLevel } }">
-        <ZBadgeCustom
-          :text="teamLevel?.name || 'Sem Nível Técnico'"
-          backgroundColor="#F5F5F5"
-          textColor="#000000"
-        />
-      </template>
-      <template #cell(players)="{ rowKey: { players } }">
-        <span>{{ players?.length || 0 }} Jogadores</span>
-      </template>
-    </ZDatatableGeneric>
+    <!-- CELL -->
+    <template #cell(team)="{ rowKey }">
+      <ZTeam :data="rowKey" />
+    </template>
+    <template #cell(category)="{ rowKey: { teamCategory } }">
+      <ZBadgeCustom
+        :text="teamCategory?.name || 'Sem Categoria'"
+        backgroundColor="#F5F5F5"
+        textColor="#000000"
+      />
+    </template>
+    <template #cell(level)="{ rowKey: { teamLevel } }">
+      <ZBadgeCustom
+        :text="teamLevel?.name || 'Sem Nível Técnico'"
+        backgroundColor="#F5F5F5"
+        textColor="#000000"
+      />
+    </template>
+    <template #cell(players)="{ rowKey: { players } }">
+      <span>{{ players?.length || 0 }} Jogadores</span>
+    </template>
+  </ZDatatableGeneric>
 
     <!-- Summary Cards -->
     <div class="summary-cards">
@@ -374,15 +374,15 @@ export default defineComponent({
           perPage: 10,
         };
         this.items = (value.teams.data || []).map((team) => ({
-          ...team,
-          teamCategory: team.teamCategory || { name: "Sem Categoria" },
-          teamLevel: team.teamLevel || { name: "Sem Nível Técnico" },
-          players: team.players || [],
+            ...team,
+            teamCategory: team.teamCategory || { name: "Sem Categoria" },
+            teamLevel: team.teamLevel || { name: "Sem Nível Técnico" },
+            players: team.players || [],
         }));
       } else if (value && !value.teams) {
         // Se value existe mas não tem teams, pode ser que ainda esteja carregando
         // ou que não há dados
-        this.loading = false;
+      this.loading = false;
         this.items = [];
       }
     },

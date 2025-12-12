@@ -1,11 +1,11 @@
 <template>
   <div class="scouts-container">
-    <ZTechnicalScout
-      ref="technicalScoutRef"
-      @save-evaluation="handleSaveEvaluation"
-      :training-id="trainingId"
-      :is-inside-training-form="true"
-    />
+      <ZTechnicalScout
+        ref="technicalScoutRef"
+        @save-evaluation="handleSaveEvaluation"
+        :training-id="trainingId"
+        :is-inside-training-form="true"
+      />
   </div>
 </template>
 

@@ -9,16 +9,16 @@
     <div class="user-info-wrapper">
       <div class="user-name">
         <b>{{ data.name }}</b>
-      </div>
+          </div>
       <div v-if="data.position" class="user-detail">
-        <va-icon
-          size="small"
-          name="trip_origin"
-          color="secondary"
+            <va-icon
+              size="small"
+              name="trip_origin"
+              color="secondary"
           class="detail-icon"
-        />
-        <span>{{ data.position }}</span>
-      </div>
+            />
+            <span>{{ data.position }}</span>
+          </div>
       <div v-if="data.information?.phone" class="user-detail">
         <va-icon
           size="small"
@@ -26,8 +26,8 @@
           color="secondary"
           class="detail-icon"
         />
-        <span>{{ formattedPhone }}</span>
-      </div>
+            <span>{{ formattedPhone }}</span>
+          </div>
       <div class="user-detail email-container">
         <va-icon
           size="small"

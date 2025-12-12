@@ -49,16 +49,16 @@ export default {
           (col) => col.key === "actions" || col.name === "actions"
         );
         if (!hasActionsColumn) {
-          return [
-            ...this.columns,
-            {
-              key: "actions",
+        return [
+          ...this.columns,
+          {
+            key: "actions",
               name: "actions",
               label: "AÇÕES",
               width: 120,
               sortable: false,
-            },
-          ];
+          },
+        ];
         }
       }
       return this.columns;

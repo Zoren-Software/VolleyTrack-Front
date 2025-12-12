@@ -28,36 +28,36 @@
             #cell(actions)="{ rowKey: { id, player, presence, trainingId } }"
           >
             <div class="actions-cell">
-              <ZButton
-                v-if="
+            <ZButton
+              v-if="
                   !isBeforeTrainingDate &&
                   hasAdminOrTechnicianRole() &&
                   !presence
-                "
-                color="success"
+              "
+              color="success"
                 size="small"
                 class="action-button"
-                @click="
-                  actionConfirmPresence(id, player.id, trainingId, !presence)
-                "
-              >
-                Compareceu
-              </ZButton>
-              <ZButton
-                v-if="
+              @click="
+                actionConfirmPresence(id, player.id, trainingId, !presence)
+              "
+            >
+              Compareceu
+            </ZButton>
+            <ZButton
+              v-if="
                   !isBeforeTrainingDate &&
                   hasAdminOrTechnicianRole() &&
                   presence
-                "
-                color="danger"
+              "
+              color="danger"
                 size="small"
                 class="action-button"
-                @click="
-                  actionConfirmPresence(id, player.id, trainingId, !presence)
-                "
-              >
-                Não Compareceu
-              </ZButton>
+              @click="
+                actionConfirmPresence(id, player.id, trainingId, !presence)
+              "
+            >
+              Não Compareceu
+            </ZButton>
             </div>
           </template>
           <template
@@ -72,12 +72,12 @@
           <template #cell(presence)="{ rowKey: { presence } }">
             <div class="presence-cell">
               <VaIcon v-if="!presence" color="danger" name="close" :size="32" />
-              <VaIcon
+            <VaIcon
                 v-if="presence"
-                color="success"
-                name="checked"
+              color="success"
+              name="checked"
                 :size="32"
-              />
+            />
             </div>
           </template>
           <template
@@ -120,23 +120,23 @@
               <div
                 v-if="canInteractWithStatus(player)"
                 class="intention-buttons"
-              >
-                <ZButton
-                  color="success"
+          >
+            <ZButton
+              color="success"
                   size="small"
                   class="intention-button"
-                  @click="actionConfirm(id, player.id, trainingId)"
-                >
-                  Confirmar
-                </ZButton>
-                <ZButton
-                  color="danger"
+              @click="actionConfirm(id, player.id, trainingId)"
+            >
+              Confirmar
+            </ZButton>
+            <ZButton
+              color="danger"
                   size="small"
                   class="intention-button"
-                  @click="actionReject(id, player.id, trainingId)"
-                >
-                  Rejeitar
-                </ZButton>
+              @click="actionReject(id, player.id, trainingId)"
+            >
+              Rejeitar
+            </ZButton>
               </div>
             </div>
           </template>
