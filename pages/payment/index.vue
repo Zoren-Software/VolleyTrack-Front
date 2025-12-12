@@ -2835,7 +2835,7 @@ p {
 .billing-toggle {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   margin-bottom: 32px;
   max-width: 1200px;
   margin-left: auto;
@@ -2858,12 +2858,13 @@ p {
 
 .toggle-buttons {
   display: flex;
-  background: #f3f4f6;
+  background: transparent;
   border-radius: 8px;
-  padding: 4px;
+  padding: 0;
   position: relative;
   flex: 1;
   justify-content: center;
+  gap: 8px;
 }
 
 .toggle-btn {
@@ -2878,6 +2879,7 @@ p {
   transition: all 0.3s ease;
   position: relative;
   min-width: 120px;
+  margin: 0;
 }
 
 .toggle-btn.active {
