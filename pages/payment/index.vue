@@ -287,35 +287,40 @@
               }"
               @click="!isPlanActive(plan) && selectPlan(plan)"
             >
-              <!-- Badge no topo direito -->
-              <div class="plan-badge-top">
-                <span
-                  v-if="plan.metadata?.plan_type === 'trial'"
-                  class="badge badge-trial"
-                >
-                  15 dias grátis
-                </span>
-                <span
-                  v-else-if="plan.metadata?.plan_type === 'pro'"
-                  class="badge badge-pro"
-                >
-                  Recomendado
-                </span>
-                <span
-                  v-else-if="plan.metadata?.plan_type === 'clubes'"
-                  class="badge badge-clubers"
-                >
-                  Equipes Grandes
-                </span>
-                <span
-                  v-else-if="plan.metadata?.plan_type === 'lifetime'"
-                  class="badge badge-lifetime"
-                >
-                  Oferta Vitalícia
-                </span>
-                <span v-if="isPlanActive(plan)" class="badge badge-active">
-                  Plano Ativo
-                </span>
+              <!-- Badges -->
+              <div class="plan-badges-container">
+                <!-- Badge Plano Ativo (esquerda) -->
+                <div v-if="isPlanActive(plan)" class="plan-badge-left">
+                  <span class="badge badge-active"> Plano Ativo </span>
+                </div>
+
+                <!-- Badges do tipo de plano (direita) -->
+                <div class="plan-badge-top">
+                  <span
+                    v-if="plan.metadata?.plan_type === 'trial'"
+                    class="badge badge-trial"
+                  >
+                    15 dias grátis
+                  </span>
+                  <span
+                    v-else-if="plan.metadata?.plan_type === 'pro'"
+                    class="badge badge-pro"
+                  >
+                    Recomendado
+                  </span>
+                  <span
+                    v-else-if="plan.metadata?.plan_type === 'clubes'"
+                    class="badge badge-clubers"
+                  >
+                    Equipes Grandes
+                  </span>
+                  <span
+                    v-else-if="plan.metadata?.plan_type === 'lifetime'"
+                    class="badge badge-lifetime"
+                  >
+                    Oferta Vitalícia
+                  </span>
+                </div>
               </div>
 
               <!-- Ícone do Plano -->
@@ -354,6 +359,11 @@
 
               <!-- Nome do Plano -->
               <h3 class="plan-name">{{ plan.name }}</h3>
+
+              <!-- Descrição do Plano (se disponível) -->
+              <div v-if="getPlanDescription(plan)" class="plan-description">
+                {{ getPlanDescription(plan) }}
+              </div>
 
               <!-- Preço -->
               <div class="plan-price-modern">
@@ -1226,31 +1236,62 @@ const getPlanColor = (plan) => {
   return "#6b7280"; // Cinza padrão
 };
 
-// Obter features principais do plano (limitado para exibição)
+// Obter features principais do plano
 const getMainPlanFeatures = (plan) => {
   const allFeatures = getPlanFeatures(plan);
-  // Retornar apenas as 2-3 primeiras features principais
-  if (plan.metadata?.plan_type === "trial") {
-    return ["Times ilimitados", "Jogadores ilimitados"];
+  const features = [];
+
+  // SEMPRE incluir limitações de times e jogadores primeiro (essenciais)
+  const maxTeams = getMaxTeams(plan);
+  const maxPlayers = getMaxPlayers(plan);
+
+  if (maxTeams) features.push(maxTeams);
+  if (maxPlayers) features.push(maxPlayers);
+
+  // Adicionar todas as features dos metadados após as limitações
+  if (allFeatures.length > 0) {
+    features.push(...allFeatures);
   }
-  if (plan.metadata?.plan_type === "pro") {
-    const maxTeams = getMaxTeams(plan);
-    const maxPlayers = getMaxPlayers(plan);
-    return [maxTeams || "Até 5 times", maxPlayers || "Até 50 jogadores"];
+
+  // Se não há features nem limitações, usar valores padrão por tipo
+  if (features.length === 0) {
+    if (plan.metadata?.plan_type === "trial") {
+      return ["Times ilimitados", "Jogadores ilimitados"];
+    }
+    if (plan.metadata?.plan_type === "pro") {
+      return ["Até 5 times", "Até 50 jogadores"];
+    }
+    if (plan.metadata?.plan_type === "clubes") {
+      return [
+        "Times ilimitados",
+        "Jogadores ilimitados",
+        "Acesso completo à plataforma",
+      ];
+    }
+    if (plan.metadata?.plan_type === "lifetime") {
+      return ["1 time", "Até 20 jogadores"];
+    }
   }
-  if (plan.metadata?.plan_type === "clubes") {
-    return [
-      "Times ilimitados",
-      "Jogadores ilimitados",
-      "Acesso completo à plataforma",
-    ];
+
+  return features;
+};
+
+// Obter descrição do plano dos metadados
+const getPlanDescription = (plan) => {
+  // Verificar vários campos possíveis de descrição
+  if (plan.metadata?.description) {
+    return plan.metadata.description;
   }
-  if (plan.metadata?.plan_type === "lifetime") {
-    const maxTeams = getMaxTeams(plan);
-    const maxPlayers = getMaxPlayers(plan);
-    return [maxTeams || "1 time", maxPlayers || "Até 20 jogadores"];
+  if (plan.metadata?.display_description) {
+    return plan.metadata.display_description;
   }
-  return allFeatures.slice(0, 3);
+  if (plan.description) {
+    return plan.description;
+  }
+  if (plan.product?.description) {
+    return plan.product.description;
+  }
+  return null;
 };
 
 // Obter notas especiais do plano
@@ -1266,12 +1307,7 @@ const getPlanSpecialNotes = (plan) => {
       text: "Acesso será bloqueado ao expirar",
     });
   }
-  if (plan.metadata?.plan_type === "pro") {
-    notes.push({
-      icon: "refresh",
-      text: "Migração automática pós-trial",
-    });
-  }
+  // Removido: "Migração automática pós-trial" - validações necessárias já foram implementadas
   return notes;
 };
 
@@ -1302,15 +1338,28 @@ const getYearlyPrice = (plan) => {
 
 // Obter recursos do plano
 const getPlanFeatures = (plan) => {
-  // Tentar ler features dos metadados (com prefixo display_)
-  if (plan.metadata?.display_features) {
+  // Tentar ler features dos metadados (vários formatos possíveis)
+  const metadataFeatures =
+    plan.metadata?.display_features ||
+    plan.metadata?.features ||
+    plan.metadata?.benefits ||
+    plan.metadata?.plan_features;
+
+  if (metadataFeatures) {
     try {
-      const features = JSON.parse(plan.metadata.display_features);
-      if (Array.isArray(features) && features.length > 0) {
-        return features;
+      // Se for string JSON, fazer parse
+      if (typeof metadataFeatures === "string") {
+        const features = JSON.parse(metadataFeatures);
+        if (Array.isArray(features) && features.length > 0) {
+          return features;
+        }
+      }
+      // Se já for array, retornar diretamente
+      if (Array.isArray(metadataFeatures) && metadataFeatures.length > 0) {
+        return metadataFeatures;
       }
     } catch (error) {
-      console.warn("Erro ao fazer parse de display_features:", error);
+      console.warn("Erro ao fazer parse de features dos metadados:", error);
       // Continuar para fallback
     }
   }
@@ -1359,7 +1408,7 @@ const getMaxPlayers = (plan) => {
   if (maxPlayers === undefined || maxPlayers === null) return null;
 
   if (maxPlayers === "0" || maxPlayers === 0) {
-    return "Ilimitado";
+    return "Jogadores ilimitados";
   }
 
   return `${maxPlayers} jogadores`;
@@ -1371,7 +1420,7 @@ const getMaxTeams = (plan) => {
   if (maxTeams === undefined || maxTeams === null) return null;
 
   if (maxTeams === "0" || maxTeams === 0) {
-    return "Ilimitado";
+    return "Times ilimitados";
   }
 
   return `${maxTeams} ${maxTeams === "1" ? "time" : "times"}`;
@@ -3289,6 +3338,29 @@ p {
 }
 
 /* Badge no topo direito */
+.plan-badges-container {
+  position: relative;
+  width: 100%;
+  min-height: 40px;
+  margin-bottom: 8px;
+}
+
+.plan-badge-left {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 10;
+}
+
+.plan-badge-left .badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: white;
+}
+
 .plan-badge-top {
   position: absolute;
   top: 16px;
@@ -3321,6 +3393,7 @@ p {
   background: #2563eb;
 }
 
+.plan-badge-left .badge-active,
 .plan-badge-top .badge-active {
   background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   color: white;
@@ -3341,7 +3414,16 @@ p {
   font-weight: 700;
   color: #1f2937;
   text-align: center;
+  margin: 0 0 12px;
+}
+
+.plan-description {
+  font-size: 0.9rem;
+  color: #6b7280;
+  text-align: center;
   margin: 0 0 16px;
+  line-height: 1.5;
+  font-style: italic;
 }
 
 /* Preço Moderno */
@@ -3419,7 +3501,6 @@ p {
 .lifetime-availability-modern {
   margin-bottom: 16px;
   padding-top: 12px;
-  border-top: 1px solid #e5e7eb;
 }
 
 .lifetime-availability-modern .availability-progress {
