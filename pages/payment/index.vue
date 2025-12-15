@@ -285,7 +285,7 @@
                 'plan-active': isPlanActive(plan),
                 'plan-disabled': isPlanDisabled(plan),
               }"
-              @click="selectPlan(plan)"
+              @click="!isPlanActive(plan) && selectPlan(plan)"
             >
               <!-- Badge no topo direito -->
               <div class="plan-badge-top">
@@ -367,7 +367,13 @@
                 >
                   Pagamento único
                 </span>
-                <span v-else-if="getYearlyDiscount(plan)" class="price-yearly">
+                <!-- Mostrar opção anual apenas para planos mensais -->
+                <span
+                  v-else-if="
+                    plan.metadata?.type === 'monthly' && getYearlyDiscount(plan)
+                  "
+                  class="price-yearly"
+                >
                   ou R$ {{ getYearlyPrice(plan) }}/ano
                 </span>
               </div>
@@ -3266,7 +3272,15 @@ p {
 
 .plan-card-modern.plan-active {
   border-color: #10b981;
-  border-width: 2px;
+  border-width: 3px;
+  background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.2);
+  cursor: default;
+}
+
+.plan-card-modern.plan-active:hover {
+  transform: none;
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.2);
 }
 
 .plan-card-modern.plan-disabled {
@@ -3308,7 +3322,10 @@ p {
 }
 
 .plan-badge-top .badge-active {
-  background: #10b981;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
 }
 
 /* Ícone do Plano */
@@ -3514,11 +3531,20 @@ p {
   box-shadow: none;
 }
 
-.plan-button-modern.disabled {
-  background: #e5e7eb;
-  color: #9ca3af;
-  cursor: not-allowed;
+.plan-button-modern.disabled,
+.plan-button-modern:disabled {
+  background: #e5e7eb !important;
+  color: #9ca3af !important;
+  cursor: not-allowed !important;
   opacity: 0.7;
+  pointer-events: none;
+}
+
+.plan-button-modern.button-active.disabled,
+.plan-button-modern.button-active:disabled {
+  background: #d1fae5 !important;
+  color: #065f46 !important;
+  border: 2px solid #10b981;
 }
 
 .plan-button-modern.disabled:hover {
