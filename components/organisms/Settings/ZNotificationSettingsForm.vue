@@ -5,9 +5,9 @@
     @submit="salvarConfiguracoes"
   >
     <div class="notification-settings-container">
-      <div
-        v-for="(item, index) in data"
-        :key="item.id"
+    <div
+      v-for="(item, index) in data"
+      :key="item.id"
         class="notification-card"
       >
         <div class="notification-header">
@@ -18,36 +18,36 @@
               size="24px"
             />
           </div>
-          <h6
+      <h6
             class="notification-title"
-            v-if="item.notificationType?.description"
-          >
-            {{ item.notificationType.description }}
-          </h6>
+        v-if="item.notificationType?.description"
+      >
+        {{ item.notificationType.description }}
+      </h6>
         </div>
 
         <div class="notification-options">
-          <div
+      <div
             v-if="item.notificationType.allowEmail"
             class="notification-option"
-          >
+      >
             <va-icon name="email" size="18px" color="#6b7280" />
-            <VaCheckbox
-              v-model="form[item.notificationType.key].viaEmail"
-              label="Receber por e-mail"
+        <VaCheckbox
+          v-model="form[item.notificationType.key].viaEmail"
+          label="Receber por e-mail"
               class="notification-checkbox"
-            />
+        />
           </div>
           <div
             v-if="item.notificationType.allowSystem"
             class="notification-option"
           >
             <va-icon name="notifications" size="18px" color="#6b7280" />
-            <VaCheckbox
-              v-model="form[item.notificationType.key].viaSystem"
-              label="Receber no sistema"
+        <VaCheckbox
+          v-model="form[item.notificationType.key].viaSystem"
+          label="Receber no sistema"
               class="notification-checkbox"
-            />
+        />
           </div>
         </div>
       </div>

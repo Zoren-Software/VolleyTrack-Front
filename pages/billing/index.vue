@@ -7,7 +7,7 @@
           <div>
             <h1 class="page-title">Faturamentos</h1>
             <p class="page-subtitle">Visualize todas as suas faturas pagas</p>
-          </div>
+        </div>
           <NuxtLink to="/payment" class="back-link-modern">
             <span class="back-icon">←</span>
             <span>Voltar para Pagamentos</span>
@@ -46,19 +46,19 @@
               <va-icon name="receipt" size="32px" color="#3b82f6" />
             </div>
             <div class="summary-content">
-              <span class="summary-label">Total de Faturas</span>
-              <span class="summary-value">{{ summary.total_invoices }}</span>
-            </div>
+            <span class="summary-label">Total de Faturas</span>
+            <span class="summary-value">{{ summary.total_invoices }}</span>
+          </div>
           </div>
           <div class="summary-card-modern">
             <div class="summary-icon">
               <va-icon name="attach_money" size="32px" color="#10b981" />
             </div>
             <div class="summary-content">
-              <span class="summary-label">Valor Total</span>
-              <span class="summary-value"
-                >R$ {{ formatCurrency(summary.total_amount) }}</span
-              >
+            <span class="summary-label">Valor Total</span>
+            <span class="summary-value"
+              >R$ {{ formatCurrency(summary.total_amount) }}</span
+            >
             </div>
           </div>
         </div>

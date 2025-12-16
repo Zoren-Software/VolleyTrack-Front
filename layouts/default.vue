@@ -99,11 +99,9 @@
   <div class="content-wrapper">
     <NuxtPage />
   </div>
-  <ZNotificationSettingsForm v-model="openNotificationModal" />
 </template>
 
 <script>
-import ZNotificationSettingsForm from "~/components/organisms/Settings/ZNotificationSettingsForm.vue";
 import ZListItemsNotification from "~/components/organisms/List/Notification/ZListItemsNotification.vue";
 import ZListItemsUser from "~/components/molecules/List/ZListItemsUser.vue";
 import NOTIFICATIONSTOTAL from "~/graphql/notification/query/notificationsTotal.graphql";
@@ -112,7 +110,6 @@ import { getActivePlan } from "~/services/stripeCheckoutService.js";
 
 export default {
   components: {
-    ZNotificationSettingsForm,
     ZListItemsNotification,
     ZListItemsUser,
   },
@@ -126,7 +123,6 @@ export default {
         { title: "Pagamentos", link: "/payment" },
       ],
       dropdownOpen: false,
-      openNotificationModal: false,
       totalNotifications: 0,
       paginatorInfo: {},
       user: {
@@ -294,8 +290,8 @@ export default {
       console.log("🚀 Redirecionando para página de upgrade de planos");
     },
     openNotificationSettings() {
-      this.openNotificationModal = true;
-      this.dropdownOpen = false; // Fechar o dropdown ao abrir o modal
+      this.$router.push("/notifications/settings");
+      this.dropdownOpen = false; // Fechar o dropdown ao navegar
     },
     totalNotificationsChange(value) {
       if (value > 99) {
