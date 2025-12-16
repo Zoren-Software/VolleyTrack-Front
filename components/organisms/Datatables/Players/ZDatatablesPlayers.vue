@@ -33,28 +33,28 @@
     </va-card>
 
     <!-- DataTable -->
-  <ZDatatableGeneric
+    <ZDatatableGeneric
       :buttonActionAdd="false"
-    buttonActionDelete
-    includeActionsColumn
-    includeActionEditList
-    includeActionDeleteList
-    selectable
-    :items="items"
-    :columns="columns"
-    :loading="loading"
-    :paginatorInfo="paginatorInfo"
+      buttonActionDelete
+      includeActionsColumn
+      includeActionEditList
+      includeActionDeleteList
+      selectable
+      :items="items"
+      :columns="columns"
+      :loading="loading"
+      :paginatorInfo="paginatorInfo"
       :filter="false"
-    @search="searchPlayers"
-    @actionSearch="handleSearch"
-    @actionClear="clearSearch"
-    @update:search="searchPlayers"
-    @add="addPlayer"
-    @edit="editPlayer"
-    @delete="deletePlayer"
-    @deletes="deletePlayers"
-    @update:currentPageActive="updateCurrentPageActive"
-  >
+      @search="searchPlayers"
+      @actionSearch="handleSearch"
+      @actionClear="clearSearch"
+      @update:search="searchPlayers"
+      @add="addPlayer"
+      @edit="editPlayer"
+      @delete="deletePlayer"
+      @deletes="deletePlayers"
+      @update:currentPageActive="updateCurrentPageActive"
+    >
       <!-- CELL -->
       <template #cell(player)="{ rowKey }">
         <div class="player-cell">
@@ -98,9 +98,9 @@
             </span>
           </template>
           <span v-else class="no-data-text">-</span>
-      </div>
-    </template>
-    <template #cell(positions)="{ rowKey: { positions } }">
+        </div>
+      </template>
+      <template #cell(positions)="{ rowKey: { positions } }">
         <div class="positions-cell">
           <template
             v-if="
@@ -117,11 +117,11 @@
             >
               {{ position?.name }}
             </span>
-    </template>
+          </template>
           <span v-else class="no-data-text">-</span>
         </div>
-    </template>
-  </ZDatatableGeneric>
+      </template>
+    </ZDatatableGeneric>
 
     <!-- Summary Cards -->
     <div class="summary-cards">
@@ -412,7 +412,7 @@ export default defineComponent({
   flex-shrink: 0;
 }
 
-/* Forçar tamanho do avatar maior */
+/* Forçar tamanho do avatar maior e aplicar borda branca */
 .player-avatar,
 .player-avatar :deep(.va-avatar),
 .player-avatar :deep(.va-avatar__content) {
@@ -425,6 +425,16 @@ export default defineComponent({
   --va-size-computed: 48px !important;
   font-size: 20px !important;
   line-height: 48px !important;
+  background: #e9742b !important;
+  color: white !important;
+  border: 2px solid white !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1) !important;
+}
+
+.player-avatar :deep(.va-avatar) {
+  border: 2px solid white !important;
+  background: #e9742b !important;
+  color: white !important;
 }
 
 /* Garantir que o tamanho seja aplicado corretamente */
@@ -658,7 +668,7 @@ export default defineComponent({
 </style>
 
 <style>
-/* Estilo global para forçar tamanho do avatar maior */
+/* Estilo global para forçar tamanho do avatar maior e aplicar borda branca */
 .players-listing .player-avatar,
 .players-listing .player-avatar.va-avatar,
 .players-listing .player-avatar .va-avatar {
@@ -670,5 +680,9 @@ export default defineComponent({
   max-width: 48px !important;
   max-height: 48px !important;
   font-size: 20px !important;
+  background: #e9742b !important;
+  color: white !important;
+  border: 2px solid white !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1) !important;
 }
 </style>

@@ -652,17 +652,24 @@ export default {
 .user-avatar {
   width: 40px;
   height: 40px;
-  border: 2px solid #e9742b;
+  border: 2px solid white !important;
   cursor: pointer;
   transition: all 0.2s ease;
-  background: linear-gradient(135deg, #e9742b 0%, #ff6b35 100%);
-  color: white;
+  background: #e9742b !important;
+  color: white !important;
   font-weight: 700;
   font-size: 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.user-avatar :deep(.va-avatar) {
+  border: 2px solid white !important;
+  background: #e9742b !important;
+  color: white !important;
 }
 
 .user-avatar:hover {
-  border-color: #ff8c42;
+  border-color: white !important;
   transform: translateY(-1px);
   box-shadow: 0 2px 8px rgba(233, 116, 43, 0.3);
 }

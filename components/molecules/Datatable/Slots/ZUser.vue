@@ -121,7 +121,16 @@ export default {
 .user-avatar {
   flex-shrink: 0;
   width: 40px;
-  /* height: 40px; */
+  border: 2px solid white !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background: #e9742b !important;
+  color: white !important;
+}
+
+.user-avatar :deep(.va-avatar) {
+  border: 2px solid white !important;
+  background: #e9742b !important;
+  color: white !important;
 }
 
 .user-icon {

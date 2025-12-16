@@ -7,18 +7,16 @@
       <va-list v-if="items.length > 0">
         <va-list-label> Relacionados </va-list-label>
         <div class="user-list">
-          <div
-            v-for="item in items"
-            :key="item.id"
-            class="user-card"
-          >
+          <div v-for="item in items" :key="item.id" class="user-card">
             <div class="user-info">
               <div class="user-avatar">
                 <span>{{ item.user.name.charAt(0).toUpperCase() }}</span>
               </div>
               <div class="user-details">
                 <p class="user-name">{{ item.user.name }}</p>
-                <p class="user-position">{{ item.user.positions[0]?.name || 'Sem posição' }}</p>
+                <p class="user-position">
+                  {{ item.user.positions[0]?.name || "Sem posição" }}
+                </p>
               </div>
             </div>
             <va-icon
@@ -105,13 +103,15 @@ export default {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background-color: #FF4E1B;
+  background-color: #e9742b;
   color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
   font-size: 16px;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .user-details {

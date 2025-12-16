@@ -1,5 +1,21 @@
 <template>
   <div class="form-container">
+    <!-- Header com Foto do Usuário -->
+    <div class="user-profile-header">
+      <div class="profile-avatar-wrapper">
+        <va-avatar class="profile-avatar" size="large" :color="avatarColor">
+          <template v-if="form.name && firstLetter">
+            {{ firstLetter }}
+          </template>
+          <va-icon v-else name="person" size="48px" />
+        </va-avatar>
+      </div>
+      <h1 class="page-title">{{ headerTitle }}</h1>
+      <p class="page-subtitle">
+        {{ headerSubtitle }}
+      </p>
+    </div>
+
     <va-form ref="myForm" class="flex flex-col gap-6 mb-2">
       <!-- Card: Informações Essenciais -->
       <va-card class="info-card">
@@ -194,6 +210,15 @@ export default {
         };
       },
     },
+    headerTitle: {
+      type: String,
+      default: "Informações da Conta",
+    },
+    headerSubtitle: {
+      type: String,
+      default:
+        "Mantenha seus dados atualizados para melhor experiência no sistema.",
+    },
   },
   components: {
     ZPasswordInput,
@@ -247,6 +272,16 @@ export default {
         },
       ],
     };
+  },
+
+  computed: {
+    firstLetter() {
+      if (!this.form.name) return "";
+      return this.form.name.trim().charAt(0).toUpperCase();
+    },
+    avatarColor() {
+      return "#e9742b";
+    },
   },
 
   watch: {
@@ -346,23 +381,81 @@ export default {
   align-items: center;
   justify-content: center;
   padding: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Header com Foto do Usuário */
+.user-profile-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 40px;
+  padding: 30px 20px;
+  text-align: center;
+}
+
+.profile-avatar-wrapper {
+  margin-bottom: 24px;
+}
+
+.profile-avatar {
+  width: 120px !important;
+  height: 120px !important;
+  font-size: 48px !important;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 4px solid white;
+  color: white !important;
+}
+
+.profile-avatar :deep(*) {
+  color: white !important;
+}
+
+.page-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 12px 0;
+}
+
+.page-subtitle {
+  font-size: 16px;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.6;
+  max-width: 600px;
 }
 
 .info-card {
   width: 100%;
-  max-width: 600px;
-  padding: 20px;
+  padding: 30px;
   background-color: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  margin-bottom: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  margin-bottom: 24px;
+  border: 1px solid #e5e7eb;
 }
 
 .section-title {
   font-size: 18px;
-  font-weight: bold;
-  color: #0b1e3a;
-  margin-bottom: 16px;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.section-title::before {
+  content: "";
+  width: 4px;
+  height: 24px;
+  background: #e9742b;
+  border-radius: 2px;
 }
 
 .form-grid {
@@ -401,10 +494,11 @@ export default {
 
 .action-buttons {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   gap: 12px;
   width: 100%;
-  max-width: 600px;
+  margin-top: 20px;
+  padding-top: 20px;
 }
 
 .action-buttons va-button {

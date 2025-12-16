@@ -9,16 +9,16 @@
     <div class="user-info-wrapper">
       <div class="user-name">
         <b>{{ data.name }}</b>
-          </div>
+      </div>
       <div v-if="data.position" class="user-detail">
-            <va-icon
-              size="small"
-              name="trip_origin"
-              color="secondary"
+        <va-icon
+          size="small"
+          name="trip_origin"
+          color="secondary"
           class="detail-icon"
-            />
-            <span>{{ data.position }}</span>
-          </div>
+        />
+        <span>{{ data.position }}</span>
+      </div>
       <div v-if="data.information?.phone" class="user-detail">
         <va-icon
           size="small"
@@ -26,8 +26,8 @@
           color="secondary"
           class="detail-icon"
         />
-            <span>{{ formattedPhone }}</span>
-          </div>
+        <span>{{ formattedPhone }}</span>
+      </div>
       <div class="user-detail email-container">
         <va-icon
           size="small"
@@ -86,6 +86,16 @@ export default {
 
 .user-avatar {
   width: 40px;
+  border: 2px solid white !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background: #e9742b !important;
+  color: white !important;
+}
+
+.user-avatar :deep(.va-avatar) {
+  border: 2px solid white !important;
+  background: #e9742b !important;
+  color: white !important;
 }
 
 .user-icon {

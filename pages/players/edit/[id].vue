@@ -1,14 +1,12 @@
 <template>
-  <div class="page-header">
-    <h1 class="title">Editar Jogador</h1>
-    <p class="subtitle">Atualize as informações do jogador</p>
-  </div>
   <ZUserForm
     :data="data"
     @save="edit"
     :loading="loading"
     :errorFields="errorFields"
     :errors="errors"
+    header-title="Editar Jogador"
+    header-subtitle="Atualize as informações do jogador"
   />
 </template>
 
@@ -161,21 +159,3 @@ useHead({
   titleTemplate: "Editar Jogador",
 });
 </script>
-
-<style scoped>
-.page-header {
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-.title {
-  font-size: 30px;
-  font-weight: bold;
-  color: #0b1e3a;
-}
-
-.subtitle {
-  font-size: 16px;
-  color: #6c757d;
-}
-</style>
