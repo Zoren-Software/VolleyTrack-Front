@@ -8,7 +8,7 @@
         </div>
         <h1 class="welcome-title">
           Bem-vindo ao <span class="highlight">VolleyTrack</span>!
-    </h1>
+        </h1>
         <p class="welcome-subtitle">
           Comece a gerenciar suas equipes de vôlei em minutos.
         </p>
@@ -612,6 +612,7 @@ useHead({
 
 .button-icon {
   font-size: 16px;
+  margin-right: 10px;
 }
 
 /* Progress Card */
