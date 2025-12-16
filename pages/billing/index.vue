@@ -1,13 +1,14 @@
 <template>
   <div class="billing-page">
-    <div class="container">
+    <div class="list-page-container">
+      <!-- Page Header -->
       <div class="page-header">
         <div class="header-content">
-          <h1>Faturamentos</h1>
-          <p>Visualize todas as suas faturas pagas</p>
-        </div>
-        <div class="header-actions">
-          <NuxtLink to="/payment" class="back-link">
+          <div>
+            <h1 class="page-title">Faturamentos</h1>
+            <p class="page-subtitle">Visualize todas as suas faturas pagas</p>
+          </div>
+          <NuxtLink to="/payment" class="back-link-modern">
             <span class="back-icon">←</span>
             <span>Voltar para Pagamentos</span>
           </NuxtLink>
@@ -36,30 +37,43 @@
           !loading &&
           (lifetimePayments.length > 0 || subscriptionInvoices.length > 0)
         "
-        class="invoices-container"
+        class="billing-listing"
       >
-        <!-- Summary -->
-        <div class="summary-card">
-          <div class="summary-item">
-            <span class="summary-label">Total de Faturas</span>
-            <span class="summary-value">{{ summary.total_invoices }}</span>
+        <!-- Summary Cards -->
+        <div class="summary-cards">
+          <div class="summary-card-modern">
+            <div class="summary-icon">
+              <va-icon name="receipt" size="32px" color="#3b82f6" />
+            </div>
+            <div class="summary-content">
+              <span class="summary-label">Total de Faturas</span>
+              <span class="summary-value">{{ summary.total_invoices }}</span>
+            </div>
           </div>
-          <div class="summary-item">
-            <span class="summary-label">Valor Total</span>
-            <span class="summary-value"
-              >R$ {{ formatCurrency(summary.total_amount) }}</span
-            >
+          <div class="summary-card-modern">
+            <div class="summary-icon">
+              <va-icon name="attach_money" size="32px" color="#10b981" />
+            </div>
+            <div class="summary-content">
+              <span class="summary-label">Valor Total</span>
+              <span class="summary-value"
+                >R$ {{ formatCurrency(summary.total_amount) }}</span
+              >
+            </div>
           </div>
         </div>
 
         <!-- Planos Vitalícios -->
-        <div v-if="lifetimePayments.length > 0" class="section-container">
-          <div class="section-header">
-            <h2 class="section-title">
-              <span class="section-icon">💎</span>
-              Planos Vitalícios
+        <div
+          v-if="lifetimePayments.length > 0"
+          class="section-container-modern"
+        >
+          <div class="section-header-modern">
+            <h2 class="section-title-modern">
+              <va-icon name="diamond" size="24px" color="#2563eb" />
+              <span>Planos Vitalícios</span>
             </h2>
-            <span class="section-count"
+            <span class="section-count-modern"
               >{{ lifetimePayments.length }} pagamento(s)</span
             >
           </div>
@@ -138,22 +152,26 @@
 
               <!-- Payment Actions -->
               <div class="invoice-actions">
-                <span class="action-note"
-                  >Pagamento único - Acesso vitalício</span
-                >
+                <span class="action-note">
+                  <va-icon name="diamond" size="16px" color="#2563eb" />
+                  Pagamento único - Acesso vitalício
+                </span>
               </div>
             </div>
           </div>
         </div>
 
         <!-- Assinaturas -->
-        <div v-if="subscriptionInvoices.length > 0" class="section-container">
-          <div class="section-header">
-            <h2 class="section-title">
-              <span class="section-icon">🔄</span>
-              Assinaturas
+        <div
+          v-if="subscriptionInvoices.length > 0"
+          class="section-container-modern"
+        >
+          <div class="section-header-modern">
+            <h2 class="section-title-modern">
+              <va-icon name="refresh" size="24px" color="#3b82f6" />
+              <span>Assinaturas</span>
             </h2>
-            <span class="section-count"
+            <span class="section-count-modern"
               >{{ subscriptionInvoices.length }} fatura(s)</span
             >
           </div>
@@ -521,83 +539,88 @@ onMounted(() => {
 
 <style scoped>
 .billing-page {
-  padding: 40px 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   min-height: 100vh;
 }
 
-.container {
-  max-width: 1200px;
+.list-page-container {
+  max-width: 1400px;
   margin: 0 auto;
+  width: 100%;
 }
 
+/* Page Header */
 .page-header {
+  margin-bottom: 32px;
+}
+
+.header-content {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 40px;
-  flex-wrap: wrap;
+  align-items: flex-end;
   gap: 20px;
+  flex-wrap: wrap;
 }
 
-.header-content h1 {
-  color: white;
-  margin: 0 0 10px 0;
-  font-size: 2.5rem;
+.page-title {
+  font-size: 2rem;
   font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 8px 0;
 }
 
-.header-content p {
-  color: rgba(255, 255, 255, 0.9);
+.page-subtitle {
+  font-size: 1rem;
+  color: #6b7280;
   margin: 0;
-  font-size: 1.1rem;
 }
 
-.header-actions {
-  display: flex;
-  gap: 15px;
-}
-
-.billing-link,
-.back-link {
+.back-link-modern {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   padding: 12px 24px;
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
+  background: white;
+  color: #374151;
   text-decoration: none;
-  border-radius: 8px;
+  border-radius: 10px;
   font-weight: 600;
+  font-size: 0.95rem;
   transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 2px solid #e5e7eb;
 }
 
-.billing-link:hover,
-.back-link:hover {
-  background: rgba(255, 255, 255, 0.3);
+.back-link-modern:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
   transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
-.billing-icon,
 .back-icon {
   font-size: 1.2rem;
+  font-weight: 700;
 }
 
+/* Loading, Error, Empty States */
 .loading-container,
 .error-container,
 .empty-state {
   text-align: center;
   padding: 60px 20px;
-  color: white;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.loading-container {
+  color: #6b7280;
 }
 
 .loading-spinner {
   width: 50px;
   height: 50px;
-  border: 4px solid rgba(255, 255, 255, 0.3);
-  border-top: 4px solid white;
+  border: 4px solid #f3f4f6;
+  border-top: 4px solid #3b82f6;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto 20px;
@@ -613,11 +636,10 @@ onMounted(() => {
 }
 
 .error-container {
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  border-radius: 16px;
+  background: white;
+  border-radius: 12px;
   padding: 40px;
-  margin: 40px 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .error-icon {
@@ -627,12 +649,13 @@ onMounted(() => {
 
 .error-container h3 {
   margin: 0 0 10px 0;
-  color: white;
+  color: #1f2937;
+  font-size: 1.5rem;
 }
 
 .error-container p {
   margin: 0 0 20px 0;
-  color: rgba(255, 255, 255, 0.9);
+  color: #6b7280;
 }
 
 .retry-button {
@@ -651,52 +674,125 @@ onMounted(() => {
   transform: translateY(-2px);
 }
 
-.summary-card {
-  background: white;
-  border-radius: 16px;
-  padding: 30px;
-  margin-bottom: 30px;
-  display: flex;
-  justify-content: space-around;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+/* Summary Cards */
+.billing-listing {
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-.summary-item {
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-bottom: 32px;
+}
+
+.summary-card-modern {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: all 0.3s ease;
+}
+
+.summary-card-modern:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.summary-icon {
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f3f4f6;
+  border-radius: 12px;
+}
+
+.summary-content {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 10px;
+  gap: 4px;
+  flex: 1;
 }
 
 .summary-label {
-  color: #666;
-  font-size: 0.9rem;
+  color: #6b7280;
+  font-size: 0.875rem;
   font-weight: 500;
 }
 
 .summary-value {
-  color: #667eea;
-  font-size: 2rem;
+  color: #1f2937;
+  font-size: 1.75rem;
   font-weight: 700;
+}
+
+/* Section Container */
+.section-container-modern {
+  margin-bottom: 40px;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.section-header-modern {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 16px 30px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.section-title-modern {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  color: #1f2937;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.section-count-modern {
+  color: #6b7280;
+  font-size: 0.95rem;
+  font-weight: 500;
 }
 
 .invoices-list {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
+  margin-top: 0;
 }
 
 .invoice-card {
   background: white;
-  border-radius: 16px;
-  padding: 30px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  padding: 24px 30px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e5e7eb;
   transition: all 0.3s ease;
 }
 
 .invoice-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
 }
 
 .invoice-header {
@@ -705,19 +801,20 @@ onMounted(() => {
   align-items: flex-start;
   margin-bottom: 20px;
   padding-bottom: 20px;
-  border-bottom: 2px solid #f0f0f0;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .invoice-info {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  flex: 1;
 }
 
 .invoice-number {
   margin: 0;
-  color: #333;
-  font-size: 1.3rem;
+  color: #1f2937;
+  font-size: 1.25rem;
   font-weight: 700;
 }
 
@@ -725,8 +822,9 @@ onMounted(() => {
   display: inline-block;
   padding: 6px 12px;
   border-radius: 20px;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 600;
+  width: fit-content;
 }
 
 .status-paid {
@@ -753,54 +851,56 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 5px;
+  gap: 4px;
+  flex-shrink: 0;
 }
 
 .amount-value {
-  color: #667eea;
-  font-size: 2rem;
+  color: #10b981;
+  font-size: 1.75rem;
   font-weight: 700;
 }
 
 .amount-currency {
-  color: #666;
-  font-size: 0.9rem;
+  color: #6b7280;
+  font-size: 0.875rem;
+  font-weight: 500;
 }
 
 .invoice-details {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 15px;
+  gap: 16px;
   margin-bottom: 20px;
 }
 
 .detail-item {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
 }
 
 .detail-label {
-  color: #666;
-  font-size: 0.85rem;
+  color: #6b7280;
+  font-size: 0.875rem;
   font-weight: 500;
 }
 
 .detail-value {
-  color: #333;
-  font-size: 1rem;
+  color: #1f2937;
+  font-size: 0.95rem;
   font-weight: 600;
 }
 
 .invoice-lines {
   margin-top: 20px;
   padding-top: 20px;
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid #e5e7eb;
 }
 
 .lines-title {
-  margin: 0 0 15px 0;
-  color: #333;
+  margin: 0 0 16px 0;
+  color: #1f2937;
   font-size: 1.1rem;
   font-weight: 600;
 }
@@ -809,52 +909,66 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px;
-  background: #f8f9fa;
+  padding: 12px 16px;
+  background: #f9fafb;
   border-radius: 8px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
+  border: 1px solid #e5e7eb;
 }
 
 .line-info {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 4px;
+  flex: 1;
 }
 
 .line-description {
-  color: #333;
+  color: #1f2937;
   font-weight: 500;
+  font-size: 0.95rem;
 }
 
 .line-quantity {
-  color: #666;
-  font-size: 0.85rem;
+  color: #6b7280;
+  font-size: 0.875rem;
 }
 
 .line-amount {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 5px;
+  gap: 4px;
+  flex-shrink: 0;
 }
 
 .line-amount span:first-child {
-  color: #667eea;
+  color: #10b981;
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 1rem;
 }
 
 .line-product {
-  color: #666;
-  font-size: 0.85rem;
+  color: #6b7280;
+  font-size: 0.875rem;
 }
 
 .invoice-actions {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   margin-top: 20px;
   padding-top: 20px;
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid #e5e7eb;
+}
+
+.action-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #6b7280;
+  font-size: 0.875rem;
+  font-weight: 500;
+  font-style: italic;
 }
 
 .action-button {
@@ -864,19 +978,24 @@ onMounted(() => {
   text-decoration: none;
   text-align: center;
   font-weight: 600;
+  font-size: 0.95rem;
   transition: all 0.3s ease;
   border: none;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .view-button {
-  background: #667eea;
+  background: #3b82f6;
   color: white;
 }
 
 .view-button:hover {
-  background: #5568d3;
+  background: #2563eb;
   transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .download-button {
@@ -887,62 +1006,75 @@ onMounted(() => {
 .download-button:hover {
   background: #059669;
   transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
 .pagination-container {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 40px;
-  padding: 20px;
+  margin-top: 32px;
+  padding: 16px 24px;
   background: white;
-  border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e5e7eb;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .pagination-button {
-  padding: 12px 24px;
-  background: #667eea;
+  padding: 10px 20px;
+  background: #3b82f6;
   color: white;
   border: none;
   border-radius: 8px;
   font-weight: 600;
+  font-size: 0.95rem;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .pagination-button:hover:not(:disabled) {
-  background: #5568d3;
+  background: #2563eb;
   transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .pagination-button:disabled {
   background: #e5e7eb;
   color: #9ca3af;
   cursor: not-allowed;
+  opacity: 0.6;
 }
 
 .pagination-info {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 5px;
-  color: #333;
+  gap: 4px;
+  color: #1f2937;
   font-weight: 600;
+  font-size: 0.95rem;
 }
 
 .pagination-total {
-  color: #666;
-  font-size: 0.9rem;
+  color: #6b7280;
+  font-size: 0.875rem;
   font-weight: 400;
 }
 
 .empty-state {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
+  background: white;
+  border-radius: 12px;
   padding: 60px 40px;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e5e7eb;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .empty-icon {
@@ -952,54 +1084,19 @@ onMounted(() => {
 
 .empty-state h3 {
   margin: 0 0 10px 0;
-  color: white;
-  font-size: 1.5rem;
-}
-
-.empty-state p {
-  margin: 0 0 30px 0;
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.empty-state .back-link {
-  display: inline-flex;
-}
-
-/* Seções separadas */
-.section-container {
-  margin-bottom: 40px;
-}
-
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  padding: 20px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.section-title {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 0;
-  color: white;
+  color: #1f2937;
   font-size: 1.5rem;
   font-weight: 700;
 }
 
-.section-icon {
-  font-size: 1.8rem;
+.empty-state p {
+  margin: 0 0 30px 0;
+  color: #6b7280;
+  font-size: 1rem;
 }
 
-.section-count {
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 1rem;
-  font-weight: 500;
+.empty-state .back-link-modern {
+  display: inline-flex;
 }
 
 .lifetime-card {
@@ -1007,18 +1104,18 @@ onMounted(() => {
 }
 
 .subscription-card {
-  border-left: 4px solid #667eea;
+  border-left: 4px solid #3b82f6;
 }
 
+/* Responsividade */
 @media (max-width: 768px) {
-  .page-header {
+  .header-content {
     flex-direction: column;
     align-items: flex-start;
   }
 
-  .summary-card {
-    flex-direction: column;
-    gap: 20px;
+  .summary-cards {
+    grid-template-columns: 1fr;
   }
 
   .invoice-header {
@@ -1045,6 +1142,12 @@ onMounted(() => {
 
   .pagination-info {
     order: -1;
+  }
+
+  .section-header-modern {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
   }
 }
 </style>
