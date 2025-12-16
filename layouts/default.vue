@@ -99,6 +99,7 @@ export default {
         { title: "Jogadores", link: "/players" },
         { title: "Times", link: "/teams" },
         { title: "Treinos", link: "/trainings" },
+        { title: "Pagamentos", link: "/payment" },
       ],
       dropdownOpen: false,
       openNotificationModal: false,
