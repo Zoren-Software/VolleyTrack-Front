@@ -6,6 +6,29 @@
           <span class="logo-icon">🏐</span>
         </div>
         <span class="system-name">VolleyTrack</span>
+        <!-- Ícone do Plano Ativo -->
+        <div v-if="activePlanIcon" class="plan-icon-logo">
+          <div class="plan-icon-wrapper">
+            <va-icon
+              :name="activePlanIcon"
+              :color="activePlanColor"
+              class="plan-icon-menu"
+            />
+            <div class="plan-tooltip-custom">
+              <div class="plan-tooltip-title">
+                <va-icon
+                  :name="activePlanIcon"
+                  :color="activePlanColor"
+                  size="16px"
+                />
+                <span>{{ activePlanName }}</span>
+              </div>
+              <div class="plan-tooltip-content">
+                <p class="plan-tooltip-message">Plano ativo da sua conta</p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
     <div class="top-bar-center">
@@ -85,6 +108,7 @@ import ZListItemsNotification from "~/components/organisms/List/Notification/ZLi
 import ZListItemsUser from "~/components/molecules/List/ZListItemsUser.vue";
 import NOTIFICATIONSTOTAL from "~/graphql/notification/query/notificationsTotal.graphql";
 import ME from "~/graphql/user/query/me.graphql";
+import { getActivePlan } from "~/services/stripeCheckoutService.js";
 
 export default {
   components: {
@@ -109,16 +133,155 @@ export default {
         id: null,
         name: "Usuário",
       },
+      activePlanData: null,
     };
   },
   computed: {
     firstLatter() {
       return this.user.name?.charAt(0)?.toUpperCase() || "U";
     },
+    activePlanIcon() {
+      if (!this.activePlanData) {
+        console.log("🔍 activePlanIcon: activePlanData é null");
+        return null;
+      }
+
+      console.log("🔍 activePlanIcon - activePlanData:", this.activePlanData);
+
+      // Verificar se tem produto
+      const product = this.activePlanData.product;
+      if (!product) {
+        console.log("🔍 activePlanIcon: product não encontrado");
+        return null;
+      }
+
+      console.log("🔍 activePlanIcon - product:", product);
+
+      // Normalizar metadata
+      let metadata = {};
+      if (product.metadata) {
+        if (typeof product.metadata === "string") {
+          try {
+            metadata = JSON.parse(product.metadata || "{}");
+          } catch (e) {
+            console.warn("Erro ao fazer parse de metadata:", e);
+            metadata = {};
+          }
+        } else {
+          metadata = product.metadata;
+        }
+      }
+
+      console.log("🔍 activePlanIcon - metadata:", metadata);
+
+      // Tentar obter plan_type de várias fontes
+      const planType =
+        metadata.plan_type ||
+        this.activePlanData.plan_type ||
+        (product.name && product.name.toLowerCase().includes("trial")
+          ? "trial"
+          : null) ||
+        (product.name && product.name.toLowerCase().includes("pro")
+          ? "pro"
+          : null) ||
+        (product.name && product.name.toLowerCase().includes("clubes")
+          ? "clubes"
+          : null) ||
+        ((product.name && product.name.toLowerCase().includes("vitalício")) ||
+        product.name.toLowerCase().includes("lifetime")
+          ? "lifetime"
+          : null);
+
+      console.log("🔍 activePlanIcon - planType detectado:", planType);
+
+      // Determinar ícone baseado no tipo de plano
+      if (planType === "trial") {
+        console.log("✅ activePlanIcon retornando: card_giftcard");
+        return "card_giftcard";
+      }
+      if (planType === "pro") {
+        console.log("✅ activePlanIcon retornando: star");
+        return "star";
+      }
+      if (planType === "clubes") {
+        console.log("✅ activePlanIcon retornando: emoji_events");
+        return "emoji_events";
+      }
+      if (
+        planType === "lifetime" ||
+        this.activePlanData.plan_type === "one_time_payment"
+      ) {
+        console.log("✅ activePlanIcon retornando: diamond");
+        return "diamond";
+      }
+
+      // Fallback: tentar detectar pelo nome do produto
+      const productName = (product.name || "").toLowerCase();
+      if (productName.includes("trial")) {
+        console.log(
+          "✅ activePlanIcon retornando: card_giftcard (detectado pelo nome)"
+        );
+        return "card_giftcard";
+      }
+      if (productName.includes("pro")) {
+        console.log("✅ activePlanIcon retornando: star (detectado pelo nome)");
+        return "star";
+      }
+      if (productName.includes("clubes") || productName.includes("clube")) {
+        console.log(
+          "✅ activePlanIcon retornando: emoji_events (detectado pelo nome)"
+        );
+        return "emoji_events";
+      }
+      if (
+        productName.includes("vitalício") ||
+        productName.includes("lifetime")
+      ) {
+        console.log(
+          "✅ activePlanIcon retornando: diamond (detectado pelo nome)"
+        );
+        return "diamond";
+      }
+
+      console.log("⚠️ activePlanIcon: nenhum tipo de plano detectado");
+      return null;
+    },
+    activePlanColor() {
+      if (!this.activePlanData || !this.activePlanData.product) {
+        return "#6b7280";
+      }
+
+      // Normalizar metadata
+      const metadata = this.activePlanData.product.metadata || {};
+      const planType =
+        typeof metadata === "string"
+          ? JSON.parse(metadata || "{}").plan_type
+          : metadata.plan_type;
+
+      // Determinar cor baseado no tipo de plano
+      if (planType === "trial") return "#e9742b";
+      if (planType === "pro") return "#3b82f6";
+      if (planType === "clubes") return "#10b981";
+      if (
+        planType === "lifetime" ||
+        this.activePlanData.plan_type === "one_time_payment"
+      )
+        return "#2563eb";
+
+      return "#6b7280";
+    },
+    activePlanName() {
+      if (!this.activePlanData || !this.activePlanData.product) {
+        return "Sem plano ativo";
+      }
+
+      return this.activePlanData.product.name || "Plano Ativo";
+    },
   },
   mounted() {
     this.notificationsTotal();
     this.getUser();
+    this.loadActivePlan();
   },
   methods: {
     openDropdown() {
@@ -193,6 +356,33 @@ export default {
         }
       }
     },
+    async loadActivePlan() {
+      try {
+        const token =
+          localStorage.getItem("userToken") ||
+          localStorage.getItem("apollo:default.token");
+        if (!token) {
+          console.log("⚠️ Token não encontrado para carregar plano ativo");
+          return;
+        }
+
+        const tenantId = localStorage.getItem("tenant_id") || "default";
+        console.log("🔍 Carregando plano ativo - tenantId:", tenantId);
+
+        const result = await getActivePlan(token, tenantId);
+        console.log("🔍 Resultado do getActivePlan:", result);
+
+        if (result.success && result.data) {
+          this.activePlanData = result.data;
+          console.log("✅ Plano ativo carregado no menu:", result.data);
+          console.log("🔍 activePlanIcon será:", this.activePlanIcon);
+        } else {
+          console.log("⚠️ Plano ativo não encontrado ou erro:", result);
+        }
+      } catch (error) {
+        console.error("❌ Erro ao carregar plano ativo no menu:", error);
+      }
+    },
   },
 };
 </script>
@@ -216,6 +406,8 @@ export default {
 .logo {
   display: flex;
   align-items: center;
+  gap: 12px;
+  position: relative;
 }
 
 .logo-circle {
@@ -237,7 +429,94 @@ export default {
   color: #ffffff;
   font-weight: bold;
   font-size: 1.2rem;
-  margin-left: 8px;
+  margin-left: 0;
+}
+
+.plan-icon-logo {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  margin-left: 4px;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.plan-icon-wrapper {
+  position: relative;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.plan-icon-menu {
+  font-size: 24px !important;
+  transition: transform 0.2s ease;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.plan-icon-menu:hover {
+  transform: scale(1.1);
+}
+
+/* Tooltip customizado com CSS puro */
+.plan-tooltip-custom {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 8px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 12px 16px;
+  min-width: 200px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+.plan-tooltip-custom::before {
+  content: "";
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-bottom-color: white;
+}
+
+.plan-icon-wrapper:hover .plan-tooltip-custom {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Tooltip do Plano */
+.plan-tooltip-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: #1f2937;
+  font-size: 1rem;
+}
+
+.plan-tooltip-content {
+  padding-top: 4px;
+}
+
+.plan-tooltip-message {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.875rem;
+  font-weight: 500;
 }
 
 .top-bar-center {
