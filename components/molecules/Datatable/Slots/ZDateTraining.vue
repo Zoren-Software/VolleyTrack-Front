@@ -1,32 +1,29 @@
 <template>
-  <div class="row justify-start">
-    <div class="flex flex-col xs2">
-      <div class="item">
-        <div class="pl-2">
-          <div class="flex gap-1 mb-1">
-            <span
-              ><b>{{ formatDateRange(dateStart, dateEnd).date }}</b></span
-            >
-          </div>
-          <div class="flex gap-1 mb-1">
-            <span>{{ formatDateRange(dateStart, dateEnd).time }}</span>
-          </div>
-        </div>
-      </div>
+  <div class="date-training-container">
+    <div class="date-section">
+      <va-icon name="event" size="small" color="secondary" class="date-icon" />
+      <span class="date-text">{{
+        formatDateRange(dateStart, dateEnd).date
+      }}</span>
+    </div>
+    <div class="time-section">
+      <va-icon
+        name="schedule"
+        size="small"
+        color="secondary"
+        class="time-icon"
+      />
+      <span class="time-text">{{
+        formatDateRange(dateStart, dateEnd).time
+      }}</span>
     </div>
   </div>
 </template>
 
 <script>
-import ZBadge from "~/components/atoms/Badges/ZBadge";
-import ZButton from "~/components/atoms/Buttons/ZButton";
 import moment from "moment";
 
 export default {
-  components: {
-    ZBadge,
-    ZButton,
-  },
   props: {
     dateStart: {
       type: Object,
@@ -61,3 +58,37 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.date-training-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.date-section,
+.time-section {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.date-icon,
+.time-icon {
+  flex-shrink: 0;
+}
+
+.date-text {
+  color: #0b1e3a;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.time-text {
+  color: #6c757d;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.4;
+}
+</style>
