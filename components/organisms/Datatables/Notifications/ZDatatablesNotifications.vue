@@ -18,6 +18,14 @@
         </div>
         <div class="actions-section">
           <va-button
+            color="#E9742B"
+            class="search-button"
+            @click="getNotifications({ fetchPolicy: 'network-only' })"
+          >
+            <va-icon name="search" class="button-icon" />
+            <span class="button-text">Pesquisar</span>
+          </va-button>
+          <va-button
             color="danger"
             class="read-all-button"
             @click="readAllNotifications"
@@ -457,6 +465,52 @@ export default defineComponent({
   display: flex;
   gap: 12px;
   align-items: center;
+}
+
+.actions-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+}
+
+.search-button {
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-weight: 500;
+  white-space: nowrap;
+  background-color: #e9742b !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(233, 116, 43, 0.3);
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  height: 40px;
+}
+
+.search-button:hover {
+  background-color: #d6652a !important;
+  box-shadow: 0 4px 12px rgba(233, 116, 43, 0.4);
+  transform: translateY(-1px);
+}
+
+.search-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(233, 116, 43, 0.3);
+}
+
+.search-button .button-icon {
+  font-size: 18px;
+  color: #ffffff;
+}
+
+.search-button .button-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: #ffffff;
 }
 
 .read-all-button {

@@ -8,7 +8,7 @@
           <ZDataTableInputSearch
             v-model="internalSearchValue"
             placeholder="Nome do time..."
-    @actionSearch="handleSearch"
+            @actionSearch="handleSearch"
           />
         </div>
         <div class="filters-section">
@@ -29,6 +29,16 @@
               v-model="variablesGetTeams.filter.playersIds"
             />
           </div>
+        </div>
+        <div class="filter-actions">
+          <va-button
+            color="#E9742B"
+            class="search-button"
+            @click="handleSearch"
+          >
+            <va-icon name="search" class="button-icon" />
+            <span class="button-text">Pesquisar</span>
+          </va-button>
         </div>
       </div>
     </va-card>
@@ -56,28 +66,28 @@
       @deletes="deleteTeams"
       @update:currentPageActive="updateCurrentPageActive"
     >
-    <!-- CELL -->
-    <template #cell(team)="{ rowKey }">
-      <ZTeam :data="rowKey" />
-    </template>
-    <template #cell(category)="{ rowKey: { teamCategory } }">
-      <ZBadgeCustom
-        :text="teamCategory?.name || 'Sem Categoria'"
-        backgroundColor="#F5F5F5"
-        textColor="#000000"
-      />
-    </template>
-    <template #cell(level)="{ rowKey: { teamLevel } }">
-      <ZBadgeCustom
-        :text="teamLevel?.name || 'Sem Nível Técnico'"
-        backgroundColor="#F5F5F5"
-        textColor="#000000"
-      />
-    </template>
-    <template #cell(players)="{ rowKey: { players } }">
-      <span>{{ players?.length || 0 }} Jogadores</span>
-    </template>
-  </ZDatatableGeneric>
+      <!-- CELL -->
+      <template #cell(team)="{ rowKey }">
+        <ZTeam :data="rowKey" />
+      </template>
+      <template #cell(category)="{ rowKey: { teamCategory } }">
+        <ZBadgeCustom
+          :text="teamCategory?.name || 'Sem Categoria'"
+          backgroundColor="#F5F5F5"
+          textColor="#000000"
+        />
+      </template>
+      <template #cell(level)="{ rowKey: { teamLevel } }">
+        <ZBadgeCustom
+          :text="teamLevel?.name || 'Sem Nível Técnico'"
+          backgroundColor="#F5F5F5"
+          textColor="#000000"
+        />
+      </template>
+      <template #cell(players)="{ rowKey: { players } }">
+        <span>{{ players?.length || 0 }} Jogadores</span>
+      </template>
+    </ZDatatableGeneric>
 
     <!-- Summary Cards -->
     <div class="summary-cards">
@@ -374,15 +384,15 @@ export default defineComponent({
           perPage: 10,
         };
         this.items = (value.teams.data || []).map((team) => ({
-            ...team,
-            teamCategory: team.teamCategory || { name: "Sem Categoria" },
-            teamLevel: team.teamLevel || { name: "Sem Nível Técnico" },
-            players: team.players || [],
+          ...team,
+          teamCategory: team.teamCategory || { name: "Sem Categoria" },
+          teamLevel: team.teamLevel || { name: "Sem Nível Técnico" },
+          players: team.players || [],
         }));
       } else if (value && !value.teams) {
         // Se value existe mas não tem teams, pode ser que ainda esteja carregando
         // ou que não há dados
-      this.loading = false;
+        this.loading = false;
         this.items = [];
       }
     },
@@ -409,6 +419,7 @@ export default defineComponent({
   gap: 20px;
   align-items: flex-end;
   flex-wrap: wrap;
+  justify-content: space-between;
 }
 
 .search-section {
@@ -448,6 +459,51 @@ export default defineComponent({
   font-weight: 500;
   color: #0b1e3a;
   margin-bottom: 8px;
+}
+
+.filter-actions {
+  display: flex;
+  align-items: flex-end;
+  margin-left: auto;
+}
+
+.search-button {
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-weight: 500;
+  white-space: nowrap;
+  background-color: #e9742b !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(233, 116, 43, 0.3);
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  height: 40px;
+}
+
+.search-button:hover {
+  background-color: #d6652a !important;
+  box-shadow: 0 4px 12px rgba(233, 116, 43, 0.4);
+  transform: translateY(-1px);
+}
+
+.search-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(233, 116, 43, 0.3);
+}
+
+.search-button .button-icon {
+  font-size: 18px;
+  color: #ffffff;
+}
+
+.search-button .button-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: #ffffff;
 }
 
 .summary-cards {

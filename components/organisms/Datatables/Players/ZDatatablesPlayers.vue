@@ -28,6 +28,23 @@
               :teamsIds="variablesGetPlayers.filter.teamsIds"
             />
           </div>
+          <div class="filter-item">
+            <label class="filter-label">Função</label>
+            <ZSelectRole
+              label=""
+              v-model="variablesGetPlayers.filter.rolesIds"
+            />
+          </div>
+        </div>
+        <div class="filter-actions">
+          <va-button
+            color="#E9742B"
+            class="search-button"
+            @click="handleSearch"
+          >
+            <va-icon name="search" class="button-icon" />
+            <span class="button-text">Pesquisar</span>
+          </va-button>
         </div>
       </div>
     </va-card>
@@ -162,12 +179,14 @@ import PLAYERS from "~/graphql/user/query/users.graphql";
 import ZDatatableGeneric from "~/components/molecules/Datatable/ZDatatableGeneric";
 import ZSelectPosition from "~/components/molecules/Selects/ZSelectPosition";
 import ZSelectTeam from "~/components/molecules/Selects/ZSelectTeam";
+import ZSelectRole from "~/components/molecules/Selects/ZSelectRole";
 import ZDataTableInputSearch from "~/components/molecules/Datatable/ZDataTableInputSearch";
 import ZUser from "~/components/molecules/Datatable/Slots/ZUser";
 import ZPosition from "~/components/molecules/Datatable/Slots/ZPosition";
 import ZCPF from "~/components/molecules/Datatable/Slots/ZCPF";
 import ZTeam from "~/components/molecules/Datatable/Slots/ZTeam";
 import USERDELETE from "~/graphql/user/mutation/userDelete.graphql";
+import ROLES from "~/graphql/role/query/roles.graphql";
 import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
 
 //import { toRaw } from "vue"; // NOTE - Para debug
@@ -181,10 +200,12 @@ export default defineComponent({
     ZTeam,
     ZSelectPosition,
     ZSelectTeam,
+    ZSelectRole,
     ZDataTableInputSearch,
   },
 
-  created() {
+  async created() {
+    await this.setDefaultRoleFilter();
     this.getPlayers();
   },
 
@@ -224,6 +245,7 @@ export default defineComponent({
           search: "%%",
           positionsIds: [],
           teamsIds: [],
+          rolesIds: [],
         },
         orderBy: "id",
         sortedBy: "desc",
@@ -343,6 +365,7 @@ export default defineComponent({
         search: "%%",
         positionsIds: [],
         teamsIds: [],
+        rolesIds: [],
       };
       // Recarregar dados após limpar filtros
       this.getPlayers({ fetchPolicy: "network-only" });
@@ -366,12 +389,18 @@ export default defineComponent({
           (team) => team?.value || team
         ) || [];
 
+      let rolesIdsValues =
+        this.variablesGetPlayers.filter.rolesIds?.map(
+          (role) => role?.value || role?.id || role
+        ) || [];
+
       const consult = {
         ...this.variablesGetPlayers,
         filter: {
           ...this.variablesGetPlayers.filter,
           positionsIds: positionsIdsValues,
           teamsIds: teamsIdsValues,
+          rolesIds: rolesIdsValues,
         },
       };
 
@@ -420,6 +449,50 @@ export default defineComponent({
       // Fallback: usar cores rotativas se não identificar
       const colors = ["team-tag-orange", "team-tag-blue", "team-tag-green"];
       return colors[index % colors.length];
+    },
+    async setDefaultRoleFilter() {
+      try {
+        // Buscar a role "jogadores" para definir como filtro padrão
+        const query = gql`
+          ${ROLES}
+        `;
+
+        const variables = {
+          page: 1,
+          first: 100,
+          filter: {
+            search: "%%",
+          },
+        };
+
+        return new Promise((resolve) => {
+          const { onResult } = useQuery(query, variables);
+          onResult((result) => {
+            if (result?.data?.roles?.data) {
+              // Procurar role "jogadores" (case insensitive)
+              const jogadorRole = result.data.roles.data.find((role) =>
+                role.name.toLowerCase().includes("jogador")
+              );
+
+              if (jogadorRole) {
+                // Definir como filtro padrão
+                this.variablesGetPlayers.filter.rolesIds = [
+                  {
+                    text: jogadorRole.name,
+                    value: Number(jogadorRole.id),
+                    id: Number(jogadorRole.id),
+                  },
+                ];
+                console.log("✅ Filtro padrão de role 'jogadores' definido");
+              }
+            }
+            resolve();
+          });
+        });
+      } catch (error) {
+        console.error("Erro ao buscar role padrão:", error);
+        // Continuar sem filtro padrão em caso de erro
+      }
     },
   },
 });
@@ -617,6 +690,7 @@ export default defineComponent({
   gap: 20px;
   align-items: flex-end;
   flex-wrap: wrap;
+  justify-content: space-between;
 }
 
 .search-section {
@@ -656,6 +730,51 @@ export default defineComponent({
   font-weight: 500;
   color: #0b1e3a;
   margin-bottom: 8px;
+}
+
+.filter-actions {
+  display: flex;
+  align-items: flex-end;
+  margin-left: auto;
+}
+
+.search-button {
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-weight: 500;
+  white-space: nowrap;
+  background-color: #e9742b !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(233, 116, 43, 0.3);
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  height: 40px;
+}
+
+.search-button:hover {
+  background-color: #d6652a !important;
+  box-shadow: 0 4px 12px rgba(233, 116, 43, 0.4);
+  transform: translateY(-1px);
+}
+
+.search-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(233, 116, 43, 0.3);
+}
+
+.search-button .button-icon {
+  font-size: 18px;
+  color: #ffffff;
+}
+
+.search-button .button-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: #ffffff;
 }
 
 .summary-cards {
