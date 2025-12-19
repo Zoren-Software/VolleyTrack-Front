@@ -1,44 +1,6 @@
 <template>
   <div class="subscription-plans-page">
     <div class="container">
-      <!-- Status da Validação do Email -->
-      <div class="email-validation-status">
-        <div v-if="emailValidation.loading" class="validation-loading">
-          <div class="loading-spinner" />
-          <p>Validando seu email...</p>
-        </div>
-
-        <div
-          v-else-if="emailValidation.validated && !emailValidation.valid"
-          class="validation-error"
-        >
-          <div class="validation-content">
-            <div class="validation-header">
-              <div class="validation-icon">❌</div>
-              <h3>E-mail Não Encontrado</h3>
-            </div>
-            <p>
-              Seu e-mail não está registrado como administrador. Entre em
-              contato com o suporte para prosseguir com o pagamento.
-            </p>
-            <button class="retry-button" @click="validateCustomerEmailGraphQL">
-              Tentar Novamente
-            </button>
-          </div>
-        </div>
-
-        <div v-else-if="emailValidation.error" class="validation-error">
-          <div class="validation-icon">⚠️</div>
-          <div class="validation-content">
-            <h3>Erro na Validação</h3>
-            <p>{{ emailValidation.error }}</p>
-            <button class="retry-button" @click="validateCustomerEmailGraphQL">
-              Tentar Novamente
-            </button>
-          </div>
-        </div>
-      </div>
-
       <!-- Mensagem de Sucesso Discreta (Canto Inferior Esquerdo) -->
       <div
         v-if="emailValidation.validated && emailValidation.valid"
@@ -46,6 +8,18 @@
       >
         <div class="validation-icon-small">✅</div>
         <span>E-mail válido - Pronto para pagamento</span>
+      </div>
+
+      <!-- Mensagem de Erro Discreta (Canto Inferior Esquerdo) -->
+      <div
+        v-if="emailValidation.validated && !emailValidation.valid"
+        class="validation-error-discrete-fixed"
+      >
+        <div class="validation-icon-small">❌</div>
+        <span
+          >Seu usuário é inválido para trocar o plano, entre em contato com o
+          suporte se for necessário rever isso</span
+        >
       </div>
 
       <!-- Header -->
@@ -2902,6 +2876,35 @@ p {
 }
 
 .validation-success-discrete-fixed .validation-icon-small {
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+.validation-error-discrete-fixed {
+  position: fixed;
+  bottom: 16px;
+  left: 16px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 6px;
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: #dc2626;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  backdrop-filter: blur(8px);
+  opacity: 0.85;
+  transition: opacity 0.3s ease;
+}
+
+.validation-error-discrete-fixed:hover {
+  opacity: 1;
+}
+
+.validation-error-discrete-fixed .validation-icon-small {
   font-size: 0.75rem;
   opacity: 0.8;
 }

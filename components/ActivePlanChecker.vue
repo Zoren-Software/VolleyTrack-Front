@@ -314,6 +314,7 @@
 import { ref, onMounted, onUnmounted, computed } from "vue";
 import { getActivePlan } from "~/services/stripeCheckoutService.js";
 import Swal from "sweetalert2";
+import { useUser } from "~/composables/useUser";
 
 const config = useRuntimeConfig();
 const apiEndpoint = config.public.apiEndpoint;
@@ -805,6 +806,92 @@ const getRecurringInterval = (interval) => {
 // Ações do usuário
 const manageSubscription = async () => {
   console.log("🔄 Iniciando cancelamento de assinatura...");
+
+  // Validar email do usuário antes de permitir cancelamento
+  try {
+    const { getUserEmail } = useUser();
+    const userEmail = getUserEmail();
+
+    if (!userEmail) {
+      throw new Error("Email do usuário não encontrado");
+    }
+
+    // Validar email via API
+    const token = getAuthToken();
+    if (!token) {
+      throw new Error("Token de autenticação não encontrado");
+    }
+
+    const tenantId = props.tenantId || localStorage.getItem("tenant_id");
+    const validateResponse = await fetch(
+      `${
+        process.env.NUXT_PUBLIC_API_URL || "http://volleytrack.local"
+      }/v1/customers/check-email`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          email: userEmail,
+          tenant_id: tenantId,
+        }),
+      }
+    );
+
+    if (!validateResponse.ok) {
+      const errorData = await validateResponse.json();
+      throw new Error(errorData.message || "Erro na validação do email");
+    }
+
+    const validateData = await validateResponse.json();
+
+    if (!validateData.success || !validateData.exists) {
+      // Email inválido - mostrar mensagem discreta e bloquear cancelamento
+      Swal.fire({
+        icon: "error",
+        title: "Ação não permitida",
+        html: `
+          <div style="text-align: left; padding: 10px 0;">
+            <p style="font-size: 1.1rem; margin-bottom: 15px; color: #333;">
+              <strong>❌ Seu usuário é inválido para cancelar o plano</strong>
+            </p>
+            <p style="margin: 15px 0 0 0; font-size: 0.95rem; color: #666;">
+              Entre em contato com o suporte se for necessário rever isso.
+            </p>
+          </div>
+        `,
+        confirmButtonText: "Entendido",
+        confirmButtonColor: "#dc2626",
+        width: "600px",
+      });
+      return;
+    }
+  } catch (error) {
+    console.error("❌ Erro na validação do email:", error);
+
+    // Em caso de erro na validação, também bloquear por segurança
+    Swal.fire({
+      icon: "error",
+      title: "Erro na Validação",
+      html: `
+        <div style="text-align: left; padding: 10px 0;">
+          <p style="font-size: 1.1rem; margin-bottom: 15px; color: #333;">
+            <strong>❌ Seu usuário é inválido para cancelar o plano</strong>
+          </p>
+          <p style="margin: 15px 0 0 0; font-size: 0.95rem; color: #666;">
+            Entre em contato com o suporte se for necessário rever isso.
+          </p>
+        </div>
+      `,
+      confirmButtonText: "Entendido",
+      confirmButtonColor: "#dc2626",
+      width: "600px",
+    });
+    return;
+  }
 
   // Confirmar cancelamento com SweetAlert2
   const { value: confirmed } = await Swal.fire({
