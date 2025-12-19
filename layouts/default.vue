@@ -392,6 +392,10 @@ export default {
   justify-content: space-between;
   padding: 12px 16px;
   border-bottom: 1px solid #c0c0c0;
+  overflow-x: hidden;
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .top-bar-left {
@@ -524,6 +528,7 @@ export default {
   display: flex;
   gap: 16px;
   position: relative;
+  overflow: visible;
 }
 
 .nav-link {
@@ -547,6 +552,7 @@ export default {
 
 .dropdown {
   position: relative;
+  display: inline-block;
 }
 
 .dropdown-menu {
@@ -557,8 +563,10 @@ export default {
   border-radius: 4px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   padding: 8px 0;
-  z-index: 10;
-  white-space: nowrap; /* Evita quebra de texto */
+  z-index: 1000;
+  white-space: nowrap;
+  min-width: 200px;
+  margin-top: 4px;
 }
 
 .dropdown-item {
@@ -681,5 +689,23 @@ export default {
 }
 .content-wrapper {
   padding: 20px;
+  overflow-x: hidden;
+  width: 100%;
+  box-sizing: border-box;
+}
+</style>
+
+<style>
+/* Estilo global para evitar overflow horizontal */
+body,
+html {
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+* {
+  box-sizing: border-box;
 }
 </style>
