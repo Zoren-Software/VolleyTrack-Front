@@ -668,12 +668,16 @@ export default {
   font-weight: 700;
   font-size: 16px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --va-size-computed: 40px !important;
 }
 
 .user-avatar :deep(.va-avatar) {
   border: 2px solid white !important;
   background: #e9742b !important;
   color: white !important;
+  --va-size-computed: 40px !important;
+  width: 40px !important;
+  height: 40px !important;
 }
 
 .user-avatar:hover {
