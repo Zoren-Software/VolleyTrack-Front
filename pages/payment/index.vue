@@ -4423,10 +4423,26 @@ p {
   grid-template-columns: 1fr 0.75fr;
 }
 
-/* Centralizar quando NÃO tiver método de pagamento */
+/* Centralizar quando NÃO tiver método de pagamento (plano free) */
 .active-plan-container:not(:has(.payment-method-section)) {
   grid-template-columns: 1fr;
   max-width: 800px;
+  justify-items: center;
+  place-items: center;
+}
+
+/* Garantir centralização quando só tem active-plan-section (plano free) */
+.active-plan-container:has(.active-plan-section):not(
+    :has(.payment-method-section)
+  )
+  .active-plan-section {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: auto;
 }
 
 .active-plan-section {

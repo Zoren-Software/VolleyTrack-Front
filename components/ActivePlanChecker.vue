@@ -941,11 +941,6 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.active-plan-checker {
-  margin: 0 auto;
-  margin-right: 30px;
-}
-
 .loading,
 .error,
 .no-plan {
