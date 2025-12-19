@@ -33,6 +33,10 @@ query users(
         id
         name
       }
+      roles {
+        id
+        name
+      }
       user {
         id
         name

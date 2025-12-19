@@ -121,6 +121,24 @@
           <span v-else class="no-data-text">-</span>
         </div>
       </template>
+      <template #cell(roles)="{ rowKey: { roles } }">
+        <div class="roles-cell">
+          <template
+            v-if="roles && (Array.isArray(roles) ? roles.length > 0 : roles)"
+          >
+            <span
+              v-for="(role, index) in Array.isArray(roles)
+                ? roles
+                : [roles].filter(Boolean)"
+              :key="role?.id || index"
+              class="role-tag"
+            >
+              {{ role?.name }}
+            </span>
+          </template>
+          <span v-else class="no-data-text">-</span>
+        </div>
+      </template>
     </ZDatatableGeneric>
 
     <!-- Summary Cards -->
@@ -181,6 +199,12 @@ export default defineComponent({
         key: "positions",
         name: "positions",
         label: "POSIÇÕES",
+        sortable: false,
+      },
+      {
+        key: "roles",
+        name: "roles",
+        label: "FUNÇÕES",
         sortable: false,
       },
     ];
@@ -550,6 +574,24 @@ export default defineComponent({
   background-color: #f0f0f0;
   color: #4a5568;
   line-height: 1.3;
+}
+
+.roles-cell {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.role-tag {
+  padding: 4px 10px;
+  border-radius: 16px;
+  font-size: 11px;
+  font-weight: 500;
+  display: inline-block;
+  background-color: #e3f2fd;
+  color: #1976d2;
+  line-height: 1.3;
+  white-space: nowrap;
 }
 
 .no-data-text {
