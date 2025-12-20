@@ -96,7 +96,37 @@
           <div class="summary-icon">
             <va-icon name="groups" size="large" color="#E9742B" />
           </div>
-          <div class="summary-number">{{ paginatorInfo.total || 0 }}</div>
+          <div class="summary-number-wrapper">
+            <div class="summary-number">
+              {{ paginatorInfo.total || 0
+              }}<span
+                v-if="showPlanLimits && planLimits.maxTeams"
+                class="plan-limit"
+              >
+                / {{ planLimits.maxTeams }}</span
+              >
+            </div>
+            <va-popover
+              v-if="showPlanLimits && planLimits.maxTeams"
+              placement="top"
+              trigger="hover"
+              class="plan-popover-wrapper"
+            >
+              <va-icon
+                name="info"
+                size="16px"
+                color="#6c757d"
+                class="plan-info-icon"
+              />
+              <template #title>Limite do Plano</template>
+              <template #body>
+                <p class="plan-popover-text">
+                  Você pode cadastrar até {{ planLimits.maxTeams }} times no seu
+                  plano atual.
+                </p>
+              </template>
+            </va-popover>
+          </div>
           <div class="summary-label">Total de Times</div>
         </div>
       </va-card>
@@ -119,6 +149,7 @@ import ZTeam from "~/components/molecules/Datatable/Slots/ZTeam";
 import ZBadgeCustom from "~/components/molecules/Badges/ZBadgeCustom";
 import TEAMDELETE from "~/graphql/team/mutation/teamDelete.graphql";
 import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
+import { getActivePlan } from "~/services/stripeCheckoutService.js";
 
 //import { toRaw } from "vue"; // NOTE - Para debug
 
@@ -137,6 +168,7 @@ export default defineComponent({
 
   created() {
     this.getTeams();
+    this.loadActivePlan();
   },
 
   data() {
@@ -186,9 +218,51 @@ export default defineComponent({
       selectModeOptions: ["single", "multiple"],
       selectColorOptions: ["primary", "danger", "warning", "#EF467F"],
       internalSearchValue: "",
+      activePlanData: null,
     };
   },
+  computed: {
+    showPlanLimits() {
+      return (
+        this.activePlanData &&
+        this.activePlanData.has_active_plan &&
+        !this.isUnlimitedPlan
+      );
+    },
+    isUnlimitedPlan() {
+      if (!this.activePlanData || !this.activePlanData.product) {
+        return true;
+      }
 
+      const metadata = this.normalizeMetadata(
+        this.activePlanData.product.metadata
+      );
+      const maxPlayers = parseInt(metadata.max_players || "0");
+      const maxTeams = parseInt(metadata.max_teams || "0");
+      const maxTrainings = parseInt(metadata.max_trainings || "0");
+
+      return maxPlayers === 0 && maxTeams === 0 && maxTrainings === 0;
+    },
+    planLimits() {
+      if (!this.activePlanData || !this.activePlanData.product) {
+        return {
+          maxPlayers: null,
+          maxTeams: null,
+          maxTrainings: null,
+        };
+      }
+
+      const metadata = this.normalizeMetadata(
+        this.activePlanData.product.metadata
+      );
+
+      return {
+        maxPlayers: parseInt(metadata.max_players || "0") || null,
+        maxTeams: parseInt(metadata.max_teams || "0") || null,
+        maxTrainings: parseInt(metadata.max_trainings || "0") || null,
+      };
+    },
+  },
   methods: {
     unselectItem(item) {
       this.selectedItems = this.selectedItems.filter(
@@ -396,6 +470,45 @@ export default defineComponent({
         this.items = [];
       }
     },
+    async loadActivePlan() {
+      try {
+        const token =
+          localStorage.getItem("userToken") ||
+          localStorage.getItem("apollo:default.token");
+        if (!token) {
+          console.log("⚠️ Token não encontrado para carregar plano ativo");
+          return;
+        }
+
+        const tenantId = localStorage.getItem("tenant_id") || "default";
+        console.log("🔍 Carregando plano ativo - tenantId:", tenantId);
+
+        const result = await getActivePlan(token, tenantId);
+        console.log("🔍 Resultado do getActivePlan:", result);
+
+        if (result.success && result.data) {
+          this.activePlanData = result.data;
+          console.log("✅ Plano ativo carregado:", result.data);
+        } else {
+          console.log("⚠️ Plano ativo não encontrado ou erro:", result);
+        }
+      } catch (error) {
+        console.error("❌ Erro ao carregar plano ativo:", error);
+      }
+    },
+    normalizeMetadata(metadata) {
+      if (!metadata) return {};
+
+      if (typeof metadata === "string") {
+        try {
+          return JSON.parse(metadata);
+        } catch (e) {
+          return {};
+        }
+      }
+
+      return metadata;
+    },
   },
 });
 </script>
@@ -532,10 +645,47 @@ export default defineComponent({
   margin-bottom: 8px;
 }
 
+.summary-number-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
 .summary-number {
   font-size: 36px;
   font-weight: 700;
   color: #0b1e3a;
+}
+
+.plan-limit {
+  color: #9e9e9e;
+  font-weight: 500;
+  font-size: 30px;
+}
+
+.plan-popover-wrapper {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+}
+
+.plan-info-icon {
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+
+.plan-info-icon:hover {
+  opacity: 1;
+}
+
+.plan-popover-text {
+  font-size: 13px;
+  color: #6c757d;
+  margin: 0;
+  line-height: 1.4;
 }
 
 .summary-label {
