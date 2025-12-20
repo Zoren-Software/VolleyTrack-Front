@@ -41,14 +41,13 @@
         >
           {{ item.title }}
         </NuxtLink>
-        <div
-          class="dropdown"
-          @mouseover="openDropdown"
-          @mouseleave="closeDropdown"
-        >
+        <div class="dropdown" ref="dropdownRef" @click.stop="toggleDropdown">
           <span class="nav-link dropdown-toggle"> Configurações </span>
-          <div v-if="dropdownOpen" class="dropdown-menu">
-            <NuxtLink to="/settings" class="dropdown-item"
+          <div v-if="dropdownOpen" class="dropdown-menu" @click.stop>
+            <NuxtLink
+              to="/settings"
+              class="dropdown-item"
+              @click="closeDropdown"
               >Configuração de Conta</NuxtLink
             >
             <a
@@ -278,13 +277,29 @@ export default {
     this.notificationsTotal();
     this.getUser();
     this.loadActivePlan();
+    // Fechar dropdown ao clicar fora
+    document.addEventListener("click", this.handleClickOutside);
+  },
+  beforeUnmount() {
+    document.removeEventListener("click", this.handleClickOutside);
   },
   methods: {
+    toggleDropdown() {
+      this.dropdownOpen = !this.dropdownOpen;
+    },
     openDropdown() {
       this.dropdownOpen = true;
     },
     closeDropdown() {
       this.dropdownOpen = false;
+    },
+    handleClickOutside(event) {
+      if (
+        this.$refs.dropdownRef &&
+        !this.$refs.dropdownRef.contains(event.target)
+      ) {
+        this.closeDropdown();
+      }
     },
     onUpgradeClicked() {
       console.log("🚀 Redirecionando para página de upgrade de planos");
@@ -559,6 +574,8 @@ export default {
 
 .nav-link.dropdown-toggle {
   position: relative;
+  cursor: pointer;
+  user-select: none;
 }
 
 .dropdown {
@@ -569,7 +586,7 @@ export default {
 
 .dropdown-menu {
   position: absolute;
-  top: calc(100% + 4px);
+  top: 100%;
   left: 0;
   background-color: #ffffff;
   border-radius: 4px;
@@ -578,6 +595,7 @@ export default {
   z-index: 10002 !important;
   white-space: nowrap;
   min-width: 200px;
+  pointer-events: auto;
 }
 
 .dropdown-item {
