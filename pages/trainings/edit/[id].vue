@@ -1,19 +1,21 @@
 <template>
-  <div class="page-header">
-    <h1 class="title">Editar Treino</h1>
-    <p class="subtitle">Atualize as informações do treino</p>
+  <div class="edit-training-page">
+    <div class="page-header">
+      <h1 class="title">Editar Treino</h1>
+      <p class="subtitle">Atualize as informações do treino</p>
+    </div>
+    <ZTrainingForm
+      :data="data"
+      @save="edit"
+      @saveAndContinue="editAndContinue"
+      @saveScouts="editScouts"
+      @refresh="getTraining({ fetchPolicy: 'network-only' })"
+      :loading="loading"
+      :errorFields="errorFields"
+      :errors="errors"
+      ref="trainingForm"
+    />
   </div>
-  <ZTrainingForm
-    :data="data"
-    @save="edit"
-    @saveAndContinue="editAndContinue"
-    @saveScouts="editScouts"
-    @refresh="getTraining({ fetchPolicy: 'network-only' })"
-    :loading="loading"
-    :errorFields="errorFields"
-    :errors="errors"
-    ref="trainingForm"
-  />
 </template>
 
 <script>
@@ -355,6 +357,10 @@ useHead({
 </script>
 
 <style scoped>
+.edit-training-page {
+  width: 100%;
+}
+
 .page-header {
   text-align: center;
   margin-bottom: 20px;

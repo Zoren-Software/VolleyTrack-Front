@@ -1,16 +1,18 @@
 <template>
-  <div class="page-header">
-    <h1 class="title">Cadastro de Treino</h1>
-    <p class="subtitle">Crie um novo treino para sua equipe</p>
+  <div class="create-training-page">
+    <div class="page-header">
+      <h1 class="title">Cadastro de Treino</h1>
+      <p class="subtitle">Crie um novo treino para sua equipe</p>
+    </div>
+    <ZTrainingForm
+      ref="trainingForm"
+      @save="create"
+      @saveAndContinue="createAndContinue"
+      :loading="loading"
+      :errorFields="errorFields"
+      :errors="errors"
+    />
   </div>
-  <ZTrainingForm
-    ref="trainingForm"
-    @save="create"
-    @saveAndContinue="createAndContinue"
-    :loading="loading"
-    :errorFields="errorFields"
-    :errors="errors"
-  />
 </template>
 
 <script>
@@ -199,6 +201,10 @@ useHead({
 </script>
 
 <style scoped>
+.create-training-page {
+  width: 100%;
+}
+
 .page-header {
   text-align: center;
   margin-bottom: 20px;

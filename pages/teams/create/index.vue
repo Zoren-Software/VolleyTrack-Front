@@ -1,14 +1,16 @@
 <template>
-  <div class="page-header">
-    <h1 class="title">Cadastro de Time</h1>
-    <p class="subtitle">Crie um novo time para sua equipe</p>
+  <div class="create-team-page">
+    <div class="page-header">
+      <h1 class="title">Cadastro de Time</h1>
+      <p class="subtitle">Crie um novo time para sua equipe</p>
+    </div>
+    <ZTeamForm
+      @save="create"
+      :loading="loading"
+      :errorFields="errorFields"
+      :errors="errors"
+    />
   </div>
-  <ZTeamForm
-    @save="create"
-    :loading="loading"
-    :errorFields="errorFields"
-    :errors="errors"
-  />
 </template>
 
 <script>
@@ -96,6 +98,10 @@ useHead({
 </script>
 
 <style scoped>
+.create-team-page {
+  width: 100%;
+}
+
 .page-header {
   text-align: center;
   margin-bottom: 20px;
@@ -104,11 +110,11 @@ useHead({
 .title {
   font-size: 30px;
   font-weight: bold;
-  color: #0B1E3A;
+  color: #0b1e3a;
 }
 
 .subtitle {
   font-size: 16px;
-  color: #6C757D;
+  color: #6c757d;
 }
 </style>

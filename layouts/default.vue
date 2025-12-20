@@ -1,102 +1,104 @@
 <template>
-  <div class="top-bar">
-    <div class="top-bar-left">
-      <div class="logo">
-        <div class="logo-circle">
-          <span class="logo-icon">🏐</span>
-        </div>
-        <span class="system-name">VolleyTrack</span>
-        <!-- Ícone do Plano Ativo -->
-        <div v-if="activePlanIcon" class="plan-icon-logo">
-          <div class="plan-icon-wrapper">
-            <va-icon
-              :name="activePlanIcon"
-              :color="activePlanColor"
-              class="plan-icon-menu"
-            />
-            <div class="plan-tooltip-custom">
-              <div class="plan-tooltip-title">
-                <va-icon
-                  :name="activePlanIcon"
-                  :color="activePlanColor"
-                  size="16px"
-                />
-                <span>{{ activePlanName }}</span>
-              </div>
-              <div class="plan-tooltip-content">
-                <p class="plan-tooltip-message">Plano ativo da sua conta</p>
+  <div class="layout-container">
+    <div class="top-bar">
+      <div class="top-bar-left">
+        <div class="logo">
+          <div class="logo-circle">
+            <span class="logo-icon">🏐</span>
+          </div>
+          <span class="system-name">VolleyTrack</span>
+          <!-- Ícone do Plano Ativo -->
+          <div v-if="activePlanIcon" class="plan-icon-logo">
+            <div class="plan-icon-wrapper">
+              <va-icon
+                :name="activePlanIcon"
+                :color="activePlanColor"
+                class="plan-icon-menu"
+              />
+              <div class="plan-tooltip-custom">
+                <div class="plan-tooltip-title">
+                  <va-icon
+                    :name="activePlanIcon"
+                    :color="activePlanColor"
+                    size="16px"
+                  />
+                  <span>{{ activePlanName }}</span>
+                </div>
+                <div class="plan-tooltip-content">
+                  <p class="plan-tooltip-message">Plano ativo da sua conta</p>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-    <div class="top-bar-center">
-      <nav class="nav-links">
-        <NuxtLink
-          v-for="item in navItems"
-          :key="item.title"
-          :to="item.link"
-          :class="['nav-link', { active: $route.path === item.link }]"
-        >
-          {{ item.title }}
-        </NuxtLink>
-        <div class="dropdown" ref="dropdownRef" @click.stop="toggleDropdown">
-          <span class="nav-link dropdown-toggle"> Configurações </span>
-          <div v-if="dropdownOpen" class="dropdown-menu" @click.stop>
-            <NuxtLink
-              to="/settings"
-              class="dropdown-item"
-              @click="closeDropdown"
-              >Configuração de Conta</NuxtLink
-            >
-            <a
-              href="#"
-              class="dropdown-item"
-              @click.prevent="openNotificationSettings"
-              >Configuração de Notificações</a
-            >
+      <div class="top-bar-center">
+        <nav class="nav-links">
+          <NuxtLink
+            v-for="item in navItems"
+            :key="item.title"
+            :to="item.link"
+            :class="['nav-link', { active: $route.path === item.link }]"
+          >
+            {{ item.title }}
+          </NuxtLink>
+          <div class="dropdown" ref="dropdownRef" @click.stop="toggleDropdown">
+            <span class="nav-link dropdown-toggle"> Configurações </span>
+            <div v-if="dropdownOpen" class="dropdown-menu" @click.stop>
+              <NuxtLink
+                to="/settings"
+                class="dropdown-item"
+                @click="closeDropdown"
+                >Configuração de Conta</NuxtLink
+              >
+              <a
+                href="#"
+                class="dropdown-item"
+                @click.prevent="openNotificationSettings"
+                >Configuração de Notificações</a
+              >
+            </div>
           </div>
+        </nav>
+      </div>
+      <div class="top-bar-right">
+        <div class="notification-wrapper">
+          <va-button-dropdown color="background-primary" hide-icon>
+            <template #label>
+              <va-badge
+                v-if="totalNotifications > 0"
+                overlap
+                color="danger"
+                :text="
+                  totalNotifications > 99 ? '99+' : String(totalNotifications)
+                "
+              >
+                <va-icon name="notifications" class="notification-icon" />
+              </va-badge>
+              <va-icon v-else name="notifications" class="notification-icon" />
+            </template>
+            <ZListItemsNotification
+              @updateTotalNotifications="totalNotificationsChange"
+              @oneLessNotification="oneLessNotification"
+            />
+          </va-button-dropdown>
         </div>
-      </nav>
-    </div>
-    <div class="top-bar-right">
-      <div class="notification-wrapper">
-        <va-button-dropdown color="background-primary" hide-icon>
-          <template #label>
-            <va-badge
-              v-if="totalNotifications > 0"
-              overlap
-              color="danger"
-              :text="
-                totalNotifications > 99 ? '99+' : String(totalNotifications)
-              "
-            >
-              <va-icon name="notifications" class="notification-icon" />
-            </va-badge>
-            <va-icon v-else name="notifications" class="notification-icon" />
-          </template>
-          <ZListItemsNotification
-            @updateTotalNotifications="totalNotificationsChange"
-            @oneLessNotification="oneLessNotification"
-          />
-        </va-button-dropdown>
-      </div>
-      <div class="user-menu-wrapper">
-        <va-button-dropdown color="background-primary" hide-icon>
-          <template #label>
-            <va-avatar v-if="user.id" class="user-avatar">
-              {{ firstLatter }}
-            </va-avatar>
-            <va-icon v-else name="account_circle" class="user-icon" />
-          </template>
-          <ZListItemsUser />
-        </va-button-dropdown>
+        <div class="user-menu-wrapper">
+          <va-button-dropdown color="background-primary" hide-icon>
+            <template #label>
+              <va-avatar v-if="user.id" class="user-avatar">
+                {{ firstLatter }}
+              </va-avatar>
+              <va-icon v-else name="account_circle" class="user-icon" />
+            </template>
+            <ZListItemsUser />
+          </va-button-dropdown>
+        </div>
       </div>
     </div>
-  </div>
-  <div class="content-wrapper">
-    <NuxtPage />
+    <div class="content-wrapper">
+      <NuxtPage />
+    </div>
   </div>
 </template>
 
@@ -399,6 +401,12 @@ export default {
 </script>
 
 <style scoped>
+.layout-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
 .top-bar {
   background-color: #0b1e3a;
   height: 60px;
@@ -758,23 +766,23 @@ html {
 <style>
 /* Transições modernas de página */
 .page-enter-active {
-  transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .page-leave-active {
-  transition: all 0.25s cubic-bezier(0.55, 0.06, 0.68, 0.19);
+  transition: all 0.2s cubic-bezier(0.55, 0.06, 0.68, 0.19);
 }
 
 .page-enter-from {
   opacity: 0;
-  transform: translateY(16px) scale(0.99);
-  filter: blur(3px);
+  transform: translateY(12px) scale(0.99);
+  filter: blur(2px);
 }
 
 .page-leave-to {
   opacity: 0;
-  transform: translateY(-8px) scale(1.01);
-  filter: blur(2px);
+  transform: translateY(-6px) scale(1.01);
+  filter: blur(1px);
 }
 
 .page-enter-to,
@@ -782,17 +790,5 @@ html {
   opacity: 1;
   transform: translateY(0) scale(1);
   filter: blur(0);
-}
-
-/* Transições de layout */
-.layout-enter-active,
-.layout-leave-active {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.layout-enter-from,
-.layout-leave-to {
-  opacity: 0;
-  transform: scale(0.98);
 }
 </style>
