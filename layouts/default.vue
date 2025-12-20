@@ -67,7 +67,10 @@
         </nav>
       </div>
       <div class="top-bar-right">
-        <div class="notification-wrapper">
+        <div
+          class="notification-wrapper"
+          :class="{ 'notification-active': isNotificationsPage }"
+        >
           <va-button-dropdown color="background-primary" hide-icon>
             <template #label>
               <va-badge
@@ -278,6 +281,9 @@ export default {
       }
 
       return this.activePlanData.product.name || "Plano Ativo";
+    },
+    isNotificationsPage() {
+      return this.$route.path === "/notifications";
     },
   },
   mounted() {
@@ -714,7 +720,7 @@ export default {
   font-size: 24px !important;
   color: #e9742b !important;
   cursor: pointer;
-  transition: color 0.2s ease;
+  transition: all 0.3s ease;
   --va-background-color: transparent !important;
   background: transparent !important;
 }
@@ -723,6 +729,25 @@ export default {
   color: #ff8c42 !important;
   --va-background-color: transparent !important;
   background: transparent !important;
+}
+
+.notification-wrapper.notification-active :deep(.notification-icon) {
+  position: relative;
+  padding: 8px;
+  border-radius: 50%;
+  background: rgba(233, 116, 43, 0.1) !important;
+  border: 2px solid #e9742b !important;
+  box-shadow: 0 0 0 2px rgba(233, 116, 43, 0.2),
+    0 4px 12px rgba(233, 116, 43, 0.3) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.notification-wrapper.notification-active :deep(.notification-icon):hover {
+  background: rgba(233, 116, 43, 0.15) !important;
+  border-color: #ff8c42 !important;
+  box-shadow: 0 0 0 3px rgba(233, 116, 43, 0.3),
+    0 6px 16px rgba(233, 116, 43, 0.4) !important;
+  transform: scale(1.05);
 }
 
 .notification-wrapper :deep(.va-button-dropdown__label) {
