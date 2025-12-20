@@ -251,7 +251,6 @@ export default {
 
 <style scoped>
 .notification-settings-page {
-  min-height: 100vh;
   background: #f8f9fa;
   padding: 30px 20px;
 }

@@ -2564,7 +2564,6 @@ onMounted(async () => {
 <style scoped>
 .subscription-plans-page {
   background: #f9fafb;
-  min-height: 100vh;
 }
 
 .container {
