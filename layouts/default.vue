@@ -392,10 +392,17 @@ export default {
   justify-content: space-between;
   padding: 12px 16px;
   border-bottom: 1px solid #c0c0c0;
-  overflow-x: hidden;
+  overflow: visible;
   position: relative;
   width: 100%;
   box-sizing: border-box;
+  z-index: 1000;
+}
+
+.top-bar-center {
+  position: relative;
+  z-index: 1001;
+  overflow: visible;
 }
 
 .top-bar-left {
@@ -522,6 +529,9 @@ export default {
 .top-bar-center {
   display: flex;
   justify-content: center;
+  position: relative;
+  z-index: 1001;
+  overflow: visible;
 }
 
 .nav-links {
@@ -529,6 +539,7 @@ export default {
   gap: 16px;
   position: relative;
   overflow: visible;
+  z-index: 1001;
 }
 
 .nav-link {
@@ -553,20 +564,20 @@ export default {
 .dropdown {
   position: relative;
   display: inline-block;
+  z-index: 10001;
 }
 
 .dropdown-menu {
   position: absolute;
-  top: 100%;
+  top: calc(100% + 4px);
   left: 0;
   background-color: #ffffff;
   border-radius: 4px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   padding: 8px 0;
-  z-index: 1000;
+  z-index: 10002 !important;
   white-space: nowrap;
   min-width: 200px;
-  margin-top: 4px;
 }
 
 .dropdown-item {
@@ -590,6 +601,8 @@ export default {
 
 .notification-wrapper {
   position: relative;
+  z-index: 1001;
+  overflow: visible;
 }
 
 .notification-wrapper :deep(.va-button-dropdown) {
@@ -598,6 +611,7 @@ export default {
   box-shadow: none !important;
   padding: 0 !important;
   --va-background-color: transparent !important;
+  z-index: 1001;
 }
 
 .notification-wrapper :deep(.va-button-dropdown__anchor) {
@@ -614,6 +628,8 @@ export default {
   max-width: 400px;
   max-height: 500px;
   overflow-y: auto;
+  z-index: 10002 !important;
+  position: relative;
 }
 
 .notification-icon {
@@ -638,6 +654,8 @@ export default {
 
 .user-menu-wrapper {
   position: relative;
+  z-index: 1001;
+  overflow: visible;
 }
 
 .user-menu-wrapper :deep(.va-button-dropdown) {
@@ -646,6 +664,7 @@ export default {
   box-shadow: none !important;
   padding: 0 !important;
   --va-background-color: transparent !important;
+  z-index: 1001;
 }
 
 .user-menu-wrapper :deep(.va-button-dropdown__content) {
@@ -655,6 +674,8 @@ export default {
   margin-top: 8px;
   min-width: 200px;
   max-width: 250px;
+  z-index: 10002 !important;
+  position: relative;
 }
 
 .user-avatar {
@@ -696,6 +717,8 @@ export default {
   overflow-x: hidden;
   width: 100%;
   box-sizing: border-box;
+  position: relative;
+  z-index: 0;
 }
 </style>
 

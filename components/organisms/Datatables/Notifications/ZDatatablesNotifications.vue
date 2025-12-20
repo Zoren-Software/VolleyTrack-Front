@@ -515,11 +515,11 @@ export default defineComponent({
 
 .read-all-button {
   border-radius: 8px;
-  padding: 10px 20px;
+  padding: 12px 24px;
   font-weight: 500;
   white-space: nowrap;
   background-color: #dc3545 !important;
-  color: white !important;
+  color: #ffffff !important;
   box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
   border: none;
   display: inline-flex;
@@ -527,6 +527,7 @@ export default defineComponent({
   justify-content: center;
   gap: 8px;
   transition: all 0.2s ease;
+  height: 40px;
 }
 
 .read-all-button:hover {
@@ -540,16 +541,15 @@ export default defineComponent({
   box-shadow: 0 2px 6px rgba(220, 53, 69, 0.3);
 }
 
-.button-icon {
+.read-all-button .button-icon {
   font-size: 18px;
-  color: white;
+  color: #ffffff;
 }
 
-.button-text {
+.read-all-button .button-text {
   font-size: 14px;
   font-weight: 500;
-  color: white;
-  letter-spacing: 0.3px;
+  color: #ffffff;
 }
 
 .summary-cards {
