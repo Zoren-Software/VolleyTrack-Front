@@ -21,6 +21,15 @@
           <va-icon name="send" class="button-icon" />
           <span>Começar Configuração</span>
         </va-button>
+        <va-button
+          v-else-if="!showConfigurationDetails"
+          color="#E9742B"
+          class="start-button"
+          @click="showConfigurationDetails = true"
+        >
+          <va-icon name="visibility" class="button-icon" />
+          <span>Ver Configuração Inicial</span>
+        </va-button>
       </div>
 
       <!-- Completion Animation -->
@@ -40,8 +49,21 @@
 
       <!-- Progress Section -->
       <Transition name="fade-out">
-        <va-card v-if="!isConfigurationComplete" class="progress-card">
-          <h2 class="progress-title">Progresso da Configuração</h2>
+        <va-card
+          v-if="!isConfigurationComplete || showConfigurationDetails"
+          class="progress-card"
+        >
+          <div class="progress-card-header">
+            <h2 class="progress-title">Progresso da Configuração</h2>
+            <va-button
+              v-if="isConfigurationComplete && showConfigurationDetails"
+              preset="plain"
+              icon="close"
+              size="small"
+              class="close-config-button"
+              @click="closeConfigurationDetails"
+            />
+          </div>
           <div class="progress-bar-container">
             <div
               class="progress-bar-fill"
@@ -225,7 +247,10 @@
 
       <!-- Motivational Box -->
       <Transition name="fade-out">
-        <va-card v-if="!isConfigurationComplete" class="motivational-card">
+        <va-card
+          v-if="!isConfigurationComplete || showConfigurationDetails"
+          class="motivational-card"
+        >
           <div class="motivational-content">
             <div class="trophy-icon">
               <va-icon name="emoji_events" size="36px" color="#E9742B" />
@@ -262,7 +287,7 @@
           <div class="total-info">
             <div class="total-number">{{ totalTeams || 0 }}</div>
             <div class="total-label">Times</div>
-            <div class="total-description">Em configuração</div>
+            <div class="total-description">Cadastrados no sistema</div>
           </div>
         </div>
 
@@ -273,7 +298,7 @@
           <div class="total-info">
             <div class="total-number">{{ totalTrainings || 0 }}</div>
             <div class="total-label">Treinos</div>
-            <div class="total-description">Aguardando configuração</div>
+            <div class="total-description">Cadastrados no sistema</div>
           </div>
         </div>
       </div>
@@ -340,6 +365,7 @@ export default {
       totalTeams: 0,
       totalTrainings: 0,
       showCompletionAnimation: false,
+      showConfigurationDetails: false,
       paginatorInfo: {},
       variablesGetPlayers: {
         page: 1,
@@ -595,7 +621,11 @@ export default {
       setTimeout(() => {
         this.showCompletionAnimation = false;
         localStorage.setItem("initialConfigurationComplete", "true");
+        this.showConfigurationDetails = false;
       }, 3000);
+    },
+    closeConfigurationDetails() {
+      this.showConfigurationDetails = false;
     },
   },
 };
@@ -691,11 +721,30 @@ useHead({
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
+.progress-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
 .progress-title {
   font-size: 18px;
   font-weight: 700;
   color: #0b1e3a;
-  margin: 0 0 12px 0;
+  margin: 0;
+}
+
+.close-config-button {
+  color: #6c757d !important;
+  min-width: auto !important;
+  padding: 4px 8px !important;
+  transition: all 0.2s ease;
+}
+
+.close-config-button:hover {
+  color: #e9742b !important;
+  background: rgba(233, 116, 43, 0.1) !important;
 }
 
 .progress-bar-container {
