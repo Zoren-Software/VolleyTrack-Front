@@ -1,115 +1,114 @@
 <template>
-  <div class="notification-settings-page">
-    <div class="page-container">
-      <!-- Header -->
-      <div class="page-header">
-        <div class="header-content">
+  <div class="list-page-container">
+    <!-- Page Header -->
+    <div class="page-header">
+      <div class="header-content">
+        <div>
           <h1 class="page-title">Preferências de Notificação</h1>
           <p class="page-subtitle">
             Escolha como deseja receber notificações para cada tipo de evento do
             sistema
           </p>
         </div>
+        <va-button
+          color="#E9742B"
+          class="notifications-button"
+          @click="goToNotifications"
+        >
+          <va-icon name="notifications" class="button-icon" />
+          <span class="button-text">Ver Notificações</span>
+        </va-button>
+      </div>
+    </div>
+
+    <!-- Eventos Notificáveis -->
+    <div class="section-container">
+      <div class="section-header">
+        <va-icon name="settings" class="section-icon" />
+        <h2 class="section-title">Eventos Notificáveis</h2>
       </div>
 
-      <!-- Eventos Notificáveis -->
-      <div class="section-container">
-        <div class="section-header">
-          <va-icon name="settings" class="section-icon" />
-          <h2 class="section-title">Eventos Notificáveis</h2>
-        </div>
-
-        <div class="events-table-container">
-          <table class="events-table">
-            <thead>
-              <tr>
-                <th class="event-column">Evento</th>
-                <th class="toggle-column">E-mail</th>
-                <th class="toggle-column">Sistema</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="item in data" :key="item.id" class="event-row">
-                <td class="event-cell">
-                  <div class="event-info">
-                    <div
-                      class="event-icon-wrapper"
-                      :style="{
-                        backgroundColor:
-                          getNotificationColor(item.notificationType?.key) +
-                          '20',
-                      }"
-                    >
-                      <va-icon
-                        :name="getNotificationIcon(item.notificationType?.key)"
-                        :color="
-                          getNotificationColor(item.notificationType?.key)
-                        "
-                        size="20px"
-                      />
-                    </div>
-                    <div class="event-details">
-                      <p class="event-title">
-                        {{ item.notificationType?.description || "Evento" }}
-                      </p>
-                      <p class="event-description">
-                        {{ getEventDescription(item.notificationType?.key) }}
-                      </p>
-                    </div>
+      <div class="events-table-container">
+        <table class="events-table">
+          <thead>
+            <tr>
+              <th class="event-column">Evento</th>
+              <th class="toggle-column">E-mail</th>
+              <th class="toggle-column">Sistema</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="item in data" :key="item.id" class="event-row">
+              <td class="event-cell">
+                <div class="event-info">
+                  <div
+                    class="event-icon-wrapper"
+                    :style="{
+                      backgroundColor:
+                        getNotificationColor(item.notificationType?.key) + '20',
+                    }"
+                  >
+                    <va-icon
+                      :name="getNotificationIcon(item.notificationType?.key)"
+                      :color="getNotificationColor(item.notificationType?.key)"
+                      size="20px"
+                    />
                   </div>
-                </td>
-                <td
-                  class="toggle-cell"
-                  v-if="item.notificationType?.allowEmail"
-                >
-                  <va-switch
-                    v-model="form[item.notificationType.key].viaEmail"
-                    color="#3b82f6"
-                    size="small"
-                  />
-                </td>
-                <td class="toggle-cell" v-else>
-                  <span class="not-available">-</span>
-                </td>
-                <td
-                  class="toggle-cell"
-                  v-if="item.notificationType?.allowSystem"
-                >
-                  <va-switch
-                    v-model="form[item.notificationType.key].viaSystem"
-                    color="#e9742b"
-                    size="small"
-                  />
-                </td>
-                <td class="toggle-cell" v-else>
-                  <span class="not-available">-</span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+                  <div class="event-details">
+                    <p class="event-title">
+                      {{ item.notificationType?.description || "Evento" }}
+                    </p>
+                    <p class="event-description">
+                      {{ getEventDescription(item.notificationType?.key) }}
+                    </p>
+                  </div>
+                </div>
+              </td>
+              <td class="toggle-cell" v-if="item.notificationType?.allowEmail">
+                <va-switch
+                  v-model="form[item.notificationType.key].viaEmail"
+                  color="#3b82f6"
+                  size="small"
+                />
+              </td>
+              <td class="toggle-cell" v-else>
+                <span class="not-available">-</span>
+              </td>
+              <td class="toggle-cell" v-if="item.notificationType?.allowSystem">
+                <va-switch
+                  v-model="form[item.notificationType.key].viaSystem"
+                  color="#e9742b"
+                  size="small"
+                />
+              </td>
+              <td class="toggle-cell" v-else>
+                <span class="not-available">-</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
+    </div>
 
-      <!-- Action Buttons -->
-      <div class="action-buttons">
-        <va-button
-          preset="secondary"
-          class="back-button"
-          @click="$router.push('/settings')"
-        >
-          <va-icon name="arrow_back" size="16px" />
-          Voltar
-        </va-button>
-        <va-button
-          color="#e9742b"
-          class="save-button"
-          @click="salvarConfiguracoes"
-          :loading="loading"
-        >
-          <va-icon name="save" size="16px" />
-          Salvar
-        </va-button>
-      </div>
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+      <va-button
+        preset="secondary"
+        class="back-button"
+        @click="$router.push('/settings')"
+      >
+        <va-icon name="arrow_back" size="16px" />
+        Voltar
+      </va-button>
+      <va-button
+        color="#e9742b"
+        class="save-button"
+        @click="salvarConfiguracoes"
+        :loading="loading"
+      >
+        <va-icon name="save" size="16px" />
+        Salvar
+      </va-button>
     </div>
   </div>
 </template>
@@ -132,6 +131,9 @@ export default {
     this.getNotificationSettings();
   },
   methods: {
+    goToNotifications() {
+      this.$router.push("/notifications");
+    },
     getNotificationIcon(key) {
       const iconMap = {
         training_created: "check_circle",
@@ -250,38 +252,75 @@ export default {
 </script>
 
 <style scoped>
-.notification-settings-page {
-  background: #f8f9fa;
-  padding: 30px 20px;
-}
-
-.page-container {
-  max-width: 1200px;
+.list-page-container {
+  max-width: 1400px;
   margin: 0 auto;
   width: 100%;
 }
 
-/* Header */
 .page-header {
-  margin-bottom: 40px;
+  margin-bottom: 32px;
 }
 
 .header-content {
-  text-align: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
 }
 
 .page-title {
   font-size: 32px;
   font-weight: 700;
-  color: #e9742b;
-  margin: 0 0 12px 0;
+  color: #0b1e3a;
+  margin: 0 0 8px 0;
+  line-height: 1.2;
 }
 
 .page-subtitle {
   font-size: 16px;
-  color: #6b7280;
+  color: #6c757d;
   margin: 0;
-  line-height: 1.6;
+  line-height: 1.5;
+}
+
+.notifications-button {
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-weight: 500;
+  white-space: nowrap;
+  background-color: #e9742b !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(233, 116, 43, 0.3);
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.notifications-button:hover {
+  background-color: #d6652a !important;
+  box-shadow: 0 4px 12px rgba(233, 116, 43, 0.4);
+  transform: translateY(-1px);
+}
+
+.notifications-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(233, 116, 43, 0.3);
+}
+
+.notifications-button .button-icon {
+  font-size: 20px;
+  color: #ffffff;
+}
+
+.notifications-button .button-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: #ffffff;
+  letter-spacing: 0.3px;
 }
 
 /* Section */
@@ -451,8 +490,8 @@ export default {
 
 /* Responsividade */
 @media (max-width: 768px) {
-  .notification-settings-page {
-    padding: 20px 16px;
+  .header-content {
+    flex-direction: column;
   }
 
   .page-title {
@@ -461,6 +500,10 @@ export default {
 
   .page-subtitle {
     font-size: 14px;
+  }
+
+  .notifications-button {
+    width: 100%;
   }
 
   .section-container {
