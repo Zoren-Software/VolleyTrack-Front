@@ -754,3 +754,45 @@ html {
   box-sizing: border-box;
 }
 </style>
+
+<style>
+/* Transições modernas de página */
+.page-enter-active {
+  transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.page-leave-active {
+  transition: all 0.25s cubic-bezier(0.55, 0.06, 0.68, 0.19);
+}
+
+.page-enter-from {
+  opacity: 0;
+  transform: translateY(16px) scale(0.99);
+  filter: blur(3px);
+}
+
+.page-leave-to {
+  opacity: 0;
+  transform: translateY(-8px) scale(1.01);
+  filter: blur(2px);
+}
+
+.page-enter-to,
+.page-leave-from {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  filter: blur(0);
+}
+
+/* Transições de layout */
+.layout-enter-active,
+.layout-leave-active {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.layout-enter-from,
+.layout-leave-to {
+  opacity: 0;
+  transform: scale(0.98);
+}
+</style>

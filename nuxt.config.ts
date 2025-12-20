@@ -80,4 +80,14 @@ export default defineNuxtConfig({
     '~/node_modules/material-design-icons-iconfont/dist/material-design-icons.css',
     'sweetalert2/dist/sweetalert2.css',
   ],
+  app: {
+    pageTransition: {
+      name: 'page',
+      mode: 'out-in',
+    },
+    layoutTransition: {
+      name: 'layout',
+      mode: 'out-in',
+    },
+  },
 })
