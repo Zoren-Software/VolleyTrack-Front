@@ -700,12 +700,19 @@ useHead({
 
 .step-actions {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .step-actions :deep(.va-button) {
   padding: 6px 12px !important;
   font-size: 12px !important;
   min-height: 28px !important;
+  min-width: 100px !important;
+  width: 100px !important;
+  justify-content: center !important;
 }
 
 .status-badge {
