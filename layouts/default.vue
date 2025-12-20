@@ -38,12 +38,17 @@
             v-for="item in navItems"
             :key="item.title"
             :to="item.link"
-            :class="['nav-link', { active: $route.path === item.link }]"
+            :class="['nav-link', { active: isRouteActive(item.link) }]"
           >
             {{ item.title }}
           </NuxtLink>
           <div class="dropdown" ref="dropdownRef" @click.stop="toggleDropdown">
-            <span class="nav-link dropdown-toggle"> Configurações </span>
+            <span
+              class="nav-link dropdown-toggle"
+              :class="{ active: isSettingsRouteActive() }"
+            >
+              Configurações
+            </span>
             <div v-if="dropdownOpen" class="dropdown-menu" @click.stop>
               <NuxtLink
                 to="/settings"
@@ -286,6 +291,53 @@ export default {
     document.removeEventListener("click", this.handleClickOutside);
   },
   methods: {
+    isRouteActive(link) {
+      const currentPath = this.$route.path;
+
+      // Se for exatamente a rota do menu, está ativo
+      if (currentPath === link) {
+        return true;
+      }
+
+      // Para a rota "/" (Início), só ativa se for exatamente "/"
+      if (link === "/") {
+        return false;
+      }
+
+      // Verificar rotas relacionadas (create e edit)
+      if (link === "/players") {
+        return (
+          currentPath.startsWith("/players/create") ||
+          currentPath.startsWith("/players/edit")
+        );
+      }
+
+      if (link === "/teams") {
+        return (
+          currentPath.startsWith("/teams/create") ||
+          currentPath.startsWith("/teams/edit")
+        );
+      }
+
+      if (link === "/trainings") {
+        return (
+          currentPath.startsWith("/trainings/create") ||
+          currentPath.startsWith("/trainings/edit")
+        );
+      }
+
+      if (link === "/payment") {
+        return currentPath.startsWith("/payment/");
+      }
+
+      return false;
+    },
+    isSettingsRouteActive() {
+      const currentPath = this.$route.path;
+      return (
+        currentPath === "/settings" || currentPath === "/settings/notifications"
+      );
+    },
     toggleDropdown() {
       this.dropdownOpen = !this.dropdownOpen;
     },
@@ -307,7 +359,7 @@ export default {
       console.log("🚀 Redirecionando para página de upgrade de planos");
     },
     openNotificationSettings() {
-      this.$router.push("/notifications/settings");
+      this.$router.push("/settings/notifications");
       this.dropdownOpen = false; // Fechar o dropdown ao navegar
     },
     totalNotificationsChange(value) {

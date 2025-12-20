@@ -47,7 +47,7 @@ export default {
           title: "Configurações de Notificação",
           icon: "notifications",
           active: false,
-          to: "/notifications/settings",
+          to: "/settings/notifications",
         },
         {
           title: "Fechar Configurações",
