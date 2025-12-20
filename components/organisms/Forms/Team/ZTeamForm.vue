@@ -38,6 +38,7 @@
           <ZSelectUser
             v-model="users"
             :ignoreIds="form.users.map((item) => item.id)"
+            :rolesIds="[3]"
             class="mb-3"
             label="Buscar e selecionar jogadores"
             placeholder="Digite o nome do jogador"

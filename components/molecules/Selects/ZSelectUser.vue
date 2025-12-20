@@ -54,6 +54,11 @@ export default {
       type: Array,
       required: false,
     },
+    rolesIds: {
+      type: Array,
+      required: false,
+      default: () => [],
+    },
     ignoreIds: {
       type: Array,
       required: false,
@@ -71,6 +76,7 @@ export default {
         filter: {
           search: "%%",
           ignoreIds: this.ignoreIds,
+          rolesIds: this.rolesIds || [],
         },
       },
     };
@@ -84,6 +90,18 @@ export default {
       }
       this.loading = true;
 
+      // Atualizar rolesIds no filtro - transformar para array de IDs
+      const rolesIdsValues =
+        this.rolesIds?.map((role) => role?.value || role?.id || role) || [];
+
+      const consult = {
+        ...this.variablesGetUsers,
+        filter: {
+          ...this.variablesGetUsers.filter,
+          rolesIds: rolesIdsValues,
+        },
+      };
+
       setTimeout(() => {
         const query = gql`
           ${USERS}
@@ -91,9 +109,9 @@ export default {
 
         const {
           result: { value },
-        } = useQuery(query, this.variablesGetUsers);
+        } = useQuery(query, consult);
 
-        const { onResult } = useQuery(query, this.variablesGetUsers);
+        const { onResult } = useQuery(query, consult);
 
         onResult((result) => {
           this.handleResult(result.data);
@@ -135,6 +153,7 @@ export default {
     },
     async newSearch(newSearchValue) {
       this.variablesGetUsers.filter.search = await `%${newSearchValue}%`;
+      this.variablesGetUsers.page = 1;
       await this.getUsers();
     },
     loadMore() {
