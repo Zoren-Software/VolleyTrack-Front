@@ -274,10 +274,38 @@
             <va-icon name="people" size="32px" color="#E9742B" />
           </div>
           <div class="total-info">
-            <div class="total-number">{{ totalUsers || 0 }}</div>
+            <div class="total-number">
+              {{ totalUsers || 0
+              }}<span
+                v-if="showPlanLimits && planLimits.maxPlayers"
+                class="plan-limit"
+              >
+                / {{ planLimits.maxPlayers }}</span
+              >
+            </div>
             <div class="total-label">Jogadores</div>
             <div class="total-description">Cadastrados no sistema</div>
           </div>
+          <va-popover
+            v-if="showPlanLimits && planLimits.maxPlayers"
+            placement="top"
+            trigger="hover"
+            class="plan-popover-wrapper"
+          >
+            <va-icon
+              name="info"
+              size="16px"
+              color="#6c757d"
+              class="plan-info-icon"
+            />
+            <template #title>Limite do Plano</template>
+            <template #body>
+              <p class="plan-popover-text">
+                Você pode cadastrar até {{ planLimits.maxPlayers }} jogadores no
+                seu plano atual.
+              </p>
+            </template>
+          </va-popover>
         </div>
 
         <div class="total-card teams-card">
@@ -285,10 +313,38 @@
             <va-icon name="shield" size="32px" color="#1976D2" />
           </div>
           <div class="total-info">
-            <div class="total-number">{{ totalTeams || 0 }}</div>
+            <div class="total-number">
+              {{ totalTeams || 0
+              }}<span
+                v-if="showPlanLimits && planLimits.maxTeams"
+                class="plan-limit"
+              >
+                / {{ planLimits.maxTeams }}</span
+              >
+            </div>
             <div class="total-label">Times</div>
             <div class="total-description">Cadastrados no sistema</div>
           </div>
+          <va-popover
+            v-if="showPlanLimits && planLimits.maxTeams"
+            placement="top"
+            trigger="hover"
+            class="plan-popover-wrapper"
+          >
+            <va-icon
+              name="info"
+              size="16px"
+              color="#6c757d"
+              class="plan-info-icon"
+            />
+            <template #title>Limite do Plano</template>
+            <template #body>
+              <p class="plan-popover-text">
+                Você pode cadastrar até {{ planLimits.maxTeams }} times no seu
+                plano atual.
+              </p>
+            </template>
+          </va-popover>
         </div>
 
         <div class="total-card trainings-card">
@@ -296,10 +352,38 @@
             <va-icon name="event" size="32px" color="#9E9E9E" />
           </div>
           <div class="total-info">
-            <div class="total-number">{{ totalTrainings || 0 }}</div>
+            <div class="total-number">
+              {{ totalTrainings || 0
+              }}<span
+                v-if="showPlanLimits && planLimits.maxTrainings"
+                class="plan-limit"
+              >
+                / {{ planLimits.maxTrainings }}</span
+              >
+            </div>
             <div class="total-label">Treinos</div>
             <div class="total-description">Cadastrados no sistema</div>
           </div>
+          <va-popover
+            v-if="showPlanLimits && planLimits.maxTrainings"
+            placement="top"
+            trigger="hover"
+            class="plan-popover-wrapper"
+          >
+            <va-icon
+              name="info"
+              size="16px"
+              color="#6c757d"
+              class="plan-info-icon"
+            />
+            <template #title>Limite do Plano</template>
+            <template #body>
+              <p class="plan-popover-text">
+                Você pode cadastrar até {{ planLimits.maxTrainings }} treinos no
+                seu plano atual.
+              </p>
+            </template>
+          </va-popover>
         </div>
       </div>
     </div>
@@ -311,6 +395,7 @@ import moment from "moment";
 import PLAYERSTOTAL from "~/graphql/user/query/usersTotal.graphql";
 import TEAMSTOTAL from "~/graphql/team/query/teamsTotal.graphql";
 import TRAININGSTOTAL from "~/graphql/training/query/trainingsTotal.graphql";
+import { getActivePlan } from "~/services/stripeCheckoutService.js";
 
 export default {
   mounted() {
@@ -318,6 +403,7 @@ export default {
     this.token = localStorage.getItem("userToken") ?? "sem token";
     this.user = JSON.parse(localStorage.getItem("user"));
     this.checkConfigurationStatus();
+    this.loadActivePlan();
   },
   watch: {
     progressPercentage(newValue) {
@@ -331,6 +417,47 @@ export default {
       return (
         localStorage.getItem("initialConfigurationComplete") === "true" || false
       );
+    },
+    showPlanLimits() {
+      return (
+        this.activePlanData &&
+        this.activePlanData.has_active_plan &&
+        !this.isUnlimitedPlan
+      );
+    },
+    isUnlimitedPlan() {
+      if (!this.activePlanData || !this.activePlanData.product) {
+        return true;
+      }
+
+      const metadata = this.normalizeMetadata(
+        this.activePlanData.product.metadata
+      );
+      const maxPlayers = parseInt(metadata.max_players || "0");
+      const maxTeams = parseInt(metadata.max_teams || "0");
+      const maxTrainings = parseInt(metadata.max_trainings || "0");
+
+      // Se todos os limites são 0 ou null, é ilimitado
+      return maxPlayers === 0 && maxTeams === 0 && maxTrainings === 0;
+    },
+    planLimits() {
+      if (!this.activePlanData || !this.activePlanData.product) {
+        return {
+          maxPlayers: null,
+          maxTeams: null,
+          maxTrainings: null,
+        };
+      }
+
+      const metadata = this.normalizeMetadata(
+        this.activePlanData.product.metadata
+      );
+
+      return {
+        maxPlayers: parseInt(metadata.max_players || "0") || null,
+        maxTeams: parseInt(metadata.max_teams || "0") || null,
+        maxTrainings: parseInt(metadata.max_trainings || "0") || null,
+      };
     },
     progressPercentage() {
       let completed = 0;
@@ -366,6 +493,7 @@ export default {
       totalTrainings: 0,
       showCompletionAnimation: false,
       showConfigurationDetails: false,
+      activePlanData: null,
       paginatorInfo: {},
       variablesGetPlayers: {
         page: 1,
@@ -626,6 +754,47 @@ export default {
     },
     closeConfigurationDetails() {
       this.showConfigurationDetails = false;
+    },
+    async loadActivePlan() {
+      try {
+        const token =
+          localStorage.getItem("userToken") ||
+          localStorage.getItem("apollo:default.token");
+        if (!token) {
+          console.log("⚠️ Token não encontrado para carregar plano ativo");
+          return;
+        }
+
+        const tenantId = localStorage.getItem("tenant_id") || "default";
+        console.log("🔍 Carregando plano ativo - tenantId:", tenantId);
+
+        const result = await getActivePlan(token, tenantId);
+        console.log("🔍 Resultado do getActivePlan:", result);
+
+        if (result.success && result.data) {
+          this.activePlanData = result.data;
+          console.log("✅ Plano ativo carregado:", result.data);
+        } else {
+          console.log("⚠️ Plano ativo não encontrado ou erro:", result);
+        }
+      } catch (error) {
+        console.error("❌ Erro ao carregar plano ativo:", error);
+      }
+    },
+    normalizeMetadata(metadata) {
+      if (!metadata) return {};
+
+      // Se metadata é string, tentar fazer parse
+      if (typeof metadata === "string") {
+        try {
+          return JSON.parse(metadata);
+        } catch (e) {
+          return {};
+        }
+      }
+
+      // Se já é objeto, retornar diretamente
+      return metadata;
     },
   },
 };
@@ -915,6 +1084,7 @@ useHead({
   align-items: center;
   gap: 16px;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
 }
 
 .total-card:hover {
@@ -962,6 +1132,12 @@ useHead({
   line-height: 1;
 }
 
+.plan-limit {
+  color: #9e9e9e;
+  font-weight: 500;
+  font-size: 24px;
+}
+
 .total-label {
   font-size: 15px;
   font-weight: 600;
@@ -975,6 +1151,29 @@ useHead({
   color: #6c757d;
   margin: 0;
   line-height: 1.3;
+}
+
+.plan-popover-wrapper {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+}
+
+.plan-info-icon {
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+
+.plan-info-icon:hover {
+  opacity: 1;
+}
+
+.plan-popover-text {
+  font-size: 13px;
+  color: #6c757d;
+  margin: 0;
+  line-height: 1.4;
 }
 
 /* Completion Animation */
