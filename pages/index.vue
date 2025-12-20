@@ -13,6 +13,7 @@
           Comece a gerenciar suas equipes de vôlei em minutos.
         </p>
         <va-button
+          v-if="!isConfigurationComplete"
           color="#E9742B"
           class="start-button"
           @click="startConfiguration"
@@ -22,205 +23,224 @@
         </va-button>
       </div>
 
-      <!-- Progress Section -->
-      <va-card class="progress-card">
-        <h2 class="progress-title">Progresso da Configuração</h2>
-        <div class="progress-bar-container">
-          <div
-            class="progress-bar-fill"
-            :style="{ width: progressPercentage + '%' }"
-          ></div>
-        </div>
-        <p class="progress-text">{{ progressPercentage }}% concluído</p>
-
-        <!-- Steps -->
-        <div class="steps-list">
-          <!-- Step 1: Jogadores -->
-          <div
-            class="step-item"
-            :class="{ completed: steps.registerPlayers.completed }"
-          >
-            <div class="step-icon-wrapper">
-              <va-icon
-                v-if="steps.registerPlayers.completed"
-                name="check_circle"
-                color="#28A745"
-                size="20px"
-              />
-              <va-icon
-                v-else-if="steps.registerPlayers.inProgress"
-                name="hourglass_empty"
-                color="#1976D2"
-                size="20px"
-              />
-              <va-icon
-                v-else
-                name="radio_button_unchecked"
-                color="#9E9E9E"
-                size="20px"
-              />
+      <!-- Completion Animation -->
+      <Transition name="completion">
+        <div v-if="showCompletionAnimation" class="completion-animation">
+          <div class="completion-content">
+            <div class="completion-icon-wrapper">
+              <va-icon name="check_circle" size="120px" color="#28A745" />
             </div>
-            <div class="step-content">
-              <h3 class="step-title">Registrar Jogadores</h3>
-              <p class="step-description">
-                Adicione os jogadores da sua equipe.
-              </p>
-            </div>
-            <div class="step-actions">
-              <span
-                v-if="steps.registerPlayers.completed"
-                class="status-badge status-completed"
-              >
-                Concluído
-              </span>
-              <va-button
-                v-else
-                color="#E9742B"
-                size="small"
-                @click="navigateTo('/players')"
-              >
-                Editar
-              </va-button>
-            </div>
+            <h2 class="completion-title">Configuração Concluída!</h2>
+            <p class="completion-message">
+              Parabéns! Você completou todas as etapas iniciais.
+            </p>
           </div>
+        </div>
+      </Transition>
 
-          <!-- Step 2: Times -->
-          <div
-            class="step-item"
-            :class="{ completed: steps.registerTeams.completed }"
-          >
-            <div class="step-icon-wrapper">
-              <va-icon
-                v-if="steps.registerTeams.completed"
-                name="check_circle"
-                color="#28A745"
-                size="20px"
-              />
-              <va-icon
-                v-else-if="steps.registerTeams.inProgress"
-                name="hourglass_empty"
-                color="#1976D2"
-                size="20px"
-              />
-              <va-icon
-                v-else
-                name="radio_button_unchecked"
-                color="#9E9E9E"
-                size="20px"
-              />
-            </div>
-            <div class="step-content">
-              <h3 class="step-title">Registrar Times</h3>
-              <p class="step-description">Organize seus times.</p>
-            </div>
-            <div class="step-actions">
-              <span
-                v-if="steps.registerTeams.completed"
-                class="status-badge status-completed"
-              >
-                Concluído
-              </span>
-              <template v-else-if="steps.registerTeams.inProgress">
-                <span class="status-badge status-in-progress">
-                  Em andamento
+      <!-- Progress Section -->
+      <Transition name="fade-out">
+        <va-card v-if="!isConfigurationComplete" class="progress-card">
+          <h2 class="progress-title">Progresso da Configuração</h2>
+          <div class="progress-bar-container">
+            <div
+              class="progress-bar-fill"
+              :style="{ width: progressPercentage + '%' }"
+            ></div>
+          </div>
+          <p class="progress-text">{{ progressPercentage }}% concluído</p>
+
+          <!-- Steps -->
+          <div class="steps-list">
+            <!-- Step 1: Jogadores -->
+            <div
+              class="step-item"
+              :class="{ completed: steps.registerPlayers.completed }"
+            >
+              <div class="step-icon-wrapper">
+                <va-icon
+                  v-if="steps.registerPlayers.completed"
+                  name="check_circle"
+                  color="#28A745"
+                  size="20px"
+                />
+                <va-icon
+                  v-else-if="steps.registerPlayers.inProgress"
+                  name="hourglass_empty"
+                  color="#1976D2"
+                  size="20px"
+                />
+                <va-icon
+                  v-else
+                  name="radio_button_unchecked"
+                  color="#9E9E9E"
+                  size="20px"
+                />
+              </div>
+              <div class="step-content">
+                <h3 class="step-title">Registrar Jogadores</h3>
+                <p class="step-description">
+                  Adicione os jogadores da sua equipe.
+                </p>
+              </div>
+              <div class="step-actions">
+                <span
+                  v-if="steps.registerPlayers.completed"
+                  class="status-badge status-completed"
+                >
+                  Concluído
                 </span>
                 <va-button
-                  color="#1976D2"
+                  v-else
+                  color="#E9742B"
                   size="small"
-                  @click="navigateTo('/teams')"
-                  style="margin-left: 8px"
+                  @click="navigateTo('/players')"
                 >
-                  Continuar
+                  Editar
                 </va-button>
-              </template>
-              <span v-else class="status-badge status-pending">
-                <va-icon name="warning" size="small" />
-                Pendente
-              </span>
+              </div>
             </div>
-          </div>
 
-          <!-- Step 3: Treinos -->
-          <div
-            class="step-item"
-            :class="{ completed: steps.registerTrainings.completed }"
-          >
-            <div class="step-icon-wrapper">
-              <va-icon
-                v-if="steps.registerTrainings.completed"
-                name="check_circle"
-                color="#28A745"
-                size="20px"
-              />
-              <va-icon
-                v-else-if="steps.registerTrainings.inProgress"
-                name="hourglass_empty"
-                color="#1976D2"
-                size="20px"
-              />
-              <va-icon
-                v-else
-                name="radio_button_unchecked"
-                color="#9E9E9E"
-                size="20px"
-              />
-            </div>
-            <div class="step-content">
-              <h3 class="step-title">Registrar Treinos</h3>
-              <p class="step-description">Planeje e registre os treinos.</p>
-            </div>
-            <div class="step-actions">
-              <span
-                v-if="steps.registerTrainings.completed"
-                class="status-badge status-completed"
-              >
-                Concluído
-              </span>
-              <template v-else-if="steps.registerTrainings.inProgress">
-                <va-button
+            <!-- Step 2: Times -->
+            <div
+              class="step-item"
+              :class="{ completed: steps.registerTeams.completed }"
+            >
+              <div class="step-icon-wrapper">
+                <va-icon
+                  v-if="steps.registerTeams.completed"
+                  name="check_circle"
+                  color="#28A745"
+                  size="20px"
+                />
+                <va-icon
+                  v-else-if="steps.registerTeams.inProgress"
+                  name="hourglass_empty"
                   color="#1976D2"
-                  size="small"
-                  @click="navigateTo('/trainings')"
+                  size="20px"
+                />
+                <va-icon
+                  v-else
+                  name="radio_button_unchecked"
+                  color="#9E9E9E"
+                  size="20px"
+                />
+              </div>
+              <div class="step-content">
+                <h3 class="step-title">Registrar Times</h3>
+                <p class="step-description">Organize seus times.</p>
+              </div>
+              <div class="step-actions">
+                <span
+                  v-if="steps.registerTeams.completed"
+                  class="status-badge status-completed"
                 >
-                  Continuar
-                </va-button>
-              </template>
-              <template v-else>
-                <span class="status-badge status-pending">
+                  Concluído
+                </span>
+                <template v-else-if="steps.registerTeams.inProgress">
+                  <span class="status-badge status-in-progress">
+                    Em andamento
+                  </span>
+                  <va-button
+                    color="#1976D2"
+                    size="small"
+                    @click="navigateTo('/teams')"
+                    style="margin-left: 8px"
+                  >
+                    Continuar
+                  </va-button>
+                </template>
+                <span v-else class="status-badge status-pending">
                   <va-icon name="warning" size="small" />
                   Pendente
                 </span>
-                <va-button
+              </div>
+            </div>
+
+            <!-- Step 3: Treinos -->
+            <div
+              class="step-item"
+              :class="{ completed: steps.registerTrainings.completed }"
+            >
+              <div class="step-icon-wrapper">
+                <va-icon
+                  v-if="steps.registerTrainings.completed"
+                  name="check_circle"
+                  color="#28A745"
+                  size="20px"
+                />
+                <va-icon
+                  v-else-if="steps.registerTrainings.inProgress"
+                  name="hourglass_empty"
+                  color="#1976D2"
+                  size="20px"
+                />
+                <va-icon
+                  v-else
+                  name="radio_button_unchecked"
                   color="#9E9E9E"
-                  size="small"
-                  disabled
-                  class="waiting-button"
-                  style="margin-left: 8px"
+                  size="20px"
+                />
+              </div>
+              <div class="step-content">
+                <h3 class="step-title">Registrar Treinos</h3>
+                <p class="step-description">Planeje e registre os treinos.</p>
+              </div>
+              <div class="step-actions">
+                <span
+                  v-if="steps.registerTrainings.completed"
+                  class="status-badge status-completed"
                 >
-                  Aguardando
-                </va-button>
-              </template>
+                  Concluído
+                </span>
+                <template v-else-if="steps.registerTrainings.inProgress">
+                  <va-button
+                    color="#1976D2"
+                    size="small"
+                    @click="navigateTo('/trainings')"
+                  >
+                    Continuar
+                  </va-button>
+                </template>
+                <template v-else>
+                  <span class="status-badge status-pending">
+                    <va-icon name="warning" size="small" />
+                    Pendente
+                  </span>
+                  <va-button
+                    color="#9E9E9E"
+                    size="small"
+                    disabled
+                    class="waiting-button"
+                    style="margin-left: 8px"
+                  >
+                    Aguardando
+                  </va-button>
+                </template>
+              </div>
             </div>
           </div>
-        </div>
-      </va-card>
+        </va-card>
+      </Transition>
 
       <!-- Motivational Box -->
-      <va-card class="motivational-card">
-        <div class="motivational-content">
-          <div class="trophy-icon">
-            <va-icon name="emoji_events" size="36px" color="#E9742B" />
+      <Transition name="fade-out">
+        <va-card v-if="!isConfigurationComplete" class="motivational-card">
+          <div class="motivational-content">
+            <div class="trophy-icon">
+              <va-icon name="emoji_events" size="36px" color="#E9742B" />
+            </div>
+            <p class="motivational-text">
+              Quanto mais você configurar, mais completo será o acompanhamento
+              da sua equipe! 🚀
+            </p>
+            <p class="motivational-subtitle">
+              Complete todas as etapas para desbloquear o potencial máximo do
+              VolleyTrack.
+            </p>
           </div>
-          <p class="motivational-text">
-            Quanto mais você configurar, mais completo será o acompanhamento da
-            sua equipe! 🚀
-          </p>
-          <p class="motivational-subtitle">
-            Complete todas as etapas para desbloquear o potencial máximo do
-            VolleyTrack.
-          </p>
-        </div>
-      </va-card>
+        </va-card>
+      </Transition>
 
       <!-- Totals Section -->
       <div class="totals-section">
@@ -272,9 +292,21 @@ export default {
     this.getInformations();
     this.token = localStorage.getItem("userToken") ?? "sem token";
     this.user = JSON.parse(localStorage.getItem("user"));
+    this.checkConfigurationStatus();
   },
-
+  watch: {
+    progressPercentage(newValue) {
+      if (newValue === 100 && !this.isConfigurationComplete) {
+        this.handleConfigurationComplete();
+      }
+    },
+  },
   computed: {
+    isConfigurationComplete() {
+      return (
+        localStorage.getItem("initialConfigurationComplete") === "true" || false
+      );
+    },
     progressPercentage() {
       let completed = 0;
       if (this.totalUsers > 0) completed++;
@@ -307,6 +339,7 @@ export default {
       totalUsers: 0,
       totalTeams: 0,
       totalTrainings: 0,
+      showCompletionAnimation: false,
       paginatorInfo: {},
       variablesGetPlayers: {
         page: 1,
@@ -349,6 +382,13 @@ export default {
       this.getPlayers({ fetchPolicy: "network-only" });
       this.getTeams({ fetchPolicy: "network-only" });
       this.getTrainings({ fetchPolicy: "network-only" });
+
+      // Verificar status após carregar informações
+      this.$nextTick(() => {
+        setTimeout(() => {
+          this.checkConfigurationStatus();
+        }, 500);
+      });
     },
 
     getPlayers(fetchPolicyOptions = {}) {
@@ -528,6 +568,34 @@ export default {
     },
     navigateTo(route) {
       this.$router.push(route);
+    },
+    checkConfigurationStatus() {
+      // Se já foi concluído antes, não mostrar animação novamente
+      if (this.isConfigurationComplete) {
+        return;
+      }
+      // Se chegou a 100% agora, mostrar animação
+      if (this.progressPercentage === 100) {
+        // Pequeno delay para garantir que os dados foram atualizados
+        this.$nextTick(() => {
+          this.handleConfigurationComplete();
+        });
+      }
+    },
+    handleConfigurationComplete() {
+      // Verificar novamente se já foi marcado como concluído
+      if (localStorage.getItem("initialConfigurationComplete") === "true") {
+        return;
+      }
+
+      // Mostrar animação de conclusão
+      this.showCompletionAnimation = true;
+
+      // Após 3 segundos, esconder animação e marcar como concluído
+      setTimeout(() => {
+        this.showCompletionAnimation = false;
+        localStorage.setItem("initialConfigurationComplete", "true");
+      }, 3000);
     },
   },
 };
@@ -860,9 +928,123 @@ useHead({
   line-height: 1.3;
 }
 
+/* Completion Animation */
+.completion-animation {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  backdrop-filter: blur(4px);
+}
+
+.completion-content {
+  background: white;
+  border-radius: 24px;
+  padding: 48px 32px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  max-width: 500px;
+  width: 90%;
+  animation: completionPulse 0.6s ease-out;
+}
+
+.completion-icon-wrapper {
+  animation: completionCheck 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+  margin-bottom: 24px;
+}
+
+.completion-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #0b1e3a;
+  margin: 0 0 12px 0;
+}
+
+.completion-message {
+  font-size: 18px;
+  color: #6c757d;
+  margin: 0;
+  line-height: 1.5;
+}
+
+@keyframes completionCheck {
+  0% {
+    transform: scale(0) rotate(-180deg);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2) rotate(10deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+@keyframes completionPulse {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Transitions */
+.completion-enter-active {
+  transition: opacity 0.4s ease;
+}
+
+.completion-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.completion-enter-from,
+.completion-leave-to {
+  opacity: 0;
+}
+
+.fade-out-enter-active,
+.fade-out-leave-active {
+  transition: all 0.5s ease;
+}
+
+.fade-out-enter-from,
+.fade-out-leave-to {
+  opacity: 0;
+  transform: translateY(-20px);
+}
+
 @media (max-width: 768px) {
   .welcome-page {
     padding: 20px 16px;
+  }
+
+  .completion-content {
+    padding: 32px 24px;
+  }
+
+  .completion-title {
+    font-size: 24px;
+  }
+
+  .completion-message {
+    font-size: 16px;
+  }
+
+  .completion-icon-wrapper :deep(.va-icon) {
+    font-size: 80px !important;
   }
 
   .welcome-container {
