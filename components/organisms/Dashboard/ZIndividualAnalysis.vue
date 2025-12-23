@@ -697,6 +697,7 @@ export default {
   min-height: 320px;
   height: 100%;
   overflow: hidden;
+  width: 100%;
 }
 
 .player-card:hover {
@@ -1253,19 +1254,249 @@ export default {
   height: auto !important;
 }
 
-@media (max-width: 1200px) {
+/* Tablets grandes (769px - 1024px) */
+@media (max-width: 1024px) {
   .players-grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .player-card {
+    min-height: 350px;
   }
 }
 
+/* Tablets (481px - 768px) */
 @media (max-width: 768px) {
   .players-grid {
     grid-template-columns: 1fr;
+    gap: 16px;
   }
 
   .individual-analysis-section {
     padding: 16px;
+    margin-top: 16px;
+  }
+
+  .section-header {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .section-title {
+    font-size: 18px;
+  }
+
+  .expand-all-btn {
+    font-size: 11px !important;
+    padding: 5px 10px !important;
+  }
+
+  .player-card {
+    min-height: auto;
+    padding: 16px;
+  }
+
+  .card-header-actions {
+    margin-bottom: 12px;
+  }
+
+  .player-stats {
+    gap: 12px;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+  }
+
+  .stat-value {
+    font-size: 24px;
+  }
+
+  .fundamentals-section {
+    margin-bottom: 12px;
+  }
+
+  .chart-container {
+    height: 200px;
+  }
+
+  .summary-stats-section {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+
+  .summary-stat-card {
+    padding: 8px;
+  }
+
+  .summary-stat-value {
+    font-size: 16px;
+  }
+}
+
+/* Celulares (até 480px) */
+@media (max-width: 480px) {
+  .individual-analysis-section {
+    padding: 12px;
+    border-radius: 8px;
+  }
+
+  .section-header {
+    margin-bottom: 16px;
+  }
+
+  .section-title {
+    font-size: 16px;
+  }
+
+  .expand-all-btn {
+    width: 100%;
+    justify-content: center;
+    font-size: 11px !important;
+    padding: 6px 12px !important;
+  }
+
+  .players-grid {
+    gap: 12px;
+  }
+
+  .player-card {
+    padding: 12px;
+    border-radius: 8px;
+    min-height: auto;
+  }
+
+  .card-header-actions {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .toggle-view-btn {
+    align-self: flex-end;
+  }
+
+  .player-stats {
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+  }
+
+  .stat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+  }
+
+  .stat-value {
+    font-size: 22px;
+  }
+
+  .stat-label {
+    font-size: 11px;
+  }
+
+  .fundamentals-section {
+    margin-bottom: 12px;
+  }
+
+  .fundamentals-title {
+    font-size: 11px;
+  }
+
+  .fundamentals-tags {
+    gap: 4px;
+    margin-top: 8px;
+    margin-bottom: 8px;
+  }
+
+  .fundamental-tag {
+    padding: 3px 10px;
+    font-size: 11px;
+  }
+
+  .fundamentals-stats-expanded {
+    margin-top: 8px;
+  }
+
+  .fundamental-stat-item {
+    padding: 10px;
+  }
+
+  .fundamental-stat-name {
+    font-size: 12px;
+  }
+
+  .fundamental-stat-total {
+    font-size: 10px;
+  }
+
+  .fundamental-stat-badges {
+    gap: 6px;
+  }
+
+  .stat-badge {
+    padding: 3px 8px;
+    font-size: 10px;
+    min-width: 40px;
+  }
+
+  .chart-container {
+    height: 180px;
+  }
+
+  .chart-title {
+    font-size: 11px;
+    margin-bottom: 8px;
+  }
+
+  .summary-stats-section {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+
+  .summary-stat-card {
+    padding: 8px 6px;
+  }
+
+  .summary-stat-value {
+    font-size: 14px;
+  }
+
+  .summary-stat-label {
+    font-size: 8px;
+  }
+
+  .best-fundamental-card {
+    padding: 8px;
+  }
+
+  .best-fundamental-label {
+    font-size: 8px;
+  }
+
+  .best-fundamental-value {
+    font-size: 12px;
+  }
+
+  .fundamentals-scores-title {
+    font-size: 10px;
+    margin-bottom: 10px;
+  }
+
+  .fundamental-score-item {
+    padding: 6px;
+  }
+
+  .fundamental-score-name {
+    font-size: 11px;
+  }
+
+  .fundamental-score-value {
+    font-size: 11px;
   }
 }
 </style>

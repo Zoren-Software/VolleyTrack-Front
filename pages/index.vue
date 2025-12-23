@@ -1080,6 +1080,7 @@ useHead({
   grid-template-columns: repeat(3, 1fr);
   gap: 16px;
   margin-top: 0;
+  width: 100%;
 }
 
 .total-card {
@@ -1281,9 +1282,43 @@ useHead({
   transform: translateY(-20px);
 }
 
+/* Tablets grandes (769px - 1024px) */
+@media (max-width: 1024px) {
+  .welcome-page {
+    padding: 20px;
+  }
+
+  .welcome-container {
+    max-width: 100%;
+  }
+
+  .totals-section {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+
+  .total-card {
+    padding: 16px;
+  }
+
+  .total-number {
+    font-size: 24px;
+  }
+
+  .total-label {
+    font-size: 14px;
+  }
+}
+
+/* Tablets (481px - 768px) */
 @media (max-width: 768px) {
   .welcome-page {
     padding: 20px 16px;
+  }
+
+  .welcome-container {
+    gap: 16px;
+    max-width: 100%;
   }
 
   .completion-content {
@@ -1302,8 +1337,8 @@ useHead({
     font-size: 80px !important;
   }
 
-  .welcome-container {
-    gap: 16px;
+  .welcome-section {
+    padding: 24px 16px;
   }
 
   .welcome-title {
@@ -1314,9 +1349,49 @@ useHead({
     font-size: 13px;
   }
 
+  .volleyball-icon :deep(.va-icon) {
+    font-size: 60px !important;
+  }
+
+  .start-button {
+    padding: 8px 20px;
+    font-size: 13px;
+  }
+
   .totals-section {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
     gap: 12px;
+  }
+
+  .total-card {
+    padding: 16px;
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .total-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .total-icon :deep(.va-icon) {
+    font-size: 24px !important;
+  }
+
+  .total-number {
+    font-size: 22px;
+  }
+
+  .plan-limit {
+    font-size: 20px;
+  }
+
+  .total-label {
+    font-size: 13px;
+  }
+
+  .total-description {
+    font-size: 11px;
   }
 
   .step-item {
@@ -1332,6 +1407,209 @@ useHead({
   .progress-card,
   .motivational-card {
     padding: 16px;
+  }
+
+  .progress-title {
+    font-size: 16px;
+  }
+
+  .step-title {
+    font-size: 14px;
+  }
+
+  .step-description {
+    font-size: 11px;
+  }
+}
+
+/* Celulares (até 480px) */
+@media (max-width: 480px) {
+  .welcome-page {
+    padding: 16px 12px;
+  }
+
+  .welcome-container {
+    gap: 12px;
+  }
+
+  .welcome-section {
+    padding: 20px 12px;
+    border-radius: 8px;
+  }
+
+  .volleyball-icon {
+    margin-bottom: 12px;
+  }
+
+  .volleyball-icon :deep(.va-icon) {
+    font-size: 50px !important;
+  }
+
+  .welcome-title {
+    font-size: 20px;
+    margin-bottom: 6px;
+  }
+
+  .welcome-subtitle {
+    font-size: 12px;
+    margin-bottom: 16px;
+  }
+
+  .start-button {
+    width: 100%;
+    justify-content: center;
+    padding: 10px 16px;
+    font-size: 12px;
+  }
+
+  .button-icon {
+    font-size: 14px;
+    margin-right: 8px;
+  }
+
+  .completion-content {
+    padding: 24px 20px;
+    width: 95%;
+  }
+
+  .completion-title {
+    font-size: 20px;
+  }
+
+  .completion-message {
+    font-size: 14px;
+  }
+
+  .completion-icon-wrapper :deep(.va-icon) {
+    font-size: 60px !important;
+  }
+
+  .progress-card,
+  .motivational-card {
+    padding: 12px;
+    border-radius: 8px;
+  }
+
+  .progress-card-header {
+    margin-bottom: 10px;
+  }
+
+  .progress-title {
+    font-size: 15px;
+  }
+
+  .progress-text {
+    font-size: 12px;
+    margin-bottom: 12px;
+  }
+
+  .steps-list {
+    gap: 10px;
+  }
+
+  .step-item {
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .step-icon-wrapper {
+    flex-shrink: 0;
+  }
+
+  .step-title {
+    font-size: 13px;
+  }
+
+  .step-description {
+    font-size: 10px;
+  }
+
+  .step-actions {
+    width: 100%;
+    margin-top: 8px;
+    justify-content: flex-start;
+  }
+
+  .step-actions :deep(.va-button) {
+    min-width: 90px !important;
+    width: auto !important;
+    font-size: 11px !important;
+    padding: 5px 10px !important;
+  }
+
+  .status-badge {
+    font-size: 11px;
+    padding: 3px 10px;
+  }
+
+  .motivational-content {
+    gap: 6px;
+  }
+
+  .trophy-icon :deep(.va-icon) {
+    font-size: 28px !important;
+  }
+
+  .motivational-text {
+    font-size: 14px;
+  }
+
+  .motivational-subtitle {
+    font-size: 12px;
+  }
+
+  .totals-section {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .total-card {
+    padding: 14px;
+    flex-direction: row;
+    align-items: center;
+    border-radius: 8px;
+  }
+
+  .total-icon {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+  }
+
+  .total-icon :deep(.va-icon) {
+    font-size: 20px !important;
+  }
+
+  .total-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .total-number {
+    font-size: 20px;
+    margin-bottom: 2px;
+  }
+
+  .plan-limit {
+    font-size: 18px;
+  }
+
+  .total-label {
+    font-size: 12px;
+    margin-bottom: 2px;
+  }
+
+  .total-description {
+    font-size: 10px;
+  }
+
+  .plan-popover-wrapper {
+    top: 8px;
+    right: 8px;
+  }
+
+  .plan-info-icon {
+    font-size: 14px !important;
   }
 }
 </style>
