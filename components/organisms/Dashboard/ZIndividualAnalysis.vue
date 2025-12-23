@@ -36,9 +36,21 @@
             preset="plain"
             size="small"
             class="toggle-view-btn"
+            :class="{
+              'toggle-view-btn-disabled':
+                !expandedStats[playerData.player.id] &&
+                viewMode[playerData.player.id] !== 'chart',
+            }"
             @click="toggleViewMode(playerData.player.id)"
+            :disabled="
+              !expandedStats[playerData.player.id] &&
+              viewMode[playerData.player.id] !== 'chart'
+            "
             :title="
-              viewMode[playerData.player.id] === 'chart'
+              !expandedStats[playerData.player.id] &&
+              viewMode[playerData.player.id] !== 'chart'
+                ? 'Expanda as estatísticas primeiro'
+                : viewMode[playerData.player.id] === 'chart'
                 ? 'Ver informações'
                 : 'Ver gráfico'
             "
@@ -82,84 +94,98 @@
           </div>
 
           <div class="fundamentals-stats-section">
-            <div class="fundamentals-title-wrapper">
-              <h4 class="fundamentals-title">Estatísticas por Fundamental</h4>
-              <span class="top3-badge">TOP 3</span>
-            </div>
-            <div class="fundamentals-stats-list">
-              <div
-                v-for="fundamental in playerData.topFundamentals"
-                :key="fundamental.fundamental.id"
-                class="fundamental-stat-item"
-              >
-                <div class="fundamental-stat-header">
-                  <span class="fundamental-stat-name">{{
-                    fundamental.fundamental.name
-                  }}</span>
-                  <span class="fundamental-stat-total"
-                    >{{ fundamental.grandTotal }} total</span
-                  >
-                </div>
-                <div class="fundamental-stat-content">
-                  <div class="fundamental-stat-bars">
-                    <div
-                      class="stat-bar stat-bar-a"
-                      :style="{
-                        width:
-                          getPercentage(
-                            fundamental.totalA,
-                            fundamental.grandTotal
-                          ) + '%',
-                      }"
-                    ></div>
-                    <div
-                      class="stat-bar stat-bar-b"
-                      :style="{
-                        width:
-                          getPercentage(
-                            fundamental.totalB,
-                            fundamental.grandTotal
-                          ) + '%',
-                      }"
-                    ></div>
-                    <div
-                      class="stat-bar stat-bar-c"
-                      :style="{
-                        width:
-                          getPercentage(
-                            fundamental.totalC,
-                            fundamental.grandTotal
-                          ) + '%',
-                      }"
-                    ></div>
+            <div
+              v-show="expandedStats[playerData.player.id]"
+              class="fundamentals-stats-expanded"
+            >
+              <div class="fundamentals-title-wrapper">
+                <h4 class="fundamentals-title">Estatísticas por Fundamental</h4>
+                <span class="top3-badge">TOP 3</span>
+              </div>
+              <div class="fundamentals-stats-list">
+                <div
+                  v-for="fundamental in playerData.topFundamentals"
+                  :key="fundamental.fundamental.id"
+                  class="fundamental-stat-item"
+                >
+                  <div class="fundamental-stat-header">
+                    <span class="fundamental-stat-name">{{
+                      fundamental.fundamental.name
+                    }}</span>
+                    <span class="fundamental-stat-total"
+                      >{{ fundamental.grandTotal }} total</span
+                    >
                   </div>
-                  <div class="fundamental-stat-badges">
-                    <div class="stat-badge stat-badge-a">
-                      <span class="stat-label">A</span>
-                      <span class="stat-value">{{ fundamental.totalA }}</span>
+                  <div class="fundamental-stat-content">
+                    <div class="fundamental-stat-bars">
+                      <div
+                        class="stat-bar stat-bar-a"
+                        :style="{
+                          width:
+                            getPercentage(
+                              fundamental.totalA,
+                              fundamental.grandTotal
+                            ) + '%',
+                        }"
+                      ></div>
+                      <div
+                        class="stat-bar stat-bar-b"
+                        :style="{
+                          width:
+                            getPercentage(
+                              fundamental.totalB,
+                              fundamental.grandTotal
+                            ) + '%',
+                        }"
+                      ></div>
+                      <div
+                        class="stat-bar stat-bar-c"
+                        :style="{
+                          width:
+                            getPercentage(
+                              fundamental.totalC,
+                              fundamental.grandTotal
+                            ) + '%',
+                        }"
+                      ></div>
                     </div>
-                    <div class="stat-badge stat-badge-b">
-                      <span class="stat-label">B</span>
-                      <span class="stat-value">{{ fundamental.totalB }}</span>
-                    </div>
-                    <div class="stat-badge stat-badge-c">
-                      <span class="stat-label">C</span>
-                      <span class="stat-value">{{ fundamental.totalC }}</span>
+                    <div class="fundamental-stat-badges">
+                      <div class="stat-badge stat-badge-a">
+                        <span class="stat-label">A</span>
+                        <span class="stat-value">{{ fundamental.totalA }}</span>
+                      </div>
+                      <div class="stat-badge stat-badge-b">
+                        <span class="stat-label">B</span>
+                        <span class="stat-value">{{ fundamental.totalB }}</span>
+                      </div>
+                      <div class="stat-badge stat-badge-c">
+                        <span class="stat-label">C</span>
+                        <span class="stat-value">{{ fundamental.totalC }}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-
-          <div class="player-footer">
-            <a
-              href="#"
-              class="view-history-link"
-              @click.prevent="viewHistory(playerData.player.id)"
-            >
-              Ver histórico completo
-            </a>
+            <div class="expand-stats-button-wrapper">
+              <va-button
+                :icon="
+                  expandedStats[playerData.player.id]
+                    ? 'expand_less'
+                    : 'expand_more'
+                "
+                preset="plain"
+                size="small"
+                class="expand-stats-btn"
+                @click="toggleExpandedStats(playerData.player.id)"
+              >
+                {{
+                  expandedStats[playerData.player.id]
+                    ? "Mostrar menos"
+                    : "Mostrar mais"
+                }}
+              </va-button>
+            </div>
           </div>
         </div>
 
@@ -284,6 +310,7 @@ export default {
       players: [],
       loading: false,
       viewMode: {}, // 'info' ou 'chart'
+      expandedStats: {}, // Controla quais jogadores têm estatísticas expandidas
     };
   },
   mounted() {
@@ -345,12 +372,15 @@ export default {
       const colors = ["orange", "dark", "blue"];
       return colors[playerIndex % colors.length];
     },
-    viewHistory(playerId) {
-      // TODO: Implementar navegação para histórico do jogador
-      console.log("Ver histórico do jogador:", playerId);
-      // this.$router.push(`/players/${playerId}/history`);
-    },
     toggleViewMode(playerId) {
+      // Só permite alternar se as estatísticas estiverem expandidas ou se já estiver no modo chart
+      if (
+        !this.expandedStats[playerId] &&
+        this.viewMode[playerId] !== "chart"
+      ) {
+        return;
+      }
+
       // Alternar entre 'info' e 'chart'
       if (!this.viewMode[playerId]) {
         this.viewMode = { ...this.viewMode, [playerId]: "chart" };
@@ -360,6 +390,12 @@ export default {
           [playerId]: this.viewMode[playerId] === "chart" ? "info" : "chart",
         };
       }
+    },
+    toggleExpandedStats(playerId) {
+      this.expandedStats = {
+        ...this.expandedStats,
+        [playerId]: !this.expandedStats[playerId],
+      };
     },
     getAllFundamentals() {
       return [
@@ -623,7 +659,7 @@ export default {
   transition: all 0.2s ease;
   display: flex;
   flex-direction: column;
-  min-height: 450px;
+  min-height: 320px;
   height: 100%;
   overflow: hidden;
 }
@@ -660,9 +696,19 @@ export default {
   transition: all 0.2s ease;
 }
 
-.toggle-view-btn:hover {
+.toggle-view-btn:hover:not(.toggle-view-btn-disabled) {
   color: #e9742b !important;
   background: rgba(233, 116, 43, 0.1) !important;
+}
+
+.toggle-view-btn-disabled {
+  opacity: 0.4 !important;
+  cursor: not-allowed !important;
+}
+
+.toggle-view-btn-disabled:hover {
+  color: #6c757d !important;
+  background: transparent !important;
 }
 
 .player-stats {
@@ -727,6 +773,37 @@ export default {
 .fundamentals-stats-section {
   margin-bottom: 16px;
   flex-shrink: 0;
+}
+
+.fundamentals-stats-expanded {
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.expand-stats-button-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #e9ecef;
+}
+
+.expand-stats-btn {
+  color: #e9742b !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  padding: 4px 12px !important;
+  transition: all 0.2s ease;
+}
+
+.expand-stats-btn:hover {
+  background: rgba(233, 116, 43, 0.1) !important;
+  color: #d6652a !important;
+}
+
+.fundamentals-stats-list {
+  transition: all 0.3s ease;
+  overflow: hidden;
 }
 
 .fundamentals-stats-list {
@@ -924,26 +1001,6 @@ export default {
   background-color: #e3f2fd;
   border-color: #1976d2;
   color: #1976d2;
-}
-
-.player-footer {
-  padding-top: 12px;
-  border-top: 1px solid #e9ecef;
-  flex-shrink: 0;
-  margin-top: auto;
-}
-
-.view-history-link {
-  font-size: 12px;
-  color: #e9742b;
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.2s ease;
-}
-
-.view-history-link:hover {
-  color: #d6652a;
-  text-decoration: underline;
 }
 
 /* Modo Gráfico */
