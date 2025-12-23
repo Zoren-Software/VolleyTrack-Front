@@ -5,6 +5,21 @@
         <va-icon name="person" size="20px" color="#E9742B" />
         <h2 class="section-title">Análise Individual</h2>
       </div>
+      <va-button
+        v-if="players.length > 0"
+        :icon="allExpanded ? 'unfold_less' : 'unfold_more'"
+        preset="plain"
+        size="small"
+        class="expand-all-btn"
+        @click="toggleExpandAll"
+        :title="
+          allExpanded
+            ? 'Recolher todas as estatísticas'
+            : 'Expandir todas as estatísticas'
+        "
+      >
+        {{ allExpanded ? "Recolher todas" : "Expandir todas" }}
+      </va-button>
     </div>
 
     <div v-if="loading" class="loading-container">
@@ -167,25 +182,6 @@
                 </div>
               </div>
             </div>
-            <div class="expand-stats-button-wrapper">
-              <va-button
-                :icon="
-                  expandedStats[playerData.player.id]
-                    ? 'expand_less'
-                    : 'expand_more'
-                "
-                preset="plain"
-                size="small"
-                class="expand-stats-btn"
-                @click="toggleExpandedStats(playerData.player.id)"
-              >
-                {{
-                  expandedStats[playerData.player.id]
-                    ? "Mostrar menos"
-                    : "Mostrar mais"
-                }}
-              </va-button>
-            </div>
           </div>
         </div>
 
@@ -316,6 +312,14 @@ export default {
   mounted() {
     this.getPlayersAnalysis();
   },
+  computed: {
+    allExpanded() {
+      if (this.players.length === 0) return false;
+      return this.players.every(
+        (playerData) => this.expandedStats[playerData.player.id]
+      );
+    },
+  },
   methods: {
     getPlayersAnalysis(fetchPolicyOptions = {}) {
       this.loading = true;
@@ -391,11 +395,15 @@ export default {
         };
       }
     },
-    toggleExpandedStats(playerId) {
-      this.expandedStats = {
-        ...this.expandedStats,
-        [playerId]: !this.expandedStats[playerId],
-      };
+    toggleExpandAll() {
+      const allExpanded = this.allExpanded;
+      const newExpandedStats = {};
+
+      this.players.forEach((playerData) => {
+        newExpandedStats[playerData.player.id] = !allExpanded;
+      });
+
+      this.expandedStats = newExpandedStats;
     },
     getAllFundamentals() {
       return [
@@ -600,13 +608,32 @@ export default {
 }
 
 .section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 20px;
+  gap: 16px;
 }
 
 .section-title-wrapper {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex: 1;
+}
+
+.expand-all-btn {
+  color: #e9742b !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  padding: 6px 12px !important;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.expand-all-btn:hover {
+  background: rgba(233, 116, 43, 0.1) !important;
+  color: #d6652a !important;
 }
 
 .section-title {
@@ -778,27 +805,6 @@ export default {
 .fundamentals-stats-expanded {
   transition: all 0.3s ease;
   overflow: hidden;
-}
-
-.expand-stats-button-wrapper {
-  display: flex;
-  justify-content: center;
-  margin-top: 8px;
-  padding-top: 8px;
-  border-top: 1px solid #e9ecef;
-}
-
-.expand-stats-btn {
-  color: #e9742b !important;
-  font-size: 12px !important;
-  font-weight: 500 !important;
-  padding: 4px 12px !important;
-  transition: all 0.2s ease;
-}
-
-.expand-stats-btn:hover {
-  background: rgba(233, 116, 43, 0.1) !important;
-  color: #d6652a !important;
 }
 
 .fundamentals-stats-list {
