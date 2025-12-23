@@ -398,12 +398,20 @@ export default {
     toggleExpandAll() {
       const allExpanded = this.allExpanded;
       const newExpandedStats = {};
+      const newViewMode = { ...this.viewMode };
 
       this.players.forEach((playerData) => {
-        newExpandedStats[playerData.player.id] = !allExpanded;
+        const playerId = playerData.player.id;
+        newExpandedStats[playerId] = !allExpanded;
+
+        // Se estiver recolhendo, voltar para o modo informações
+        if (allExpanded) {
+          newViewMode[playerId] = "info";
+        }
       });
 
       this.expandedStats = newExpandedStats;
+      this.viewMode = newViewMode;
     },
     getAllFundamentals() {
       return [
