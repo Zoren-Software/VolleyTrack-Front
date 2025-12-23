@@ -267,6 +267,9 @@
         </va-card>
       </Transition>
 
+      <!-- Individual Analysis Section -->
+      <ZIndividualAnalysis />
+
       <!-- Totals Section -->
       <div class="totals-section">
         <div class="total-card players-card">
@@ -396,8 +399,12 @@ import PLAYERSTOTAL from "~/graphql/user/query/usersTotal.graphql";
 import TEAMSTOTAL from "~/graphql/team/query/teamsTotal.graphql";
 import TRAININGSTOTAL from "~/graphql/training/query/trainingsTotal.graphql";
 import { getActivePlan } from "~/services/stripeCheckoutService.js";
+import ZIndividualAnalysis from "~/components/organisms/Dashboard/ZIndividualAnalysis.vue";
 
 export default {
+  components: {
+    ZIndividualAnalysis,
+  },
   mounted() {
     this.getInformations();
     this.token = localStorage.getItem("userToken") ?? "sem token";

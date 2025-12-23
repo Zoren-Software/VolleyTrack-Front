@@ -1,0 +1,46 @@
+query playersIndividualAnalysis(
+  $filter: DashboardSearchInput
+  $first: Int
+  $page: Int
+) {
+  playersIndividualAnalysis(
+    filter: $filter
+    first: $first
+    page: $page
+  ) {
+    paginatorInfo {
+      count
+      currentPage
+      firstItem
+      hasMorePages
+      lastItem
+      lastPage
+      perPage
+      total
+    }
+    data {
+      player {
+        id
+        name
+        email
+        positions {
+          id
+          name
+        }
+      }
+      presencePercentage
+      trainingsCount
+      topFundamentals {
+        fundamental {
+          id
+          name
+        }
+        totalA
+        totalB
+        totalC
+        grandTotal
+      }
+    }
+  }
+}
+

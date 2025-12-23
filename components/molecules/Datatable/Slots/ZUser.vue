@@ -6,7 +6,11 @@
     <va-icon v-else name="account_circle" class="user-icon" />
     <div class="user-info">
       <div class="user-name">{{ data.name }}</div>
-      <div v-if="data.information?.phone || showEmail" class="user-details">
+      <div v-if="data.information?.phone || showEmail || showPosition" class="user-details">
+        <div v-if="showPosition && firstPosition" class="user-detail-item">
+          <va-icon name="trip_origin" size="small" class="detail-icon" />
+          <span>{{ firstPosition }}</span>
+        </div>
         <div v-if="data.information?.phone" class="user-detail-item">
           <va-icon name="phone" size="small" class="detail-icon" />
           <span>{{ formattedPhone }}</span>
@@ -79,10 +83,21 @@ export default {
       required: false,
       default: false,
     },
+    showPosition: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
   },
   computed: {
     firstLatter() {
       return this.data.name.charAt(0).toUpperCase() ?? "";
+    },
+    firstPosition() {
+      if (!this.data.positions || this.data.positions.length === 0) {
+        return null;
+      }
+      return this.data.positions[0].name;
     },
     formattedPhone() {
       return this.formatPhone(this.data.information?.phone);
