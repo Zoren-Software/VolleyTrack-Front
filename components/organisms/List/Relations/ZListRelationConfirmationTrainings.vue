@@ -31,22 +31,40 @@
               },
             }"
           >
-            <ZPosition :data="positions" />
+            <div class="positions-cell">
+              <template
+                v-if="
+                  positions &&
+                  (Array.isArray(positions) ? positions.length > 0 : positions)
+                "
+              >
+                <span
+                  v-for="(position, index) in Array.isArray(positions)
+                    ? positions
+                    : [positions].filter(Boolean)"
+                  :key="position?.id || index"
+                  class="position-tag"
+                >
+                  {{ position?.name }}
+                </span>
+              </template>
+              <span v-else class="no-positions-text">-</span>
+            </div>
           </template>
           <template #cell(presence)="{ rowKey: { id, player, presence, trainingId, status } }">
             <div class="presence-cell">
               <!-- Mostra ícone de status atual -->
               <div v-if="presence === null || presence === undefined" class="presence-status">
-                <VaIcon color="secondary" name="pending" :size="24" />
+                <VaIcon color="secondary" name="pending" :size="20" />
                 <span class="presence-text">Não marcado</span>
               </div>
               <div v-else-if="presence" class="presence-status">
-                <VaIcon color="success" name="checked" :size="24" />
-                <span class="presence-text">Compareceu</span>
+                <VaIcon color="success" name="check" :size="20" />
+                <span class="presence-text">Presente</span>
               </div>
               <div v-else class="presence-status">
-                <VaIcon color="danger" name="close" :size="24" />
-                <span class="presence-text">Não compareceu</span>
+                <VaIcon color="danger" name="close" :size="20" />
+                <span class="presence-text">Ausente</span>
               </div>
 
               <!-- Botões para técnico marcar presença real -->
@@ -61,7 +79,8 @@
                   class="presence-button"
                   @click="actionConfirmPresence(id, player.id, trainingId, true)"
                 >
-                  Marcar como presente
+                  <VaIcon name="check" :size="14" />
+                  Marcar como Presente
                 </ZButton>
                 <ZButton
                   v-if="presence !== false"
@@ -70,7 +89,8 @@
                   class="presence-button"
                   @click="actionConfirmPresence(id, player.id, trainingId, false)"
                 >
-                  Marcar como ausente
+                  <VaIcon name="close" :size="14" />
+                  Marcar como Ausente
                 </ZButton>
               </div>
             </div>
@@ -122,6 +142,7 @@
                   class="intention-button"
               @click="actionConfirm(id, player.id, trainingId)"
             >
+              <VaIcon name="check" :size="14" />
               Confirmar
             </ZButton>
             <ZButton
@@ -130,6 +151,7 @@
                   class="intention-button"
               @click="actionReject(id, player.id, trainingId)"
             >
+              <VaIcon name="close" :size="14" />
               Rejeitar
             </ZButton>
               </div>
@@ -145,7 +167,6 @@
 import ZListRelationGeneric from "~/components/molecules/List/ZListRelationGeneric";
 import ZDatatableGeneric from "~/components/molecules/Datatable/ZDatatableGeneric";
 import ZUser from "~/components/molecules/Datatable/Slots/ZUser";
-import ZPosition from "~/components/molecules/Datatable/Slots/ZPosition";
 import ZButton from "~/components/atoms/Buttons/ZButton";
 import ME from "~/graphql/user/query/me.graphql";
 
@@ -154,7 +175,6 @@ export default {
     ZListRelationGeneric,
     ZDatatableGeneric,
     ZUser,
-    ZPosition,
     ZButton,
   },
   emits: [
@@ -346,35 +366,43 @@ export default {
 .presence-cell {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
   min-height: 40px;
+  width: 100%;
 }
 
 .presence-status {
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  gap: 4px;
 }
 
 .presence-text {
-  font-size: 14px;
+  font-size: 12px;
   color: #0b1e3a;
+  font-weight: 500;
 }
 
 .presence-buttons {
   display: flex;
-  gap: 6px;
+  gap: 4px;
   flex-wrap: wrap;
   width: 100%;
+  justify-content: center;
 }
 
 .presence-button {
-  font-size: 12px;
-  padding: 6px 12px;
-  flex: 1;
-  min-width: 120px;
+  font-size: 11px;
+  padding: 4px 10px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 6px;
+  font-weight: 500;
+  min-width: auto;
 }
 
 .presence-pending {
@@ -385,7 +413,7 @@ export default {
 .presence-intention-cell {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 6px;
   align-items: flex-start;
 }
 
@@ -394,13 +422,15 @@ export default {
 }
 
 .status-badge {
-  font-size: 12px;
-  padding: 6px 14px;
+  font-size: 11px;
+  padding: 4px 10px;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   width: 100%;
   justify-content: center;
+  border-radius: 6px;
+  font-weight: 500;
 }
 
 .status-icon {
@@ -409,16 +439,21 @@ export default {
 
 .intention-buttons {
   display: flex;
-  gap: 6px;
+  gap: 4px;
   flex-wrap: wrap;
   width: 100%;
 }
 
 .intention-button {
-  font-size: 12px;
-  padding: 6px 14px;
+  font-size: 11px;
+  padding: 4px 10px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
   flex: 1;
-  min-width: 100px;
+  min-width: auto;
+  border-radius: 6px;
+  font-weight: 500;
 }
 
 .actions-cell {
@@ -454,5 +489,27 @@ export default {
   .action-button {
     width: 100%;
   }
+}
+
+.positions-cell {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.position-tag {
+  padding: 4px 10px;
+  border-radius: 16px;
+  font-size: 11px;
+  font-weight: 500;
+  display: inline-block;
+  background-color: #f0f0f0;
+  color: #4a5568;
+  line-height: 1.3;
+}
+
+.no-positions-text {
+  color: #9ca3af;
+  font-size: 12px;
 }
 </style>
