@@ -140,23 +140,22 @@ export default {
 
         // Verifica a etapa atual para decidir se redireciona
         const currentStep = this.$refs.trainingForm
-          ? this.$refs.trainingForm.step
+          ? this.$refs.trainingForm.controlledStep
           : 0;
 
-        // Só redireciona se estiver nas etapas iniciais (0-3)
-        if (currentStep <= 3) {
-          confirmSuccess("Treino salvo com sucesso!", () => {
-            this.errors = this.errorsDefault();
-            this.$router.push("/trainings");
-          });
-        } else if (currentStep >= 4) {
-          // Se estiver salvando scouts (etapas 4-5), apenas mostra sucesso sem redirecionar
+        // Se estiver na etapa 0 (Informações Essenciais), apenas mostra sucesso sem recarregar
+        if (currentStep === 0) {
+          confirmSuccess("Treino salvo com sucesso!");
+          this.errors = this.errorsDefault();
+          // Não recarrega os dados para preservar as presenças marcadas na etapa 2
+          // this.getTraining({ fetchPolicy: 'network-only' });
+        } else if (currentStep >= 2) {
+          // Se estiver salvando scouts (etapa 2), apenas mostra sucesso sem redirecionar
           confirmSuccess("Scouts salvos com sucesso!");
           this.errors = this.errorsDefault();
           // IMPORTANTE: Não redireciona, mantém na página atual
-          // Não chama this.$router.push() aqui
         } else {
-          // Fallback para etapas desconhecidas
+          // Fallback para outras etapas
           confirmSuccess("Dados salvos com sucesso!");
           this.errors = this.errorsDefault();
         }

@@ -121,19 +121,19 @@
                     <ZCardViewMetricsPresenceIntention
                       title="Métricas do treino, intenção de presença"
                       :strip="false"
-                      :data="form.confirmationTrainingMetrics"
+                      :data="confirmationTrainingMetrics"
                     />
                     <ZCardViewMetricsRealPresence
                       title="Métricas do treino, presença real"
                       :strip="false"
-                      :data="form.confirmationTrainingMetrics"
+                      :data="confirmationTrainingMetrics"
                     />
                   </div>
 
                 <!-- Progress Bars -->
                 <div class="progress-bars-section">
                     <ZProgressBarMetricsTraining
-                      :metrics="form.confirmationTrainingMetrics"
+                      :metrics="confirmationTrainingMetrics"
                       :data="form"
                     />
                   </div>
@@ -307,6 +307,7 @@ export default {
         fundamentals: this.data.fundamentals || [],
         specificFundamentals: this.data.specificFundamentals || [],
         confirmationsTraining: this.data.confirmationsTraining || [],
+        confirmationTrainingMetrics: this.data.confirmationTrainingMetrics || {},
       },
       fundamentals: [],
       specificFundamentals: [],
@@ -352,41 +353,119 @@ export default {
         },
       ];
     },
+    // Recalcular métricas baseado nos dados locais de confirmationsTraining
+    confirmationTrainingMetrics() {
+      const confirmations = this.form.confirmationsTraining || [];
+      
+      const confirmed = confirmations.filter(c => c.status === 'CONFIRMED' || c.status === 'confirmed').length;
+      const pending = confirmations.filter(c => c.status === 'PENDING' || c.status === 'pending').length;
+      const rejected = confirmations.filter(c => c.status === 'REJECTED' || c.status === 'rejected').length;
+      const presence = confirmations.filter(c => c.presence === true).length;
+      const absence = confirmations.filter(c => c.presence === false).length;
+      
+      const total = confirmed + pending + rejected;
+      
+      return {
+        confirmed,
+        pending,
+        rejected,
+        total,
+        confirmedPercentage: total > 0 ? (confirmed / total) * 100 : 0,
+        pendingPercentage: total > 0 ? (pending / total) * 100 : 0,
+        rejectedPercentage: total > 0 ? (rejected / total) * 100 : 0,
+        presence,
+        absence,
+        presencePercentage: total > 0 ? (presence / total) * 100 : 0,
+        absencePercentage: total > 0 ? (absence / total) * 100 : 0,
+      };
+    },
   },
 
   watch: {
-    data(val) {
-      // Preservar dados existentes que podem ser perdidos
-      const existingTeams = this.form.teams || [];
-      const existingFundamentals = this.form.fundamentals || [];
-      const existingSpecificFundamentals = this.form.specificFundamentals || [];
+    data: {
+      handler(val) {
+        // Se não há dados válidos, não fazer nada
+        if (!val || Object.keys(val).length === 0) {
+          return;
+        }
+        
+        // Verificar se o form já foi inicializado (tem ID ou dados básicos)
+        const isFormInitialized = this.form && (this.form.id || this.form.name);
+        
+        // Preservar dados existentes que podem ser perdidos apenas se o form já foi inicializado
+        const existingTeams = isFormInitialized ? (this.form.teams || []) : [];
+        const existingFundamentals = isFormInitialized ? (this.form.fundamentals || []) : [];
+        const existingSpecificFundamentals = isFormInitialized ? (this.form.specificFundamentals || []) : [];
+        const existingConfirmationsTraining = isFormInitialized ? (this.form.confirmationsTraining || []) : [];
 
-      this.form = {
-        ...val,
-        players: val.players || [],
-        scouts: val.scouts || [],
-        confirmationsTraining: val.confirmationsTraining || [],
-        // Preservar dados que podem ser perdidos na atualização
-        teams:
-          Array.isArray(val.teams) && val.teams.length > 0
-            ? val.teams
-            : Array.isArray(existingTeams)
-            ? existingTeams
-            : [],
-        fundamentals:
-          Array.isArray(val.fundamentals) && val.fundamentals.length > 0
-            ? val.fundamentals
-            : Array.isArray(existingFundamentals)
-            ? existingFundamentals
-            : [],
-        specificFundamentals:
-          Array.isArray(val.specificFundamentals) &&
-          val.specificFundamentals.length > 0
-            ? val.specificFundamentals
-            : Array.isArray(existingSpecificFundamentals)
-            ? existingSpecificFundamentals
-            : [],
-      };
+        // Preservar valores de presença real e status dos confirmationsTraining existentes
+        let preservedConfirmationsTraining;
+        
+        if (val.confirmationsTraining && val.confirmationsTraining.length > 0 && isFormInitialized) {
+          // Se há novos dados e o form já foi inicializado, mesclar preservando valores de presença e status
+          preservedConfirmationsTraining = val.confirmationsTraining.map((newConfirmation) => {
+            // Buscar confirmação existente com mesmo ID ou mesmo playerId
+            const existingConfirmation = existingConfirmationsTraining.find(
+              (existing) => 
+                (existing.id && existing.id === newConfirmation.id) ||
+                (existing.playerId && existing.playerId === newConfirmation.playerId) ||
+                (existing.player?.id && existing.player?.id === newConfirmation.player?.id)
+            );
+            
+            if (existingConfirmation) {
+              // Preservar presença se foi marcada (true ou false)
+              const preservedPresence = (existingConfirmation.presence !== null && 
+                existingConfirmation.presence !== undefined) 
+                ? existingConfirmation.presence 
+                : newConfirmation.presence;
+              
+              // Preservar status se foi alterado (não é PENDING)
+              const preservedStatus = (existingConfirmation.status && 
+                existingConfirmation.status !== 'PENDING' && 
+                existingConfirmation.status !== 'pending') 
+                ? existingConfirmation.status 
+                : newConfirmation.status;
+              
+              return {
+                ...newConfirmation,
+                presence: preservedPresence,
+                status: preservedStatus,
+              };
+            }
+            
+            // Caso contrário, usar os novos dados
+            return newConfirmation;
+          });
+        } else if (val.confirmationsTraining && val.confirmationsTraining.length > 0) {
+          // Se é a primeira vez carregando, usar os dados novos diretamente
+          preservedConfirmationsTraining = val.confirmationsTraining;
+        } else {
+          // Se não há novos dados, manter os existentes apenas se já houver dados no form
+          preservedConfirmationsTraining = isFormInitialized ? existingConfirmationsTraining : [];
+        }
+
+        this.form = {
+          ...val,
+          players: val.players || this.form.players || [],
+          scouts: val.scouts || this.form.scouts || [],
+          confirmationsTraining: preservedConfirmationsTraining,
+          // Usar dados novos se disponíveis, senão preservar existentes apenas se form já inicializado
+          teams:
+            Array.isArray(val.teams) && val.teams.length > 0
+              ? val.teams
+              : (isFormInitialized && Array.isArray(existingTeams) && existingTeams.length > 0 ? existingTeams : []),
+          fundamentals:
+            Array.isArray(val.fundamentals) && val.fundamentals.length > 0
+              ? val.fundamentals
+              : (isFormInitialized && Array.isArray(existingFundamentals) && existingFundamentals.length > 0 ? existingFundamentals : []),
+          specificFundamentals:
+            Array.isArray(val.specificFundamentals) &&
+            val.specificFundamentals.length > 0
+              ? val.specificFundamentals
+              : (isFormInitialized && Array.isArray(existingSpecificFundamentals) && existingSpecificFundamentals.length > 0 ? existingSpecificFundamentals : []),
+        };
+      },
+      immediate: false,
     },
     "data.team": function (newVal) {
       if (newVal && (!this.form.teams || this.form.teams.length === 0)) {
@@ -480,9 +559,9 @@ export default {
 
         const footer = errorMessages.join("<br>");
 
-        confirmError("Ocorreu um erro ao ler todas as notificações!", footer);
+        confirmError("Ocorreu um erro ao executar a operação!", footer);
       } else {
-        confirmError("Ocorreu um erro ao ler todas as notificações!");
+        confirmError("Ocorreu um erro ao executar a operação!");
       }
     },
     errorsDefault() {
@@ -516,11 +595,34 @@ export default {
 
         const { data } = await mutate();
 
+        // Atualizar o form.confirmationsTraining localmente
+        if (this.form.confirmationsTraining && Array.isArray(this.form.confirmationsTraining)) {
+          const confirmationIndex = this.form.confirmationsTraining.findIndex(
+            (confirmation) => 
+              (confirmation.id && confirmation.id === parseInt(id)) ||
+              (confirmation.playerId && confirmation.playerId === parseInt(playerId)) ||
+              (confirmation.player?.id && confirmation.player?.id === parseInt(playerId))
+          );
+          
+          if (confirmationIndex !== -1) {
+            // Criar novo array para garantir reatividade no Vue 3
+            this.form.confirmationsTraining = [
+              ...this.form.confirmationsTraining.slice(0, confirmationIndex),
+              {
+                ...this.form.confirmationsTraining[confirmationIndex],
+                status: "REJECTED",
+              },
+              ...this.form.confirmationsTraining.slice(confirmationIndex + 1),
+            ];
+          }
+        }
+
         confirmSuccess("Negando intenção de presença com sucesso!", () => {
           this.items = [];
         });
 
-        this.$emit("refresh");
+        // Não emitir refresh para evitar recarregar e perder os dados
+        // this.$emit("refresh");
       } catch (error) {
         console.error(error);
         this.error = true;
@@ -542,9 +644,9 @@ export default {
 
           const footer = errorMessages.join("<br>");
 
-          confirmError("Ocorreu um erro ao ler todas as notificações!", footer);
+          confirmError("Ocorreu um erro ao negar a intenção de presença!", footer);
         } else {
-          confirmError("Ocorreu um erro ao ler todas as notificações!");
+          confirmError("Ocorreu um erro ao negar a intenção de presença!");
         }
       }
     },
@@ -565,11 +667,34 @@ export default {
 
         const { data } = await mutate();
 
+        // Atualizar o form.confirmationsTraining localmente para preservar o valor
+        if (this.form.confirmationsTraining && Array.isArray(this.form.confirmationsTraining)) {
+          const confirmationIndex = this.form.confirmationsTraining.findIndex(
+            (confirmation) => 
+              (confirmation.id && confirmation.id === parseInt(id)) ||
+              (confirmation.playerId && confirmation.playerId === parseInt(playerId)) ||
+              (confirmation.player?.id && confirmation.player?.id === parseInt(playerId))
+          );
+          
+          if (confirmationIndex !== -1) {
+            // Criar novo array para garantir reatividade no Vue 3
+            this.form.confirmationsTraining = [
+              ...this.form.confirmationsTraining.slice(0, confirmationIndex),
+              {
+                ...this.form.confirmationsTraining[confirmationIndex],
+                presence: presence,
+              },
+              ...this.form.confirmationsTraining.slice(confirmationIndex + 1),
+            ];
+          }
+        }
+
         confirmSuccess("Presença confirmada com sucesso!", () => {
           this.items = [];
         });
 
-        this.$emit("refresh");
+        // Não emitir refresh para evitar recarregar e perder os dados
+        // this.$emit("refresh");
       } catch (error) {
         console.error(error);
         this.error = true;
@@ -591,9 +716,9 @@ export default {
 
           const footer = errorMessages.join("<br>");
 
-          confirmError("Ocorreu um erro ao ler todas as notificações!", footer);
+          confirmError("Ocorreu um erro ao confirmar a presença!", footer);
         } else {
-          confirmError("Ocorreu um erro ao ler todas as notificações!");
+          confirmError("Ocorreu um erro ao confirmar a presença!");
         }
       }
     },
@@ -614,11 +739,34 @@ export default {
 
         const { data } = await mutate();
 
+        // Atualizar o form.confirmationsTraining localmente
+        if (this.form.confirmationsTraining && Array.isArray(this.form.confirmationsTraining)) {
+          const confirmationIndex = this.form.confirmationsTraining.findIndex(
+            (confirmation) => 
+              (confirmation.id && confirmation.id === parseInt(id)) ||
+              (confirmation.playerId && confirmation.playerId === parseInt(playerId)) ||
+              (confirmation.player?.id && confirmation.player?.id === parseInt(playerId))
+          );
+          
+          if (confirmationIndex !== -1) {
+            // Criar novo array para garantir reatividade no Vue 3
+            this.form.confirmationsTraining = [
+              ...this.form.confirmationsTraining.slice(0, confirmationIndex),
+              {
+                ...this.form.confirmationsTraining[confirmationIndex],
+                status: "CONFIRMED",
+              },
+              ...this.form.confirmationsTraining.slice(confirmationIndex + 1),
+            ];
+          }
+        }
+
         confirmSuccess("Intenção de presença confirmada com sucesso!", () => {
           this.items = [];
         });
 
-        this.$emit("refresh");
+        // Não emitir refresh para evitar recarregar e perder os dados
+        // this.$emit("refresh");
       } catch (error) {
         console.error(error);
         this.error = true;
@@ -640,9 +788,9 @@ export default {
 
           const footer = errorMessages.join("<br>");
 
-          confirmError("Ocorreu um erro ao ler todas as notificações!", footer);
+          confirmError("Ocorreu um erro ao confirmar a intenção de presença!", footer);
         } else {
-          confirmError("Ocorreu um erro ao ler todas as notificações!");
+          confirmError("Ocorreu um erro ao confirmar a intenção de presença!");
         }
       }
     },
