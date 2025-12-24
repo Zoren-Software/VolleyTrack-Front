@@ -112,11 +112,11 @@
       <!-- CELL -->
       <template
         #cell(name)="{
-          rowKey: { name, dateStart, confirmationTrainingMetrics },
+          rowKey: { id, name, dateStart, confirmationTrainingMetrics },
         }"
       >
         <ZTraining
-          :data="{ name, dateStart }"
+          :data="{ id, name, dateStart }"
           :metrics="confirmationTrainingMetrics"
         />
       </template>
@@ -196,7 +196,6 @@ export default defineComponent({
     let loading = false;
 
     const columns = [
-      { key: "id", name: "id", sortable: true },
       { key: "name", name: "name", label: "Treino", sortable: true },
       { key: "team", name: "team", label: "Time", sortable: true },
       {
