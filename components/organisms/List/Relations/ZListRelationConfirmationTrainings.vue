@@ -22,43 +22,7 @@
 
           <!-- CELL -->
           <template #cell(user)="{ rowKey: { player } }">
-            <ZUser :data="player" show-email />
-          </template>
-          <template
-            #cell(actions)="{ rowKey: { id, player, presence, trainingId } }"
-          >
-            <div class="actions-cell">
-            <ZButton
-              v-if="
-                  !isBeforeTrainingDate &&
-                  hasAdminOrTechnicianRole() &&
-                  !presence
-              "
-              color="success"
-                size="small"
-                class="action-button"
-              @click="
-                actionConfirmPresence(id, player.id, trainingId, !presence)
-              "
-            >
-              Compareceu
-            </ZButton>
-            <ZButton
-              v-if="
-                  !isBeforeTrainingDate &&
-                  hasAdminOrTechnicianRole() &&
-                  presence
-              "
-              color="danger"
-                size="small"
-                class="action-button"
-              @click="
-                actionConfirmPresence(id, player.id, trainingId, !presence)
-              "
-            >
-              Não Compareceu
-            </ZButton>
-            </div>
+            <ZUser :data="player" />
           </template>
           <template
             #cell(positions)="{
@@ -69,15 +33,46 @@
           >
             <ZPosition :data="positions" />
           </template>
-          <template #cell(presence)="{ rowKey: { presence } }">
+          <template #cell(presence)="{ rowKey: { id, player, presence, trainingId, status } }">
             <div class="presence-cell">
-              <VaIcon v-if="!presence" color="danger" name="close" :size="32" />
-            <VaIcon
-                v-if="presence"
-              color="success"
-              name="checked"
-                :size="32"
-            />
+              <!-- Mostra ícone de status atual -->
+              <div v-if="presence === null || presence === undefined" class="presence-status">
+                <VaIcon color="secondary" name="pending" :size="24" />
+                <span class="presence-text">Não marcado</span>
+              </div>
+              <div v-else-if="presence" class="presence-status">
+                <VaIcon color="success" name="checked" :size="24" />
+                <span class="presence-text">Compareceu</span>
+              </div>
+              <div v-else class="presence-status">
+                <VaIcon color="danger" name="close" :size="24" />
+                <span class="presence-text">Não compareceu</span>
+              </div>
+
+              <!-- Botões para técnico marcar presença real -->
+              <div
+                v-if="hasAdminOrTechnicianRole()"
+                class="presence-buttons"
+              >
+                <ZButton
+                  v-if="presence !== true"
+                  color="success"
+                  size="small"
+                  class="presence-button"
+                  @click="actionConfirmPresence(id, player.id, trainingId, true)"
+                >
+                  Marcar como presente
+                </ZButton>
+                <ZButton
+                  v-if="presence !== false"
+                  color="danger"
+                  size="small"
+                  class="presence-button"
+                  @click="actionConfirmPresence(id, player.id, trainingId, false)"
+                >
+                  Marcar como ausente
+                </ZButton>
+              </div>
             </div>
           </template>
           <template
@@ -294,13 +289,6 @@ export default {
     columns() {
       const baseColumns = [
         {
-          key: "id",
-          name: "id",
-          label: "ID",
-          sortable: true,
-          width: 80,
-        },
-        {
           key: "user",
           name: "user",
           label: "Jogador",
@@ -315,28 +303,25 @@ export default {
         },
       ];
 
-      // Se o treino ainda vai acontecer, mostra "Intenção de Presença"
-      // Se o treino já passou, mostra "Presença"
+      // Coluna de Intenção de Presença (sempre visível)
       const intentionColumn = {
         key: "presenceIntention",
         name: "presenceIntention",
-        label: this.isBeforeTrainingDate ? "Intenção de Presença" : "Presença",
+        label: "Intenção de Presença",
         sortable: true,
         width: 200,
       };
 
       baseColumns.push(intentionColumn);
 
-      // Coluna de presença real só aparece se o treino já passou
-      if (!this.isBeforeTrainingDate) {
-        baseColumns.push({
-          key: "presence",
-          name: "presence",
-          label: "Presença Real",
-          sortable: true,
-          width: 120,
-        });
-      }
+      // Coluna de Presença Real (sempre visível para técnico marcar)
+      baseColumns.push({
+        key: "presence",
+        name: "presence",
+        label: "Presença Real",
+        sortable: true,
+        width: 200,
+      });
 
       return baseColumns;
     },
@@ -360,9 +345,36 @@ export default {
 
 .presence-cell {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
   justify-content: center;
+  gap: 8px;
   min-height: 40px;
+}
+
+.presence-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.presence-text {
+  font-size: 14px;
+  color: #0b1e3a;
+}
+
+.presence-buttons {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.presence-button {
+  font-size: 12px;
+  padding: 6px 12px;
+  flex: 1;
+  min-width: 120px;
 }
 
 .presence-pending {

@@ -6,6 +6,9 @@
     <va-icon v-else name="account_circle" class="user-icon" />
     <div class="user-info">
       <div class="user-name">{{ data.name }}</div>
+      <div v-if="data.id" class="user-id">
+        ID: #{{ String(data.id).padStart(3, "0") }}
+      </div>
       <div v-if="data.information?.phone || showEmail || showPosition" class="user-details">
         <div v-if="showPosition && firstPosition" class="user-detail-item">
           <va-icon name="trip_origin" size="small" class="detail-icon" />
@@ -168,6 +171,12 @@ export default {
   font-size: 14px;
   color: #0b1e3a;
   line-height: 1.4;
+}
+
+.user-id {
+  font-size: 11px;
+  color: #6c757d;
+  line-height: 1.2;
 }
 
 .user-details {

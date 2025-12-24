@@ -21,7 +21,7 @@
             </div>
             <va-icon
               name="delete"
-              color="white"
+              color="danger"
               class="delete-icon"
               @click="actionDelete(item.id)"
             />
@@ -133,7 +133,7 @@ export default {
 .delete-icon {
   cursor: pointer;
   transition: color 0.2s ease;
-  background-color: rgb(0, 225, 255);
+  color: #dc3545;
 }
 
 .delete-icon:hover {
