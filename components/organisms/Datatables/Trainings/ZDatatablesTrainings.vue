@@ -599,6 +599,22 @@ export default defineComponent({
   font-weight: 500;
 }
 
+/* Garantir sombra nos avatares dos times */
+:deep(.team-avatar),
+:deep(.team-avatar .va-avatar),
+:deep(.team-avatar .va-avatar__content) {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+  border: 2px solid white !important;
+}
+
+/* Garantir sombra nos avatares dos usuários */
+:deep(.user-avatar),
+:deep(.user-avatar .va-avatar),
+:deep(.user-avatar .va-avatar__content) {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+  border: 2px solid white !important;
+}
+
 @media (max-width: 768px) {
   .filter-content {
     flex-direction: column;

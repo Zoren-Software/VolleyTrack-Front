@@ -9,7 +9,10 @@
       <div v-if="data.id" class="user-id">
         ID: #{{ String(data.id).padStart(3, "0") }}
       </div>
-      <div v-if="data.information?.phone || showEmail || showPosition" class="user-details">
+      <div
+        v-if="data.information?.phone || showEmail || showPosition"
+        class="user-details"
+      >
         <div v-if="showPosition && firstPosition" class="user-detail-item">
           <va-icon name="trip_origin" size="small" class="detail-icon" />
           <span>{{ firstPosition }}</span>
@@ -140,7 +143,7 @@ export default {
   flex-shrink: 0;
   width: 40px;
   border: 2px solid white !important;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
   background: #e9742b !important;
   color: white !important;
 }
@@ -149,6 +152,11 @@ export default {
   border: 2px solid white !important;
   background: #e9742b !important;
   color: white !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+}
+
+.user-avatar :deep(.va-avatar__content) {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
 }
 
 .user-icon {

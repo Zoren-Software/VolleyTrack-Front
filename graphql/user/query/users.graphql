@@ -32,6 +32,14 @@ query users(
       teams {
         id
         name
+        teamCategory {
+          id
+          name
+        }
+        teamLevel {
+          id
+          name
+        }
       }
       roles {
         id

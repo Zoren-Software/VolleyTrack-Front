@@ -103,16 +103,15 @@
           <template
             v-if="teams && (Array.isArray(teams) ? teams.length > 0 : teams)"
           >
-            <span
+            <ZTeam
               v-for="(team, index) in Array.isArray(teams)
                 ? teams
                 : [teams].filter(Boolean)"
               :key="team?.id || index"
-              class="team-tag"
-              :class="getTeamTagClass(index, team?.name)"
-            >
-              {{ team?.name }}
-            </span>
+              :data="team"
+              :showCategoryAndLevel="true"
+              class="team-item"
+            />
           </template>
           <span v-else class="no-data-text">-</span>
         </div>
@@ -637,13 +636,14 @@ export default defineComponent({
   background: #e9742b !important;
   color: white !important;
   border: 2px solid white !important;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
 }
 
 .player-avatar :deep(.va-avatar) {
   border: 2px solid white !important;
   background: #e9742b !important;
   color: white !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 1.3), 0 1px 3px rgba(0, 0, 0, 0.08) !important;
 }
 
 /* Garantir que o tamanho seja aplicado corretamente */
@@ -698,50 +698,19 @@ export default defineComponent({
 
 .teams-cell {
   display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.team-tag {
-  padding: 4px 10px;
-  border-radius: 16px;
-  font-size: 11px;
-  font-weight: 500;
-  display: inline-block;
-  white-space: nowrap;
-  line-height: 1.3;
+.team-item {
+  margin-bottom: 4px;
 }
 
-/* Cores específicas para tipos de times conforme mockup */
-.team-tag-juvenil-a {
-  background-color: #ff9933;
-  color: white;
-}
-
-.team-tag-juvenil-b {
-  background-color: #ddf0ff;
-  color: #1976d2;
-}
-
-.team-tag-infantil {
-  background-color: #e0ffe0;
-  color: #2e7d32;
-}
-
-/* Fallback para outros times */
-.team-tag-orange {
-  background-color: #ff9933;
-  color: white;
-}
-
-.team-tag-blue {
-  background-color: #ddf0ff;
-  color: #1976d2;
-}
-
-.team-tag-green {
-  background-color: #e0ffe0;
-  color: #2e7d32;
+.team-item :deep(.team-avatar),
+.team-item :deep(.team-avatar .va-avatar),
+.team-item :deep(.team-avatar .va-avatar__content) {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+  border: 2px solid white !important;
 }
 
 .positions-cell {
@@ -993,6 +962,14 @@ export default defineComponent({
   background: #e9742b !important;
   color: white !important;
   border: 2px solid white !important;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Garantir sombra nos avatares de usuários (ZUser) na listagem de jogadores */
+.players-listing :deep(.user-avatar),
+.players-listing :deep(.user-avatar .va-avatar),
+.players-listing :deep(.user-avatar .va-avatar__content) {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+  border: 2px solid white !important;
 }
 </style>
