@@ -39,236 +39,263 @@
         v-for="(playerData, index) in players"
         :key="playerData.player.id"
         class="player-card"
+        :class="getPlayerCardClass(index)"
       >
-        <div class="card-header-actions">
-          <div class="player-header">
-            <ZUser :data="playerData.player" show-position />
-          </div>
-          <va-button
-            :icon="
-              viewMode[playerData.player.id] === 'chart'
-                ? 'visibility'
-                : 'bar_chart'
-            "
-            preset="plain"
-            size="small"
-            class="toggle-view-btn"
-            :class="{
-              'toggle-view-btn-disabled':
-                !expandedStats[playerData.player.id] &&
-                viewMode[playerData.player.id] !== 'chart',
-            }"
-            @click="toggleViewMode(playerData.player.id)"
-            :disabled="
-              !expandedStats[playerData.player.id] &&
-              viewMode[playerData.player.id] !== 'chart'
-            "
-            :title="
-              !expandedStats[playerData.player.id] &&
-              viewMode[playerData.player.id] !== 'chart'
-                ? 'Expanda as estatísticas primeiro'
-                : viewMode[playerData.player.id] === 'chart'
-                ? 'Ver informações'
-                : 'Ver gráfico'
-            "
-          />
-        </div>
-
-        <!-- Modo Informações -->
         <div
-          v-if="viewMode[playerData.player.id] !== 'chart'"
-          class="player-info-view"
-        >
-          <div class="player-stats">
-            <div
-              class="stat-item presence"
-              :class="getPresenceClass(playerData.presencePercentage)"
-            >
-              <div class="stat-value">
-                {{ formatPercentage(playerData.presencePercentage) }}
-              </div>
-              <div class="stat-label">Presença</div>
+          class="player-card-border"
+          :class="getPlayerBorderClass(index)"
+        ></div>
+        <div class="player-card-content">
+          <div class="card-header-actions">
+            <div class="player-header">
+              <ZUser :data="playerData.player" show-position />
             </div>
-
-            <div class="stat-item trainings">
-              <div class="stat-value">{{ playerData.trainingsCount }}</div>
-              <div class="stat-label">Treinos</div>
-            </div>
-          </div>
-
-          <div class="fundamentals-section">
-            <h4 class="fundamentals-title">Fundamentos Mais Treinados</h4>
-            <div class="fundamentals-tags">
-              <span
-                v-for="(fundamental, idx) in playerData.topFundamentals"
-                :key="fundamental.fundamental.id"
-                class="fundamental-tag"
-                :class="getTagColorClass(index, idx)"
-              >
-                {{ fundamental.fundamental.name }}
-              </span>
-            </div>
-          </div>
-
-          <div class="fundamentals-stats-section">
-            <div
-              v-show="expandedStats[playerData.player.id]"
-              class="fundamentals-stats-expanded"
-            >
-              <div class="fundamentals-title-wrapper">
-                <h4 class="fundamentals-title">Estatísticas por Fundamental</h4>
-                <span class="fundamentals-top3-badge">TOP 3</span>
-              </div>
-              <div class="fundamentals-stats-list">
-                <div
-                  v-for="fundamental in playerData.topFundamentals"
-                  :key="fundamental.fundamental.id"
-                  class="fundamental-stat-item"
-                >
-                  <div class="fundamental-stat-header">
-                    <span class="fundamental-stat-name">{{
-                      fundamental.fundamental.name
-                    }}</span>
-                    <span class="fundamental-stat-total"
-                      >{{ fundamental.grandTotal }} total</span
-                    >
-                  </div>
-                  <div class="fundamental-stat-content">
-                    <div class="fundamental-stat-bars">
-                      <div
-                        class="stat-bar stat-bar-a"
-                        :style="{
-                          width:
-                            getPercentage(
-                              fundamental.totalA,
-                              fundamental.grandTotal
-                            ) + '%',
-                        }"
-                      ></div>
-                      <div
-                        class="stat-bar stat-bar-b"
-                        :style="{
-                          width:
-                            getPercentage(
-                              fundamental.totalB,
-                              fundamental.grandTotal
-                            ) + '%',
-                        }"
-                      ></div>
-                      <div
-                        class="stat-bar stat-bar-c"
-                        :style="{
-                          width:
-                            getPercentage(
-                              fundamental.totalC,
-                              fundamental.grandTotal
-                            ) + '%',
-                        }"
-                      ></div>
-                    </div>
-                    <div class="fundamental-stat-badges">
-                      <div class="stat-badge stat-badge-a">
-                        <span class="stat-label">A</span>
-                        <span class="stat-value">{{ fundamental.totalA }}</span>
-                      </div>
-                      <div class="stat-badge stat-badge-b">
-                        <span class="stat-label">B</span>
-                        <span class="stat-value">{{ fundamental.totalB }}</span>
-                      </div>
-                      <div class="stat-badge stat-badge-c">
-                        <span class="stat-label">C</span>
-                        <span class="stat-value">{{ fundamental.totalC }}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Modo Gráfico -->
-        <div v-else class="player-chart-view">
-          <h4 class="chart-title">Avaliação por Fundamentos</h4>
-          <div class="chart-container">
-            <Radar
-              :data="getRadarChartData(playerData)"
-              :options="radarChartOptions"
+            <va-button
+              :icon="
+                viewMode[playerData.player.id] === 'chart'
+                  ? 'visibility'
+                  : 'bar_chart'
+              "
+              preset="plain"
+              size="small"
+              class="toggle-view-btn"
+              :class="{
+                'toggle-view-btn-disabled':
+                  !expandedStats[playerData.player.id] &&
+                  viewMode[playerData.player.id] !== 'chart',
+              }"
+              @click="toggleViewMode(playerData.player.id)"
+              :disabled="
+                !expandedStats[playerData.player.id] &&
+                viewMode[playerData.player.id] !== 'chart'
+              "
+              :title="
+                !expandedStats[playerData.player.id] &&
+                viewMode[playerData.player.id] !== 'chart'
+                  ? 'Expanda as estatísticas primeiro'
+                  : viewMode[playerData.player.id] === 'chart'
+                  ? 'Ver informações'
+                  : 'Ver gráfico'
+              "
             />
           </div>
 
-          <!-- Estatísticas Resumidas -->
-          <div class="summary-stats-section">
-            <div class="summary-stat-card">
-              <div class="summary-stat-value">
-                {{ getSummaryStats(playerData).totalEvaluations }}
-              </div>
-              <div class="summary-stat-label">Total de Avaliações</div>
-            </div>
-            <div class="summary-stat-card">
-              <div class="summary-stat-value summary-stat-success">
-                {{ getSummaryStats(playerData).efficiencyPercentage }}%
-              </div>
-              <div class="summary-stat-label">Eficiência (A)</div>
-            </div>
-            <div class="summary-stat-card">
-              <div class="summary-stat-value summary-stat-warning">
-                {{ getSummaryStats(playerData).regularPercentage }}%
-              </div>
-              <div class="summary-stat-label">Regular (B)</div>
-            </div>
-            <div class="summary-stat-card">
-              <div class="summary-stat-value summary-stat-danger">
-                {{ getSummaryStats(playerData).errorRate }}%
-              </div>
-              <div class="summary-stat-label">Erros (C)</div>
-            </div>
-          </div>
-
-          <!-- Melhor Fundamental -->
+          <!-- Modo Informações -->
           <div
-            class="best-fundamental-section"
-            v-if="getSummaryStats(playerData).bestFundamental"
+            v-if="viewMode[playerData.player.id] !== 'chart'"
+            class="player-info-view"
           >
-            <div class="best-fundamental-card">
-              <va-icon name="emoji_events" color="#e9742b" size="small" />
-              <div class="best-fundamental-content">
-                <div class="best-fundamental-label">Melhor Fundamental</div>
-                <div class="best-fundamental-value">
-                  {{ getSummaryStats(playerData).bestFundamental }}
+            <div class="player-stats">
+              <div
+                class="stat-item presence"
+                :class="getPresenceClass(playerData.presencePercentage, index)"
+              >
+                <div
+                  class="stat-value"
+                  :class="
+                    getPresenceValueClass(playerData.presencePercentage, index)
+                  "
+                >
+                  {{ formatPercentage(playerData.presencePercentage) }}
+                </div>
+                <div class="stat-label">Presença</div>
+              </div>
+
+              <div
+                class="stat-item trainings"
+                :class="getTrainingsClass(index)"
+              >
+                <div class="stat-value" :class="getTrainingsValueClass(index)">
+                  {{ playerData.trainingsCount }}
+                </div>
+                <div class="stat-label">Treinos</div>
+              </div>
+            </div>
+
+            <div class="fundamentals-section">
+              <h4 class="fundamentals-title">Fundamentos Mais Treinados</h4>
+              <div class="fundamentals-tags">
+                <span
+                  v-for="(fundamental, idx) in playerData.topFundamentals"
+                  :key="fundamental.fundamental.id"
+                  class="fundamental-tag"
+                  :class="getTagColorClass(index, idx)"
+                >
+                  {{ fundamental.fundamental.name }}
+                </span>
+              </div>
+            </div>
+
+            <div class="fundamentals-stats-section">
+              <div
+                v-show="expandedStats[playerData.player.id]"
+                class="fundamentals-stats-expanded"
+              >
+                <div class="fundamentals-title-wrapper">
+                  <h4 class="fundamentals-title">
+                    Estatísticas por Fundamental
+                  </h4>
+                  <span class="fundamentals-top3-badge">TOP 3</span>
+                </div>
+                <div class="fundamentals-stats-list">
+                  <div
+                    v-for="fundamental in playerData.topFundamentals"
+                    :key="fundamental.fundamental.id"
+                    class="fundamental-stat-item"
+                  >
+                    <div class="fundamental-stat-header">
+                      <span class="fundamental-stat-name">{{
+                        fundamental.fundamental.name
+                      }}</span>
+                      <span class="fundamental-stat-total"
+                        >{{ fundamental.grandTotal }} total</span
+                      >
+                    </div>
+                    <div class="fundamental-stat-content">
+                      <div class="fundamental-stat-bars">
+                        <div
+                          class="stat-bar stat-bar-a"
+                          :style="{
+                            width:
+                              getPercentage(
+                                fundamental.totalA,
+                                fundamental.grandTotal
+                              ) + '%',
+                          }"
+                        ></div>
+                        <div
+                          class="stat-bar stat-bar-b"
+                          :style="{
+                            width:
+                              getPercentage(
+                                fundamental.totalB,
+                                fundamental.grandTotal
+                              ) + '%',
+                          }"
+                        ></div>
+                        <div
+                          class="stat-bar stat-bar-c"
+                          :style="{
+                            width:
+                              getPercentage(
+                                fundamental.totalC,
+                                fundamental.grandTotal
+                              ) + '%',
+                          }"
+                        ></div>
+                      </div>
+                      <div class="fundamental-stat-badges">
+                        <div class="stat-badge stat-badge-a">
+                          <span class="stat-label">A</span>
+                          <span class="stat-value">{{
+                            fundamental.totalA
+                          }}</span>
+                        </div>
+                        <div class="stat-badge stat-badge-b">
+                          <span class="stat-label">B</span>
+                          <span class="stat-value">{{
+                            fundamental.totalB
+                          }}</span>
+                        </div>
+                        <div class="stat-badge stat-badge-c">
+                          <span class="stat-label">C</span>
+                          <span class="stat-value">{{
+                            fundamental.totalC
+                          }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Lista de Fundamentos com Scores -->
-          <div class="fundamentals-scores-section">
-            <h5 class="fundamentals-scores-title">
-              Performance por Fundamental
-            </h5>
-            <div class="fundamentals-scores-list">
-              <div
-                v-for="fundamental in getTop3FundamentalsWithScores(playerData)"
-                :key="fundamental.name"
-                class="fundamental-score-item"
-              >
-                <div class="fundamental-score-header">
-                  <span class="fundamental-score-name">{{
-                    fundamental.name
-                  }}</span>
-                  <span
-                    class="fundamental-score-value"
-                    :class="getScoreClass(fundamental.score)"
-                  >
-                    {{ fundamental.score }}%
-                  </span>
+          <!-- Modo Gráfico -->
+          <div v-else class="player-chart-view">
+            <h4 class="chart-title">Avaliação por Fundamentos</h4>
+            <div class="chart-container">
+              <Radar
+                :data="getRadarChartData(playerData)"
+                :options="radarChartOptions"
+              />
+            </div>
+
+            <!-- Estatísticas Resumidas -->
+            <div class="summary-stats-section">
+              <div class="summary-stat-card">
+                <div class="summary-stat-value">
+                  {{ getSummaryStats(playerData).totalEvaluations }}
                 </div>
-                <div class="fundamental-score-bar-container">
-                  <div
-                    class="fundamental-score-bar"
-                    :class="getScoreBarClass(fundamental.score)"
-                    :style="{ width: fundamental.score + '%' }"
-                  ></div>
+                <div class="summary-stat-label">Total de Avaliações</div>
+              </div>
+              <div class="summary-stat-card">
+                <div class="summary-stat-value summary-stat-success">
+                  {{ getSummaryStats(playerData).efficiencyPercentage }}%
+                </div>
+                <div class="summary-stat-label">Eficiência (A)</div>
+              </div>
+              <div class="summary-stat-card">
+                <div class="summary-stat-value summary-stat-warning">
+                  {{ getSummaryStats(playerData).regularPercentage }}%
+                </div>
+                <div class="summary-stat-label">Regular (B)</div>
+              </div>
+              <div class="summary-stat-card">
+                <div class="summary-stat-value summary-stat-danger">
+                  {{ getSummaryStats(playerData).errorRate }}%
+                </div>
+                <div class="summary-stat-label">Erros (C)</div>
+              </div>
+            </div>
+
+            <!-- Melhor Fundamental -->
+            <div
+              class="best-fundamental-section"
+              v-if="getSummaryStats(playerData).bestFundamental"
+            >
+              <div class="best-fundamental-card">
+                <va-icon name="emoji_events" color="#e9742b" size="small" />
+                <div class="best-fundamental-content">
+                  <div class="best-fundamental-label">Melhor Fundamental</div>
+                  <div class="best-fundamental-value">
+                    {{ getSummaryStats(playerData).bestFundamental }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Lista de Fundamentos com Scores -->
+            <div class="fundamentals-scores-section">
+              <h5 class="fundamentals-scores-title">
+                Performance por Fundamental
+              </h5>
+              <div class="fundamentals-scores-list">
+                <div
+                  v-for="fundamental in getTop3FundamentalsWithScores(
+                    playerData
+                  )"
+                  :key="fundamental.name"
+                  class="fundamental-score-item"
+                >
+                  <div class="fundamental-score-header">
+                    <span class="fundamental-score-name">{{
+                      fundamental.name
+                    }}</span>
+                    <span
+                      class="fundamental-score-value"
+                      :class="getScoreClass(fundamental.score)"
+                    >
+                      {{ fundamental.score }}%
+                    </span>
+                  </div>
+                  <div class="fundamental-score-bar-container">
+                    <div
+                      class="fundamental-score-bar"
+                      :class="getScoreBarClass(fundamental.score)"
+                      :style="{ width: fundamental.score + '%' }"
+                    ></div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -367,13 +394,37 @@ export default {
       if (total === 0) return 0;
       return (part / total) * 100;
     },
-    getPresenceClass(percentage) {
-      if (percentage === 100) return "perfect";
-      if (percentage >= 90) return "excellent";
-      if (percentage >= 75) return "good";
-      if (percentage >= 70) return "regular";
-      if (percentage >= 50) return "warning";
-      return "danger";
+    getPlayerCardClass(index) {
+      const classes = [
+        "player-card-orange",
+        "player-card-blue",
+        "player-card-black",
+      ];
+      return classes[index % classes.length];
+    },
+    getPlayerBorderClass(index) {
+      const classes = ["border-orange", "border-blue", "border-black"];
+      return classes[index % classes.length];
+    },
+    getPresenceClass(percentage, index) {
+      const baseClasses = [
+        "presence-orange",
+        "presence-blue",
+        "presence-black",
+      ];
+      return baseClasses[index % baseClasses.length];
+    },
+    getPresenceValueClass(percentage, index) {
+      const baseClasses = ["value-orange", "value-blue", "value-black"];
+      return baseClasses[index % baseClasses.length];
+    },
+    getTrainingsClass(index) {
+      const classes = ["trainings-orange", "trainings-blue", "trainings-black"];
+      return classes[index % classes.length];
+    },
+    getTrainingsValueClass(index) {
+      const classes = ["value-orange", "value-blue", "value-black"];
+      return classes[index % classes.length];
     },
     getTagColorClass(playerIndex, tagIndex) {
       // Cores diferentes para cada jogador
@@ -692,21 +743,22 @@ export default {
 .players-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+  gap: 16px;
 }
 
 .player-card {
-  background: #f8f9fa;
+  background: white;
   border-radius: 12px;
-  padding: 20px;
+  padding: 0;
   border: 1px solid #e9ecef;
   transition: all 0.2s ease;
   display: flex;
   flex-direction: column;
-  min-height: 320px;
+  min-height: 180px;
   height: 100%;
   overflow: hidden;
   width: 100%;
+  position: relative;
 }
 
 .player-card:hover {
@@ -714,16 +766,80 @@ export default {
   transform: translateY(-2px);
 }
 
+.player-card-border {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  border-radius: 12px 0 0 12px;
+}
+
+.border-orange {
+  background-color: #e9742b;
+}
+
+.border-blue {
+  background-color: #1976d2;
+}
+
+.border-black {
+  background-color: #0b1e3a;
+}
+
+.player-card-content {
+  padding: 16px;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 12px;
+}
+
 .card-header-actions {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 16px;
+  margin-bottom: 4px;
   gap: 12px;
 }
 
 .player-header {
   flex: 1;
+}
+
+.player-header :deep(.user-container) {
+  margin: 0;
+  gap: 10px;
+  align-items: center;
+}
+
+.player-header :deep(.avatar-wrapper) {
+  margin: 0;
+  padding: 0;
+  align-self: center;
+}
+
+.player-header :deep(.user-avatar) {
+  width: 40px !important;
+  height: 40px !important;
+  min-width: 40px !important;
+  min-height: 40px !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  color: white !important;
+  border: 2px solid white !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+}
+
+.player-header :deep(.user-name) {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0b1e3a;
 }
 
 .player-info-view {
@@ -758,61 +874,43 @@ export default {
 
 .player-stats {
   display: flex;
-  gap: 16px;
-  margin-bottom: 16px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid #e9ecef;
-  flex-shrink: 0;
+  flex-direction: row;
+  gap: 12px;
+  flex: 1;
+  flex-wrap: wrap;
 }
 
 .stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
   flex: 1;
+  min-width: 70px;
 }
 
 .stat-value {
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 700;
   line-height: 1;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
-.stat-item.presence.perfect .stat-value {
-  color: #28a745;
-}
-
-.stat-item.presence.excellent .stat-value {
+.value-orange {
   color: #e9742b;
 }
 
-.stat-item.presence.good .stat-value {
-  color: #0b1e3a;
-}
-
-.stat-item.presence.regular .stat-value {
+.value-blue {
   color: #1976d2;
 }
 
-.stat-item.presence.warning .stat-value {
-  color: #ffc107;
-}
-
-.stat-item.presence.danger .stat-value {
-  color: #dc3545;
-}
-
-.stat-item.trainings .stat-value {
+.value-black {
   color: #0b1e3a;
 }
 
 .stat-label {
-  font-size: 12px;
+  font-size: 11px;
   color: #6c757d;
   font-weight: 500;
-}
-
-.fundamentals-section {
-  margin-bottom: 16px;
-  flex-shrink: 0;
 }
 
 .fundamentals-stats-section {
@@ -970,7 +1068,7 @@ export default {
   font-size: 12px;
   font-weight: 600;
   color: #6c757d;
-  margin: 0;
+  margin: 15px 0 10px 0;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   white-space: nowrap;
@@ -997,7 +1095,7 @@ export default {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin-bottom: 12px;
+
   margin-top: 12px;
 }
 
@@ -1267,11 +1365,7 @@ export default {
 @media (max-width: 1024px) {
   .players-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-  }
-
-  .player-card {
-    min-height: 350px;
+    gap: 12px;
   }
 }
 
@@ -1303,25 +1397,23 @@ export default {
 
   .player-card {
     min-height: auto;
+  }
+
+  .player-card-content {
     padding: 16px;
+    padding-left: 20px;
   }
 
   .card-header-actions {
-    margin-bottom: 12px;
+    margin-bottom: 4px;
   }
 
   .player-stats {
     gap: 12px;
-    margin-bottom: 12px;
-    padding-bottom: 12px;
   }
 
   .stat-value {
     font-size: 24px;
-  }
-
-  .fundamentals-section {
-    margin-bottom: 12px;
   }
 
   .chart-container {
@@ -1369,34 +1461,21 @@ export default {
   }
 
   .player-card {
-    padding: 12px;
-    border-radius: 8px;
     min-height: auto;
   }
 
-  .card-header-actions {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-    margin-bottom: 12px;
+  .player-card-content {
+    padding: 12px;
+    padding-left: 16px;
+    gap: 12px;
   }
 
-  .toggle-view-btn {
-    align-self: flex-end;
+  .card-header-actions {
+    margin-bottom: 4px;
   }
 
   .player-stats {
-    flex-direction: column;
-    gap: 8px;
-    margin-bottom: 12px;
-    padding-bottom: 12px;
-  }
-
-  .stat-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 0;
+    gap: 12px;
   }
 
   .stat-value {
@@ -1405,20 +1484,6 @@ export default {
 
   .stat-label {
     font-size: 11px;
-  }
-
-  .fundamentals-section {
-    margin-bottom: 12px;
-  }
-
-  .fundamentals-title {
-    font-size: 11px;
-  }
-
-  .fundamentals-tags {
-    gap: 4px;
-    margin-top: 8px;
-    margin-bottom: 8px;
   }
 
   .fundamental-tag {
