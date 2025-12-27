@@ -2,6 +2,7 @@
   <div class="team-performance-section">
     <div class="section-header">
       <div class="section-title-wrapper">
+        <va-icon name="groups" size="24px" color="#E9742B" />
         <h2 class="section-title">Desempenho por Time</h2>
         <ZTop3Badge />
       </div>
@@ -43,8 +44,21 @@
               <div class="stat-label">Treinos</div>
             </div>
 
-            <div class="stat-item presence" :class="getPresenceClass(teamData.averagePresencePercentage, index)">
-              <div class="stat-value" :class="getPresenceValueClass(teamData.averagePresencePercentage, index)">
+            <div
+              class="stat-item presence"
+              :class="
+                getPresenceClass(teamData.averagePresencePercentage, index)
+              "
+            >
+              <div
+                class="stat-value"
+                :class="
+                  getPresenceValueClass(
+                    teamData.averagePresencePercentage,
+                    index
+                  )
+                "
+              >
                 {{ formatPercentage(teamData.averagePresencePercentage) }}
               </div>
               <div class="stat-label">Presença Média</div>
@@ -52,7 +66,11 @@
           </div>
 
           <div class="team-footer">
-            <a href="#" class="team-details-link" @click.prevent="navigateToTeams">
+            <a
+              href="#"
+              class="team-details-link"
+              @click.prevent="navigateToTeams"
+            >
               Detalhes do Time
             </a>
           </div>
@@ -146,7 +164,11 @@ export default {
       return classes[index % classes.length];
     },
     getPresenceClass(percentage, index) {
-      const baseClasses = ["presence-orange", "presence-blue", "presence-black"];
+      const baseClasses = [
+        "presence-orange",
+        "presence-blue",
+        "presence-black",
+      ];
       return baseClasses[index % baseClasses.length];
     },
     getPresenceValueClass(percentage, index) {
@@ -183,7 +205,6 @@ export default {
   gap: 8px;
   flex: 1;
 }
-
 
 .section-title {
   font-size: 20px;
@@ -503,4 +524,3 @@ export default {
   }
 }
 </style>
-

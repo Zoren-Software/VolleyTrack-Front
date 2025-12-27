@@ -2,6 +2,7 @@
   <div class="individual-analysis-section">
     <div class="section-header">
       <div class="section-title-wrapper">
+        <va-icon name="person" size="24px" color="#E9742B" />
         <h2 class="section-title">Análise Individual</h2>
         <ZTop3Badge />
       </div>
