@@ -276,6 +276,9 @@
       <!-- Training Technical Vision Section -->
       <ZTrainingTechnicalVision />
 
+      <!-- Presence Analysis Section -->
+      <ZPresenceAnalysis />
+
       <!-- Totals Section -->
       <div class="totals-section">
         <div class="total-card players-card">
@@ -408,12 +411,14 @@ import { getActivePlan } from "~/services/stripeCheckoutService.js";
 import ZIndividualAnalysis from "~/components/organisms/Dashboard/ZIndividualAnalysis.vue";
 import ZTeamPerformance from "~/components/organisms/Dashboard/ZTeamPerformance.vue";
 import ZTrainingTechnicalVision from "~/components/organisms/Dashboard/ZTrainingTechnicalVision.vue";
+import ZPresenceAnalysis from "~/components/organisms/Dashboard/ZPresenceAnalysis.vue";
 
 export default {
   components: {
     ZIndividualAnalysis,
     ZTeamPerformance,
     ZTrainingTechnicalVision,
+    ZPresenceAnalysis,
   },
   mounted() {
     this.getInformations();
