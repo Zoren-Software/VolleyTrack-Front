@@ -1,0 +1,20 @@
+query teamsPerformanceAnalysis($filter: DashboardSearchInput) {
+  teamsPerformanceAnalysis(filter: $filter) {
+    team {
+      id
+      name
+      teamCategory {
+        id
+        name
+      }
+      teamLevel {
+        id
+        name
+      }
+    }
+    playersCount
+    trainingsCount
+    averagePresencePercentage
+  }
+}
+
