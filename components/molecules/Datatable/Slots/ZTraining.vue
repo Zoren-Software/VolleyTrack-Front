@@ -6,7 +6,7 @@
       <div class="metrics-header">
         <span class="metrics-label">Confirmações de Treino</span>
         <span class="metrics-percentage">{{ roundedConfirmationTraining }}%</span>
-      </div>
+    </div>
       <div class="progress-bar-container">
         <div
           class="progress-bar-fill"

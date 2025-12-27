@@ -146,7 +146,7 @@ export default {
         // Se estiver na etapa 0 (Informações Essenciais), apenas mostra sucesso sem recarregar
         if (currentStep === 0) {
           confirmSuccess("Treino salvo com sucesso!");
-          this.errors = this.errorsDefault();
+            this.errors = this.errorsDefault();
           // Não recarrega os dados para preservar as presenças marcadas na etapa 2
           // this.getTraining({ fetchPolicy: 'network-only' });
         } else if (currentStep >= 2) {

@@ -23,11 +23,11 @@
         </va-button>
         <va-button
           v-else-if="!showConfigurationDetails"
-          color="#E9742B"
-          class="start-button"
+          preset="plain"
+          class="view-config-button"
           @click="showConfigurationDetails = true"
         >
-          <va-icon name="visibility" class="button-icon" />
+          <va-icon name="settings" class="button-icon" />
           <span>Ver Configuração Inicial</span>
         </va-button>
       </div>
@@ -887,6 +887,34 @@ useHead({
 .button-icon {
   font-size: 16px;
   margin-right: 10px;
+}
+
+/* Botão discreto para ver configuração quando já está completa */
+.view-config-button {
+  color: #6c757d !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 6px 12px !important;
+  font-size: 13px !important;
+  font-weight: 400 !important;
+  opacity: 0.7;
+  transition: all 0.2s ease;
+}
+
+.view-config-button:hover {
+  color: #e9742b !important;
+  opacity: 1;
+  background: rgba(233, 116, 43, 0.05) !important;
+}
+
+.view-config-button :deep(.va-button__content) {
+  gap: 4px;
+}
+
+.view-config-button .button-icon {
+  font-size: 14px;
+  margin-right: 6px;
 }
 
 /* Progress Card */

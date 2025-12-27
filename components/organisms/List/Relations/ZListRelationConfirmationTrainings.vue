@@ -74,7 +74,7 @@
               >
                 <ZButton
                   v-if="presence !== true"
-                  color="success"
+              color="success"
                   size="small"
                   class="presence-button"
                   @click="actionConfirmPresence(id, player.id, trainingId, true)"
@@ -335,13 +335,13 @@ export default {
       baseColumns.push(intentionColumn);
 
       // Coluna de Presença Real (sempre visível para técnico marcar)
-      baseColumns.push({
-        key: "presence",
-        name: "presence",
-        label: "Presença Real",
-        sortable: true,
+        baseColumns.push({
+          key: "presence",
+          name: "presence",
+          label: "Presença Real",
+          sortable: true,
         width: 200,
-      });
+        });
 
       return baseColumns;
     },

@@ -444,26 +444,26 @@ export default {
           preservedConfirmationsTraining = isFormInitialized ? existingConfirmationsTraining : [];
         }
 
-        this.form = {
-          ...val,
+      this.form = {
+        ...val,
           players: val.players || this.form.players || [],
           scouts: val.scouts || this.form.scouts || [],
           confirmationsTraining: preservedConfirmationsTraining,
           // Usar dados novos se disponíveis, senão preservar existentes apenas se form já inicializado
-          teams:
-            Array.isArray(val.teams) && val.teams.length > 0
-              ? val.teams
+        teams:
+          Array.isArray(val.teams) && val.teams.length > 0
+            ? val.teams
               : (isFormInitialized && Array.isArray(existingTeams) && existingTeams.length > 0 ? existingTeams : []),
-          fundamentals:
-            Array.isArray(val.fundamentals) && val.fundamentals.length > 0
-              ? val.fundamentals
+        fundamentals:
+          Array.isArray(val.fundamentals) && val.fundamentals.length > 0
+            ? val.fundamentals
               : (isFormInitialized && Array.isArray(existingFundamentals) && existingFundamentals.length > 0 ? existingFundamentals : []),
-          specificFundamentals:
-            Array.isArray(val.specificFundamentals) &&
-            val.specificFundamentals.length > 0
-              ? val.specificFundamentals
+        specificFundamentals:
+          Array.isArray(val.specificFundamentals) &&
+          val.specificFundamentals.length > 0
+            ? val.specificFundamentals
               : (isFormInitialized && Array.isArray(existingSpecificFundamentals) && existingSpecificFundamentals.length > 0 ? existingSpecificFundamentals : []),
-        };
+      };
       },
       immediate: false,
     },
