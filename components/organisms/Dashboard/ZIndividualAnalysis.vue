@@ -2,24 +2,26 @@
   <div class="individual-analysis-section">
     <div class="section-header">
       <div class="section-title-wrapper">
-        <va-icon name="person" size="20px" color="#E9742B" />
         <h2 class="section-title">Análise Individual</h2>
+        <ZTop3Badge />
       </div>
-      <va-button
-        v-if="players.length > 0"
-        :icon="allExpanded ? 'unfold_less' : 'unfold_more'"
-        preset="plain"
-        size="small"
-        class="expand-all-btn"
-        @click="toggleExpandAll"
-        :title="
-          allExpanded
-            ? 'Recolher todas as estatísticas'
-            : 'Expandir todas as estatísticas'
-        "
-      >
-        {{ allExpanded ? "Recolher todas" : "Expandir todas" }}
-      </va-button>
+      <div class="header-actions">
+        <va-button
+          v-if="players.length > 0"
+          :icon="allExpanded ? 'unfold_less' : 'unfold_more'"
+          preset="plain"
+          size="small"
+          class="expand-all-btn"
+          @click="toggleExpandAll"
+          :title="
+            allExpanded
+              ? 'Recolher todas as estatísticas'
+              : 'Expandir todas as estatísticas'
+          "
+        >
+          {{ allExpanded ? "Recolher todas" : "Expandir todas" }}
+        </va-button>
+      </div>
     </div>
 
     <div v-if="loading" class="loading-container">
@@ -115,7 +117,7 @@
             >
               <div class="fundamentals-title-wrapper">
                 <h4 class="fundamentals-title">Estatísticas por Fundamental</h4>
-                <span class="top3-badge">TOP 3</span>
+                <span class="fundamentals-top3-badge">TOP 3</span>
               </div>
               <div class="fundamentals-stats-list">
                 <div
@@ -282,6 +284,7 @@ import { gql } from "@apollo/client/core";
 import { useQuery } from "@vue/apollo-composable";
 import PLAYERS_INDIVIDUAL_ANALYSIS from "~/graphql/dashboard/query/playersIndividualAnalysis.graphql";
 import ZUser from "~/components/molecules/Datatable/Slots/ZUser.vue";
+import ZTop3Badge from "~/components/molecules/Badges/ZTop3Badge.vue";
 import { Radar } from "vue-chartjs";
 import {
   Chart as ChartJS,
@@ -299,6 +302,7 @@ export default {
   name: "ZIndividualAnalysis",
   components: {
     ZUser,
+    ZTop3Badge,
     Radar,
   },
   data() {
@@ -621,6 +625,11 @@ export default {
   align-items: center;
   margin-bottom: 20px;
   gap: 16px;
+  flex-wrap: wrap;
+}
+
+.header-actions {
+  flex-shrink: 0;
 }
 
 .section-title-wrapper {
@@ -968,7 +977,7 @@ export default {
   flex-shrink: 0;
 }
 
-.top3-badge {
+.fundamentals-top3-badge {
   display: inline-flex;
   align-items: center;
   padding: 2px 6px;

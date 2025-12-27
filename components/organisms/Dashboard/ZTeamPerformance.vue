@@ -2,8 +2,8 @@
   <div class="team-performance-section">
     <div class="section-header">
       <div class="section-title-wrapper">
-        <va-icon name="groups" size="20px" color="#E9742B" />
         <h2 class="section-title">Desempenho por Time</h2>
+        <ZTop3Badge />
       </div>
     </div>
 
@@ -27,17 +27,7 @@
         <div class="team-card-border" :class="getTeamBorderClass(index)"></div>
         <div class="team-card-content">
           <div class="team-header">
-            <div class="team-name-wrapper">
-              <span class="team-name" :class="getTeamNameClass(index)">
-                {{ teamData.team.name }}
-              </span>
-              <va-icon
-                :name="getTeamIcon(index)"
-                size="20px"
-                :color="getTeamColor(index)"
-                class="team-icon"
-              />
-            </div>
+            <ZTeam :data="teamData.team" />
           </div>
 
           <div class="team-stats">
@@ -76,9 +66,15 @@
 import { gql } from "@apollo/client/core";
 import { useQuery } from "@vue/apollo-composable";
 import TEAMS_PERFORMANCE_ANALYSIS from "~/graphql/dashboard/query/teamsPerformanceAnalysis.graphql";
+import ZTeam from "~/components/molecules/Datatable/Slots/ZTeam.vue";
+import ZTop3Badge from "~/components/molecules/Badges/ZTop3Badge.vue";
 
 export default {
   name: "ZTeamPerformance",
+  components: {
+    ZTeam,
+    ZTop3Badge,
+  },
   data() {
     return {
       teams: [],
@@ -141,10 +137,6 @@ export default {
       const colors = ["#E9742B", "#1976D2", "#0B1E3A"];
       return colors[index % colors.length];
     },
-    getTeamIcon(index) {
-      const icons = ["shield", "shield", "shield"];
-      return icons[index % icons.length];
-    },
     getTrainingsClass(index) {
       const classes = ["trainings-orange", "trainings-blue", "trainings-black"];
       return classes[index % classes.length];
@@ -191,6 +183,7 @@ export default {
   gap: 8px;
   flex: 1;
 }
+
 
 .section-title {
   font-size: 20px;
@@ -288,32 +281,69 @@ export default {
   margin-bottom: 4px;
 }
 
-.team-name-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.team-header {
+  margin-bottom: 4px;
 }
 
-.team-name {
+.team-header :deep(.team-container) {
+  margin: 0;
+  gap: 10px;
+  align-items: center;
+}
+
+.team-header :deep(.avatar-wrapper) {
+  margin: 0;
+  padding: 0;
+  align-self: center;
+}
+
+.team-header :deep(.team-avatar) {
+  width: 40px !important;
+  height: 40px !important;
+  min-width: 40px !important;
+  min-height: 40px !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  color: white !important;
+  border: 2px solid white !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+}
+
+.team-header :deep(.team-avatar .va-avatar) {
+  width: 40px !important;
+  height: 40px !important;
+  min-width: 40px !important;
+  min-height: 40px !important;
+  border-radius: 50% !important;
+  border: 2px solid white !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+}
+
+.team-header :deep(.team-avatar .va-avatar__content) {
+  border-radius: 50% !important;
+  width: 100% !important;
+  height: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  color: white !important;
+}
+
+.team-header :deep(.team-name) {
   font-size: 16px;
   font-weight: 700;
-  line-height: 1.2;
-}
-
-.name-orange {
-  color: #e9742b;
-}
-
-.name-blue {
-  color: #1976d2;
-}
-
-.name-black {
   color: #0b1e3a;
 }
 
-.team-icon {
-  flex-shrink: 0;
+.team-header :deep(.team-info) {
+  flex: 1;
+  min-width: 0;
 }
 
 .team-stats {
