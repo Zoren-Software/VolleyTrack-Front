@@ -279,6 +279,9 @@
       <!-- Presence Analysis Section -->
       <ZPresenceAnalysis />
 
+      <!-- Presence Ranking Section -->
+      <ZPresenceRanking />
+
       <!-- Totals Section -->
       <div class="totals-section">
         <div class="total-card players-card">
@@ -412,6 +415,7 @@ import ZIndividualAnalysis from "~/components/organisms/Dashboard/ZIndividualAna
 import ZTeamPerformance from "~/components/organisms/Dashboard/ZTeamPerformance.vue";
 import ZTrainingTechnicalVision from "~/components/organisms/Dashboard/ZTrainingTechnicalVision.vue";
 import ZPresenceAnalysis from "~/components/organisms/Dashboard/ZPresenceAnalysis.vue";
+import ZPresenceRanking from "~/components/organisms/Dashboard/ZPresenceRanking.vue";
 
 export default {
   components: {
@@ -419,6 +423,7 @@ export default {
     ZTeamPerformance,
     ZTrainingTechnicalVision,
     ZPresenceAnalysis,
+    ZPresenceRanking,
   },
   mounted() {
     this.getInformations();

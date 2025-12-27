@@ -1,0 +1,34 @@
+query presenceRanking($filter: DashboardSearchInput) {
+  presenceRanking(filter: $filter) {
+    topTeams {
+      team {
+        id
+        name
+        teamCategory {
+          id
+          name
+        }
+        teamLevel {
+          id
+          name
+        }
+      }
+      presencePercentage
+      rank
+      topPlayers {
+        player {
+          id
+          name
+          email
+          positions {
+            id
+            name
+          }
+        }
+        presencePercentage
+        rank
+      }
+    }
+  }
+}
+
