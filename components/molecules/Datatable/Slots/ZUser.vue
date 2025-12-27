@@ -6,9 +6,6 @@
     <va-icon v-else name="account_circle" class="user-icon" />
     <div class="user-info">
       <div class="user-name">{{ data.name }}</div>
-      <div v-if="data.id" class="user-id">
-        ID: #{{ String(data.id).padStart(3, "0") }}
-      </div>
       <div
         v-if="data.information?.phone || showEmail || showPosition"
         class="user-details"

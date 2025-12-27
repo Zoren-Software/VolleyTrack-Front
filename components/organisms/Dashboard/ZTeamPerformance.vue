@@ -27,7 +27,7 @@
         <div class="team-card-border" :class="getTeamBorderClass(index)"></div>
         <div class="team-card-content">
           <div class="team-header">
-            <ZTeam :data="teamData.team" />
+            <ZTeam :data="teamData.team" :showCategoryAndLevel="true" />
           </div>
 
           <div class="team-stats">
@@ -345,6 +345,17 @@ export default {
 .team-header :deep(.team-info) {
   flex: 1;
   min-width: 0;
+}
+
+.team-header :deep(.info-item) {
+  margin-bottom: 0;
+}
+
+.team-header :deep(.info-text) {
+  font-size: 11px;
+  color: #6c757d;
+  font-weight: 400;
+  line-height: 1.4;
 }
 
 .team-stats {
