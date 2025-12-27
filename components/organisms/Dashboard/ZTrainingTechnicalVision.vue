@@ -12,7 +12,13 @@
       <span class="loading-text">Carregando visão técnica...</span>
     </div>
 
-    <div v-else-if="!data || (!data.trainingFocus?.length && !data.trainingsPerMonth?.length)" class="empty-state">
+    <div
+      v-else-if="
+        !data ||
+        (!data.trainingFocus?.length && !data.trainingsPerMonth?.length)
+      "
+      class="empty-state"
+    >
       <va-icon name="info" size="48px" color="#9E9E9E" />
       <p class="empty-text">Nenhum dado disponível</p>
     </div>
@@ -66,7 +72,7 @@ const barValuePlugin = {
   afterDatasetsDraw: (chart) => {
     const ctx = chart.ctx;
     const chartArea = chart.chartArea;
-    
+
     chart.data.datasets.forEach((dataset, datasetIndex) => {
       const meta = chart.getDatasetMeta(datasetIndex);
       meta.data.forEach((bar, index) => {
@@ -74,22 +80,22 @@ const barValuePlugin = {
         if (value !== null && value !== undefined) {
           const xPos = bar.x;
           const yPos = bar.y;
-          
+
           ctx.save();
-          
+
           // Para barras horizontais
           if (chart.options.indexAxis === "y") {
             const barRight = bar.x + (bar.width || 0);
             const barLeft = bar.x;
             const chartRight = chartArea.right;
-            
+
             // Medir o texto para saber o espaço necessário
             ctx.font = "700 13px sans-serif";
             const textMetrics = ctx.measureText(value.toString());
             const textWidth = textMetrics.width;
-            
+
             ctx.textBaseline = "middle";
-            
+
             // Sempre mostrar o valor no final direito da barra
             // Se a barra é grande o suficiente para o texto, colocar dentro (branco)
             if (bar.width > textWidth + 10) {
@@ -115,11 +121,11 @@ const barValuePlugin = {
             const barTop = bar.y;
             const chartTop = chartArea.top;
             const isAtMax = barTop <= chartTop + 10;
-            
+
             ctx.textAlign = "center";
             ctx.font = "700 12px sans-serif";
             ctx.fillStyle = "#0b1e3a";
-            
+
             if (isAtMax) {
               // Se está no máximo, colocar um pouco mais abaixo
               ctx.textBaseline = "top";
@@ -130,7 +136,7 @@ const barValuePlugin = {
               ctx.fillText(value, xPos, barTop - 5);
             }
           }
-          
+
           ctx.restore();
         }
       });
@@ -172,7 +178,9 @@ export default {
       }
 
       const colors = ["#e9742b", "#1976d2", "#0b1e3a", "#e9742b"];
-      const backgroundColors = this.data.trainingFocus.map((_, index) => colors[index % colors.length]);
+      const backgroundColors = this.data.trainingFocus.map(
+        (_, index) => colors[index % colors.length]
+      );
 
       return {
         labels: this.data.trainingFocus.map((item) => item.fundamentalName),
@@ -199,7 +207,9 @@ export default {
       }
 
       const colors = ["#e9742b", "#1976d2", "#0b1e3a", "#e9742b"];
-      const backgroundColors = this.data.trainingsPerMonth.map((_, index) => colors[index % colors.length]);
+      const backgroundColors = this.data.trainingsPerMonth.map(
+        (_, index) => colors[index % colors.length]
+      );
 
       return {
         labels: this.data.trainingsPerMonth.map((item) => item.month),
@@ -427,6 +437,7 @@ export default {
   grid-template-columns: repeat(2, 1fr);
   gap: 20px;
   align-items: stretch;
+  height: 236px;
 }
 
 .chart-card {
@@ -544,4 +555,3 @@ export default {
   }
 }
 </style>
-
