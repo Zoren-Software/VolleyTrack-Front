@@ -29,7 +29,7 @@
         <h3 class="chart-title focus-title">Foco dos Treinos</h3>
         <div class="chart-content">
           <Bar
-            v-if="data.trainingFocus?.length"
+            v-if="data"
             :data="trainingFocusChartData"
             :options="horizontalBarOptions"
           />
@@ -77,7 +77,7 @@ const barValuePlugin = {
       const meta = chart.getDatasetMeta(datasetIndex);
       meta.data.forEach((bar, index) => {
         const value = dataset.data[index];
-        if (value !== null && value !== undefined) {
+        if (value !== null && value !== undefined && value > 0) {
           const xPos = bar.x;
           const yPos = bar.y;
 
@@ -170,24 +170,52 @@ export default {
   },
   computed: {
     trainingFocusChartData() {
-      if (!this.data?.trainingFocus?.length) {
-        return {
-          labels: [],
-          datasets: [],
-        };
+      // Lista completa de fundamentos na ordem desejada
+      const allFundamentals = [
+        "Ataque",
+        "Recepção",
+        "Saque",
+        "Levantamento",
+        "Defesa",
+        "Bloqueio",
+      ];
+
+      // Criar um mapa dos dados recebidos para busca rápida
+      const dataMap = {};
+      if (this.data?.trainingFocus?.length) {
+        this.data.trainingFocus.forEach((item) => {
+          dataMap[item.fundamentalName] = item.count;
+        });
       }
 
-      const colors = ["#e9742b", "#1976d2", "#0b1e3a", "#e9742b"];
-      const backgroundColors = this.data.trainingFocus.map(
-        (_, index) => colors[index % colors.length]
-      );
+      // Garantir que todos os fundamentos estejam presentes, mesmo com count 0
+      const labels = [];
+      const data = [];
+      const backgroundColors = [];
+
+      // Paleta de cores harmoniosa e distinta
+      // Cores escolhidas para melhor contraste visual e proximidade harmoniosa
+      const colorPalette = [
+        "#e9742b", // Laranja vibrante - Ataque
+        "#1976d2", // Azul médio - Recepção
+        "#0b1e3a", // Azul escuro - Saque
+        "#ff9800", // Laranja claro - Levantamento
+        "#d32f2f", // Vermelho - Defesa
+        "#0288d1", // Azul claro/ciano - Bloqueio
+      ];
+
+      allFundamentals.forEach((fundamental, index) => {
+        labels.push(fundamental);
+        data.push(dataMap[fundamental] || 0);
+        backgroundColors.push(colorPalette[index]);
+      });
 
       return {
-        labels: this.data.trainingFocus.map((item) => item.fundamentalName),
+        labels,
         datasets: [
           {
             label: "Quantidade",
-            data: this.data.trainingFocus.map((item) => item.count),
+            data,
             backgroundColor: backgroundColors,
             borderColor: backgroundColors,
             borderWidth: 0,
@@ -437,7 +465,7 @@ export default {
   grid-template-columns: repeat(2, 1fr);
   gap: 20px;
   align-items: stretch;
-  height: 236px;
+  height: 326px;
 }
 
 .chart-card {

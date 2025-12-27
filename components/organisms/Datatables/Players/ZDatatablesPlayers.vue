@@ -103,15 +103,21 @@
           <template
             v-if="teams && (Array.isArray(teams) ? teams.length > 0 : teams)"
           >
-            <ZTeam
-              v-for="(team, index) in Array.isArray(teams)
-                ? teams
-                : [teams].filter(Boolean)"
-              :key="team?.id || index"
-              :data="team"
-              :showCategoryAndLevel="true"
-              class="team-item"
-            />
+            <div class="teams-wrapper">
+              <!-- Mostrar apenas o primeiro time -->
+              <ZTeam
+                :key="getFirstTeam(teams)?.id || 0"
+                :data="getFirstTeam(teams)"
+                :showCategoryAndLevel="true"
+                class="team-item"
+              />
+              <!-- Badge com quantidade de times extras -->
+              <ZTeamsExtra
+                v-if="hasExtraTeams(teams)"
+                :teams="normalizeTeams(teams)"
+                class="teams-extra"
+              />
+            </div>
           </template>
           <span v-else class="no-data-text">-</span>
         </div>
@@ -214,6 +220,7 @@ import ZUser from "~/components/molecules/Datatable/Slots/ZUser";
 import ZPosition from "~/components/molecules/Datatable/Slots/ZPosition";
 import ZCPF from "~/components/molecules/Datatable/Slots/ZCPF";
 import ZTeam from "~/components/molecules/Datatable/Slots/ZTeam";
+import ZTeamsExtra from "~/components/molecules/Badges/ZTeamsExtra.vue";
 import USERDELETE from "~/graphql/user/mutation/userDelete.graphql";
 import ROLES from "~/graphql/role/query/roles.graphql";
 import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
@@ -228,6 +235,7 @@ export default defineComponent({
     ZPosition,
     ZCPF,
     ZTeam,
+    ZTeamsExtra,
     ZSelectPosition,
     ZSelectTeam,
     ZSelectRole,
@@ -605,6 +613,21 @@ export default defineComponent({
 
       return metadata;
     },
+    // Helper para normalizar array de times
+    normalizeTeams(teams) {
+      if (!teams) return [];
+      return Array.isArray(teams) ? teams : [teams].filter(Boolean);
+    },
+    // Helper para obter o primeiro time
+    getFirstTeam(teams) {
+      const normalized = this.normalizeTeams(teams);
+      return normalized[0] || null;
+    },
+    // Helper para verificar se há times extras
+    hasExtraTeams(teams) {
+      const normalized = this.normalizeTeams(teams);
+      return normalized.length > 1;
+    },
   },
 });
 </script>
@@ -700,6 +723,29 @@ export default defineComponent({
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+.teams-wrapper {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  flex-wrap: nowrap;
+  width: 100%;
+}
+
+.team-item {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Ajustar o alinhamento do badge para ficar na mesma linha das informações do time */
+.teams-extra {
+  flex-shrink: 0;
+  align-self: flex-start;
+  /* Alinhar com a linha onde está "Adulto Ouro" */
+  /* Considerando: avatar padding-top (2px) + nome do time (14px + 2px margin) + espaçamento */
+  /* Total: ~18-20px para alinhar com a primeira linha de informações */
+  margin-top: 20px;
 }
 
 .team-item {
