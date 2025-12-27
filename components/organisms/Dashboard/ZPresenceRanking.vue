@@ -43,13 +43,31 @@
               class="player-ranking-item"
             >
               <div class="player-rank-wrapper">
-                <div class="player-rank" :class="getRankClass(index, playerData.rank)">
+                <div
+                  class="player-rank"
+                  :class="getRankClass(index, playerData.rank)"
+                >
                   <span class="rank-number">{{ playerData.rank }}º</span>
                 </div>
+                <va-icon
+                  v-if="playerData.rank === 1"
+                  name="emoji_events"
+                  class="trophy-icon"
+                />
               </div>
               <ZUser :data="playerData.player" :show-position="true" />
-              <div class="player-percentage" :class="getPlayerPercentageClass(index)">
-                {{ formatPercentage(playerData.presencePercentage) }}
+              <div class="player-metrics">
+                <div
+                  class="player-percentage"
+                  :class="getPlayerPercentageClass(index)"
+                >
+                  {{ formatPercentage(playerData.presencePercentage) }}
+                </div>
+                <div class="player-trainings-info">
+                  {{ playerData.totalPresences }}/{{
+                    playerData.totalTrainings
+                  }}
+                </div>
               </div>
             </div>
           </div>
@@ -133,7 +151,7 @@ export default {
     getRankClass(index, rank) {
       const baseClasses = ["rank-orange", "rank-blue", "rank-black"];
       const baseClass = baseClasses[index % baseClasses.length];
-      
+
       // Adicionar classe especial para os 3 primeiros
       if (rank === 1) {
         return `${baseClass} rank-gold`;
@@ -142,11 +160,15 @@ export default {
       } else if (rank === 3) {
         return `${baseClass} rank-bronze`;
       }
-      
+
       return baseClass;
     },
     getPlayerPercentageClass(index) {
-      const classes = ["percentage-orange", "percentage-blue", "percentage-black"];
+      const classes = [
+        "percentage-orange",
+        "percentage-blue",
+        "percentage-black",
+      ];
       return classes[index % classes.length];
     },
   },
@@ -391,6 +413,8 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  width: 24px;
 }
 
 .player-rank {
@@ -412,6 +436,19 @@ export default {
   font-weight: 700;
   line-height: 1;
   color: white;
+}
+
+.trophy-icon {
+  position: absolute;
+  left: 16px;
+  top: 49%;
+  flex-shrink: 0;
+  filter: drop-shadow(0 2px 4px rgba(212, 175, 55, 0.3));
+  z-index: 1;
+  color: rgb(143, 108, 38);
+  font-size: 16px;
+  height: 16px;
+  line-height: 16px;
 }
 
 .rank-orange {
@@ -444,10 +481,25 @@ export default {
   border: 2px solid #b87333;
 }
 
+.player-metrics {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
 .player-percentage {
   font-size: 13px;
   font-weight: 700;
-  flex-shrink: 0;
+  line-height: 1.2;
+}
+
+.player-trainings-info {
+  font-size: 11px;
+  font-weight: 500;
+  color: #6c757d;
+  line-height: 1.2;
 }
 
 .percentage-orange {
@@ -502,10 +554,12 @@ export default {
     font-size: 9px;
   }
 
-
   .player-percentage {
     font-size: 12px;
   }
+
+  .player-trainings-info {
+    font-size: 10px;
+  }
 }
 </style>
-

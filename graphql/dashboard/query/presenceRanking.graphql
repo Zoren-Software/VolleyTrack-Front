@@ -27,6 +27,8 @@ query presenceRanking($filter: DashboardSearchInput) {
         }
         presencePercentage
         rank
+        totalTrainings
+        totalPresences
       }
     }
   }
