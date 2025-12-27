@@ -2,7 +2,7 @@
   <div class="training-technical-vision-section">
     <div class="section-header">
       <div class="section-title-wrapper">
-        <va-icon name="swap_horiz" size="24px" color="#0B1E3A" />
+        <va-icon name="swap_horiz" size="24px" color="#E9742B" />
         <h2 class="section-title">Visão Técnica dos Treinos</h2>
       </div>
     </div>
