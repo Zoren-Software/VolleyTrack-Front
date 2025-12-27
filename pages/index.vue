@@ -273,6 +273,9 @@
       <!-- Team Performance Section -->
       <ZTeamPerformance />
 
+      <!-- Training Technical Vision Section -->
+      <ZTrainingTechnicalVision />
+
       <!-- Totals Section -->
       <div class="totals-section">
         <div class="total-card players-card">
@@ -404,11 +407,13 @@ import TRAININGSTOTAL from "~/graphql/training/query/trainingsTotal.graphql";
 import { getActivePlan } from "~/services/stripeCheckoutService.js";
 import ZIndividualAnalysis from "~/components/organisms/Dashboard/ZIndividualAnalysis.vue";
 import ZTeamPerformance from "~/components/organisms/Dashboard/ZTeamPerformance.vue";
+import ZTrainingTechnicalVision from "~/components/organisms/Dashboard/ZTrainingTechnicalVision.vue";
 
 export default {
   components: {
     ZIndividualAnalysis,
     ZTeamPerformance,
+    ZTrainingTechnicalVision,
   },
   mounted() {
     this.getInformations();

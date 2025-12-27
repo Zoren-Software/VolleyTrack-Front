@@ -744,6 +744,7 @@ export default {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 16px;
+  align-items: stretch;
 }
 
 .player-card {
@@ -754,7 +755,7 @@ export default {
   transition: all 0.2s ease;
   display: flex;
   flex-direction: column;
-  min-height: 180px;
+  min-height: 200px;
   height: 100%;
   overflow: hidden;
   width: 100%;

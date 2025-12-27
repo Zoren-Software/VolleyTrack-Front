@@ -1,0 +1,13 @@
+query trainingTechnicalVision($filter: DashboardSearchInput) {
+  trainingTechnicalVision(filter: $filter) {
+    trainingFocus {
+      fundamentalName
+      count
+    }
+    trainingsPerMonth {
+      month
+      count
+    }
+  }
+}
+
