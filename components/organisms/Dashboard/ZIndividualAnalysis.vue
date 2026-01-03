@@ -800,15 +800,18 @@ export default {
 
 .card-header-actions {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: flex-start;
   margin-bottom: 4px;
   gap: 12px;
   width: 100%;
+  position: relative;
 }
 
 .player-header {
   flex: 1;
+  position: relative;
+  padding-right: 40px;
 }
 
 .player-header :deep(.user-cell) {
@@ -850,6 +853,8 @@ export default {
 
 .player-header :deep(.user-info) {
   flex: 1;
+  overflow: hidden;
+  min-width: 0;
 }
 
 .player-header :deep(.user-name) {
@@ -859,6 +864,8 @@ export default {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  display: block;
+  max-width: 15ch;
 }
 
 .player-info-view {
@@ -869,13 +876,15 @@ export default {
 }
 
 .toggle-view-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
   flex-shrink: 0;
   color: #6c757d !important;
   min-width: auto !important;
   padding: 4px 8px !important;
   transition: all 0.2s ease;
-  align-self: flex-start;
-  margin-top: 0;
+  z-index: 2;
 }
 
 .toggle-view-btn:hover:not(.toggle-view-btn-disabled) {
@@ -1430,11 +1439,16 @@ export default {
     gap: 8px;
   }
 
+  .player-header {
+    padding-right: 40px;
+  }
+
   .player-header :deep(.user-name) {
     font-size: 15px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    max-width: 15ch;
   }
 
   .player-stats {
@@ -1505,6 +1519,10 @@ export default {
     flex-wrap: wrap;
   }
 
+  .player-header {
+    padding-right: 40px;
+  }
+
   .player-header :deep(.user-container) {
     gap: 8px;
   }
@@ -1523,6 +1541,7 @@ export default {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    max-width: 15ch;
   }
 
   .player-stats {
