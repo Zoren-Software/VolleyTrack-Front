@@ -130,6 +130,11 @@ export default {
                 .map((item) => item.id)
                 .filter((id) => id != null)
             : [],
+          playerIds: form.standalonePlayerIds
+            ? form.standalonePlayerIds
+                .map((id) => parseInt(id))
+                .filter((id) => id != null)
+            : [],
           dateStart,
           dateEnd,
         };
@@ -224,6 +229,11 @@ export default {
                 .map((item) => item.id)
                 .filter((id) => id != null)
             : [],
+          playerIds: form.standalonePlayerIds
+            ? form.standalonePlayerIds
+                .map((id) => parseInt(id))
+                .filter((id) => id != null)
+            : [],
           dateStart,
           dateEnd,
         };
@@ -304,6 +314,11 @@ export default {
           specificFundamentalId: form.specificFundamentals
             ? form.specificFundamentals
                 .map((item) => item.id)
+                .filter((id) => id != null)
+            : [],
+          playerIds: form.standalonePlayerIds
+            ? form.standalonePlayerIds
+                .map((id) => parseInt(id))
                 .filter((id) => id != null)
             : [],
           dateStart,

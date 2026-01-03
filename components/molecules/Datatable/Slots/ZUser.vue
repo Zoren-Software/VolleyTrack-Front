@@ -176,6 +176,9 @@ export default {
   font-size: 14px;
   color: #0b1e3a;
   line-height: 1.4;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
 }
 
 .user-id {

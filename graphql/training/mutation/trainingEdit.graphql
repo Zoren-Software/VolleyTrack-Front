@@ -3,6 +3,7 @@ mutation trainingEdit(
   $teamId: Int
   $fundamentalId: [Int]
   $specificFundamentalId: [Int]
+  $playerIds: [Int]
   $name: String!
   $description: String
   $dateStart: String!
@@ -13,6 +14,7 @@ mutation trainingEdit(
     teamId: $teamId
     fundamentalId: $fundamentalId
     specificFundamentalId: $specificFundamentalId
+    playerIds: $playerIds
     name: $name
     description: $description
     dateStart: $dateStart
