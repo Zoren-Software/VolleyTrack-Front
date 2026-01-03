@@ -26,6 +26,7 @@ query training(
       player {
         id
         name
+        displayName
         email
         userId
         information {
@@ -86,6 +87,7 @@ query training(
       player {
         id
         name
+        displayName
         email
         userId
         

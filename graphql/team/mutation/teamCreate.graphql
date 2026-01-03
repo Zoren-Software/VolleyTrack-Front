@@ -27,6 +27,7 @@ mutation teamCreate(
     players {
       id
       name
+      displayName
       email
       userId
       emailVerifiedAt

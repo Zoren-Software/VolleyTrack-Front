@@ -21,6 +21,7 @@ query users(
     data {
       id
       name
+      displayName
       email
       emailVerifiedAt
       createdAt
@@ -56,6 +57,8 @@ query users(
         rg
         phone
         birthDate
+        nickname
+        showNickname
       }
     }
   }

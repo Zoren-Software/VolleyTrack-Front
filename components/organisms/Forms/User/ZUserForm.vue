@@ -26,15 +26,55 @@
             name="name"
             label="Nome Completo"
             id="name"
-            class="mb-3"
+            class="mb-3 name-field"
             :error="errorFields.includes('name')"
             :error-messages="errors.name || []"
           />
+          <div class="nickname-section mb-3" :class="{ active: form.showNickname }">
+            <div class="nickname-header">
+              <div class="nickname-icon-wrapper">
+                <va-icon name="badge" size="20px" color="#E9742B" />
+              </div>
+              <div class="nickname-title-group">
+                <label class="nickname-label">Apelido</label>
+                <p class="nickname-description">
+                  {{ form.showNickname ? 'Será exibido no lugar do nome completo' : 'Opcional - apenas para referência' }}
+                </p>
+              </div>
+            </div>
+            <div class="nickname-content">
+              <ZTextInput
+                v-model="form.nickname"
+                name="nickname"
+                label=""
+                id="nickname"
+                class="nickname-input"
+                placeholder="Digite o apelido do jogador"
+                :error="errorFields.includes('nickname')"
+                :error-messages="errors.nickname || []"
+              />
+              <div class="switch-container">
+                <div class="switch-label-group">
+                  <va-icon 
+                    :name="form.showNickname ? 'visibility' : 'visibility_off'" 
+                    size="16px" 
+                    :color="form.showNickname ? '#E9742B' : '#9CA3AF'"
+                  />
+                  <span class="switch-label-text">Exibir apelido</span>
+                </div>
+                <va-switch
+                  v-model="form.showNickname"
+                  color="primary"
+                  size="small"
+                />
+              </div>
+            </div>
+          </div>
           <ZEmailInput
             v-model="form.email"
             label="E-mail"
             id="email"
-            class="mb-3"
+            class="mb-3 email-field"
             :error="errorFields.includes('email')"
             :error-messages="errors.email || ''"
           />
@@ -43,7 +83,7 @@
             name="password"
             label="Nova Senha"
             id="password"
-            class="mb-3"
+            class="mb-3 password-field"
             :error="errorFields.includes('password')"
             :error-messages="errors.password || []"
           />
@@ -52,7 +92,7 @@
             name="confirmPassword"
             label="Confirmar Nova Senha"
             id="confirmPassword"
-            class="mb-3"
+            class="mb-3 password-field"
             :error="errorFields.includes('confirmPassword')"
             :error-messages="errors.confirmPassword || []"
           />
@@ -180,6 +220,8 @@ export default {
           rg: "",
           phone: "",
           birthDate: null,
+          nickname: "",
+          showNickname: false,
           roles: [],
           positions: [],
           teams: [],
@@ -288,6 +330,8 @@ export default {
     data(val) {
       if (val.information) {
         val.birthDate = val.information.birthDate ?? null;
+        val.nickname = val.information.nickname ?? "";
+        val.showNickname = val.information.showNickname ?? false;
       }
       // Garantir que roles, positions e teams sejam sempre arrays
       if (!Array.isArray(val.roles)) {
@@ -302,6 +346,8 @@ export default {
       this.form = {
         ...val,
         positions: Array.isArray(val.positions) ? val.positions : [],
+        nickname: val.nickname || "",
+        showNickname: val.showNickname ?? false,
       };
     },
   },
@@ -464,6 +510,27 @@ export default {
   gap: 16px;
 }
 
+.name-field,
+.email-field {
+  grid-column: span 2;
+}
+
+.password-field {
+  grid-column: span 1;
+}
+
+@media (max-width: 768px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .name-field,
+  .email-field,
+  .password-field {
+    grid-column: span 1;
+  }
+}
+
 /* Remover borda estranha das labels dos inputs */
 .form-container :deep(.va-input-wrapper__label) {
   border: none !important;
@@ -554,5 +621,132 @@ export default {
 
 .permission-check {
   color: #007bff;
+}
+
+.nickname-section {
+  grid-column: span 2;
+  background: linear-gradient(135deg, #FFF9F5 0%, #FFFFFF 100%);
+  border: 2px solid #FFE3D1;
+  border-radius: 12px;
+  padding: 20px;
+  transition: all 0.3s ease;
+}
+
+.nickname-section.active {
+  background: linear-gradient(135deg, #FFF4EC 0%, #FFFFFF 100%);
+  border-color: #E9742B;
+  box-shadow: 0 4px 12px rgba(233, 116, 43, 0.1);
+}
+
+.nickname-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.nickname-icon-wrapper {
+  width: 40px;
+  height: 40px;
+  background: #FFF4EC;
+  border: 2px solid #FFE3D1;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.nickname-section.active .nickname-icon-wrapper {
+  background: #E9742B;
+  border-color: #E9742B;
+}
+
+.nickname-section.active .nickname-icon-wrapper :deep(.va-icon) {
+  color: white !important;
+}
+
+.nickname-title-group {
+  flex: 1;
+}
+
+.nickname-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 4px;
+}
+
+.nickname-description {
+  font-size: 12px;
+  color: #6B7280;
+  margin: 0;
+  line-height: 1.4;
+  transition: color 0.3s ease;
+}
+
+.nickname-section.active .nickname-description {
+  color: #E9742B;
+  font-weight: 500;
+}
+
+.nickname-content {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+}
+
+.nickname-input {
+  flex: 1;
+}
+
+.switch-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 4px;
+  flex-shrink: 0;
+}
+
+.switch-label-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.switch-label-text {
+  font-size: 12px;
+  font-weight: 500;
+  color: #6B7280;
+  white-space: nowrap;
+  transition: color 0.3s ease;
+}
+
+.nickname-section.active .switch-label-text {
+  color: #E9742B;
+}
+
+@media (max-width: 768px) {
+  .nickname-content {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .switch-container {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 0;
+    padding-top: 8px;
+    border-top: 1px solid #E5E7EB;
+  }
+
+  .switch-label-group {
+    order: 2;
+  }
 }
 </style>

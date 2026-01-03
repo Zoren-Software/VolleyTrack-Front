@@ -6,6 +6,8 @@ mutation userEdit(
   $rg: String
   $phone: String
   $birthDate: String
+  $nickname: String
+  $showNickname: Boolean
   $roleId: [Int!]!
   $positionId: [Int]
   $teamId: [Int]
@@ -20,6 +22,8 @@ mutation userEdit(
     rg: $rg
     phone: $phone
     birthDate: $birthDate
+    nickname: $nickname
+    showNickname: $showNickname
     roleId: $roleId
     positionId: $positionId
     teamId: $teamId
@@ -48,6 +52,8 @@ mutation userEdit(
       rg
       phone
       birthDate
+      nickname
+      showNickname
       createdAt
       updatedAt
     }

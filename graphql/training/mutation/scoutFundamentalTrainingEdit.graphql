@@ -79,6 +79,7 @@ mutation scoutFundamentalTrainingEdit(
     player {
       id
       name
+      displayName
       email
       userId
       emailVerifiedAt

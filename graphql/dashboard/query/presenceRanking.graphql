@@ -19,6 +19,7 @@ query presenceRanking($filter: DashboardSearchInput) {
         player {
           id
           name
+          displayName
           email
           positions {
             id

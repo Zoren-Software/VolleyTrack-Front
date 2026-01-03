@@ -98,6 +98,8 @@ export default {
           cpf: form.cpf,
           rg: form.rg,
           phone: form.phone,
+          nickname: form.nickname || null,
+          showNickname: form.showNickname ?? false,
           roleId: Array.isArray(form.roles)
             ? form.roles.filter((id) => id != null)
             : [],

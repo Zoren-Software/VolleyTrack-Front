@@ -5,7 +5,7 @@
     </va-avatar>
     <va-icon v-else name="account_circle" class="user-icon" />
     <div class="user-info">
-      <div class="user-name">{{ data.name }}</div>
+      <div class="user-name">{{ data.displayName || data.name }}</div>
       <div
         v-if="data.information?.phone || showEmail || showPosition"
         class="user-details"
@@ -94,7 +94,8 @@ export default {
   },
   computed: {
     firstLatter() {
-      return this.data.name.charAt(0).toUpperCase() ?? "";
+      const nameToUse = this.data.displayName || this.data.name;
+      return nameToUse.charAt(0).toUpperCase() ?? "";
     },
     firstPosition() {
       if (!this.data.positions || this.data.positions.length === 0) {

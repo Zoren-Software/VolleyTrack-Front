@@ -76,10 +76,15 @@
       <template #cell(player)="{ rowKey }">
         <div class="player-cell">
           <va-avatar class="player-avatar" size="medium">
-            {{ rowKey.name?.charAt(0)?.toUpperCase() || "" }}
+            {{
+              (rowKey.displayName || rowKey.name)?.charAt(0)?.toUpperCase() ||
+              ""
+            }}
           </va-avatar>
           <div class="player-info">
-            <div class="player-name">{{ rowKey.name || "-" }}</div>
+            <div class="player-name">
+              {{ rowKey.displayName || rowKey.name || "-" }}
+            </div>
             <div class="player-id">
               ID: #{{ rowKey.id ? String(rowKey.id).padStart(3, "0") : "---" }}
             </div>

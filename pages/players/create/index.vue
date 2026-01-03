@@ -79,6 +79,8 @@ export default {
               rg: form.rg || null,
               phone: form.phone || null,
               birthDate,
+              nickname: form.nickname || null,
+              showNickname: form.showNickname ?? false,
               roleId: Array.isArray(form.roles)
                 ? form.roles
                     .map((item) => (typeof item === "object" ? item.id : item))

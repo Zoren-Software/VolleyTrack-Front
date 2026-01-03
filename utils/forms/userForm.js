@@ -19,6 +19,8 @@ export function transformUserData(user) {
     phone: user?.information?.phone,
     cpf: user?.information?.cpf,
     rg: user?.information?.rg,
+    nickname: user?.information?.nickname || "",
+    showNickname: user?.information?.showNickname ?? false,
     password: "",
     confirmPassword: "",
   };
