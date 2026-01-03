@@ -91,6 +91,23 @@
           <div v-if="rowKey.email" class="contact-item">
             <va-icon name="email" size="medium" class="contact-icon" />
             <span>{{ rowKey.email }}</span>
+            <va-popover
+              v-if="rowKey.emailVerifiedAt"
+              placement="top"
+              trigger="hover"
+              class="email-verified-popover"
+            >
+              <va-icon
+                name="verified"
+                size="small"
+                class="email-verified-icon"
+              />
+              <template #body>
+                <div class="email-verified-tooltip">
+                  Email verificado
+                </div>
+              </template>
+            </va-popover>
           </div>
           <div v-if="rowKey.information?.phone" class="contact-item">
             <va-icon name="phone" size="medium" class="contact-icon" />
@@ -683,6 +700,8 @@ export default defineComponent({
   display: flex;
   flex-direction: column;
   gap: 2px;
+  flex: 1;
+  min-width: 0;
 }
 
 .player-name {
@@ -711,6 +730,27 @@ export default defineComponent({
   color: #4a5568;
   font-size: 12px;
   line-height: 1.4;
+}
+
+.email-verified-popover {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 4px;
+}
+
+.email-verified-icon {
+  color: #28a745;
+  font-size: 14px;
+  opacity: 0.7;
+  flex-shrink: 0;
+  cursor: help;
+}
+
+.email-verified-tooltip {
+  font-size: 12px;
+  color: #ffffff;
+  padding: 4px 8px;
+  white-space: nowrap;
 }
 
 .contact-icon {
