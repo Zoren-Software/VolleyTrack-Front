@@ -22,68 +22,7 @@
 
           <!-- CELL -->
           <template #cell(user)="{ rowKey: { player } }">
-            <ZUser :data="player" />
-          </template>
-          <template
-            #cell(positions)="{
-              rowKey: {
-                player: { positions },
-              },
-            }"
-          >
-            <div class="positions-cell">
-              <template
-                v-if="
-                  positions &&
-                  (Array.isArray(positions) ? positions.length > 0 : positions)
-                "
-              >
-                <div class="positions-wrapper">
-                  <!-- Mostrar primeiras posições (até 2) -->
-                  <span
-                    v-for="(position, index) in getVisiblePositions(positions)"
-                    :key="position?.id || index"
-                    class="position-tag"
-                  >
-                    {{ position?.name }}
-                  </span>
-                  <!-- Badge com quantidade de posições extras -->
-                  <div
-                    v-if="hasExtraPositions(positions)"
-                    class="positions-extra-badge"
-                  >
-                    <va-popover
-                      placement="top"
-                      trigger="hover"
-                      class="positions-popover"
-                    >
-                      <div class="extra-badge">
-                        <span class="badge-text"
-                          >+{{ getExtraPositionsCount(positions) }}</span
-                        >
-                      </div>
-                      <template #title>Outras Posições</template>
-                      <template #body>
-                        <div class="positions-list">
-                          <div
-                            v-for="(position, index) in getExtraPositions(
-                              positions
-                            )"
-                            :key="position?.id || index"
-                            class="position-item"
-                          >
-                            <div class="position-name">
-                              {{ position?.name || "-" }}
-                            </div>
-                          </div>
-                        </div>
-                      </template>
-                    </va-popover>
-                  </div>
-                </div>
-              </template>
-              <span v-else class="no-positions-text">-</span>
-            </div>
+            <ZUser :data="player" :showPosition="true" />
           </template>
           <template
             #cell(presence)="{
@@ -342,27 +281,6 @@ export default {
 
       return false;
     },
-    normalizePositions(positions) {
-      if (!positions) return [];
-      return Array.isArray(positions) ? positions : [positions].filter(Boolean);
-    },
-    getVisiblePositions(positions) {
-      const normalized = this.normalizePositions(positions);
-      // Mostrar apenas as primeiras 2 posições
-      return normalized.slice(0, 2);
-    },
-    getExtraPositions(positions) {
-      const normalized = this.normalizePositions(positions);
-      // Retornar posições após as primeiras 2
-      return normalized.slice(2);
-    },
-    getExtraPositionsCount(positions) {
-      return this.getExtraPositions(positions).length;
-    },
-    hasExtraPositions(positions) {
-      const normalized = this.normalizePositions(positions);
-      return normalized.length > 2;
-    },
   },
   computed: {
     isBeforeTrainingDate() {
@@ -376,13 +294,6 @@ export default {
           name: "user",
           label: "Jogador",
           sortable: true,
-        },
-        {
-          key: "positions",
-          name: "positions",
-          label: "Posições",
-          sortable: true,
-          width: 120,
         },
       ];
 
@@ -454,14 +365,12 @@ export default {
   padding-bottom: 12px;
 }
 
-/* Coluna de Jogador - Responsiva para nomes longos com quebra de linha */
+/* Coluna de Jogador */
 :deep(.va-data-table__table td:nth-child(1)),
 :deep(.va-data-table__table th:nth-child(1)) {
   width: auto;
-  min-width: 150px;
-  max-width: 300px;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
+  min-width: 200px;
+  max-width: 400px;
 }
 
 :deep(.va-data-table__table td:nth-child(1)) {
@@ -469,28 +378,14 @@ export default {
   vertical-align: top;
 }
 
-/* Coluna de Posições - Menor e Responsiva */
-:deep(.va-data-table__table td:nth-child(2)),
-:deep(.va-data-table__table th:nth-child(2)) {
-  width: auto;
-  min-width: 90px;
-  max-width: 130px;
-  vertical-align: top;
-}
-
-:deep(.va-data-table__table td:nth-child(2)) {
-  padding: 12px 6px;
-}
-
 /* Colunas de Ação - Responsivas */
+:deep(.va-data-table__table td:nth-child(2)),
+:deep(.va-data-table__table th:nth-child(2)),
 :deep(.va-data-table__table td:nth-child(3)),
-:deep(.va-data-table__table th:nth-child(3)),
-:deep(.va-data-table__table td:nth-child(4)),
-:deep(.va-data-table__table th:nth-child(4)) {
+:deep(.va-data-table__table th:nth-child(3)) {
   width: auto;
   min-width: 160px;
   max-width: 200px;
-  white-space: normal;
 }
 
 .presence-cell {
@@ -621,25 +516,6 @@ export default {
 :deep(.va-data-table__table td:nth-child(1) .user-cell) {
   max-width: 100%;
   min-width: 0;
-  align-items: flex-start;
-}
-
-:deep(.va-data-table__table td:nth-child(1) .user-info) {
-  max-width: 100%;
-  min-width: 0;
-  flex: 1;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-}
-
-:deep(.va-data-table__table td:nth-child(1) .user-name) {
-  max-width: 100%;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  white-space: normal;
-  line-height: 1.4;
-  display: block;
-  min-width: 0;
 }
 
 /* Responsividade para tablets */
@@ -650,20 +526,14 @@ export default {
 
   :deep(.va-data-table__table td:nth-child(1)),
   :deep(.va-data-table__table th:nth-child(1)) {
-    max-width: 250px;
-    min-width: 150px;
+    max-width: 350px;
+    min-width: 200px;
   }
 
   :deep(.va-data-table__table td:nth-child(2)),
-  :deep(.va-data-table__table th:nth-child(2)) {
-    min-width: 80px;
-    max-width: 120px;
-  }
-
+  :deep(.va-data-table__table th:nth-child(2)),
   :deep(.va-data-table__table td:nth-child(3)),
-  :deep(.va-data-table__table th:nth-child(3)),
-  :deep(.va-data-table__table td:nth-child(4)),
-  :deep(.va-data-table__table th:nth-child(4)) {
+  :deep(.va-data-table__table th:nth-child(3)) {
     min-width: 140px;
     max-width: 180px;
   }
@@ -673,19 +543,6 @@ export default {
     font-size: 10px;
     padding: 4px 6px;
     min-width: 70px;
-  }
-
-  .position-tag {
-    font-size: 9px;
-    padding: 3px 7px;
-  }
-
-  .extra-badge {
-    padding: 3px 6px;
-  }
-
-  .badge-text {
-    font-size: 9px;
   }
 }
 
@@ -697,20 +554,14 @@ export default {
 
   :deep(.va-data-table__table td:nth-child(1)),
   :deep(.va-data-table__table th:nth-child(1)) {
-    max-width: 200px;
-    min-width: 120px;
+    max-width: 300px;
+    min-width: 180px;
   }
 
   :deep(.va-data-table__table td:nth-child(2)),
-  :deep(.va-data-table__table th:nth-child(2)) {
-    min-width: 70px;
-    max-width: 100px;
-  }
-
+  :deep(.va-data-table__table th:nth-child(2)),
   :deep(.va-data-table__table td:nth-child(3)),
-  :deep(.va-data-table__table th:nth-child(3)),
-  :deep(.va-data-table__table td:nth-child(4)),
-  :deep(.va-data-table__table th:nth-child(4)) {
+  :deep(.va-data-table__table th:nth-child(3)) {
     min-width: 120px;
     max-width: 160px;
   }
@@ -792,144 +643,5 @@ export default {
   .action-button {
     width: 100%;
   }
-
-  :deep(.va-data-table__table td:nth-child(1) .user-name) {
-    max-width: 100%;
-    white-space: normal;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-  }
-
-  .positions-cell {
-    gap: 4px;
-  }
-
-  .position-tag {
-    font-size: 10px;
-    padding: 4px 8px;
-  }
-
-  .no-positions-text {
-    font-size: 11px;
-  }
-}
-
-.positions-cell {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  align-items: flex-start;
-  width: 100%;
-  min-width: 0;
-}
-
-.positions-wrapper {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  align-items: center;
-  width: 100%;
-}
-
-.position-tag {
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 10px;
-  font-weight: 500;
-  display: inline-flex;
-  align-items: center;
-  background-color: #f0f0f0;
-  color: #4a5568;
-  line-height: 1.3;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.positions-extra-badge {
-  display: inline-flex;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-.extra-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4px 8px;
-  background: linear-gradient(135deg, #e9742b 0%, #d6652a 100%);
-  border-radius: 10px;
-  box-shadow: 0 2px 4px rgba(233, 116, 43, 0.25);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.extra-badge:hover {
-  background: linear-gradient(135deg, #d6652a 0%, #c55a24 100%);
-  box-shadow: 0 3px 6px rgba(233, 116, 43, 0.35);
-  transform: translateY(-1px);
-}
-
-.badge-text {
-  font-size: 10px;
-  font-weight: 700;
-  color: #ffffff;
-  letter-spacing: 0.2px;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-}
-
-.positions-list {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  max-width: 200px;
-  max-height: 250px;
-  overflow-y: auto;
-  padding: 4px 0;
-}
-
-.position-item {
-  padding: 6px 10px;
-  background: #f8f9fa;
-  border-radius: 6px;
-  border-left: 3px solid #e9742b;
-  transition: all 0.2s ease;
-}
-
-.position-item:hover {
-  background: #f0f0f0;
-  transform: translateX(2px);
-}
-
-.position-name {
-  font-size: 12px;
-  font-weight: 600;
-  color: #0b1e3a;
-}
-
-/* Scrollbar personalizada para a lista */
-.positions-list::-webkit-scrollbar {
-  width: 5px;
-}
-
-.positions-list::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 10px;
-}
-
-.positions-list::-webkit-scrollbar-thumb {
-  background: #e9742b;
-  border-radius: 10px;
-}
-
-.positions-list::-webkit-scrollbar-thumb:hover {
-  background: #d6652a;
-}
-
-.no-positions-text {
-  color: #9ca3af;
-  font-size: 12px;
-  font-style: italic;
-  padding: 4px 0;
 }
 </style>

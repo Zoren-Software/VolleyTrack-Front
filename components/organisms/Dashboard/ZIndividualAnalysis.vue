@@ -804,22 +804,31 @@ export default {
   align-items: flex-start;
   margin-bottom: 4px;
   gap: 12px;
+  width: 100%;
 }
 
 .player-header {
   flex: 1;
 }
 
+.player-header :deep(.user-cell) {
+  width: 100%;
+  margin: 0;
+}
+
 .player-header :deep(.user-container) {
   margin: 0;
   gap: 10px;
   align-items: center;
+  width: 100%;
+  display: flex;
 }
 
 .player-header :deep(.avatar-wrapper) {
   margin: 0;
   padding: 0;
   align-self: center;
+  flex-shrink: 0;
 }
 
 .player-header :deep(.user-avatar) {
@@ -836,12 +845,20 @@ export default {
   color: white !important;
   border: 2px solid white !important;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+  flex-shrink: 0;
+}
+
+.player-header :deep(.user-info) {
+  flex: 1;
 }
 
 .player-header :deep(.user-name) {
   font-size: 16px;
   font-weight: 700;
   color: #0b1e3a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .player-info-view {
@@ -857,6 +874,8 @@ export default {
   min-width: auto !important;
   padding: 4px 8px !important;
   transition: all 0.2s ease;
+  align-self: flex-start;
+  margin-top: 0;
 }
 
 .toggle-view-btn:hover:not(.toggle-view-btn-disabled) {
@@ -1408,6 +1427,14 @@ export default {
 
   .card-header-actions {
     margin-bottom: 4px;
+    gap: 8px;
+  }
+
+  .player-header :deep(.user-name) {
+    font-size: 15px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .player-stats {
@@ -1474,6 +1501,28 @@ export default {
 
   .card-header-actions {
     margin-bottom: 4px;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .player-header :deep(.user-container) {
+    gap: 8px;
+  }
+
+  .player-header :deep(.user-avatar) {
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+    min-height: 36px !important;
+    font-size: 14px !important;
+  }
+
+  .player-header :deep(.user-name) {
+    font-size: 14px;
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .player-stats {
