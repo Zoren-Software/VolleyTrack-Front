@@ -399,8 +399,19 @@ export default {
   justify-content: center !important;
 }
 
+.player-ranking-item :deep(.user-info) {
+  overflow: hidden;
+  min-width: 0;
+  flex: 1;
+}
+
 .player-ranking-item :deep(.user-name) {
   font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+  max-width: 15ch;
 }
 
 .player-ranking-item :deep(.user-detail-item) {
