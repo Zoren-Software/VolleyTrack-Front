@@ -362,7 +362,7 @@ export default {
 
       const variables = {
         filter: {},
-        first: 4,
+        first: 3,
         page: 1,
       };
 
