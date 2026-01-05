@@ -123,30 +123,6 @@
           </div>
         </div>
 
-        <!-- Seção: Fundamentos (Opcional) -->
-        <div class="form-section">
-          <h2 class="section-title">Fundamentos (Opcional)</h2>
-          <div class="form-grid">
-            <div class="form-field">
-              <ZSelectFundamental
-                v-model="form.fundamentals"
-                label="Fundamentos"
-                multiple
-                placeholder="Selecione os fundamentos"
-              />
-            </div>
-
-            <div class="form-field">
-              <ZSelectSpecificFundamental
-                v-model="form.specificFundamentals"
-                label="Fundamentos Específicos"
-                multiple
-                placeholder="Selecione os fundamentos específicos"
-              />
-            </div>
-          </div>
-        </div>
-
         <!-- Info Box -->
         <div class="info-box">
           <p class="info-text">
@@ -155,6 +131,7 @@
           <ul class="info-list">
             <li>Nome: "Nome do treino #1", "Nome do treino #2", é o nome provisório do treino, você poderá alterar depois</li>
             <li>Descrição: "Descreva aqui a descrição detalhada de cada treino na edição do treino"</li>
+            <li>Fundamentos: Os fundamentos devem ser definidos na edição de cada treino</li>
           </ul>
         </div>
       </va-form>
@@ -165,8 +142,6 @@
 <script>
 import ZModal from "~/components/atoms/Modal/ZModal.vue";
 import ZSelectTeam from "~/components/molecules/Selects/ZSelectTeam.vue";
-import ZSelectFundamental from "~/components/molecules/Selects/ZSelectFundamental.vue";
-import ZSelectSpecificFundamental from "~/components/molecules/Selects/ZSelectSpecificFundamental.vue";
 import ZTimeInput from "~/components/atoms/Inputs/ZTimeInput.vue";
 import TRAININGBULKCREATE from "~/graphql/training/mutation/trainingBulkCreate.graphql";
 import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
@@ -176,8 +151,6 @@ export default {
   components: {
     ZModal,
     ZSelectTeam,
-    ZSelectFundamental,
-    ZSelectSpecificFundamental,
     ZTimeInput,
   },
   props: {
@@ -211,8 +184,6 @@ export default {
           daysOfWeek: [],
           timeStart: defaultTimeStart,
           timeEnd: defaultTimeEnd,
-          fundamentals: [],
-          specificFundamentals: [],
         },
       yearOptions: years,
       daysOfWeekOptions: [
@@ -267,8 +238,6 @@ export default {
         daysOfWeek: [],
         timeStart: defaultTimeStart,
         timeEnd: defaultTimeEnd,
-        fundamentals: [],
-        specificFundamentals: [],
       };
       this.errors = {};
     },
@@ -346,19 +315,6 @@ export default {
         const timeStart = this.formatTime(this.form.timeStart);
         const timeEnd = this.formatTime(this.form.timeEnd);
 
-        // Obter IDs dos fundamentos
-        const fundamentalIds = this.form.fundamentals
-          ? this.form.fundamentals.map((item) =>
-              typeof item === "object" ? item.id || item.value : item
-            )
-          : [];
-
-        const specificFundamentalIds = this.form.specificFundamentals
-          ? this.form.specificFundamentals.map((item) =>
-              typeof item === "object" ? item.id || item.value : item
-            )
-          : [];
-
         const query = gql`
           ${TRAININGBULKCREATE}
         `;
@@ -371,9 +327,8 @@ export default {
           daysOfWeek: this.form.daysOfWeek,
           timeStart,
           timeEnd,
-          fundamentalId: fundamentalIds.length > 0 ? fundamentalIds : [],
-          specificFundamentalId:
-            specificFundamentalIds.length > 0 ? specificFundamentalIds : [],
+          fundamentalId: [],
+          specificFundamentalId: [],
         };
 
         const { mutate } = await useMutation(query, { variables });
