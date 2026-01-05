@@ -25,70 +25,89 @@
     @cancel="close"
   >
     <div class="bulk-create-form">
-      <va-form ref="formRef">
-        <!-- Time -->
-        <div class="form-field">
-          <label class="field-label">Time *</label>
-          <ZSelectTeam
-            v-model="form.team"
-            label=""
-            placeholder="Selecione o time"
-          />
-          <div v-if="errors.teamId" class="error-message">
-            {{ errors.teamId[0] }}
-          </div>
-        </div>
-
-        <!-- Ano -->
-        <div class="form-field">
-          <label class="field-label">Ano *</label>
-          <va-select
-            v-model="form.year"
-            :options="yearOptions"
-            placeholder="Selecione o ano"
-          />
-          <div v-if="errors.year" class="error-message">
-            {{ errors.year[0] }}
-          </div>
-        </div>
-
-        <!-- Data de Início e Fim -->
-        <div class="form-row">
-          <div class="form-field">
-            <label class="field-label">Data de Início *</label>
-            <VaDateInput
-              v-model="form.startDate"
-              name="startDate"
-              label=""
-              placeholder="Selecione a data de início"
-              style="width: 100%"
-            />
-            <div v-if="errors.startDate" class="error-message">
-              {{ errors.startDate[0] }}
+      <va-form ref="formRef" class="flex flex-col gap-6">
+        <!-- Seção: Informações Básicas -->
+        <div class="form-section">
+          <h2 class="section-title">Informações Básicas</h2>
+          <div class="form-grid">
+            <div class="form-field team-field">
+              <ZSelectTeam
+                v-model="form.team"
+                label="Time *"
+                placeholder="Selecione o time"
+                :error-messages="errors.teamId || []"
+              />
             </div>
-          </div>
 
-          <div class="form-field">
-            <label class="field-label">Data de Fim *</label>
-            <VaDateInput
-              v-model="form.endDate"
-              name="endDate"
-              label=""
-              placeholder="Selecione a data de fim"
-              style="width: 100%"
-            />
-            <div v-if="errors.endDate" class="error-message">
-              {{ errors.endDate[0] }}
+            <div class="form-field">
+              <label class="field-label">Ano *</label>
+              <va-select
+                v-model="form.year"
+                :options="yearOptions"
+                placeholder="Selecione o ano"
+                :error="errors.year && errors.year.length > 0"
+                :error-messages="errors.year || []"
+              />
             </div>
           </div>
         </div>
-        <p class="field-hint">
-          Os treinos serão criados no período entre as datas selecionadas
-        </p>
 
-        <!-- Dias da Semana -->
-        <div class="form-field">
-          <label class="field-label">Dias da Semana *</label>
+        <!-- Seção: Período e Horários -->
+        <div class="form-section">
+          <h2 class="section-title">Período e Horários</h2>
+          <div class="form-grid">
+            <div class="form-field">
+              <VaDateInput
+                v-model="form.startDate"
+                name="startDate"
+                label="Data de Início *"
+                placeholder="Selecione a data de início"
+                style="width: 100%"
+                :error="errors.startDate && errors.startDate.length > 0"
+                :error-messages="errors.startDate || []"
+              />
+            </div>
+
+            <div class="form-field">
+              <VaDateInput
+                v-model="form.endDate"
+                name="endDate"
+                label="Data de Fim *"
+                placeholder="Selecione a data de fim"
+                style="width: 100%"
+                :error="errors.endDate && errors.endDate.length > 0"
+                :error-messages="errors.endDate || []"
+              />
+            </div>
+          </div>
+          <p class="field-hint">
+            Os treinos serão criados no período entre as datas selecionadas
+          </p>
+
+          <div class="form-grid" style="margin-top: 16px">
+            <div class="form-field">
+              <ZTimeInput
+                id="time-start-bulk"
+                v-model="form.timeStart"
+                label="Horário Início *"
+                :error-messages="errors.timeStart || []"
+              />
+            </div>
+
+            <div class="form-field">
+              <ZTimeInput
+                id="time-end-bulk"
+                v-model="form.timeEnd"
+                label="Horário Fim *"
+                :error-messages="errors.timeEnd || []"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Seção: Dias da Semana -->
+        <div class="form-section">
+          <h2 class="section-title">Dias da Semana</h2>
           <div class="days-of-week">
             <va-checkbox
               v-for="day in daysOfWeekOptions"
@@ -104,55 +123,31 @@
           </div>
         </div>
 
-        <!-- Horário -->
-        <div class="form-row">
-          <div class="form-field">
-            <label class="field-label">Horário Início *</label>
-            <ZTimeInput
-              id="time-start-bulk"
-              v-model="form.timeStart"
-              label=""
-            />
-            <div v-if="errors.timeStart" class="error-message">
-              {{ errors.timeStart[0] }}
+        <!-- Seção: Fundamentos (Opcional) -->
+        <div class="form-section">
+          <h2 class="section-title">Fundamentos (Opcional)</h2>
+          <div class="form-grid">
+            <div class="form-field">
+              <ZSelectFundamental
+                v-model="form.fundamentals"
+                label="Fundamentos"
+                multiple
+                placeholder="Selecione os fundamentos"
+              />
             </div>
-          </div>
 
-          <div class="form-field">
-            <label class="field-label">Horário Fim *</label>
-            <ZTimeInput
-              id="time-end-bulk"
-              v-model="form.timeEnd"
-              label=""
-            />
-            <div v-if="errors.timeEnd" class="error-message">
-              {{ errors.timeEnd[0] }}
+            <div class="form-field">
+              <ZSelectSpecificFundamental
+                v-model="form.specificFundamentals"
+                label="Fundamentos Específicos"
+                multiple
+                placeholder="Selecione os fundamentos específicos"
+              />
             </div>
           </div>
         </div>
 
-        <!-- Fundamentos (Opcional) -->
-        <div class="form-field">
-          <label class="field-label">Fundamentos (Opcional)</label>
-          <ZSelectFundamental
-            v-model="form.fundamentals"
-            label=""
-            multiple
-            placeholder="Selecione os fundamentos"
-          />
-        </div>
-
-        <!-- Fundamentos Específicos (Opcional) -->
-        <div class="form-field">
-          <label class="field-label">Fundamentos Específicos (Opcional)</label>
-          <ZSelectSpecificFundamental
-            v-model="form.specificFundamentals"
-            label=""
-            multiple
-            placeholder="Selecione os fundamentos específicos"
-          />
-        </div>
-
+        <!-- Info Box -->
         <div class="info-box">
           <p class="info-text">
             <strong>Nota:</strong> Os treinos serão criados automaticamente com:
@@ -445,9 +440,35 @@ export default {
 
 <style scoped>
 .bulk-create-form {
+  position: relative;
+}
+
+.form-section {
+  margin-bottom: 24px;
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 20px;
   display: flex;
-  flex-direction: column;
-  gap: 20px;
+  align-items: center;
+  gap: 12px;
+}
+
+.section-title::before {
+  content: "";
+  width: 4px;
+  height: 24px;
+  background: #e9742b;
+  border-radius: 2px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
 }
 
 .form-field {
@@ -456,32 +477,33 @@ export default {
   gap: 8px;
 }
 
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
+.team-field {
+  grid-column: span 2;
 }
 
 .field-label {
   font-size: 14px;
   font-weight: 500;
   color: #374151;
+  margin-bottom: 4px;
 }
 
 .field-hint {
   font-size: 12px;
   color: #6b7280;
-  margin-top: -8px;
+  margin-top: 8px;
   font-style: italic;
+  line-height: 1.5;
 }
 
 .days-of-week {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 12px;
-  padding: 12px;
+  padding: 16px;
   background: #f9fafb;
   border-radius: 8px;
+  border: 1px solid #e5e7eb;
 }
 
 .day-checkbox {
@@ -495,17 +517,19 @@ export default {
 }
 
 .info-box {
-  background: #eff6ff;
+  background: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 100%);
   border: 1px solid #bfdbfe;
-  border-radius: 8px;
-  padding: 16px;
+  border-radius: 12px;
+  padding: 20px;
   margin-top: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .info-text {
   font-size: 14px;
   color: #1e40af;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
+  font-weight: 500;
 }
 
 .info-list {
@@ -513,12 +537,29 @@ export default {
   padding-left: 20px;
   color: #1e40af;
   font-size: 13px;
+  line-height: 1.6;
 }
 
 .info-list li {
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
+/* Remover bordas estranhas das labels */
+.bulk-create-form :deep(.va-input-wrapper__label) {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+.bulk-create-form :deep(.va-date-input-wrapper__label) {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+/* Loading Modal */
 .loading-modal :deep(.va-modal__container) {
   max-width: 400px;
   border-radius: 16px;
@@ -547,13 +588,13 @@ export default {
   margin: 0;
 }
 
-.bulk-create-form {
-  position: relative;
-}
-
 @media (max-width: 768px) {
-  .form-row {
+  .form-grid {
     grid-template-columns: 1fr;
+  }
+
+  .team-field {
+    grid-column: span 1;
   }
 
   .days-of-week {
