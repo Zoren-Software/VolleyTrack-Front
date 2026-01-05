@@ -135,6 +135,7 @@ query training(
       updatedAt
     }
     status
+    isBulkCreated
     dateStart
     dateEnd
     description

@@ -8,6 +8,7 @@ mutation trainingEdit(
   $description: String
   $dateStart: String!
   $dateEnd: String!
+  $updateAllFuture: Boolean
 ) {
   trainingEdit(
     id: $id
@@ -19,6 +20,7 @@ mutation trainingEdit(
     description: $description
     dateStart: $dateStart
     dateEnd: $dateEnd
+    updateAllFuture: $updateAllFuture
   ) {
     id
     name

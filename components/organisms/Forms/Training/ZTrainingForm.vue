@@ -43,6 +43,22 @@
                 :error-messages="errors.description || []"
               />
 
+              <!-- Opção para editar treinos criados em massa -->
+              <div v-if="form.isBulkCreated" class="bulk-edit-option mb-3">
+                <label class="field-label">Opções de Edição</label>
+                <va-radio
+                  v-model="form.updateAllFuture"
+                  :options="[
+                    { label: 'Alterar apenas este treino', value: false },
+                    { label: 'Alterar este treino e todos os futuros', value: true },
+                  ]"
+                  class="bulk-edit-radios"
+                />
+                <p class="bulk-edit-hint">
+                  Este treino foi criado em massa. Você pode alterar apenas este treino ou aplicar as alterações a todos os treinos futuros criados em massa.
+                </p>
+              </div>
+
               <h3 class="subsection-title">Fundamentos</h3>
               <div class="mb-5">
                 <ZListRelationFundamentals
@@ -590,6 +606,7 @@ export default {
           scouts: val.scouts || this.form.scouts || [],
           confirmationsTraining: preservedConfirmationsTraining,
           standalonePlayerIds: this.form.standalonePlayerIds || [],
+          updateAllFuture: val.updateAllFuture !== undefined ? val.updateAllFuture : (this.form.updateAllFuture || false),
           // Usar dados novos se disponíveis, senão preservar existentes apenas se form já inicializado
           teams:
             Array.isArray(val.teams) && val.teams.length > 0
@@ -1731,6 +1748,33 @@ export default {
   margin-top: 24px;
   width: 100%;
   max-width: 800px;
+}
+
+.bulk-edit-option {
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 8px;
+}
+
+.bulk-edit-option .field-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #0c4a6e;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.bulk-edit-radios {
+  margin-bottom: 8px;
+}
+
+.bulk-edit-hint {
+  font-size: 13px;
+  color: #075985;
+  margin: 8px 0 0 0;
+  line-height: 1.5;
 }
 
 .action-buttons va-button {

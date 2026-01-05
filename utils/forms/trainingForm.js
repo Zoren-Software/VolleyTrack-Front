@@ -35,6 +35,7 @@ export function transformTrainingData(training) {
         specificFundamental: specificFundamental.name,
       };
     }),
-    teams
+    teams,
+    updateAllFuture: false, // Valor padrão: editar apenas este treino
   };
 }

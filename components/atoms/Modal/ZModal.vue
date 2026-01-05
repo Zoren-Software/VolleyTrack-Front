@@ -3,8 +3,14 @@
     v-bind="$attrs"
     :model-value="modelValue"
     @update:modelValue="$emit('update:modelValue', $event)"
+    :ok-text="okText"
+    :cancel-text="cancelText"
+    :ok-disabled="okDisabled"
+    @ok="$emit('ok')"
+    @cancel="$emit('cancel')"
     size="medium"
     close-button
+    :no-dismiss="false"
     class="z-modal"
   >
     <template #header>
@@ -14,10 +20,6 @@
     </template>
 
     <slot />
-
-    <template #footer v-if="$slots.footer">
-      <slot name="footer" />
-    </template>
   </VaModal>
 </template>
 
@@ -33,8 +35,20 @@ export default {
       type: String,
       default: "",
     },
+    okText: {
+      type: String,
+      default: undefined,
+    },
+    cancelText: {
+      type: String,
+      default: undefined,
+    },
+    okDisabled: {
+      type: Boolean,
+      default: false,
+    },
   },
-  emits: ["update:modelValue"],
+  emits: ["update:modelValue", "ok", "cancel"],
   inheritAttrs: false, // 🔥 necessário para evitar duplicação com `v-bind="$attrs"`
 };
 </script>
@@ -72,6 +86,7 @@ export default {
   justify-content: flex-end;
   gap: 12px;
 }
+
 
 :deep(.z-modal .va-button) {
   border-radius: 8px;
