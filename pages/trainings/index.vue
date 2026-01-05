@@ -14,9 +14,13 @@
             @click="showBulkCreateModal = true"
           >
             <va-icon name="event_repeat" class="button-icon" />
-            <span class="button-text">Cadastrar Treinos futuros</span>
+            <span class="button-text">Cadastrar Treinos Futuros</span>
           </va-button>
-          <va-button color="#E9742B" class="new-item-button" @click="addTraining">
+          <va-button
+            color="#E9742B"
+            class="new-item-button"
+            @click="addTraining"
+          >
             <va-icon name="add" class="button-icon" />
             <span class="button-text">Novo Treino</span>
           </va-button>
