@@ -108,7 +108,19 @@
       @delete="deleteTraining"
       @deletes="deleteTrainings"
       @update:currentPageActive="updateCurrentPageActive"
+      @selectionChange="handleSelectionChange"
     >
+      <template #extra-actions-top>
+        <va-button
+          v-if="hasBulkCreatedSelected"
+          color="#DC2626"
+          class="bulk-delete-button"
+          @click="deleteBulkCreatedTrainings"
+        >
+          <va-icon name="delete" class="button-icon" />
+          <span class="button-text">Deletar Treinos em Massa Selecionados ({{ selectedBulkTrainings.length }})</span>
+        </va-button>
+      </template>
       <!-- CELL -->
       <template
         #cell(name)="{
@@ -140,6 +152,26 @@
           showCreatedAt
         />
       </template>
+      <template #cell(actions)="{ rowKey }">
+        <div class="actions-cell">
+          <ZDataTableActions
+            :id="Number(rowKey.id)"
+            :includeActionEditList="true"
+            :includeActionDeleteList="true"
+            @edit="editTraining"
+            @delete="deleteTraining"
+          />
+          <va-button
+            v-if="rowKey.isBulkCreated"
+            icon="delete_sweep"
+            color="#DC2626"
+            size="small"
+            class="action-btn action-btn-bulk-delete"
+            @click="deleteBulkCreatedTraining(rowKey.id)"
+            title="Deletar treino criado em massa"
+          />
+        </div>
+      </template>
     </ZDatatableGeneric>
 
     <!-- Summary Cards -->
@@ -166,18 +198,23 @@ import ZSelectPosition from "~/components/molecules/Selects/ZSelectPosition";
 import ZSelectTeam from "~/components/molecules/Selects/ZSelectTeam";
 import ZSelectUser from "~/components/molecules/Selects/ZSelectUser";
 import ZDataTableInputSearch from "~/components/molecules/Datatable/ZDataTableInputSearch";
+import ZDataTableActions from "~/components/molecules/Datatable/ZDataTableActions.vue";
 import ZUser from "~/components/molecules/Datatable/Slots/ZUser";
 import ZDateTraining from "~/components/molecules/Datatable/Slots/ZDateTraining";
 import ZTeam from "~/components/molecules/Datatable/Slots/ZTeam";
 import ZTraining from "~/components/molecules/Datatable/Slots/ZTraining";
 import TRAININGDELETE from "~/graphql/training/mutation/trainingDelete.graphql";
+import TRAININGBULKDELETE from "~/graphql/training/mutation/trainingBulkDelete.graphql";
+import TRAININGBULKDELETECOUNT from "~/graphql/training/query/trainingBulkDeleteCount.graphql";
 import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
+import Swal from "sweetalert2";
 
 //import { toRaw } from "vue"; // NOTE - Para debug
 
 export default defineComponent({
   components: {
     ZDatatableGeneric,
+    ZDataTableActions,
     ZDateTraining,
     ZTeam,
     ZUser,
@@ -245,7 +282,161 @@ export default defineComponent({
     };
   },
 
+  computed: {
+    selectedBulkTrainings() {
+      // Filtrar apenas treinos criados em massa que estão selecionados
+      // Verificar tanto isBulkCreated === true quanto isBulkCreated === 1 (caso venha como número do banco)
+      return this.selectedItemsEmitted.filter((item) => {
+        return item.isBulkCreated === true || item.isBulkCreated === 1 || item.isBulkCreated === '1';
+      });
+    },
+    hasBulkCreatedSelected() {
+      return this.selectedBulkTrainings.length > 0;
+    },
+  },
+
   methods: {
+    handleSelectionChange(selectedItems) {
+      this.selectedItemsEmitted = selectedItems.currentSelectedItems || [];
+    },
+    async deleteBulkCreatedTrainings() {
+      if (this.selectedBulkTrainings.length === 0) {
+        confirmError("Nenhum treino criado em massa selecionado");
+        return;
+      }
+
+      const ids = this.selectedBulkTrainings.map((training) => training.id);
+      await this.deleteItems(ids);
+      this.selectedItemsEmitted = []; // Limpar seleção após deletar
+    },
+    async deleteBulkCreatedTraining(id) {
+      // Encontrar o treino para obter informações
+      const training = this.items.find((item) => item.id === id);
+      
+      if (!training) {
+        confirmError("Treino não encontrado");
+        return;
+      }
+
+      // Formatar a data do treino para exibir na confirmação
+      const trainingDate = moment(training.dateStart).format("DD/MM/YYYY");
+      const trainingTime = moment(training.dateStart).format("HH:mm");
+      
+      try {
+        // Buscar a contagem exata de treinos que serão deletados
+        this.loading = true;
+        
+        const countQuery = gql`
+          ${TRAININGBULKDELETECOUNT}
+        `;
+
+        const { onResult } = useQuery(countQuery, {
+          trainingId: String(id),
+        });
+
+        await new Promise((resolve) => {
+          onResult((result) => {
+            const countToDelete = result?.data?.trainingBulkDeleteCount || 0;
+            this.loading = false;
+            
+            // Mostrar confirmação antes de deletar com informações sobre a data e quantidade
+            this.showBulkDeleteConfirmation(
+              trainingDate,
+              trainingTime,
+              countToDelete,
+              async () => {
+                try {
+                  this.loading = true;
+
+                  const query = gql`
+                    ${TRAININGBULKDELETE}
+                  `;
+
+                  const variables = {
+                    trainingId: String(id),
+                  };
+
+                  const { mutate } = await useMutation(query, { variables });
+                  const { data } = await mutate();
+
+                  const deletedCount = data?.trainingBulkDelete || 0;
+
+                  confirmSuccess(
+                    `${deletedCount} treino(s) deletado(s) com sucesso!`,
+                    () => {
+                      this.getTrainings({ fetchPolicy: "network-only" });
+                    }
+                  );
+                } catch (error) {
+                  console.error(error);
+                  this.loading = false;
+
+                  if (
+                    error.graphQLErrors &&
+                    error.graphQLErrors[0] &&
+                    error.graphQLErrors[0].extensions &&
+                    error.graphQLErrors[0].extensions.validation
+                  ) {
+                    const errorMessages = Object.values(error.graphQLErrors[0].extensions.validation)
+                      .flat()
+                      .filter((msg) => msg);
+
+                    confirmError("Erro ao deletar treinos em massa!", errorMessages);
+                  } else {
+                    const errorMessage = error.graphQLErrors?.[0]?.message || "Erro ao deletar treinos em massa!";
+                    confirmError(errorMessage);
+                  }
+                } finally {
+                  this.loading = false;
+                }
+              }
+            );
+            resolve();
+          });
+        });
+      } catch (error) {
+        console.error(error);
+        this.loading = false;
+        confirmError("Erro ao buscar contagem de treinos a serem deletados!");
+      }
+    },
+    showBulkDeleteConfirmation(date, time, count, onConfirm) {
+      Swal.fire({
+        title: "Deletar Treinos em Massa?",
+        html: `
+          <div style="text-align: left; padding: 10px 0;">
+            <p style="margin-bottom: 15px; font-size: 16px;">
+              <strong>Atenção!</strong> Esta ação irá deletar todos os treinos criados em massa a partir da data selecionada.
+            </p>
+            <div style="background-color: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #dc2626;">
+              <p style="margin: 0; font-size: 14px; color: #374151;">
+                <strong>Data base:</strong> ${date} às ${time}
+              </p>
+              <p style="margin: 5px 0 0 0; font-size: 14px; color: #6b7280;">
+                Todos os treinos criados em massa com data igual ou posterior a esta data serão deletados.
+              </p>
+              <p style="margin: 10px 0 0 0; font-size: 14px; color: #dc2626; font-weight: 600;">
+                <strong>Total de treinos que serão deletados: ${count}</strong>
+              </p>
+            </div>
+            <p style="margin-top: 15px; font-size: 14px; color: #dc2626;">
+              <strong>Esta ação não pode ser desfeita!</strong>
+            </p>
+          </div>
+        `,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Sim, deletar!",
+        confirmButtonColor: "#dc2626",
+        cancelButtonColor: "#6b7280",
+        cancelButtonText: "Cancelar",
+        reverseButtons: true,
+      }).then((result) => {
+        if (result.isConfirmed) {
+          onConfirm();
+        }
+      });
+    },
     unselectItem(item) {
       this.selectedItems = this.selectedItems.filter(
         (selectedItem) => selectedItem !== item
@@ -591,6 +782,59 @@ export default defineComponent({
   font-size: 36px;
   font-weight: 700;
   color: #0b1e3a;
+}
+
+.actions-cell {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.action-btn-bulk-delete {
+  min-width: 32px;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  padding: 0;
+  background-color: #dc2626 !important;
+  color: white !important;
+}
+
+.action-btn-bulk-delete:hover {
+  background-color: #b91c1c !important;
+}
+
+.bulk-delete-button {
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-weight: 500;
+  white-space: nowrap;
+  background-color: #dc2626 !important;
+  color: white !important;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.bulk-delete-button:hover {
+  background-color: #b91c1c !important;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+  transform: translateY(-1px);
+}
+
+.bulk-delete-button .button-icon {
+  font-size: 18px;
+  color: white;
+}
+
+.bulk-delete-button .button-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: white;
 }
 
 .summary-label {

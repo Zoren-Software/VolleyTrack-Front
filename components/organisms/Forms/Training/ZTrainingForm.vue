@@ -43,22 +43,6 @@
                 :error-messages="errors.description || []"
               />
 
-              <!-- Opção para editar treinos criados em massa -->
-              <div v-if="form.isBulkCreated" class="bulk-edit-option mb-3">
-                <label class="field-label">Opções de Edição</label>
-                <va-radio
-                  v-model="form.updateAllFuture"
-                  :options="[
-                    { label: 'Alterar apenas este treino', value: false },
-                    { label: 'Alterar este treino e todos os futuros', value: true },
-                  ]"
-                  class="bulk-edit-radios"
-                />
-                <p class="bulk-edit-hint">
-                  Este treino foi criado em massa. Você pode alterar apenas este treino ou aplicar as alterações a todos os treinos futuros criados em massa.
-                </p>
-              </div>
-
               <h3 class="subsection-title">Fundamentos</h3>
               <div class="mb-5">
                 <ZListRelationFundamentals
@@ -418,6 +402,10 @@ export default {
 
   data() {
     return {
+      radioOptions: [
+        { label: 'Alterar apenas este treino', value: false },
+        { label: 'Alterar este treino e todos os futuros', value: true },
+      ],
       user: localStorage.getItem("user")
         ? JSON.parse(localStorage.getItem("user"))
         : null,
@@ -606,7 +594,6 @@ export default {
           scouts: val.scouts || this.form.scouts || [],
           confirmationsTraining: preservedConfirmationsTraining,
           standalonePlayerIds: this.form.standalonePlayerIds || [],
-          updateAllFuture: val.updateAllFuture !== undefined ? val.updateAllFuture : (this.form.updateAllFuture || false),
           // Usar dados novos se disponíveis, senão preservar existentes apenas se form já inicializado
           teams:
             Array.isArray(val.teams) && val.teams.length > 0
@@ -1751,30 +1738,81 @@ export default {
 }
 
 .bulk-edit-option {
-  background: #f0f9ff;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
   border: 1px solid #bae6fd;
-  border-radius: 8px;
-  padding: 16px;
-  margin-top: 8px;
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-.bulk-edit-option .field-label {
-  font-size: 14px;
-  font-weight: 500;
+.bulk-edit-title {
+  font-size: 16px;
+  font-weight: 600;
   color: #0c4a6e;
-  margin-bottom: 12px;
-  display: block;
+  margin: 0 0 16px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.bulk-edit-radios {
-  margin-bottom: 8px;
+.bulk-edit-title::before {
+  content: "";
+  width: 4px;
+  height: 20px;
+  background: #e9742b;
+  border-radius: 2px;
+}
+
+.bulk-edit-radios-container {
+  margin-bottom: 12px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.radio-option-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+  cursor: pointer;
+  user-select: none;
+}
+
+.radio-option-label:hover {
+  background-color: rgba(255, 255, 255, 0.9);
+}
+
+.radio-input-native {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #e9742b;
+  flex-shrink: 0;
+}
+
+.radio-label-text {
+  font-size: 14px;
+  color: #0c4a6e;
+  font-weight: 500;
+  cursor: pointer;
+  flex: 1;
 }
 
 .bulk-edit-hint {
   font-size: 13px;
   color: #075985;
-  margin: 8px 0 0 0;
-  line-height: 1.5;
+  margin: 12px 0 0 0;
+  line-height: 1.6;
+  padding-top: 12px;
+  border-top: 1px solid rgba(186, 230, 253, 0.5);
 }
 
 .action-buttons va-button {

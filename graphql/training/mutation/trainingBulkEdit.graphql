@@ -1,0 +1,33 @@
+mutation trainingBulkEdit(
+  $trainingIds: [ID!]!
+  $newDayOfWeek: Int
+  $newTimeStart: String
+  $newTimeEnd: String
+  $newName: String
+  $newDescription: String
+  $newStatus: Boolean
+  $shiftDays: Int
+) {
+  trainingBulkEdit(
+    trainingIds: $trainingIds
+    newDayOfWeek: $newDayOfWeek
+    newTimeStart: $newTimeStart
+    newTimeEnd: $newTimeEnd
+    newName: $newName
+    newDescription: $newDescription
+    newStatus: $newStatus
+    shiftDays: $shiftDays
+  ) {
+    id
+    name
+    teamId
+    isBulkCreated
+    status
+    dateStart
+    dateEnd
+    description
+    createdAt
+    updatedAt
+  }
+}
+

@@ -61,16 +61,16 @@
     :includeActionsColumn="includeActionsColumn"
     @selectionChange="selectedItemsEmitted = $event.currentSelectedItems"
   >
-    <template #cell(actions)="{ rowKey: { id } }">
+    <template #cell(actions)="{ rowKey }">
       <ZDataTableActions
         v-if="!disableActionDelete"
-        :id="Number(id)"
+        :id="Number(rowKey.id)"
         :includeActionEditList="includeActionEditList"
         :includeActionDeleteList="includeActionDeleteList"
         @edit="actionEdit"
-        @delete="actionDelete(id)"
+        @delete="actionDelete(rowKey.id)"
       />
-      <slot name="cell(actions)" :id="id"></slot>
+      <slot name="cell(actions)" :rowKey="rowKey" :id="rowKey.id"></slot>
     </template>
     <template #bodyAppend v-if="paginatorInfo && paginatorInfo.firstItem > 0">
       <tr class="pagination-row">
@@ -149,6 +149,7 @@ export default defineComponent({
     "actionClear",
     "update:currentPageActive",
     "update:search",
+    "selectionChange",
   ],
   props: {
     textAdvancedFilters: {

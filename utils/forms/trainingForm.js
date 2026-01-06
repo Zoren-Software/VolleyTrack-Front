@@ -36,6 +36,5 @@ export function transformTrainingData(training) {
       };
     }),
     teams,
-    updateAllFuture: false, // Valor padrão: editar apenas este treino
   };
 }

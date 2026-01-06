@@ -57,6 +57,7 @@ query trainings(
       dateStart
       dateEnd
       description
+      isBulkCreated
       createdAt
       updatedAt
     }

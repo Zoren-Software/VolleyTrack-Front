@@ -25,7 +25,7 @@
     @cancel="close"
   >
     <div class="bulk-create-form">
-      <va-form ref="formRef" class="flex flex-col gap-6">
+      <div class="flex flex-col gap-6">
         <!-- Seção: Informações Básicas -->
         <div class="form-section">
           <h2 class="section-title">Informações Básicas</h2>
@@ -47,6 +47,7 @@
                 placeholder="Selecione o ano"
                 :error="errors.year && errors.year.length > 0"
                 :error-messages="errors.year || []"
+                @update:model-value="onYearChange"
               />
             </div>
           </div>
@@ -129,12 +130,21 @@
             <strong>Nota:</strong> Os treinos serão criados automaticamente com:
           </p>
           <ul class="info-list">
-            <li>Nome: "Nome do treino #1", "Nome do treino #2", é o nome provisório do treino, você poderá alterar depois</li>
-            <li>Descrição: "Descreva aqui a descrição detalhada de cada treino na edição do treino"</li>
-            <li>Fundamentos: Os fundamentos devem ser definidos na edição de cada treino</li>
+            <li>
+              Nome: "Nome do treino #1", "Nome do treino #2", é o nome
+              provisório do treino, você poderá alterar depois
+            </li>
+            <li>
+              Descrição: "Descreva aqui a descrição detalhada de cada treino na
+              edição do treino"
+            </li>
+            <li>
+              Fundamentos: Os fundamentos devem ser definidos na edição de cada
+              treino
+            </li>
           </ul>
         </div>
-      </va-form>
+      </div>
     </div>
   </ZModal>
 </template>
@@ -167,24 +177,24 @@ export default {
       years.push(i);
     }
 
-      // Criar datas de horário padrão (18:00 e 19:00)
-      const defaultTimeStart = new Date();
-      defaultTimeStart.setHours(18, 0, 0, 0);
-      const defaultTimeEnd = new Date();
-      defaultTimeEnd.setHours(19, 0, 0, 0);
+    // Criar datas de horário padrão (18:00 e 19:00)
+    const defaultTimeStart = new Date();
+    defaultTimeStart.setHours(18, 0, 0, 0);
+    const defaultTimeEnd = new Date();
+    defaultTimeEnd.setHours(19, 0, 0, 0);
 
-      return {
-        loading: false,
-        errors: {},
-        form: {
-          team: null,
-          year: currentYear,
-          startDate: new Date(),
-          endDate: new Date(new Date().setFullYear(currentYear, 11, 31)), // 31 de dezembro do ano atual
-          daysOfWeek: [],
-          timeStart: defaultTimeStart,
-          timeEnd: defaultTimeEnd,
-        },
+    return {
+      loading: false,
+      errors: {},
+      form: {
+        team: null,
+        year: currentYear,
+        startDate: new Date(),
+        endDate: new Date(new Date().setFullYear(currentYear, 11, 31)), // 31 de dezembro do ano atual
+        daysOfWeek: [],
+        timeStart: defaultTimeStart,
+        timeEnd: defaultTimeEnd,
+      },
       yearOptions: years,
       daysOfWeekOptions: [
         { label: "Domingo", value: 0 },
@@ -197,16 +207,21 @@ export default {
       ],
     };
   },
-  watch: {
-    "form.year"(newYear) {
+  methods: {
+    onYearChange(newYear) {
       // Quando o ano mudar, atualizar a data de fim para 31 de dezembro do novo ano
       if (newYear && this.form.endDate) {
-        const currentEndDate = new Date(this.form.endDate);
-        this.form.endDate = new Date(newYear, 11, 31); // 31 de dezembro
+        const currentEndDateYear = new Date(this.form.endDate).getFullYear();
+
+        // Só atualizar se o ano da data de fim for diferente do novo ano
+        if (currentEndDateYear !== newYear) {
+          // Usar setTimeout para evitar conflitos com a validação do form
+          setTimeout(() => {
+            this.form.endDate = new Date(newYear, 11, 31); // 31 de dezembro
+          }, 0);
+        }
       }
     },
-  },
-  methods: {
     toggleDay(dayValue, checked) {
       if (checked) {
         if (!this.form.daysOfWeek.includes(dayValue)) {
@@ -250,7 +265,10 @@ export default {
       // Validação básica
       this.errors = {};
 
-      if (!this.form.team || (Array.isArray(this.form.team) && this.form.team.length === 0)) {
+      if (
+        !this.form.team ||
+        (Array.isArray(this.form.team) && this.form.team.length === 0)
+      ) {
         this.errors.teamId = ["O time é obrigatório"];
         return;
       }
@@ -274,7 +292,9 @@ export default {
       const startDate = new Date(this.form.startDate);
       const endDate = new Date(this.form.endDate);
       if (endDate < startDate) {
-        this.errors.endDate = ["A data de fim deve ser maior ou igual à data de início"];
+        this.errors.endDate = [
+          "A data de fim deve ser maior ou igual à data de início",
+        ];
         return;
       }
 
@@ -337,13 +357,10 @@ export default {
 
         const count = data?.trainingBulkCreate?.length || 0;
 
-        confirmSuccess(
-          `${count} treino(s) criado(s) com sucesso!`,
-          () => {
-            this.close();
-            this.$emit("success");
-          }
-        );
+        confirmSuccess(`${count} treino(s) criado(s) com sucesso!`, () => {
+          this.close();
+          this.$emit("success");
+        });
       } catch (error) {
         console.error(error);
         this.loading = false;
@@ -557,4 +574,3 @@ export default {
   }
 }
 </style>
-

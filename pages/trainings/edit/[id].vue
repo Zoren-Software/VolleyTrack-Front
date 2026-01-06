@@ -137,7 +137,6 @@ export default {
             : [],
           dateStart,
           dateEnd,
-          updateAllFuture: form.updateAllFuture ?? false,
         };
 
         const { mutate } = await useMutation(query, { variables });
@@ -237,7 +236,6 @@ export default {
             : [],
           dateStart,
           dateEnd,
-          updateAllFuture: form.updateAllFuture ?? false,
         };
 
         const { mutate } = await useMutation(query, { variables });
@@ -325,7 +323,6 @@ export default {
             : [],
           dateStart,
           dateEnd,
-          updateAllFuture: form.updateAllFuture ?? false,
         };
 
         const { mutate } = await useMutation(query, { variables });

@@ -1,0 +1,8 @@
+query trainingBulkDeleteCount(
+  $trainingId: ID!
+) {
+  trainingBulkDeleteCount(
+    trainingId: $trainingId
+  )
+}
+
