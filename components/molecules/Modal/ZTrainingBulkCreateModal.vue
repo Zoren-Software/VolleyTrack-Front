@@ -262,78 +262,60 @@ export default {
         return;
       }
 
-      // Validação básica
+      // Limpar erros anteriores
       this.errors = {};
 
+      // Obter ID do time (ZSelectTeam retorna array mesmo com single selection)
+      let teamId;
+      if (Array.isArray(this.form.team) && this.form.team.length > 0) {
+        teamId = this.form.team[0]?.value || this.form.team[0];
+      } else if (this.form.team) {
+        teamId = this.form.team?.value || this.form.team;
+      }
+
+      // Formatar datas
+      const startDate = this.formatDate(this.form.startDate);
+      const endDate = this.formatDate(this.form.endDate);
+
+      // Formatar horários
+      const timeStart = this.formatTime(this.form.timeStart);
+      const timeEnd = this.formatTime(this.form.timeEnd);
+
+      // Validar campos obrigatórios antes de enviar para evitar erros GraphQL
+      // Se algum campo obrigatório estiver vazio, não enviar e deixar o backend validar
       if (
-        !this.form.team ||
-        (Array.isArray(this.form.team) && this.form.team.length === 0)
+        !teamId ||
+        !this.form.year ||
+        !startDate ||
+        !endDate ||
+        !this.form.daysOfWeek ||
+        this.form.daysOfWeek.length === 0 ||
+        !timeStart ||
+        !timeEnd
       ) {
-        this.errors.teamId = ["O time é obrigatório"];
-        return;
-      }
+        // Não enviar a mutation se algum campo obrigatório estiver vazio
+        // O backend validará quando enviarmos, mas precisamos garantir valores não-null
+        // Enviar valores padrão inválidos que o backend possa validar
+        // Mas isso não é ideal, então vamos apenas não enviar e mostrar erro
+        const missingFields = [];
+        if (!teamId) missingFields.push("Time");
+        if (!this.form.year) missingFields.push("Ano");
+        if (!startDate) missingFields.push("Data de início");
+        if (!endDate) missingFields.push("Data de fim");
+        if (!this.form.daysOfWeek || this.form.daysOfWeek.length === 0)
+          missingFields.push("Dias da semana");
+        if (!timeStart) missingFields.push("Horário de início");
+        if (!timeEnd) missingFields.push("Horário de fim");
 
-      if (!this.form.year) {
-        this.errors.year = ["O ano é obrigatório"];
-        return;
-      }
-
-      if (!this.form.startDate) {
-        this.errors.startDate = ["A data de início é obrigatória"];
-        return;
-      }
-
-      if (!this.form.endDate) {
-        this.errors.endDate = ["A data de fim é obrigatória"];
-        return;
-      }
-
-      // Validar se data de fim é maior ou igual à data de início
-      const startDate = new Date(this.form.startDate);
-      const endDate = new Date(this.form.endDate);
-      if (endDate < startDate) {
-        this.errors.endDate = [
-          "A data de fim deve ser maior ou igual à data de início",
-        ];
-        return;
-      }
-
-      if (!this.form.daysOfWeek || this.form.daysOfWeek.length === 0) {
-        this.errors.daysOfWeek = ["Selecione pelo menos um dia da semana"];
-        return;
-      }
-
-      if (!this.form.timeStart) {
-        this.errors.timeStart = ["O horário de início é obrigatório"];
-        return;
-      }
-
-      if (!this.form.timeEnd) {
-        this.errors.timeEnd = ["O horário de fim é obrigatório"];
+        confirmError(
+          "Campos obrigatórios não preenchidos!",
+          `Por favor, preencha os seguintes campos: ${missingFields.join(", ")}`
+        );
         return;
       }
 
       try {
         this.loading = true;
-
-        // Obter ID do time (ZSelectTeam retorna array mesmo com single selection)
-        let teamId;
-        if (Array.isArray(this.form.team) && this.form.team.length > 0) {
-          teamId = this.form.team[0]?.value || this.form.team[0];
-        } else if (this.form.team) {
-          teamId = this.form.team?.value || this.form.team;
-        } else {
-          this.errors.teamId = ["O time é obrigatório"];
-          return;
-        }
-
-        // Formatar datas
-        const startDate = this.formatDate(this.form.startDate);
-        const endDate = this.formatDate(this.form.endDate);
-
-        // Formatar horários
-        const timeStart = this.formatTime(this.form.timeStart);
-        const timeEnd = this.formatTime(this.form.timeEnd);
 
         const query = gql`
           ${TRAININGBULKCREATE}
@@ -372,13 +354,20 @@ export default {
           error.graphQLErrors[0].extensions.validation
         ) {
           this.errors = error.graphQLErrors[0].extensions.validation;
+
           const errorMessages = Object.values(this.errors)
             .flat()
             .filter((msg) => msg);
 
-          confirmError("Erro ao criar treinos em massa!", errorMessages);
+          // Criar um título para essas validações que serão mostradas
+          const footer = errorMessages.join("<br>");
+
+          confirmError("Ocorreu um erro ao criar os treinos em massa!", footer);
         } else {
-          confirmError("Erro ao criar treinos em massa!");
+          const errorMessage =
+            error.graphQLErrors?.[0]?.message ||
+            "Ocorreu um erro ao criar os treinos em massa!";
+          confirmError(errorMessage);
         }
       } finally {
         this.loading = false;
