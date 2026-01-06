@@ -23,6 +23,17 @@
 <script>
 import moment from "moment";
 
+// Mapeamento manual dos dias da semana em português
+const daysOfWeekPt = {
+  0: "Domingo",
+  1: "Segunda-feira",
+  2: "Terça-feira",
+  3: "Quarta-feira",
+  4: "Quinta-feira",
+  5: "Sexta-feira",
+  6: "Sábado",
+};
+
 export default {
   props: {
     dateStart: {
@@ -53,7 +64,11 @@ export default {
     },
 
     formatDate(date) {
-      return moment(date).format("DD/MM/YYYY");
+      // Obter o dia da semana (0 = domingo, 6 = sábado)
+      const dayOfWeekIndex = moment(date).day();
+      const dayOfWeek = daysOfWeekPt[dayOfWeekIndex] || "Dia";
+      const formattedDate = moment(date).format("DD/MM/YYYY");
+      return `${dayOfWeek}, ${formattedDate}`;
     },
   },
 };
