@@ -1,10 +1,16 @@
 <template>
-  <ZTeamForm
-    @save="create"
-    :loading="loading"
-    :errorFields="errorFields"
-    :errors="errors"
-  />
+  <div class="create-team-page">
+    <div class="page-header">
+      <h1 class="title">Cadastro de Time</h1>
+      <p class="subtitle">Crie um novo time para sua equipe</p>
+    </div>
+    <ZTeamForm
+      @save="create"
+      :loading="loading"
+      :errorFields="errorFields"
+      :errors="errors"
+    />
+  </div>
 </template>
 
 <script>
@@ -90,3 +96,25 @@ useHead({
   titleTemplate: "Criar Time",
 });
 </script>
+
+<style scoped>
+.create-team-page {
+  width: 100%;
+}
+
+.page-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.title {
+  font-size: 30px;
+  font-weight: bold;
+  color: #0b1e3a;
+}
+
+.subtitle {
+  font-size: 16px;
+  color: #6c757d;
+}
+</style>

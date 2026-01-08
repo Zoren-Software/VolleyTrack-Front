@@ -1,13 +1,25 @@
 <template>
-  <div class="technical-scout">
+  <div class="technical-scout" :class="{ 'inside-form': isInsideTrainingForm }">
     <!-- Sidebar - Lista de Jogadores -->
     <div class="sidebar">
       <div class="sidebar-header">
         <h2 class="sidebar-title">Jogadores</h2>
+        <div class="position-filter">
+          <va-select
+            v-model="selectedPosition"
+            :options="positionOptions"
+            label="Filtrar por Posição"
+            placeholder="Todas as posições"
+            clearable
+            class="position-select"
+            text-by="text"
+            value-by="value"
+          />
+        </div>
       </div>
       <div class="players-list">
         <div
-          v-for="player in players"
+          v-for="player in filteredPlayers"
           :key="player.id"
           class="player-item mr-3"
           :class="{ 'player-selected': selectedPlayer?.id === player.id }"
@@ -22,13 +34,52 @@
     <div class="main-content" v-if="selectedPlayer">
       <!-- Cabeçalho do Jogador -->
       <div class="player-header">
+        <!-- Informações do Jogador -->
+        <div class="player-info-section">
         <ZUser :data="selectedPlayer" />
       </div>
 
+        <!-- Botões de Navegação (Centralizados) -->
+        <div class="navigation-tabs">
+          <va-button
+            :preset="activeView === 'marking' ? 'primary' : 'secondary'"
+            @click="activeView = 'marking'"
+            class="tab-button"
+          >
+            Marcação
+          </va-button>
+          <va-button
+            :preset="activeView === 'statistics' ? 'primary' : 'secondary'"
+            @click="activeView = 'statistics'"
+            class="tab-button"
+          >
+            Estatísticas
+          </va-button>
+        </div>
+
+        <!-- Filtro de Fundamentos (Centralizado, apenas na visualização de Marcação) -->
+        <div
+          class="fundamentals-filter-wrapper"
+          v-if="activeView === 'marking'"
+        >
+          <va-select
+            v-model="selectedFundamentals"
+            :options="fundamentalsOptions"
+            label="Filtrar Fundamentos"
+            placeholder="Selecione os fundamentos"
+            multiple
+            clearable
+            class="fundamentals-select"
+          />
+        </div>
+      </div>
+
+      <!-- Conteúdo de Marcação -->
+      <div v-if="activeView === 'marking'" class="marking-content">
       <!-- Cards dos Fundamentos -->
       <div class="fundamentals-grid">
         <ZFundamentalCard
-          v-for="fundamental in fundamentals"
+            v-for="fundamental in filteredFundamentals"
           :key="fundamental.id"
           :fundamental="fundamental"
           :evaluation="getEvaluation(fundamental.id)"
@@ -62,10 +113,11 @@
           class="feedback-textarea"
           @input="updateFeedback"
         />
+        </div>
       </div>
 
-      <!-- Resumo da Avaliação -->
-      <div class="summary-section">
+      <!-- Conteúdo de Estatísticas -->
+      <div v-if="activeView === 'statistics'" class="statistics-content">
         <ZEvaluationSummary :evaluations="currentPlayerEvaluations" />
       </div>
     </div>
@@ -117,6 +169,9 @@ const feedback = ref("");
 const saving = ref(false);
 const currentScoutId = ref(null);
 const data = ref({});
+const selectedFundamentals = ref([]); // Fundamentos selecionados para filtrar (array de IDs)
+const selectedPosition = ref(null); // Posição selecionada para filtrar jogadores
+const activeView = ref("marking"); // Visualização ativa: 'marking' ou 'statistics'
 const playerObservations = ref({}); // Armazenar observações por jogador
 const playerFeedback = ref({}); // Armazenar feedback por jogador
 const fundamentalFeedbacks = ref({}); // Armazenar feedbacks dos fundamentais por jogador
@@ -155,6 +210,7 @@ const getTraining = (fetchPolicyOptions = {}) => {
           name: confirmation.player.name,
           email: confirmation.player.email,
           position: confirmation.player.positions?.[0]?.name || "N/A",
+          positions: confirmation.player.positions || [],
         })) || [];
 
       players.value = trainingPlayers;
@@ -177,6 +233,7 @@ const getTraining = (fetchPolicyOptions = {}) => {
           name: confirmation.player.name,
           email: confirmation.player.email,
           position: confirmation.player.positions?.[0]?.name || "N/A",
+          positions: confirmation.player.positions || [],
         })) || [];
 
       players.value = trainingPlayers;
@@ -744,6 +801,99 @@ const currentPlayerEvaluations = computed(() => {
   return getCurrentPlayerEvaluations();
 });
 
+// Opções para o select de filtro de fundamentos
+const fundamentalsOptions = computed(() => {
+  return fundamentals.value.map((fundamental) => ({
+    text: fundamental.name,
+    value: fundamental.id,
+  }));
+});
+
+// Fundamentos filtrados baseado na seleção
+const filteredFundamentals = computed(() => {
+  if (!selectedFundamentals.value || selectedFundamentals.value.length === 0) {
+    return fundamentals.value;
+  }
+  // Se selectedFundamentals contém objetos {text, value}, extrair apenas os values
+  const selectedIds = selectedFundamentals.value.map((item) =>
+    typeof item === "object" ? item.value : item
+  );
+  return fundamentals.value.filter((fundamental) =>
+    selectedIds.includes(fundamental.id)
+  );
+});
+
+// Opções de posições para o filtro
+const positionOptions = computed(() => {
+  const positionsSet = new Set();
+  players.value.forEach((player) => {
+    if (player.positions && Array.isArray(player.positions)) {
+      player.positions.forEach((pos) => {
+        if (pos && pos.name) {
+          positionsSet.add(pos.name);
+        }
+      });
+    } else if (player.position && player.position !== "N/A") {
+      positionsSet.add(player.position);
+    }
+  });
+  return Array.from(positionsSet)
+    .sort()
+    .map((name) => ({ text: name, value: name }));
+});
+
+// Jogadores filtrados por posição
+const filteredPlayers = computed(() => {
+  // Se não há jogadores, retornar array vazio
+  if (!players.value || players.value.length === 0) {
+    return [];
+  }
+
+  // Se nenhuma posição está selecionada, retornar todos os jogadores
+  if (!selectedPosition.value) {
+    return players.value;
+  }
+
+  // Extrair o valor da posição (pode ser string ou objeto {text, value})
+  let positionValue = null;
+  if (
+    typeof selectedPosition.value === "object" &&
+    selectedPosition.value !== null
+  ) {
+    positionValue = selectedPosition.value.value || selectedPosition.value.text;
+  } else if (selectedPosition.value) {
+    positionValue = selectedPosition.value;
+  }
+
+  // Se não conseguiu extrair o valor, retornar todos os jogadores
+  if (!positionValue) {
+    return players.value;
+  }
+
+  // Filtrar jogadores pela posição
+  const filtered = players.value.filter((player) => {
+    // Verificar se o jogador tem a posição no array de positions
+    if (
+      player.positions &&
+      Array.isArray(player.positions) &&
+      player.positions.length > 0
+    ) {
+      return player.positions.some((pos) => {
+        if (!pos) return false;
+        const posName = typeof pos === "object" ? pos.name || pos : pos;
+        return posName === positionValue;
+      });
+    }
+    // Fallback para a propriedade position (string)
+    if (player.position && player.position !== "N/A") {
+      return player.position === positionValue;
+    }
+    return false;
+  });
+
+  return filtered;
+});
+
 const saveEvaluation = async () => {
   if (!selectedPlayer.value) return;
 
@@ -804,12 +954,44 @@ defineExpose({
   background-color: #f5f5f5;
 }
 
+.technical-scout.inside-form {
+  height: auto;
+  min-height: 600px;
+  max-height: calc(100vh - 250px);
+  background-color: transparent;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.technical-scout.inside-form .sidebar {
+  border-radius: 8px 0 0 8px;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.05);
+}
+
+.technical-scout.inside-form .main-content {
+  border-radius: 0 8px 8px 0;
+  background-color: #f8f9fa;
+}
+
+.technical-scout.inside-form .sidebar,
+.technical-scout.inside-form .main-content {
+  max-height: calc(100vh - 250px);
+  overflow-y: auto;
+}
+
 .sidebar {
   width: 300px;
+  min-width: 280px;
   background-color: white;
   border-right: 1px solid #e0e0e0;
   display: flex;
   flex-direction: column;
+}
+
+.technical-scout.inside-form .sidebar {
+  width: 320px;
+  min-width: 300px;
 }
 
 .sidebar-header {
@@ -818,10 +1000,18 @@ defineExpose({
 }
 
 .sidebar-title {
-  margin: 0;
+  margin: 0 0 16px 0;
   font-size: 1.5rem;
   font-weight: 600;
   color: #333;
+}
+
+.position-filter {
+  margin-top: 12px;
+}
+
+.position-select {
+  width: 100%;
 }
 
 .players-list {
@@ -838,6 +1028,9 @@ defineExpose({
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .player-item:hover {
@@ -853,23 +1046,149 @@ defineExpose({
   flex: 1;
   padding: 24px;
   overflow-y: auto;
+  min-width: 0;
+}
+
+.technical-scout.inside-form .main-content {
+  padding: 20px;
 }
 
 .player-header {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
+  gap: 24px;
   margin-bottom: 32px;
-  padding: 20px;
+  padding: 24px;
   background-color: white;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+.player-info-section {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.navigation-tabs {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+}
+
+.tab-button {
+  min-width: 140px;
+  padding: 10px 24px;
+  font-weight: 600;
+}
+
+.fundamentals-filter-wrapper {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.fundamentals-filter-wrapper .fundamentals-select {
+  width: 100%;
+  max-width: 350px;
+  min-width: 250px;
+}
+
+.fundamentals-filter {
+  flex-shrink: 0;
+  min-width: 250px;
+  max-width: 350px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.fundamentals-select {
+  width: 100%;
+}
+
+.marking-content,
+.statistics-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+@media (max-width: 1024px) {
+  .player-header {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .player-info-section {
+    justify-content: center;
+  }
+
+  .fundamentals-filter-wrapper {
+    justify-content: center;
+  }
+
+  .fundamentals-filter-wrapper .fundamentals-select {
+    max-width: 100%;
+    min-width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .player-header {
+    gap: 16px;
+    padding: 20px;
+  }
+
+  .navigation-tabs {
+    flex-direction: column;
+    width: 100%;
+    gap: 8px;
+    padding: 0;
+  }
+
+  .tab-button {
+    width: 100%;
+    min-width: auto;
+    max-width: none;
+  }
+}
+
 .fundamentals-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 20px;
   margin-bottom: 24px;
+}
+
+.technical-scout.inside-form .fundamentals-grid {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+/* Responsividade: 2 colunas em tablets */
+@media (max-width: 1200px) {
+  .fundamentals-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .technical-scout.inside-form .fundamentals-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Responsividade: 1 coluna em dispositivos móveis */
+@media (max-width: 768px) {
+  .fundamentals-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .technical-scout.inside-form .fundamentals-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .summary-section {
@@ -938,29 +1257,217 @@ defineExpose({
 }
 
 /* Responsividade */
-@media (max-width: 768px) {
+/* Responsividade para tablets */
+@media (max-width: 1024px) {
   .technical-scout {
     flex-direction: column;
+    height: auto;
+  }
+
+  .technical-scout.inside-form {
+    max-height: none;
   }
 
   .sidebar {
     width: 100%;
+    min-width: 100%;
+    max-width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #e0e0e0;
+    max-height: 300px;
     height: auto;
-    max-height: 200px;
   }
 
-  .fundamentals-grid {
-    grid-template-columns: 1fr;
+  .technical-scout.inside-form .sidebar {
+    width: 100%;
+    min-width: 100%;
+    max-width: 100%;
+    border-radius: 8px 8px 0 0;
+  }
+
+  .main-content {
+    padding: 16px;
+    width: 100%;
+  }
+
+  .technical-scout.inside-form .main-content {
+    border-radius: 0 0 8px 8px;
+    padding: 16px;
+  }
+}
+
+/* Responsividade para dispositivos móveis */
+@media (max-width: 768px) {
+  .technical-scout {
+    flex-direction: column;
+    height: auto;
+  }
+
+  .technical-scout.inside-form {
+    max-height: none;
+  }
+
+  .sidebar {
+    width: 100%;
+    min-width: 100%;
+    max-width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #e0e0e0;
+    max-height: 250px;
+    height: auto;
+  }
+
+  .technical-scout.inside-form .sidebar {
+    width: 100%;
+    min-width: 100%;
+    max-width: 100%;
+    border-radius: 8px 8px 0 0;
+  }
+
+  .sidebar-header {
+    padding: 12px 16px;
+  }
+
+  .sidebar-title {
+    font-size: 1.2rem;
+    margin-bottom: 12px;
+  }
+
+  .position-filter {
+    margin-top: 8px;
+  }
+
+  .players-list {
+    padding: 8px;
+  }
+
+  .player-item {
+    padding: 10px;
+    margin-bottom: 6px;
+  }
+
+  .main-content {
+    padding: 12px;
+    width: 100%;
+  }
+
+  .technical-scout.inside-form .main-content {
+    border-radius: 0 0 8px 8px;
+    padding: 12px;
   }
 
   .player-header {
     flex-direction: column;
-    text-align: center;
+    align-items: stretch;
+    gap: 12px;
+    padding: 16px;
+    margin-bottom: 20px;
+    text-align: left;
   }
 
-  .header-avatar {
-    margin-right: 0;
+  .fundamentals-filter {
+    min-width: 100%;
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .fundamentals-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .technical-scout.inside-form .fundamentals-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .observations-section,
+  .feedback-section {
+    padding: 16px;
     margin-bottom: 16px;
+  }
+
+  .section-title {
+    font-size: 1.1rem;
+    margin-bottom: 12px;
+  }
+}
+
+/* Responsividade para telas muito pequenas (celulares pequenos) */
+@media (max-width: 480px) {
+  .technical-scout {
+    height: auto;
+  }
+
+  .technical-scout.inside-form {
+    max-height: none;
+    min-height: auto;
+  }
+
+  .sidebar {
+    max-height: 200px;
+  }
+
+  .sidebar-header {
+    padding: 10px 12px;
+  }
+
+  .sidebar-title {
+    font-size: 1rem;
+  }
+
+  .players-list {
+    padding: 6px;
+  }
+
+  .player-item {
+    padding: 8px;
+    margin-bottom: 4px;
+  }
+
+  .main-content {
+    padding: 10px;
+  }
+
+  .technical-scout.inside-form .main-content {
+    padding: 10px;
+  }
+
+  .player-header {
+    padding: 12px;
+    margin-bottom: 16px;
+    gap: 10px;
+  }
+
+  .fundamentals-grid {
+    gap: 10px;
+  }
+
+  .technical-scout.inside-form .fundamentals-grid {
+    gap: 10px;
+  }
+
+  .observations-section,
+  .feedback-section {
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+
+  .section-title {
+    font-size: 1rem;
+    margin-bottom: 10px;
+  }
+
+  .empty-state {
+    padding: 20px;
+  }
+
+  .empty-content h2 {
+    font-size: 1.2rem;
+  }
+
+  .empty-content p {
+    font-size: 0.9rem;
   }
 }
 </style>

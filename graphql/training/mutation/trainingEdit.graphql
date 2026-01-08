@@ -3,20 +3,24 @@ mutation trainingEdit(
   $teamId: Int
   $fundamentalId: [Int]
   $specificFundamentalId: [Int]
+  $playerIds: [Int]
   $name: String!
   $description: String
   $dateStart: String!
   $dateEnd: String!
+  $updateAllFuture: Boolean
 ) {
   trainingEdit(
     id: $id
     teamId: $teamId
     fundamentalId: $fundamentalId
     specificFundamentalId: $specificFundamentalId
+    playerIds: $playerIds
     name: $name
     description: $description
     dateStart: $dateStart
     dateEnd: $dateEnd
+    updateAllFuture: $updateAllFuture
   ) {
     id
     name

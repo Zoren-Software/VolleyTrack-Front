@@ -21,6 +21,7 @@ query users(
     data {
       id
       name
+      displayName
       email
       emailVerifiedAt
       createdAt
@@ -30,6 +31,18 @@ query users(
         name
       }
       teams {
+        id
+        name
+        teamCategory {
+          id
+          name
+        }
+        teamLevel {
+          id
+          name
+        }
+      }
+      roles {
         id
         name
       }
@@ -44,6 +57,8 @@ query users(
         rg
         phone
         birthDate
+        nickname
+        showNickname
       }
     }
   }

@@ -4,6 +4,8 @@
     :loading="loading"
     :errorFields="errorFields"
     :errors="errors"
+    header-title="Cadastro de Jogador"
+    header-subtitle="Crie um novo jogador para sua equipe"
   />
 </template>
 
@@ -77,9 +79,21 @@ export default {
               rg: form.rg || null,
               phone: form.phone || null,
               birthDate,
-              roleId: form.roles.map((item) => item.id),
-              positionId: form.positions.map((item) => item.id),
-              teamId: form.teams.map((item) => item.id),
+              nickname: form.nickname || null,
+              showNickname: form.showNickname ?? false,
+              roleId: Array.isArray(form.roles)
+                ? form.roles
+                    .map((item) => (typeof item === "object" ? item.id : item))
+                    .filter((id) => id != null)
+                : [],
+              positionId: Array.isArray(form.positions)
+                ? form.positions
+                    .map((item) => item.id)
+                    .filter((id) => id != null)
+                : [],
+              teamId: Array.isArray(form.teams)
+                ? form.teams.map((item) => item.id).filter((id) => id != null)
+                : [],
               sendEmailNotification,
             };
 

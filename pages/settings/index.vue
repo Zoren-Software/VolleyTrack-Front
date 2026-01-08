@@ -1,22 +1,12 @@
 <template>
-  <div class="settings-page">
-    <div class="settings-header">
-      <h1>Configurações</h1>
-      <div class="settings-nav">
-        <button
-          @click="$router.push('/settings')"
-          :class="{ active: $route.path === '/settings' }"
-          class="nav-button"
-        >
-          Configurações Gerais
-        </button>
-        <button
-          @click="$router.push('/payment')"
-          :class="{ active: $route.path === '/payment' }"
-          class="nav-button"
-        >
-          Pagamentos
-        </button>
+  <div class="list-page-container">
+    <!-- Page Header -->
+    <div class="page-header">
+      <div class="header-content">
+        <div>
+          <h1 class="page-title">Configurações</h1>
+          <p class="page-subtitle">Gerencie as configurações da sua conta</p>
+        </div>
       </div>
     </div>
 
@@ -166,64 +156,49 @@ useHead({
 </script>
 
 <style scoped>
-.settings-page {
-  padding: 20px;
+.list-page-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
 }
 
-.settings-header {
-  margin-bottom: 30px;
+.page-header {
+  margin-bottom: 32px;
 }
 
-.settings-header h1 {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #1f2937;
-  margin-bottom: 20px;
-}
-
-.settings-nav {
+.header-content {
   display: flex;
-  gap: 10px;
-  border-bottom: 1px solid #e5e7eb;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
 }
 
-.nav-button {
-  background: none;
-  border: none;
-  padding: 12px 20px;
-  cursor: pointer;
-  font-size: 1rem;
-  font-weight: 500;
-  color: #6b7280;
-  border-bottom: 2px solid transparent;
-  transition: all 0.3s ease;
+.page-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #0b1e3a;
+  margin: 0 0 8px 0;
+  line-height: 1.2;
 }
 
-.nav-button:hover {
-  color: #374151;
-  background: #f9fafb;
-}
-
-.nav-button.active {
-  color: #667eea;
-  border-bottom-color: #667eea;
-  background: #f8f9ff;
+.page-subtitle {
+  font-size: 16px;
+  color: #6c757d;
+  margin: 0;
+  line-height: 1.5;
 }
 
 @media (max-width: 768px) {
-  .settings-nav {
+  .header-content {
     flex-direction: column;
-    gap: 0;
   }
 
-  .nav-button {
-    text-align: left;
-    border-bottom: 1px solid #e5e7eb;
-    border-radius: 0;
+  .page-title {
+    font-size: 24px;
   }
 
-  .nav-button.active {
-    border-bottom-color: #667eea;
+  .page-subtitle {
+    font-size: 14px;
   }
 }
 </style>

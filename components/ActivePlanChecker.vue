@@ -23,8 +23,23 @@
 
       <div class="plan-details">
         <div class="plan-info">
-          <h4>{{ activePlan.product?.name || "Plano Ativo" }}</h4>
-          <p v-if="activePlan.product?.description" class="plan-description">
+          <h4>
+            {{
+              activePlan.is_full_access
+                ? "Plano ativado manualmente sem pagamento"
+                : activePlan.product?.name || "Plano Ativo"
+            }}
+          </h4>
+          <p
+            v-if="activePlan.is_full_access"
+            class="plan-description"
+          >
+            Este plano foi ativado via configuração no banco de dados e não requer pagamento.
+          </p>
+          <p
+            v-else-if="activePlan.product?.description"
+            class="plan-description"
+          >
             {{ activePlan.product.description }}
           </p>
         </div>
@@ -32,7 +47,13 @@
         <div class="plan-stats">
           <div class="stat-item">
             <span class="stat-label">Valor:</span>
-            <span class="stat-value price">
+            <span
+              v-if="activePlan.is_full_access"
+              class="stat-value price free-price"
+            >
+              R$ 0,00
+            </span>
+            <span v-else class="stat-value price">
               R$ {{ formatPrice(activePlan.price?.unit_amount) }}
               <span
                 v-if="activePlan.price?.type === 'recurring'"
@@ -47,7 +68,7 @@
           </div>
 
           <div
-            v-if="activePlan.subscription?.current_period_end"
+            v-if="!activePlan.is_full_access && activePlan.subscription?.current_period_end"
             class="stat-item"
           >
             <span class="stat-label" :class="{ 'canceled-label': isCanceled }"
@@ -61,10 +82,19 @@
               }}</span
             >
           </div>
+          <div
+            v-if="activePlan.is_full_access"
+            class="stat-item"
+          >
+            <span class="stat-label">Status:</span>
+            <span class="stat-value" style="color: #10b981; font-weight: 700;">
+              Ativo via configuração manual
+            </span>
+          </div>
         </div>
 
         <!-- Aviso de Cancelamento -->
-        <div v-if="isCanceled" class="cancellation-notice">
+        <div v-if="!activePlan.is_full_access && isCanceled" class="cancellation-notice">
           <div class="notice-header">
             <span class="notice-icon">⚠️</span>
             <h4 class="notice-title">Sua assinatura foi cancelada</h4>
@@ -82,6 +112,7 @@
 
         <div class="plan-actions">
           <button
+            v-if="!activePlan.is_full_access"
             @click="manageSubscription"
             class="btn btn-cancel"
             :disabled="isCanceled"
@@ -90,6 +121,7 @@
             {{ isCanceled ? "Assinatura Cancelada" : "Cancelar Assinatura" }}
           </button>
           <button
+            v-if="!activePlan.is_full_access"
             @click="upgradePlan"
             class="btn btn-primary upgrade-btn"
             :class="{ 'upgrade-animation': props.showUpgradeAnimations }"
@@ -314,6 +346,7 @@
 import { ref, onMounted, onUnmounted, computed } from "vue";
 import { getActivePlan } from "~/services/stripeCheckoutService.js";
 import Swal from "sweetalert2";
+import { useUser } from "~/composables/useUser";
 
 const config = useRuntimeConfig();
 const apiEndpoint = config.public.apiEndpoint;
@@ -548,6 +581,10 @@ const getAuthToken = () => {
 
 const shouldEmitPlanData = (data) => {
   if (!data) return false;
+  // Verificar se tem acesso full via feature flag
+  if (data.is_full_access === true) {
+    return true;
+  }
   if (data.has_active_plan === true) {
     return true;
   }
@@ -806,6 +843,92 @@ const getRecurringInterval = (interval) => {
 const manageSubscription = async () => {
   console.log("🔄 Iniciando cancelamento de assinatura...");
 
+  // Validar email do usuário antes de permitir cancelamento
+  try {
+    const { getUserEmail } = useUser();
+    const userEmail = getUserEmail();
+
+    if (!userEmail) {
+      throw new Error("Email do usuário não encontrado");
+    }
+
+    // Validar email via API
+    const token = getAuthToken();
+    if (!token) {
+      throw new Error("Token de autenticação não encontrado");
+    }
+
+    const tenantId = props.tenantId || localStorage.getItem("tenant_id");
+    const validateResponse = await fetch(
+      `${
+        process.env.NUXT_PUBLIC_API_URL || "http://volleytrack.local"
+      }/v1/customers/check-email`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          email: userEmail,
+          tenant_id: tenantId,
+        }),
+      }
+    );
+
+    if (!validateResponse.ok) {
+      const errorData = await validateResponse.json();
+      throw new Error(errorData.message || "Erro na validação do email");
+    }
+
+    const validateData = await validateResponse.json();
+
+    if (!validateData.success || !validateData.exists) {
+      // Email inválido - mostrar mensagem discreta e bloquear cancelamento
+      Swal.fire({
+        icon: "error",
+        title: "Ação não permitida",
+        html: `
+          <div style="text-align: left; padding: 10px 0;">
+            <p style="font-size: 1.1rem; margin-bottom: 15px; color: #333;">
+              <strong>❌ Seu usuário é inválido para cancelar o plano</strong>
+            </p>
+            <p style="margin: 15px 0 0 0; font-size: 0.95rem; color: #666;">
+              Entre em contato com o suporte se for necessário rever isso.
+            </p>
+          </div>
+        `,
+        confirmButtonText: "Entendido",
+        confirmButtonColor: "#dc2626",
+        width: "600px",
+      });
+      return;
+    }
+  } catch (error) {
+    console.error("❌ Erro na validação do email:", error);
+
+    // Em caso de erro na validação, também bloquear por segurança
+    Swal.fire({
+      icon: "error",
+      title: "Erro na Validação",
+      html: `
+        <div style="text-align: left; padding: 10px 0;">
+          <p style="font-size: 1.1rem; margin-bottom: 15px; color: #333;">
+            <strong>❌ Seu usuário é inválido para cancelar o plano</strong>
+          </p>
+          <p style="margin: 15px 0 0 0; font-size: 0.95rem; color: #666;">
+            Entre em contato com o suporte se for necessário rever isso.
+          </p>
+        </div>
+      `,
+      confirmButtonText: "Entendido",
+      confirmButtonColor: "#dc2626",
+      width: "600px",
+    });
+    return;
+  }
+
   // Confirmar cancelamento com SweetAlert2
   const { value: confirmed } = await Swal.fire({
     title: "Cancelar Assinatura?",
@@ -941,11 +1064,6 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.active-plan-checker {
-  max-width: 600px;
-  margin: 0 auto;
-}
-
 .loading,
 .error,
 .no-plan {

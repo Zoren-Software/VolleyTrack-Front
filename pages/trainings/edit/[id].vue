@@ -1,15 +1,21 @@
 <template>
-  <ZTrainingForm
-    :data="data"
-    @save="edit"
-    @saveAndContinue="editAndContinue"
-    @saveScouts="editScouts"
-    @refresh="getTraining({ fetchPolicy: 'network-only' })"
-    :loading="loading"
-    :errorFields="errorFields"
-    :errors="errors"
-    ref="trainingForm"
-  />
+  <div class="edit-training-page">
+    <div class="page-header">
+      <h1 class="title">Editar Treino</h1>
+      <p class="subtitle">Atualize as informações do treino</p>
+    </div>
+    <ZTrainingForm
+      :data="data"
+      @save="edit"
+      @saveAndContinue="editAndContinue"
+      @saveScouts="editScouts"
+      @refresh="getTraining({ fetchPolicy: 'network-only' })"
+      :loading="loading"
+      :errorFields="errorFields"
+      :errors="errors"
+      ref="trainingForm"
+    />
+  </div>
 </template>
 
 <script>
@@ -110,9 +116,25 @@ export default {
           id: parseInt(form.id),
           name: form.name,
           description: form.description,
-          teamId: parseInt(form.teams.map((item) => item.id)[0]),
-          fundamentalId: form.fundamentals.map((item) => item.id),
-          specificFundamentalId: form.fundamentals.map((item) => item.id),
+          teamId:
+            form.teams && form.teams.length > 0
+              ? parseInt(form.teams[0].id)
+              : null,
+          fundamentalId: form.fundamentals
+            ? form.fundamentals
+                .map((item) => item.id)
+                .filter((id) => id != null)
+            : [],
+          specificFundamentalId: form.specificFundamentals
+            ? form.specificFundamentals
+                .map((item) => item.id)
+                .filter((id) => id != null)
+            : [],
+          playerIds: form.standalonePlayerIds
+            ? form.standalonePlayerIds
+                .map((id) => parseInt(id))
+                .filter((id) => id != null)
+            : [],
           dateStart,
           dateEnd,
         };
@@ -123,23 +145,22 @@ export default {
 
         // Verifica a etapa atual para decidir se redireciona
         const currentStep = this.$refs.trainingForm
-          ? this.$refs.trainingForm.step
+          ? this.$refs.trainingForm.controlledStep
           : 0;
 
-        // Só redireciona se estiver nas etapas iniciais (0-3)
-        if (currentStep <= 3) {
-          confirmSuccess("Treino salvo com sucesso!", () => {
+        // Se estiver na etapa 0 (Informações Essenciais), apenas mostra sucesso sem recarregar
+        if (currentStep === 0) {
+          confirmSuccess("Treino salvo com sucesso!");
             this.errors = this.errorsDefault();
-            this.$router.push("/trainings");
-          });
-        } else if (currentStep >= 4) {
-          // Se estiver salvando scouts (etapas 4-5), apenas mostra sucesso sem redirecionar
+          // Não recarrega os dados para preservar as presenças marcadas na etapa 2
+          // this.getTraining({ fetchPolicy: 'network-only' });
+        } else if (currentStep >= 2) {
+          // Se estiver salvando scouts (etapa 2), apenas mostra sucesso sem redirecionar
           confirmSuccess("Scouts salvos com sucesso!");
           this.errors = this.errorsDefault();
           // IMPORTANTE: Não redireciona, mantém na página atual
-          // Não chama this.$router.push() aqui
         } else {
-          // Fallback para etapas desconhecidas
+          // Fallback para outras etapas
           confirmSuccess("Dados salvos com sucesso!");
           this.errors = this.errorsDefault();
         }
@@ -194,9 +215,25 @@ export default {
           id: parseInt(form.id),
           name: form.name,
           description: form.description,
-          teamId: parseInt(form.teams.map((item) => item.id)[0]),
-          fundamentalId: form.fundamentals.map((item) => item.id),
-          specificFundamentalId: form.fundamentals.map((item) => item.id),
+          teamId:
+            form.teams && form.teams.length > 0
+              ? parseInt(form.teams[0].id)
+              : null,
+          fundamentalId: form.fundamentals
+            ? form.fundamentals
+                .map((item) => item.id)
+                .filter((id) => id != null)
+            : [],
+          specificFundamentalId: form.specificFundamentals
+            ? form.specificFundamentals
+                .map((item) => item.id)
+                .filter((id) => id != null)
+            : [],
+          playerIds: form.standalonePlayerIds
+            ? form.standalonePlayerIds
+                .map((id) => parseInt(id))
+                .filter((id) => id != null)
+            : [],
           dateStart,
           dateEnd,
         };
@@ -265,9 +302,25 @@ export default {
           id: parseInt(form.id),
           name: form.name,
           description: form.description,
-          teamId: parseInt(form.teams.map((item) => item.id)[0]),
-          fundamentalId: form.fundamentals.map((item) => item.id),
-          specificFundamentalId: form.fundamentals.map((item) => item.id),
+          teamId:
+            form.teams && form.teams.length > 0
+              ? parseInt(form.teams[0].id)
+              : null,
+          fundamentalId: form.fundamentals
+            ? form.fundamentals
+                .map((item) => item.id)
+                .filter((id) => id != null)
+            : [],
+          specificFundamentalId: form.specificFundamentals
+            ? form.specificFundamentals
+                .map((item) => item.id)
+                .filter((id) => id != null)
+            : [],
+          playerIds: form.standalonePlayerIds
+            ? form.standalonePlayerIds
+                .map((id) => parseInt(id))
+                .filter((id) => id != null)
+            : [],
           dateStart,
           dateEnd,
         };
@@ -316,3 +369,25 @@ useHead({
   titleTemplate: "Editar Treino",
 });
 </script>
+
+<style scoped>
+.edit-training-page {
+  width: 100%;
+}
+
+.page-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.title {
+  font-size: 30px;
+  font-weight: bold;
+  color: #0b1e3a;
+}
+
+.subtitle {
+  font-size: 16px;
+  color: #6c757d;
+}
+</style>

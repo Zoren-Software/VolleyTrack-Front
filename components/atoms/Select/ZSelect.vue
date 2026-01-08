@@ -24,11 +24,24 @@ export default {
       type: Array,
       required: true,
     },
+    modelValue: {
+      type: [Array, Object, String, Number],
+      default: () => [],
+    },
   },
+  emits: ["update:modelValue"],
   data() {
     return {
-      value: [],
+      value: this.modelValue ?? null,
     };
+  },
+  watch: {
+    modelValue(newVal) {
+      this.value = newVal ?? null;
+    },
+    value(newVal) {
+      this.$emit("update:modelValue", newVal);
+    },
   },
 };
 </script>

@@ -1,0 +1,8 @@
+mutation trainingBulkDelete(
+  $trainingId: ID!
+) {
+  trainingBulkDelete(
+    trainingId: $trainingId
+  )
+}
+

@@ -1,113 +1,192 @@
 <template>
-  <ZDatatableGeneric
-    buttonActionAdd
-    buttonActionDelete
-    includeActionsColumn
-    includeActionEditList
-    includeActionDeleteList
-    textAdvancedFilters
-    selectable
-    :items="items"
-    :columns="columns"
-    :loading="loading"
-    :paginatorInfo="paginatorInfo"
-    :filter="true"
-    @search="searchTrainings"
-    @actionSearch="handleSearch"
-    @actionClear="clearSearch"
-    @update:search="searchTrainings"
-    @add="addTraining"
-    @edit="editTraining"
-    @delete="deleteTraining"
-    @deletes="deleteTrainings"
-    @update:currentPageActive="updateCurrentPageActive"
-  >
-    <!-- FILTER -->
-    <template #filter>
-      <!-- TODO - Pensar nos reais filtros que deveram existir aqui -->
-      <div class="row">
-        <div class="flex flex-col md6 mb-2">
-          <div class="item mr-2">
+  <div class="trainings-listing">
+    <!-- Filter Card -->
+    <va-card class="filter-card">
+      <div class="filter-content">
+        <div class="search-section">
+          <label class="filter-label">Buscar</label>
+          <ZDataTableInputSearch
+            v-model="internalSearchValue"
+            placeholder="Nome do treino..."
+            @actionSearch="handleSearch"
+          />
+        </div>
+        <div class="filters-section">
+          <div class="filter-item">
+            <label class="filter-label">Time</label>
             <ZSelectTeam
-              label="Times"
+              label=""
               multiple
               v-model="variablesGetTrainings.filter.teamsIds"
             />
           </div>
-        </div>
-        <div class="flex flex-col md6 mb-2">
-          <div class="item mr-2">
+          <div class="filter-item">
+            <label class="filter-label">Jogador</label>
             <ZSelectUser
-              label="Usuário Alteração"
-              v-model="variablesGetTrainings.filter.usersIds"
-            />
-          </div>
-        </div>
-        <div class="flex flex-col md6 mb-2">
-          <div class="item mr-2">
-            <ZSelectUser
-              label="Jogadores"
+              label=""
               v-model="variablesGetTrainings.filter.playersIds"
             />
           </div>
         </div>
-        <div class="flex flex-col md3 mb-2">
-          <div class="item mr-2">
+        <div class="filter-actions">
+          <va-button
+            color="#E9742B"
+            class="search-button"
+            @click="handleSearch"
+          >
+            <va-icon name="search" class="button-icon" />
+            <span class="button-text">Pesquisar</span>
+          </va-button>
+        </div>
+      </div>
+
+      <!-- Filtros Avançados -->
+      <div class="advanced-filters">
+        <va-button
+          preset="plain"
+          class="advanced-filters-toggle"
+          @click="showAdvancedFilters = !showAdvancedFilters"
+        >
+          <va-icon
+            :name="showAdvancedFilters ? 'expand_less' : 'expand_more'"
+            size="small"
+          />
+          <span>Filtros Avançados</span>
+        </va-button>
+
+        <div v-if="showAdvancedFilters" class="advanced-filters-content">
+          <div class="filter-item">
+            <label class="filter-label">Usuário Alteração</label>
+            <ZSelectUser
+              label=""
+              v-model="variablesGetTrainings.filter.usersIds"
+            />
+          </div>
+          <div class="filter-item">
+            <label class="filter-label">Data Início</label>
             <VaDateInput
               v-model="variablesGetTrainings.filter.dateStart"
               name="dateStart"
-              label="Inicio Data Treino"
-              id="date-training"
+              label=""
+              id="date-training-start"
               style="width: 100%"
-              class="mb-3"
             />
           </div>
-        </div>
-        <div class="flex flex-col md3 mb-2">
-          <div class="item mr-2">
+          <div class="filter-item">
+            <label class="filter-label">Data Fim</label>
             <VaDateInput
               v-model="variablesGetTrainings.filter.dateEnd"
               name="dateEnd"
-              label="Fim Data Treino"
-              id="date-training"
+              label=""
+              id="date-training-end"
               style="width: 100%"
-              class="mb-3"
             />
           </div>
         </div>
       </div>
-    </template>
+    </va-card>
 
-    <!-- CELL -->
-    <template
-      #cell(name)="{ rowKey: { name, dateStart, confirmationTrainingMetrics } }"
+    <!-- DataTable -->
+    <ZDatatableGeneric
+      :buttonActionAdd="false"
+      buttonActionDelete
+      includeActionsColumn
+      includeActionEditList
+      includeActionDeleteList
+      selectable
+      :items="items"
+      :columns="columns"
+      :loading="loading"
+      :paginatorInfo="paginatorInfo"
+      :filter="false"
+      @search="searchTrainings"
+      @actionSearch="handleSearch"
+      @actionClear="clearSearch"
+      @update:search="searchTrainings"
+      @add="addTraining"
+      @edit="editTraining"
+      @delete="deleteTraining"
+      @deletes="deleteTrainings"
+      @update:currentPageActive="updateCurrentPageActive"
+      @selectionChange="handleSelectionChange"
     >
-      <ZTraining
-        :data="{ name, dateStart }"
-        :metrics="confirmationTrainingMetrics"
-      />
-    </template>
-    <template #cell(team)="{ rowKey: { team } }">
-      <div v-if="team">
-        <ZTeam :data="team" />
-      </div>
-    </template>
-    <template #cell(dateStart)="{ rowKey: { dateStart, dateEnd } }">
-      <ZDateTraining
-        :dateStart="formatTrainingDate(dateStart)"
-        :dateEnd="formatTrainingDate(dateEnd)"
-      />
-    </template>
-    <template #cell(user)="{ rowKey: { user, createdAt, updatedAt } }">
-      <ZUser
-        :data="user || {}"
-        :createdAt="createdAt"
-        :updatedAt="updatedAt"
-        showUpdatedAt
-        showCreatedAt
-      />
-    </template>
-  </ZDatatableGeneric>
+      <template #extra-actions-top>
+        <va-button
+          v-if="hasBulkCreatedSelected"
+          color="#DC2626"
+          class="bulk-delete-button"
+          @click="deleteBulkCreatedTrainings"
+        >
+          <va-icon name="delete" class="button-icon" />
+          <span class="button-text">Deletar Treinos em Massa Selecionados ({{ selectedBulkTrainings.length }})</span>
+        </va-button>
+      </template>
+      <!-- CELL -->
+      <template
+        #cell(name)="{
+          rowKey: { id, name, dateStart, confirmationTrainingMetrics },
+        }"
+      >
+        <ZTraining
+          :data="{ id, name, dateStart }"
+          :metrics="confirmationTrainingMetrics"
+        />
+      </template>
+      <template #cell(team)="{ rowKey: { team } }">
+        <div v-if="team">
+          <ZTeam :data="team" :showCategoryAndLevel="true" />
+        </div>
+      </template>
+      <template #cell(dateStart)="{ rowKey: { dateStart, dateEnd } }">
+        <ZDateTraining
+          :dateStart="formatTrainingDate(dateStart)"
+          :dateEnd="formatTrainingDate(dateEnd)"
+        />
+      </template>
+      <template #cell(user)="{ rowKey: { user, createdAt, updatedAt } }">
+        <ZUser
+          :data="user || {}"
+          :createdAt="createdAt"
+          :updatedAt="updatedAt"
+          showUpdatedAt
+          showCreatedAt
+        />
+      </template>
+      <template #cell(actions)="{ rowKey }">
+        <div class="actions-cell">
+          <ZDataTableActions
+            :id="Number(rowKey.id)"
+            :includeActionEditList="true"
+            :includeActionDeleteList="true"
+            @edit="editTraining"
+            @delete="deleteTraining"
+          />
+          <va-button
+            v-if="rowKey.isBulkCreated"
+            icon="delete_sweep"
+            color="#DC2626"
+            size="small"
+            class="action-btn action-btn-bulk-delete"
+            @click="deleteBulkCreatedTraining(rowKey.id)"
+            title="Deletar treino criado em massa"
+          />
+        </div>
+      </template>
+    </ZDatatableGeneric>
+
+    <!-- Summary Cards -->
+    <div class="summary-cards">
+      <va-card class="summary-card">
+        <div class="summary-content">
+          <div class="summary-icon">
+            <va-icon name="fitness_center" size="large" color="#E9742B" />
+          </div>
+          <div class="summary-number">{{ paginatorInfo.total || 0 }}</div>
+          <div class="summary-label">Total de Treinos</div>
+        </div>
+      </va-card>
+    </div>
+  </div>
 </template>
 
 <script>
@@ -118,24 +197,31 @@ import ZDatatableGeneric from "~/components/molecules/Datatable/ZDatatableGeneri
 import ZSelectPosition from "~/components/molecules/Selects/ZSelectPosition";
 import ZSelectTeam from "~/components/molecules/Selects/ZSelectTeam";
 import ZSelectUser from "~/components/molecules/Selects/ZSelectUser";
+import ZDataTableInputSearch from "~/components/molecules/Datatable/ZDataTableInputSearch";
+import ZDataTableActions from "~/components/molecules/Datatable/ZDataTableActions.vue";
 import ZUser from "~/components/molecules/Datatable/Slots/ZUser";
 import ZDateTraining from "~/components/molecules/Datatable/Slots/ZDateTraining";
 import ZTeam from "~/components/molecules/Datatable/Slots/ZTeam";
 import ZTraining from "~/components/molecules/Datatable/Slots/ZTraining";
 import TRAININGDELETE from "~/graphql/training/mutation/trainingDelete.graphql";
+import TRAININGBULKDELETE from "~/graphql/training/mutation/trainingBulkDelete.graphql";
+import TRAININGBULKDELETECOUNT from "~/graphql/training/query/trainingBulkDeleteCount.graphql";
 import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
+import Swal from "sweetalert2";
 
 //import { toRaw } from "vue"; // NOTE - Para debug
 
 export default defineComponent({
   components: {
     ZDatatableGeneric,
+    ZDataTableActions,
     ZDateTraining,
     ZTeam,
     ZUser,
     ZSelectPosition,
     ZSelectTeam,
     ZSelectUser,
+    ZDataTableInputSearch,
     ZTraining,
   },
 
@@ -147,7 +233,6 @@ export default defineComponent({
     let loading = false;
 
     const columns = [
-      { key: "id", name: "id", sortable: true },
       { key: "name", name: "name", label: "Treino", sortable: true },
       { key: "team", name: "team", label: "Time", sortable: true },
       {
@@ -192,10 +277,166 @@ export default defineComponent({
       selectedColor: "primary",
       selectModeOptions: ["single", "multiple"],
       selectColorOptions: ["primary", "danger", "warning", "#EF467F"],
+      internalSearchValue: "",
+      showAdvancedFilters: false,
     };
   },
 
+  computed: {
+    selectedBulkTrainings() {
+      // Filtrar apenas treinos criados em massa que estão selecionados
+      // Verificar tanto isBulkCreated === true quanto isBulkCreated === 1 (caso venha como número do banco)
+      return this.selectedItemsEmitted.filter((item) => {
+        return item.isBulkCreated === true || item.isBulkCreated === 1 || item.isBulkCreated === '1';
+      });
+    },
+    hasBulkCreatedSelected() {
+      return this.selectedBulkTrainings.length > 0;
+    },
+  },
+
   methods: {
+    handleSelectionChange(selectedItems) {
+      this.selectedItemsEmitted = selectedItems.currentSelectedItems || [];
+    },
+    async deleteBulkCreatedTrainings() {
+      if (this.selectedBulkTrainings.length === 0) {
+        confirmError("Nenhum treino criado em massa selecionado");
+        return;
+      }
+
+      const ids = this.selectedBulkTrainings.map((training) => training.id);
+      await this.deleteItems(ids);
+      this.selectedItemsEmitted = []; // Limpar seleção após deletar
+    },
+    async deleteBulkCreatedTraining(id) {
+      // Encontrar o treino para obter informações
+      const training = this.items.find((item) => item.id === id);
+      
+      if (!training) {
+        confirmError("Treino não encontrado");
+        return;
+      }
+
+      // Formatar a data do treino para exibir na confirmação
+      const trainingDate = moment(training.dateStart).format("DD/MM/YYYY");
+      const trainingTime = moment(training.dateStart).format("HH:mm");
+      
+      try {
+        // Buscar a contagem exata de treinos que serão deletados
+        this.loading = true;
+        
+        const countQuery = gql`
+          ${TRAININGBULKDELETECOUNT}
+        `;
+
+        const { onResult } = useQuery(countQuery, {
+          trainingId: String(id),
+        });
+
+        await new Promise((resolve) => {
+          onResult((result) => {
+            const countToDelete = result?.data?.trainingBulkDeleteCount || 0;
+            this.loading = false;
+            
+            // Mostrar confirmação antes de deletar com informações sobre a data e quantidade
+            this.showBulkDeleteConfirmation(
+              trainingDate,
+              trainingTime,
+              countToDelete,
+              async () => {
+                try {
+                  this.loading = true;
+
+                  const query = gql`
+                    ${TRAININGBULKDELETE}
+                  `;
+
+                  const variables = {
+                    trainingId: String(id),
+                  };
+
+                  const { mutate } = await useMutation(query, { variables });
+                  const { data } = await mutate();
+
+                  const deletedCount = data?.trainingBulkDelete || 0;
+
+                  confirmSuccess(
+                    `${deletedCount} treino(s) deletado(s) com sucesso!`,
+                    () => {
+                      this.getTrainings({ fetchPolicy: "network-only" });
+                    }
+                  );
+                } catch (error) {
+                  console.error(error);
+                  this.loading = false;
+
+                  if (
+                    error.graphQLErrors &&
+                    error.graphQLErrors[0] &&
+                    error.graphQLErrors[0].extensions &&
+                    error.graphQLErrors[0].extensions.validation
+                  ) {
+                    const errorMessages = Object.values(error.graphQLErrors[0].extensions.validation)
+                      .flat()
+                      .filter((msg) => msg);
+
+                    confirmError("Erro ao deletar treinos em massa!", errorMessages);
+                  } else {
+                    const errorMessage = error.graphQLErrors?.[0]?.message || "Erro ao deletar treinos em massa!";
+                    confirmError(errorMessage);
+                  }
+                } finally {
+                  this.loading = false;
+                }
+              }
+            );
+            resolve();
+          });
+        });
+      } catch (error) {
+        console.error(error);
+        this.loading = false;
+        confirmError("Erro ao buscar contagem de treinos a serem deletados!");
+      }
+    },
+    showBulkDeleteConfirmation(date, time, count, onConfirm) {
+      Swal.fire({
+        title: "Deletar Treinos em Massa?",
+        html: `
+          <div style="text-align: left; padding: 10px 0;">
+            <p style="margin-bottom: 15px; font-size: 16px;">
+              <strong>Atenção!</strong> Esta ação irá deletar todos os treinos criados em massa a partir da data selecionada.
+            </p>
+            <div style="background-color: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #dc2626;">
+              <p style="margin: 0; font-size: 14px; color: #374151;">
+                <strong>Data base:</strong> ${date} às ${time}
+              </p>
+              <p style="margin: 5px 0 0 0; font-size: 14px; color: #6b7280;">
+                Todos os treinos criados em massa com data igual ou posterior a esta data serão deletados.
+              </p>
+              <p style="margin: 10px 0 0 0; font-size: 14px; color: #dc2626; font-weight: 600;">
+                <strong>Total de treinos que serão deletados: ${count}</strong>
+              </p>
+            </div>
+            <p style="margin-top: 15px; font-size: 14px; color: #dc2626;">
+              <strong>Esta ação não pode ser desfeita!</strong>
+            </p>
+          </div>
+        `,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Sim, deletar!",
+        confirmButtonColor: "#dc2626",
+        cancelButtonColor: "#6b7280",
+        cancelButtonText: "Cancelar",
+        reverseButtons: true,
+      }).then((result) => {
+        if (result.isConfirmed) {
+          onConfirm();
+        }
+      });
+    },
     unselectItem(item) {
       this.selectedItems = this.selectedItems.filter(
         (selectedItem) => selectedItem !== item
@@ -281,12 +522,19 @@ export default defineComponent({
     },
 
     handleSearch() {
-      // Garantir que o search está atualizado antes de buscar
-      // O search já foi atualizado pelo evento @search
+      // Atualizar o filtro de busca com o valor do campo de busca
+      if (
+        this.internalSearchValue !== undefined &&
+        this.internalSearchValue !== null
+      ) {
+        this.searchTrainings(this.internalSearchValue);
+      }
+      // Executar a busca com os filtros atualizados
       this.getTrainings({ fetchPolicy: "network-only" });
     },
 
     clearSearch() {
+      this.internalSearchValue = "";
       this.variablesGetTrainings.filter = {
         teamsIds: [],
         usersIds: [],
@@ -307,17 +555,20 @@ export default defineComponent({
         ${TRAININGS}
       `;
 
-      let teamsIdsValues = this.variablesGetTrainings.filter.teamsIds?.map(
-        (team) => parseInt(team?.value || team)
-      ) || [];
+      let teamsIdsValues =
+        this.variablesGetTrainings.filter.teamsIds?.map((team) =>
+          parseInt(team?.value || team)
+        ) || [];
 
-      let usersIdsValues = this.variablesGetTrainings.filter.usersIds?.map(
-        (user) => parseInt(user?.value || user)
-      ) || [];
+      let usersIdsValues =
+        this.variablesGetTrainings.filter.usersIds?.map((user) =>
+          parseInt(user?.value || user)
+        ) || [];
 
-      let playersIdsValues = this.variablesGetTrainings.filter.playersIds?.map(
-        (player) => parseInt(player?.value || player)
-      ) || [];
+      let playersIdsValues =
+        this.variablesGetTrainings.filter.playersIds?.map((player) =>
+          parseInt(player?.value || player)
+        ) || [];
 
       let dateEnd = this.variablesGetTrainings.filter.dateEnd;
 
@@ -350,7 +601,8 @@ export default defineComponent({
       onResult((result) => {
         this.loading = false;
         if (result?.data?.trainings) {
-          this.paginatorInfo = result.data.trainings.paginatorInfo || this.paginatorInfo;
+          this.paginatorInfo =
+            result.data.trainings.paginatorInfo || this.paginatorInfo;
           // Sempre atualizar items, mesmo se for array vazio
           this.items = result.data.trainings.data || [];
         } else {
@@ -361,3 +613,261 @@ export default defineComponent({
   },
 });
 </script>
+
+<style scoped>
+.trainings-listing {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.filter-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.filter-content {
+  display: flex;
+  gap: 20px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.search-section {
+  flex: 1;
+  min-width: 300px;
+}
+
+.filters-section {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.filter-item {
+  min-width: 200px;
+}
+
+.filter-item :deep(.va-input-wrapper) {
+  margin-bottom: 0;
+}
+
+.filter-item :deep(.va-select) {
+  margin-top: 0;
+}
+
+.filter-item :deep(.va-input-wrapper__field) {
+  margin-top: 0;
+}
+
+.filter-item :deep(.va-input-wrapper__label) {
+  display: none;
+}
+
+.filter-item :deep(.va-date-input-wrapper__label) {
+  display: none;
+}
+
+.filter-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #0b1e3a;
+  margin-bottom: 8px;
+}
+
+.filter-actions {
+  display: flex;
+  align-items: flex-end;
+  margin-left: auto;
+}
+
+.search-button {
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-weight: 500;
+  white-space: nowrap;
+  background-color: #e9742b !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(233, 116, 43, 0.3);
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  height: 40px;
+}
+
+.search-button:hover {
+  background-color: #d6652a !important;
+  box-shadow: 0 4px 12px rgba(233, 116, 43, 0.4);
+  transform: translateY(-1px);
+}
+
+.search-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(233, 116, 43, 0.3);
+}
+
+.search-button .button-icon {
+  font-size: 18px;
+  color: #ffffff;
+}
+
+.search-button .button-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: #ffffff;
+}
+
+/* Filtros Avançados */
+.advanced-filters {
+  margin-top: 20px;
+  padding-top: 0;
+}
+
+.advanced-filters-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #6c757d !important;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 0 !important;
+  margin-bottom: 16px;
+}
+
+.advanced-filters-toggle:hover {
+  color: #e9742b !important;
+}
+
+.advanced-filters-content {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-top: 8px;
+}
+
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-top: 24px;
+}
+
+.summary-card {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  text-align: center;
+}
+
+.summary-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.summary-icon {
+  margin-bottom: 8px;
+}
+
+.summary-number {
+  font-size: 36px;
+  font-weight: 700;
+  color: #0b1e3a;
+}
+
+.actions-cell {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.action-btn-bulk-delete {
+  min-width: 32px;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  padding: 0;
+  background-color: #dc2626 !important;
+  color: white !important;
+}
+
+.action-btn-bulk-delete:hover {
+  background-color: #b91c1c !important;
+}
+
+.bulk-delete-button {
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-weight: 500;
+  white-space: nowrap;
+  background-color: #dc2626 !important;
+  color: white !important;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.bulk-delete-button:hover {
+  background-color: #b91c1c !important;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+  transform: translateY(-1px);
+}
+
+.bulk-delete-button .button-icon {
+  font-size: 18px;
+  color: white;
+}
+
+.bulk-delete-button .button-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: white;
+}
+
+.summary-label {
+  font-size: 14px;
+  color: #6c757d;
+  font-weight: 500;
+}
+
+/* Garantir sombra nos avatares dos times */
+:deep(.team-avatar),
+:deep(.team-avatar .va-avatar),
+:deep(.team-avatar .va-avatar__content) {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+  border: 2px solid white !important;
+}
+
+/* Garantir sombra nos avatares dos usuários */
+:deep(.user-avatar),
+:deep(.user-avatar .va-avatar),
+:deep(.user-avatar .va-avatar__content) {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+  border: 2px solid white !important;
+}
+
+@media (max-width: 768px) {
+  .filter-content {
+    flex-direction: column;
+  }
+
+  .search-section,
+  .filter-item {
+    width: 100%;
+    min-width: unset;
+  }
+}
+</style>

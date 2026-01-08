@@ -98,9 +98,17 @@ export default {
           cpf: form.cpf,
           rg: form.rg,
           phone: form.phone,
-          roleId: form.roles.map((item) => item.id),
-          positionId: form.positions.map((item) => item.id),
-          teamId: form.teams.map((item) => item.id),
+          nickname: form.nickname || null,
+          showNickname: form.showNickname ?? false,
+          roleId: Array.isArray(form.roles)
+            ? form.roles.filter((id) => id != null)
+            : [],
+          positionId: Array.isArray(form.positions)
+            ? form.positions.map((item) => item.id).filter((id) => id != null)
+            : [],
+          teamId: Array.isArray(form.teams)
+            ? form.teams.map((item) => item.id).filter((id) => id != null)
+            : [],
         };
 
         const { mutate } = await useMutation(query, { variables });
@@ -145,7 +153,7 @@ export default {
 </script>
 
 <script setup>
-  useHead({
-    titleTemplate: "Minha Conta",
-  });
+useHead({
+  titleTemplate: "Minha Conta",
+});
 </script>

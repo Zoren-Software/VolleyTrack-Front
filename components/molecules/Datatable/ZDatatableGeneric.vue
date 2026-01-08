@@ -1,5 +1,5 @@
 <template>
-  <div class="row justify-start">
+  <div v-if="buttonActionAdd || buttonActionDelete" class="row justify-start">
     <div class="flex flex-col xs2">
       <div class="item">
         <ZDataTableActionButtons
@@ -23,14 +23,13 @@
         <div class="item">
           <ZDataTableInputSearch
             v-model="internalSearch"
+            placeholder="Digite para pesquisar..."
+            label="Pesquisar"
             @actionSearch="actionSearch"
           />
         </div>
       </div>
-      <div class="flex flex-col md12 py-1">
-        <div v-if="textAdvancedFilters" class="item my-2">
-          <span class="mr my-2 va-text-bold">Filtros avançados:</span>
-        </div>
+      <div class="flex flex-col md12 py-2">
         <div class="item mb-2">
           <slot name="filter"></slot>
         </div>
@@ -39,10 +38,16 @@
     <div class="row">
       <div class="flex flex-col md6 py-1">
         <div class="item">
+          <ZButton
+            label="Filtrar"
+            color="orange"
+            class="mr-3"
+            @click="actionSearch"
+            >Filtrar</ZButton
+          >
           <ZButton label="Limpar" color="info" class="mr-3" @click="actionClear"
             >Limpar</ZButton
           >
-          <ZButton label="Pesquisar" @click="actionSearch">Pesquisar</ZButton>
         </div>
       </div>
     </div>
@@ -56,34 +61,57 @@
     :includeActionsColumn="includeActionsColumn"
     @selectionChange="selectedItemsEmitted = $event.currentSelectedItems"
   >
-    <template #cell(actions)="{ rowKey: { id } }">
+    <template #cell(actions)="{ rowKey }">
       <ZDataTableActions
         v-if="!disableActionDelete"
-        :id="Number(id)"
+        :id="Number(rowKey.id)"
         :includeActionEditList="includeActionEditList"
         :includeActionDeleteList="includeActionDeleteList"
         @edit="actionEdit"
-        @delete="actionDelete(id)"
+        @delete="actionDelete(rowKey.id)"
       />
-      <slot name="cell(actions)" :id="id"></slot>
+      <slot name="cell(actions)" :rowKey="rowKey" :id="rowKey.id"></slot>
     </template>
-    <template #bodyAppend v-if="paginatorInfo.firstItem > 0">
-      <tr>
-        <td colspan="12">
-          <div class="flex justify-center mt-4 ml-4">
+    <template #bodyAppend v-if="paginatorInfo && paginatorInfo.firstItem > 0">
+      <tr class="pagination-row">
+        <td
+          :colspan="
+            columns.length +
+            (includeActionsColumn ? 1 : 0) +
+            (selectable ? 1 : 0)
+          "
+          class="pagination-cell"
+        >
+          <div class="pagination-container">
+            <div class="pagination-info-section">
+              <div
+                class="selected-badge"
+                v-if="selectedItemsEmitted.length > 0"
+              >
+                <va-icon name="check_circle" size="small" />
+                <span class="badge-number">{{
+                  selectedItemsEmitted.length
+                }}</span>
+              </div>
+              <div class="items-info">
+                <span class="items-text">
+                  Itens de <strong>{{ paginatorInfo.firstItem }}</strong> a
+                  <strong>{{ paginatorInfo.lastItem }}</strong> de
+                  <strong>{{ paginatorInfo.total }}</strong>
+                </span>
+              </div>
+            </div>
+            <div class="pagination-controls">
             <va-pagination
               v-model="currentPageActive"
               :pages="paginatorInfo.lastPage"
               :visible-pages="5"
               buttons-preset="secondary"
+                size="small"
               rounded
               gapped
-              class="mb-3"
             />
-            <p>
-              Itens de {{ paginatorInfo.firstItem }} a
-              {{ paginatorInfo.lastItem }} de {{ paginatorInfo.total }}
-            </p>
+            </div>
           </div>
         </td>
       </tr>
@@ -121,6 +149,7 @@ export default defineComponent({
     "actionClear",
     "update:currentPageActive",
     "update:search",
+    "selectionChange",
   ],
   props: {
     textAdvancedFilters: {
@@ -224,11 +253,11 @@ export default defineComponent({
     },
 
     actionSearch() {
-      // Usar o valor local que está sempre atualizado
-      const searchValue = this.localSearchValue || "";
+      // Usar o valor do computed que está sempre sincronizado
+      const searchValue = this.internalSearch || "";
       // Primeiro atualizar o search no componente pai
       this.$emit("search", searchValue);
-      // Depois emitir o actionSearch para executar a busca
+      // Depois emitir o actionSearch para executar a busca com o valor
       this.$emit("actionSearch", searchValue);
     },
 
@@ -279,3 +308,155 @@ export default defineComponent({
   },
 });
 </script>
+
+<style scoped>
+.pagination-row {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.pagination-row:hover {
+  background: transparent !important;
+  transform: none !important;
+}
+
+.pagination-cell {
+  padding: 0 !important;
+  border: none !important;
+  background: transparent !important;
+}
+
+.pagination-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  background: linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%);
+  border-top: 1px solid #e9ecef;
+  margin-top: 0;
+  gap: 20px;
+  flex-wrap: wrap;
+  min-height: 64px;
+}
+
+.pagination-info-section {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.selected-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #e9742b 0%, #ff6b35 100%);
+  color: white;
+  padding: 10px 18px;
+  border-radius: 24px;
+  font-weight: 600;
+  font-size: 13px;
+  box-shadow: 0 2px 8px rgba(233, 116, 43, 0.3);
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.selected-badge::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: left 0.5s;
+}
+
+.selected-badge:hover::before {
+  left: 100%;
+}
+
+.selected-badge:hover {
+  box-shadow: 0 4px 12px rgba(233, 116, 43, 0.4);
+  transform: translateY(-2px);
+}
+
+.selected-badge .va-icon {
+  font-size: 18px;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+}
+
+.badge-number {
+  font-size: 15px;
+  font-weight: 700;
+  min-width: 22px;
+  text-align: center;
+  letter-spacing: 0.5px;
+}
+
+.items-info {
+  display: flex;
+  align-items: center;
+}
+
+.items-text {
+  color: #6c757d;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.items-text strong {
+  color: #0b1e3a;
+  font-weight: 700;
+  margin: 0 3px;
+  font-size: 15px;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+}
+
+.pagination-controls :deep(.va-pagination) {
+  margin: 0;
+}
+
+.pagination-controls :deep(.va-pagination__item) {
+  transition: all 0.2s ease;
+}
+
+.pagination-controls :deep(.va-pagination__item:hover) {
+  transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+  .pagination-container {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .pagination-info-section {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .pagination-controls {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .items-info {
+    padding: 6px 12px;
+  }
+}
+</style>

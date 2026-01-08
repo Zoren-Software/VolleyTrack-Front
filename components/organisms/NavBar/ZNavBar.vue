@@ -1,18 +1,27 @@
 <template>
-  <va-navbar color="background-primary" style="position: fixed; z-index: 1">
+  <va-navbar
+    color="background-primary"
+    style="position: fixed; z-index: 1; width: 100%"
+  >
     <template #left>
       <ZNavBarItemLogo
         :minimized="minimized"
         @toggleMinimize="toggleMinimize"
       />
-      <ZNavBarItemTitle :title="activeTitle" />
     </template>
     <template #center>
-      <ZNavBarItemBrand />
+      <div class="nav-links">
+        <NuxtLink
+          v-for="item in titles"
+          :key="item.title"
+          :to="item.link"
+          :class="['nav-link', { active: item.active }]"
+        >
+          {{ item.title }}
+        </NuxtLink>
+      </div>
     </template>
     <template #right>
-      <!-- NOTE - Comentado para utilizar em outro momento, foi adicionado o Tawk to -->
-      <!-- <ZNavBarItemReport /> -->
       <ZNavBarItemNotification />
       <ZNavBarItemUser :user="user" :firstLatter="firstLatter" />
       <ZNavBarItemSettings @menu-settings-minimize="onMenuSettingsMinimize" />
@@ -22,9 +31,6 @@
 
 <script>
 import ZNavBarItemLogo from "~/components/molecules/NavBar/ZNavBarItemLogo";
-import ZNavBarItemTitle from "~/components/molecules/NavBar/ZNavBarItemTitle";
-import ZNavBarItemBrand from "~/components/molecules/NavBar/ZNavBarItemBrand";
-import ZNavBarItemReport from "~/components/molecules/NavBar/ZNavBarItemReport";
 import ZNavBarItemNotification from "~/components/molecules/NavBar/ZNavBarItemNotification";
 import ZNavBarItemUser from "~/components/molecules/NavBar/ZNavBarItemUser";
 import ZNavBarItemSettings from "~/components/molecules/NavBar/ZNavBarItemSettings";
@@ -33,76 +39,17 @@ import ME from "~/graphql/user/query/me.graphql";
 export default {
   components: {
     ZNavBarItemLogo,
-    ZNavBarItemTitle,
-    ZNavBarItemBrand,
-    ZNavBarItemReport,
     ZNavBarItemNotification,
     ZNavBarItemUser,
     ZNavBarItemSettings,
   },
-
-  props: {
-    minimized: {
-      type: Boolean,
-      default: false,
-    },
-  },
-
-  emits: ["menuSettingsMinimize", "toggleMinimize"],
-
   data() {
     return {
       titles: [
-        {
-          title: "Treinos",
-          link: "/trainings",
-          active: false,
-        },
-        {
-          title: "Times",
-          link: "/teams",
-          active: false,
-        },
-        {
-          title: "Editar Jogador",
-          link: "/players/edit/",
-          active: false,
-        },
-        {
-          title: "Jogadores",
-          link: "/players",
-          active: false,
-        },
-        {
-          title: "Criar Jogador",
-          link: "/players/create",
-          active: false,
-        },
-        {
-          title: "Login",
-          link: "/login",
-          active: false,
-        },
-        {
-          title: "Minha Conta",
-          link: "/account",
-          active: false,
-        },
-        {
-          title: "Notificações",
-          link: "/notifications",
-          active: false,
-        },
-        {
-          title: "Configurações",
-          link: "/settings",
-          active: false,
-        },
-        {
-          title: "Home",
-          link: "/",
-          active: false,
-        },
+        { title: "Home", link: "/", active: false },
+        { title: "Treinos", link: "/trainings", active: false },
+        { title: "Times", link: "/teams", active: false },
+        { title: "Jogadores", link: "/players", active: false },
       ],
       user: {
         id: null,
@@ -110,52 +57,29 @@ export default {
       },
     };
   },
-
   computed: {
-    activeTitle() {
-      const matchedTitle = this.titles.find((title) =>
-        this.$route.path.startsWith(title.link)
-      );
-      // NOTE - Para debug quando necessário
-      //console.log("Rota atual:", this.$route.path);
-      //console.log("Título correspondente:", matchedTitle);
-      return matchedTitle ? matchedTitle.title : "Home"; // Valor padrão se nenhum título for encontrado
-    },
-    computedTitles() {
-      return this.titles.map((title) => {
-        title.active = this.$route.path.startsWith(title.link);
-        return title;
-      });
-    },
     firstLatter() {
       return this.user.name.charAt(0).toUpperCase();
     },
   },
-
   watch: {
     $route() {
-      this.computedTitles;
+      this.updateActiveLinks();
     },
   },
-
   created() {
-    this.computedTitles;
+    this.updateActiveLinks();
     this.getUser();
   },
-
   mounted() {
     this.getUser();
   },
-
   methods: {
-    onMenuSettingsMinimize(value) {
-      this.$emit("menuSettingsMinimize", value);
+    updateActiveLinks() {
+      this.titles.forEach((item) => {
+        item.active = this.$route.path.startsWith(item.link);
+      });
     },
-    toggleMinimize() {
-      // Inverte o estado atual e emite o novo valor
-      this.$emit("toggleMinimize", !this.minimized);
-    },
-
     async getUser() {
       if (localStorage.getItem("user")) {
         this.user = await JSON.parse(localStorage.getItem("user"));
@@ -176,3 +100,26 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.nav-links {
+  display: flex;
+  gap: 16px;
+}
+
+.nav-link {
+  color: #e0e0e0;
+  text-decoration: none;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+.nav-link:hover {
+  color: #ffb366;
+}
+
+.nav-link.active {
+  color: #e9742b;
+}
+</style>

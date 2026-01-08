@@ -1,35 +1,31 @@
 <template>
-  <ZCard
-    :stripe="stripe"
-    :stripeColor="stripeColor"
-    :title="title"
-    :color="color"
-  >
-    <div class="row">
-      <div class="flex flex-col md9">
-        <div class="item">
-          <h2>Presentes: {{ data.presence }}</h2>
-          <h2>Ausentes: {{ data.absence }}</h2>
+  <div class="metrics-card">
+    <div class="metrics-card-header">
+      <h3 class="metrics-card-title">{{ title }}</h3>
+    </div>
+    <div class="metrics-card-content">
+      <div class="metrics-row">
+        <div class="metrics-item">
+          <span class="metrics-label">Presentes:</span>
+          <span class="metrics-value">{{ data.presence }}</span>
+          <span class="metrics-percentage success"
+            >{{ formatPercentage(data.presencePercentage) }}%</span
+          >
         </div>
-      </div>
-      <div class="flex flex-col md3">
-        <div class="item">
-          <h2>{{ data.presencePercentage }}%</h2>
-          <h2>{{ data.absencePercentage }}%</h2>
+        <div class="metrics-item">
+          <span class="metrics-label">Ausentes:</span>
+          <span class="metrics-value">{{ data.absence }}</span>
+          <span class="metrics-percentage danger"
+            >{{ formatPercentage(data.absencePercentage) }}%</span
+          >
         </div>
       </div>
     </div>
-  </ZCard>
+  </div>
 </template>
 
 <script>
-import ZCard from "~/components/atoms/Cards/ZCard";
-
 export default {
-  components: {
-    ZCard,
-  },
-  emits: ["click"],
   props: {
     stripe: {
       type: Boolean,
@@ -80,11 +76,98 @@ export default {
       default: () => ({}),
     },
   },
+  methods: {
+    formatPercentage(value) {
+      if (value == null || value === undefined || isNaN(value)) {
+        return "0.00";
+      }
+      return Number(value).toFixed(2);
+    },
+  },
 };
 </script>
 
 <style scoped>
-.border-custom {
-  border-left: 2px solid var(--va-primary);
+.metrics-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  border: 1px solid #e9ecef;
+}
+
+.metrics-card-header {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  padding: 16px 20px;
+}
+
+.metrics-card-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: white;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.metrics-card-content {
+  padding: 20px;
+}
+
+.metrics-row {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.metrics-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  gap: 12px;
+}
+
+.metrics-label {
+  font-size: 14px;
+  color: #6c757d;
+  font-weight: 500;
+  flex: 1;
+}
+
+.metrics-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0b1e3a;
+  min-width: 40px;
+  text-align: right;
+}
+
+.metrics-percentage {
+  font-size: 14px;
+  font-weight: 600;
+  min-width: 50px;
+  text-align: right;
+}
+
+.metrics-percentage.success {
+  color: #28a745;
+}
+
+.metrics-percentage.danger {
+  color: #dc3545;
+}
+
+@media (max-width: 768px) {
+  .metrics-item {
+    flex-wrap: wrap;
+  }
+
+  .metrics-value,
+  .metrics-percentage {
+    min-width: auto;
+  }
 }
 </style>

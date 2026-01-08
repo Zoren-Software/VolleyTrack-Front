@@ -1,11 +1,12 @@
 <template>
   <ZSelect
-    v-model="value"
+    v-model="internalValue"
     v-bind="$attrs"
     :label="label"
     :options="items"
     :loading="loading"
     multiple
+    return-object
     @click="getTeams(true)"
     @scroll-bottom="loadMore"
     @update-search="newSearch"
@@ -21,6 +22,10 @@ export default {
     ZSelect,
   },
   props: {
+    modelValue: {
+      type: [Array, Object],
+      default: () => [],
+    },
     label: {
       type: String,
       required: true,
@@ -34,10 +39,10 @@ export default {
       required: false,
     },
   },
+  emits: ["update:modelValue"],
   data() {
     return {
       hasMoreItems: true,
-      value: [],
       loading: false,
       items: [],
       variablesGetTeams: {
@@ -50,6 +55,16 @@ export default {
         },
       },
     };
+  },
+  computed: {
+    internalValue: {
+      get() {
+        return this.modelValue || [];
+      },
+      set(newValue) {
+        this.$emit("update:modelValue", newValue);
+      },
+    },
   },
 
   watch: {
@@ -133,6 +148,10 @@ export default {
       }
       this.variablesGetTeams.page += 1;
       this.getTeams();
+    },
+    // Método helper para buscar um item pelo valor
+    getItemByValue(value) {
+      return this.items.find((item) => item.value === value);
     },
   },
 };

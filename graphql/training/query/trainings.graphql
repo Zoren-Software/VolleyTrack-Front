@@ -31,6 +31,14 @@ query trainings(
       team {
         id
         name
+        teamCategory {
+          id
+          name
+        }
+        teamLevel {
+          id
+          name
+        }
       }
       confirmationTrainingMetrics {
         confirmed
@@ -49,6 +57,7 @@ query trainings(
       dateStart
       dateEnd
       description
+      isBulkCreated
       createdAt
       updatedAt
     }

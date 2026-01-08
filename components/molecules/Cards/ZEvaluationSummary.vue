@@ -28,6 +28,8 @@
       <!-- Gráfico de Barras por Fundamentos -->
       <div class="fundamentals-chart">
         <h4 class="chart-title">Performance por Fundamentos</h4>
+        <div class="charts-container">
+          <!-- Gráficos de Barras -->
         <div class="chart-bars">
           <div
             v-for="fundamental in fundamentalsData"
@@ -50,6 +52,12 @@
               ></div>
             </div>
             <div class="bar-total">{{ fundamental.total }}</div>
+            </div>
+          </div>
+
+          <!-- Gráfico Radar -->
+          <div class="radar-chart-container">
+            <Radar :data="radarChartData" :options="radarChartOptions" />
           </div>
         </div>
       </div>
@@ -84,7 +92,27 @@
 
 <script setup>
 import { computed } from "vue";
+import { Radar } from "vue-chartjs";
+import {
+  Chart as ChartJS,
+  RadialLinearScale,
+  PointElement,
+  LineElement,
+  Filler,
+  Tooltip,
+  Legend,
+} from "chart.js";
 import ZCard from "~/components/atoms/Cards/ZCard.vue";
+
+// Registrar componentes do Chart.js
+ChartJS.register(
+  RadialLinearScale,
+  PointElement,
+  LineElement,
+  Filler,
+  Tooltip,
+  Legend
+);
 
 // Props
 const props = defineProps({
@@ -204,6 +232,78 @@ const worstFundamental = computed(() => {
   const errorRate = Math.round((worst.c / worst.total) * 100);
   return `${worst.name} (${errorRate}%)`;
 });
+
+// Dados do gráfico radar
+const radarChartData = computed(() => {
+  const labels = fundamentalsData.value.map((f) => f.name);
+  const data = fundamentalsData.value.map((fundamental) => {
+    const total = fundamental.total;
+    if (total === 0) return 0;
+
+    // Calcular eficiência: (A * 3 + B * 2 + C * 1) / (total * 3) * 100
+    const score =
+      ((fundamental.a * 3 + fundamental.b * 2 + fundamental.c * 1) /
+        (total * 3)) *
+      100;
+    return Math.round(score);
+  });
+
+  return {
+    labels,
+    datasets: [
+      {
+        label: "Performance",
+        data,
+        backgroundColor: "rgba(255, 78, 27, 0.2)",
+        borderColor: "rgba(255, 78, 27, 1)",
+        borderWidth: 2,
+        pointBackgroundColor: "rgba(255, 78, 27, 1)",
+        pointBorderColor: "#fff",
+        pointHoverBackgroundColor: "#fff",
+        pointHoverBorderColor: "rgba(255, 78, 27, 1)",
+      },
+    ],
+  };
+});
+
+const radarChartOptions = computed(() => ({
+  responsive: true,
+  maintainAspectRatio: false,
+  scales: {
+    r: {
+      beginAtZero: true,
+      max: 100,
+      ticks: {
+        stepSize: 20,
+        font: {
+          size: 10,
+        },
+      },
+      pointLabels: {
+        font: {
+          size: 11,
+          weight: "500",
+        },
+        color: "#666",
+      },
+      grid: {
+        color: "rgba(0, 0, 0, 0.1)",
+      },
+    },
+  },
+  plugins: {
+    legend: {
+      display: false,
+    },
+    tooltip: {
+      callbacks: {
+        label: function (context) {
+          return `${context.label}: ${context.parsed.r}%`;
+        },
+      },
+    },
+  },
+}));
 </script>
 
 <style scoped>
@@ -254,10 +354,28 @@ const worstFundamental = computed(() => {
   color: #333;
 }
 
+.charts-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
 .chart-bars {
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.radar-chart-container {
+  width: 100%;
+  height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #fafafa;
+  border-radius: 8px;
+  padding: 16px;
 }
 
 .chart-bar-group {
@@ -362,6 +480,17 @@ const worstFundamental = computed(() => {
 }
 
 /* Responsividade */
+@media (max-width: 1024px) {
+  .charts-container {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .radar-chart-container {
+    height: 280px;
+  }
+}
+
 @media (max-width: 768px) {
   .general-stats {
     grid-template-columns: repeat(2, 1fr);
@@ -369,6 +498,16 @@ const worstFundamental = computed(() => {
 
   .performance-highlights {
     grid-template-columns: 1fr;
+  }
+
+  .charts-container {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .radar-chart-container {
+    height: 250px;
+    padding: 12px;
   }
 
   .chart-bar-group {

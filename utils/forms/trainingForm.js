@@ -35,6 +35,6 @@ export function transformTrainingData(training) {
         specificFundamental: specificFundamental.name,
       };
     }),
-    teams
+    teams,
   };
 }

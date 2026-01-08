@@ -80,3 +80,19 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+/* Remover borda das labels do date input */
+:deep(.va-date-input-wrapper__label) {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+:deep(.va-date-input-wrapper__label *) {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+</style>

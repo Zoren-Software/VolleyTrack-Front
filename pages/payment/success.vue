@@ -1,151 +1,157 @@
 <template>
-  <div class="payment-success-page">
-    <div class="container">
-      <div class="success-card">
-        <div class="success-icon">
-          <svg
-            width="80"
-            height="80"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z"
-              stroke="#10b981"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          </svg>
+  <div class="list-page-container">
+    <!-- Page Header -->
+    <div class="page-header">
+      <div class="header-content">
+        <div>
+          <h1 class="page-title">Pagamento Realizado com Sucesso!</h1>
+          <p class="page-subtitle">
+            Obrigado pela sua compra. Você receberá um email de confirmação em
+            breve.
+          </p>
         </div>
+      </div>
+    </div>
 
-        <h1>Pagamento Realizado com Sucesso!</h1>
-        <p class="success-message">
-          Obrigado pela sua compra. Você receberá um email de confirmação em
-          breve.
+    <!-- Success Card -->
+    <div class="success-card">
+      <div class="success-icon">
+        <svg
+          width="80"
+          height="80"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z"
+            stroke="#10b981"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </div>
+
+      <!-- Loading State -->
+      <div v-if="loading" class="loading-section">
+        <div class="loading-spinner" />
+        <p v-if="syncLoading">
+          Sincronizando assinatura com o banco de dados...
         </p>
+        <p v-else>Carregando detalhes da assinatura...</p>
+      </div>
 
-        <!-- Loading State -->
-        <div v-if="loading" class="loading-section">
-          <div class="loading-spinner" />
-          <p v-if="syncLoading">
-            Sincronizando assinatura com o banco de dados...
-          </p>
-          <p v-else>Carregando detalhes da assinatura...</p>
+      <!-- Error State -->
+      <div v-else-if="error" class="error-section">
+        <div class="error-icon">⚠️</div>
+        <p>Erro ao carregar detalhes: {{ error }}</p>
+        <p class="error-note">
+          Mas não se preocupe, seu pagamento foi processado com sucesso!
+        </p>
+      </div>
+
+      <!-- Sync Success State -->
+      <div v-if="syncData && !syncError" class="sync-success-section">
+        <div class="sync-success-icon">✅</div>
+        <p>Assinatura sincronizada com sucesso!</p>
+        <p class="sync-success-note">
+          Seus dados foram registrados no banco de dados e estão prontos para
+          uso.
+        </p>
+      </div>
+
+      <!-- Sync Error State -->
+      <div v-if="syncError" class="sync-error-section">
+        <div class="sync-error-icon">⚠️</div>
+        <p>Aviso: Erro na sincronização: {{ syncError }}</p>
+        <p class="sync-error-note">
+          Seu pagamento foi processado, mas pode haver um atraso na ativação.
+        </p>
+      </div>
+
+      <!-- Subscription Details -->
+      <div v-else class="subscription-details">
+        <h3>Detalhes da Assinatura</h3>
+        <div class="detail-item">
+          <span class="label">Status:</span>
+          <span class="value success">Ativa</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">Data de Ativação:</span>
+          <span class="value">{{ currentDate }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">Próxima Cobrança:</span>
+          <span class="value">{{ nextBillingDate }}</span>
         </div>
 
-        <!-- Error State -->
-        <div v-else-if="error" class="error-section">
-          <div class="error-icon">⚠️</div>
-          <p>Erro ao carregar detalhes: {{ error }}</p>
-          <p class="error-note">
-            Mas não se preocupe, seu pagamento foi processado com sucesso!
-          </p>
-        </div>
-
-        <!-- Sync Success State -->
-        <div v-if="syncData && !syncError" class="sync-success-section">
-          <div class="sync-success-icon">✅</div>
-          <p>Assinatura sincronizada com sucesso!</p>
-          <p class="sync-success-note">
-            Seus dados foram registrados no banco de dados e estão prontos para
-            uso.
-          </p>
-        </div>
-
-        <!-- Sync Error State -->
-        <div v-if="syncError" class="sync-error-section">
-          <div class="sync-error-icon">⚠️</div>
-          <p>Aviso: Erro na sincronização: {{ syncError }}</p>
-          <p class="sync-error-note">
-            Seu pagamento foi processado, mas pode haver um atraso na ativação.
-          </p>
-        </div>
-
-        <!-- Subscription Details -->
-        <div v-else class="subscription-details">
-          <h3>Detalhes da Assinatura</h3>
+        <!-- Dados da sessão se disponíveis -->
+        <div v-if="sessionData" class="session-details">
+          <h4>Informações do Pagamento</h4>
           <div class="detail-item">
-            <span class="label">Status:</span>
-            <span class="value success">Ativa</span>
+            <span class="label">Modo:</span>
+            <span class="value">{{
+              sessionData.mode === "subscription"
+                ? "Assinatura"
+                : "Pagamento Único"
+            }}</span>
           </div>
           <div class="detail-item">
-            <span class="label">Data de Ativação:</span>
-            <span class="value">{{ currentDate }}</span>
+            <span class="label">Valor Total:</span>
+            <span class="value price">
+              R$ {{ formatPrice(sessionData.amount_total) }}
+            </span>
           </div>
           <div class="detail-item">
-            <span class="label">Próxima Cobrança:</span>
-            <span class="value">{{ nextBillingDate }}</span>
+            <span class="label">Status do Pagamento:</span>
+            <span class="value" :class="sessionData.payment_status">
+              {{ getPaymentStatusText(sessionData.payment_status) }}
+            </span>
           </div>
-
-          <!-- Dados da sessão se disponíveis -->
-          <div v-if="sessionData" class="session-details">
-            <h4>Informações do Pagamento</h4>
-            <div class="detail-item">
-              <span class="label">Modo:</span>
-              <span class="value">{{
-                sessionData.mode === "subscription"
-                  ? "Assinatura"
-                  : "Pagamento Único"
-              }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="label">Valor Total:</span>
-              <span class="value price">
-                R$ {{ formatPrice(sessionData.amount_total) }}
-              </span>
-            </div>
-            <div class="detail-item">
-              <span class="label">Status do Pagamento:</span>
-              <span class="value" :class="sessionData.payment_status">
-                {{ getPaymentStatusText(sessionData.payment_status) }}
-              </span>
-            </div>
-            <div v-if="sessionData.customer_email" class="detail-item">
-              <span class="label">Email:</span>
-              <span class="value">{{ sessionData.customer_email }}</span>
-            </div>
-          </div>
-
-          <!-- Dados de sincronização se disponíveis -->
-          <div v-if="syncData" class="sync-details">
-            <h4>Status da Sincronização</h4>
-            <div class="detail-item">
-              <span class="label">Sincronização:</span>
-              <span class="value success">✅ Concluída</span>
-            </div>
-            <div v-if="syncData.subscription" class="detail-item">
-              <span class="label">ID da Assinatura:</span>
-              <span class="value">{{ syncData.subscription.stripe_id }}</span>
-            </div>
-            <div v-if="syncData.subscription" class="detail-item">
-              <span class="label">Status da Assinatura:</span>
-              <span class="value" :class="syncData.subscription.status">
-                {{ getSubscriptionStatusText(syncData.subscription.status) }}
-              </span>
-            </div>
-            <div v-if="syncData.customer_id" class="detail-item">
-              <span class="label">ID do Cliente:</span>
-              <span class="value">{{ syncData.customer_id }}</span>
-            </div>
+          <div v-if="sessionData.customer_email" class="detail-item">
+            <span class="label">Email:</span>
+            <span class="value">{{ sessionData.customer_email }}</span>
           </div>
         </div>
 
-        <div class="action-buttons">
-          <NuxtLink to="/" class="btn btn-primary">
-            Ir para o Dashboard
-          </NuxtLink>
-          <NuxtLink to="/settings" class="btn btn-secondary">
-            Configurações
-          </NuxtLink>
-        </div>
-
-        <div class="help-section">
-          <p>Precisa de ajuda? Entre em contato conosco:</p>
-          <div class="contact-info">
-            <span>📧 support@volleytrack.com</span>
+        <!-- Dados de sincronização se disponíveis -->
+        <div v-if="syncData" class="sync-details">
+          <h4>Status da Sincronização</h4>
+          <div class="detail-item">
+            <span class="label">Sincronização:</span>
+            <span class="value success">✅ Concluída</span>
           </div>
+          <div v-if="syncData.subscription" class="detail-item">
+            <span class="label">ID da Assinatura:</span>
+            <span class="value">{{ syncData.subscription.stripe_id }}</span>
+          </div>
+          <div v-if="syncData.subscription" class="detail-item">
+            <span class="label">Status da Assinatura:</span>
+            <span class="value" :class="syncData.subscription.status">
+              {{ getSubscriptionStatusText(syncData.subscription.status) }}
+            </span>
+          </div>
+          <div v-if="syncData.customer_id" class="detail-item">
+            <span class="label">ID do Cliente:</span>
+            <span class="value">{{ syncData.customer_id }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="action-buttons">
+        <NuxtLink to="/" class="btn btn-primary">
+          Ir para o Dashboard
+        </NuxtLink>
+        <NuxtLink to="/settings" class="btn btn-secondary">
+          Configurações
+        </NuxtLink>
+      </div>
+
+      <div class="help-section">
+        <p>Precisa de ajuda? Entre em contato conosco:</p>
+        <div class="contact-info">
+          <span>📧 support@volleytrack.com</span>
         </div>
       </div>
     </div>
@@ -350,48 +356,56 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.payment-success-page {
-  padding: 40px 20px;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-}
-
-.container {
-  max-width: 600px;
+.list-page-container {
+  max-width: 1400px;
   margin: 0 auto;
   width: 100%;
 }
 
+.page-header {
+  margin-bottom: 32px;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.page-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #0b1e3a;
+  margin: 0 0 8px 0;
+  line-height: 1.2;
+}
+
+.page-subtitle {
+  font-size: 16px;
+  color: #6c757d;
+  margin: 0;
+  line-height: 1.5;
+}
+
 .success-card {
   background: white;
-  border-radius: 20px;
+  border-radius: 12px;
   padding: 40px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   text-align: center;
+  max-width: 600px;
+  margin: 0 auto;
 }
 
 .success-icon {
-  margin-bottom: 20px;
+  margin-bottom: 30px;
+  display: flex;
+  justify-content: center;
 }
 
 .success-icon svg {
   filter: drop-shadow(0 4px 8px rgba(16, 185, 129, 0.3));
-}
-
-h1 {
-  color: #10b981;
-  margin-bottom: 15px;
-  font-size: 2.5rem;
-  font-weight: 700;
-}
-
-.success-message {
-  color: #666;
-  font-size: 1.1rem;
-  line-height: 1.6;
-  margin-bottom: 30px;
 }
 
 .subscription-details {
@@ -632,12 +646,20 @@ h1 {
 
 /* Responsividade */
 @media (max-width: 768px) {
-  .success-card {
-    padding: 30px 20px;
+  .list-page-container {
+    padding: 0 16px;
   }
 
-  h1 {
-    font-size: 2rem;
+  .page-header {
+    margin-bottom: 24px;
+  }
+
+  .page-title {
+    font-size: 24px;
+  }
+
+  .success-card {
+    padding: 30px 20px;
   }
 
   .action-buttons {

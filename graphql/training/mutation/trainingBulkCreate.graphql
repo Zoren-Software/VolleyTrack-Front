@@ -1,0 +1,40 @@
+mutation trainingBulkCreate(
+  $teamId: Int!
+  $year: Int!
+  $startDate: String!
+  $endDate: String!
+  $daysOfWeek: [Int!]!
+  $timeStart: String!
+  $timeEnd: String!
+  $fundamentalId: [Int]
+  $specificFundamentalId: [Int]
+) {
+  trainingBulkCreate(
+    teamId: $teamId
+    year: $year
+    startDate: $startDate
+    endDate: $endDate
+    daysOfWeek: $daysOfWeek
+    timeStart: $timeStart
+    timeEnd: $timeEnd
+    fundamentalId: $fundamentalId
+    specificFundamentalId: $specificFundamentalId
+  ) {
+    id
+    name
+    userId
+    teamId
+    isBulkCreated
+    team {
+      id
+      name
+    }
+    status
+    dateStart
+    dateEnd
+    description
+    createdAt
+    updatedAt
+  }
+}
+
