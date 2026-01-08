@@ -23,8 +23,23 @@
 
       <div class="plan-details">
         <div class="plan-info">
-          <h4>{{ activePlan.product?.name || "Plano Ativo" }}</h4>
-          <p v-if="activePlan.product?.description" class="plan-description">
+          <h4>
+            {{
+              activePlan.is_full_access
+                ? "Plano ativado manualmente sem pagamento"
+                : activePlan.product?.name || "Plano Ativo"
+            }}
+          </h4>
+          <p
+            v-if="activePlan.is_full_access"
+            class="plan-description"
+          >
+            Este plano foi ativado via configuração no banco de dados e não requer pagamento.
+          </p>
+          <p
+            v-else-if="activePlan.product?.description"
+            class="plan-description"
+          >
             {{ activePlan.product.description }}
           </p>
         </div>
@@ -32,7 +47,13 @@
         <div class="plan-stats">
           <div class="stat-item">
             <span class="stat-label">Valor:</span>
-            <span class="stat-value price">
+            <span
+              v-if="activePlan.is_full_access"
+              class="stat-value price free-price"
+            >
+              R$ 0,00
+            </span>
+            <span v-else class="stat-value price">
               R$ {{ formatPrice(activePlan.price?.unit_amount) }}
               <span
                 v-if="activePlan.price?.type === 'recurring'"
@@ -47,7 +68,7 @@
           </div>
 
           <div
-            v-if="activePlan.subscription?.current_period_end"
+            v-if="!activePlan.is_full_access && activePlan.subscription?.current_period_end"
             class="stat-item"
           >
             <span class="stat-label" :class="{ 'canceled-label': isCanceled }"
@@ -61,10 +82,19 @@
               }}</span
             >
           </div>
+          <div
+            v-if="activePlan.is_full_access"
+            class="stat-item"
+          >
+            <span class="stat-label">Status:</span>
+            <span class="stat-value" style="color: #10b981; font-weight: 700;">
+              Ativo via configuração manual
+            </span>
+          </div>
         </div>
 
         <!-- Aviso de Cancelamento -->
-        <div v-if="isCanceled" class="cancellation-notice">
+        <div v-if="!activePlan.is_full_access && isCanceled" class="cancellation-notice">
           <div class="notice-header">
             <span class="notice-icon">⚠️</span>
             <h4 class="notice-title">Sua assinatura foi cancelada</h4>
@@ -82,6 +112,7 @@
 
         <div class="plan-actions">
           <button
+            v-if="!activePlan.is_full_access"
             @click="manageSubscription"
             class="btn btn-cancel"
             :disabled="isCanceled"
@@ -90,6 +121,7 @@
             {{ isCanceled ? "Assinatura Cancelada" : "Cancelar Assinatura" }}
           </button>
           <button
+            v-if="!activePlan.is_full_access"
             @click="upgradePlan"
             class="btn btn-primary upgrade-btn"
             :class="{ 'upgrade-animation': props.showUpgradeAnimations }"
@@ -549,6 +581,10 @@ const getAuthToken = () => {
 
 const shouldEmitPlanData = (data) => {
   if (!data) return false;
+  // Verificar se tem acesso full via feature flag
+  if (data.is_full_access === true) {
+    return true;
+  }
   if (data.has_active_plan === true) {
     return true;
   }
