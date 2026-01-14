@@ -13,6 +13,17 @@
         </div>
         <div class="filters-section">
           <div class="filter-item">
+            <label class="filter-label">Status</label>
+            <VaSelect
+              v-model="variablesGetTrainings.filter.status"
+              :options="statusOptions"
+              text-by="label"
+              value-by="value"
+              label=""
+              style="width: 100%"
+            />
+          </div>
+          <div class="filter-item">
             <label class="filter-label">Time</label>
             <ZSelectTeam
               label=""
@@ -261,6 +272,7 @@ export default defineComponent({
       variablesGetTrainings: {
         page: 1,
         filter: {
+          status: "PENDING", // Padrão: treinos agendados
           teamsIds: [],
           usersIds: [],
           playersIds: [],
@@ -271,6 +283,12 @@ export default defineComponent({
         orderBy: "id",
         sortedBy: "desc",
       },
+      statusOptions: [
+        { label: "Todos", value: null },
+        { label: "Agendado", value: "PENDING" },
+        { label: "Finalizado", value: "FINISHED" },
+        { label: "Cancelado", value: "CANCELLED" },
+      ],
       selectedItems: [],
       selectedItemsEmitted: [],
       selectMode: "multiple",
@@ -292,6 +310,19 @@ export default defineComponent({
     },
     hasBulkCreatedSelected() {
       return this.selectedBulkTrainings.length > 0;
+    },
+  },
+
+  watch: {
+    // Observar mudanças no status e executar busca automaticamente
+    'variablesGetTrainings.filter.status'(newStatus, oldStatus) {
+      // Evitar busca na inicialização (quando oldStatus é undefined)
+      if (oldStatus !== undefined && newStatus !== oldStatus) {
+        // Resetar para primeira página quando mudar o filtro
+        this.variablesGetTrainings.page = 1;
+        // Executar busca automaticamente
+        this.getTrainings({ fetchPolicy: "network-only" });
+      }
     },
   },
 
@@ -536,6 +567,7 @@ export default defineComponent({
     clearSearch() {
       this.internalSearchValue = "";
       this.variablesGetTrainings.filter = {
+        status: "PENDING", // Padrão: treinos agendados
         teamsIds: [],
         usersIds: [],
         playersIds: [],
@@ -582,16 +614,24 @@ export default defineComponent({
         dateStart = moment(dateStart).format("YYYY-MM-DD 00:00:00");
       }
 
+      // Preparar filtro de status
+      const filterData = {
+        ...this.variablesGetTrainings.filter,
+        teamsIds: teamsIdsValues,
+        usersIds: usersIdsValues,
+        playersIds: playersIdsValues,
+        dateStart,
+        dateEnd,
+      };
+
+      // Adicionar status apenas se não for null (todos)
+      if (this.variablesGetTrainings.filter.status && this.variablesGetTrainings.filter.status !== null) {
+        filterData.status = this.variablesGetTrainings.filter.status;
+      }
+
       const consult = {
         ...this.variablesGetTrainings,
-        filter: {
-          ...this.variablesGetTrainings.filter,
-          teamsIds: teamsIdsValues,
-          usersIds: usersIdsValues,
-          playersIds: playersIdsValues,
-          dateStart,
-          dateEnd,
-        },
+        filter: filterData,
       };
 
       const { onResult } = useQuery(query, consult, {
