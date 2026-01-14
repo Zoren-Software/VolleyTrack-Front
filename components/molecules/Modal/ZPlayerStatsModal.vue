@@ -71,7 +71,7 @@
               </va-popover>
             </div>
             <div class="stat-description">
-              Total de treinos: {{ playerData.totalTrainingsCount || 0 }}
+              Apenas treinos finalizados são considerados nas estatísticas
             </div>
           </div>
         </div>
