@@ -143,7 +143,7 @@
           </div>
         </div>
       </template>
-      <!-- Botão de Estatísticas na coluna de ações -->
+      <!-- Botões de Ações na coluna de ações -->
       <template #cell(actions)="{ rowKey }">
         <div class="action-buttons-wrapper">
           <va-button
@@ -153,6 +153,22 @@
             class="stats-btn action-btn"
             :title="'Ver estatísticas de ' + (rowKey.displayName || rowKey.name)"
             @click="openStatsModal(rowKey.id)"
+          />
+          <va-button
+            icon="edit"
+            color="#1976d2"
+            size="small"
+            class="edit-btn action-btn"
+            :title="'Editar ' + (rowKey.displayName || rowKey.name)"
+            @click="editPlayer(rowKey.id)"
+          />
+          <va-button
+            icon="delete"
+            color="#dc3545"
+            size="small"
+            class="delete-btn action-btn"
+            :title="'Deletar ' + (rowKey.displayName || rowKey.name)"
+            @click="deletePlayer(rowKey.id)"
           />
         </div>
       </template>
@@ -1119,21 +1135,46 @@ export default defineComponent({
   align-items: center;
 }
 
-.stats-btn.action-btn {
+.action-btn {
   min-width: 32px;
   width: 32px;
   height: 32px;
   border-radius: 6px;
   padding: 0;
+  transition: all 0.2s ease;
+}
+
+.stats-btn.action-btn {
   background-color: #e9742b !important;
   color: white !important;
-  transition: all 0.2s ease;
 }
 
 .stats-btn.action-btn:hover {
   background-color: #d6652a !important;
   transform: translateY(-1px);
   box-shadow: 0 2px 8px rgba(233, 116, 43, 0.4);
+}
+
+.edit-btn.action-btn {
+  background-color: #1976d2 !important;
+  color: white !important;
+}
+
+.edit-btn.action-btn:hover {
+  background-color: #1565c0 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.4);
+}
+
+.delete-btn.action-btn {
+  background-color: #dc3545 !important;
+  color: white !important;
+}
+
+.delete-btn.action-btn:hover {
+  background-color: #c82333 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(220, 53, 69, 0.4);
 }
 
 @media (max-width: 768px) {
