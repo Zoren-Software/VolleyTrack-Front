@@ -54,6 +54,7 @@ query trainings(
         absencePercentage
       }
       status
+      displayStatus
       dateStart
       dateEnd
       description

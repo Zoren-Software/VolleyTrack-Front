@@ -60,11 +60,13 @@ export default {
       return Math.round(this.metricsConfirmationPresence);
     },
     status() {
-      return this.data.status || 'pending';
+      // Usar displayStatus se disponível, caso contrário usar status
+      return this.data.displayStatus || this.data.status || 'pending';
     },
     statusLabel() {
       const statusMap = {
         pending: 'Agendado',
+        pending_action: 'Pendente ação',
         finished: 'Finalizado',
         cancelled: 'Cancelado',
       };
@@ -74,6 +76,7 @@ export default {
       const status = this.status.toLowerCase();
       return {
         'status-pending': status === 'pending',
+        'status-pending-action': status === 'pending_action',
         'status-finished': status === 'finished',
         'status-cancelled': status === 'cancelled',
       };
@@ -132,6 +135,12 @@ export default {
 .status-cancelled {
   background-color: #fee2e2;
   color: #dc2626;
+}
+
+.status-pending-action {
+  background-color: #fef3c7;
+  color: #d97706;
+  border: 1px solid #fbbf24;
 }
 
 .training-name {

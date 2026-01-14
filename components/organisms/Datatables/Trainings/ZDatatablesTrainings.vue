@@ -135,11 +135,11 @@
       <!-- CELL -->
       <template
         #cell(name)="{
-          rowKey: { id, name, dateStart, status, confirmationTrainingMetrics },
+          rowKey: { id, name, dateStart, status, displayStatus, confirmationTrainingMetrics },
         }"
       >
         <ZTraining
-          :data="{ id, name, dateStart, status }"
+          :data="{ id, name, dateStart, status, displayStatus }"
           :metrics="confirmationTrainingMetrics"
         />
       </template>
