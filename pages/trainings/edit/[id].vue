@@ -9,6 +9,10 @@
       @save="edit"
       @saveAndContinue="editAndContinue"
       @saveScouts="editScouts"
+      @finish="finishTraining"
+      @unfinish="unfinishTraining"
+      @cancel="cancelTraining"
+      @uncancel="uncancelTraining"
       @refresh="getTraining({ fetchPolicy: 'network-only' })"
       :loading="loading"
       :errorFields="errorFields"
@@ -60,6 +64,19 @@ export default {
         name: [],
         teamId: [],
       };
+    },
+    // Converte status de minúsculas (banco) para maiúsculas (enum GraphQL)
+    convertStatusToGraphQL(status) {
+      if (!status) return 'PENDING';
+      const statusMap = {
+        'pending': 'PENDING',
+        'finished': 'FINISHED',
+        'cancelled': 'CANCELLED',
+        'PENDING': 'PENDING',
+        'FINISHED': 'FINISHED',
+        'CANCELLED': 'CANCELLED',
+      };
+      return statusMap[status] || 'PENDING';
     },
     getTraining(fetchPolicyOptions = {}) {
       this.loading = true;
@@ -116,6 +133,7 @@ export default {
           id: parseInt(form.id),
           name: form.name,
           description: form.description,
+          status: this.convertStatusToGraphQL(form.status),
           teamId:
             form.teams && form.teams.length > 0
               ? parseInt(form.teams[0].id)
@@ -215,6 +233,7 @@ export default {
           id: parseInt(form.id),
           name: form.name,
           description: form.description,
+          status: this.convertStatusToGraphQL(form.status),
           teamId:
             form.teams && form.teams.length > 0
               ? parseInt(form.teams[0].id)
@@ -302,6 +321,7 @@ export default {
           id: parseInt(form.id),
           name: form.name,
           description: form.description,
+          status: this.convertStatusToGraphQL(form.status),
           teamId:
             form.teams && form.teams.length > 0
               ? parseInt(form.teams[0].id)
@@ -356,6 +376,334 @@ export default {
           confirmError("Ocorreu um erro ao salvar os scouts!", footer);
         } else {
           confirmError("Ocorreu um erro ao salvar os scouts!");
+        }
+      }
+      this.loading = false;
+    },
+
+    async finishTraining(form) {
+      try {
+        this.loading = true;
+        this.error = false;
+
+        const query = gql`
+          ${TRAININGEDIT}
+        `;
+
+        const dateStart =
+          moment(form.dateValue).format("YYYY-MM-DD") +
+          " " +
+          moment(form.timeStartValue).format("HH:mm:ss");
+        const dateEnd =
+          moment(form.dateValue).format("YYYY-MM-DD") +
+          " " +
+          moment(form.timeEndValue).format("HH:mm:ss");
+
+        const variables = {
+          id: parseInt(form.id),
+          name: form.name,
+          description: form.description,
+          status: this.convertStatusToGraphQL('finished'), // Define status como finalizado
+          teamId:
+            form.teams && form.teams.length > 0
+              ? parseInt(form.teams[0].id)
+              : null,
+          fundamentalId: form.fundamentals
+            ? form.fundamentals
+                .map((item) => item.id)
+                .filter((id) => id != null)
+            : [],
+          specificFundamentalId: form.specificFundamentals
+            ? form.specificFundamentals
+                .map((item) => item.id)
+                .filter((id) => id != null)
+            : [],
+          playerIds: form.standalonePlayerIds
+            ? form.standalonePlayerIds
+                .map((id) => parseInt(id))
+                .filter((id) => id != null)
+            : [],
+          dateStart,
+          dateEnd,
+        };
+
+        const { mutate } = await useMutation(query, { variables });
+        const { data } = await mutate();
+
+        confirmSuccess("Treino finalizado com sucesso!", () => {
+          // Recarregar os dados do treino para atualizar o status
+          this.getTraining({ fetchPolicy: 'network-only' });
+        });
+      } catch (error) {
+        console.error(error);
+        this.error = true;
+
+        if (
+          error.graphQLErrors &&
+          error.graphQLErrors[0] &&
+          error.graphQLErrors[0].extensions &&
+          error.graphQLErrors[0].extensions.validation
+        ) {
+          this.errors = error.graphQLErrors[0].extensions.validation;
+
+          const errorMessages = Object.values(this.errors).map((item) => {
+            return item[0];
+          });
+
+          this.errorFields = Object.keys(this.errors);
+
+          const footer = errorMessages.join("<br>");
+
+          confirmError("Ocorreu um erro ao finalizar o treino!", footer);
+        } else {
+          const errorMessage = error.graphQLErrors?.[0]?.message || "Ocorreu um erro ao finalizar o treino!";
+          confirmError(errorMessage);
+        }
+      }
+      this.loading = false;
+    },
+
+    async unfinishTraining(form) {
+      try {
+        this.loading = true;
+        this.error = false;
+
+        const query = gql`
+          ${TRAININGEDIT}
+        `;
+
+        const dateStart =
+          moment(form.dateValue).format("YYYY-MM-DD") +
+          " " +
+          moment(form.timeStartValue).format("HH:mm:ss");
+        const dateEnd =
+          moment(form.dateValue).format("YYYY-MM-DD") +
+          " " +
+          moment(form.timeEndValue).format("HH:mm:ss");
+
+        const variables = {
+          id: parseInt(form.id),
+          name: form.name,
+          description: form.description,
+          status: this.convertStatusToGraphQL('pending'), // Volta para agendado
+          teamId:
+            form.teams && form.teams.length > 0
+              ? parseInt(form.teams[0].id)
+              : null,
+          fundamentalId: form.fundamentals
+            ? form.fundamentals
+                .map((item) => item.id)
+                .filter((id) => id != null)
+            : [],
+          specificFundamentalId: form.specificFundamentals
+            ? form.specificFundamentals
+                .map((item) => item.id)
+                .filter((id) => id != null)
+            : [],
+          playerIds: form.standalonePlayerIds
+            ? form.standalonePlayerIds
+                .map((id) => parseInt(id))
+                .filter((id) => id != null)
+            : [],
+          dateStart,
+          dateEnd,
+        };
+
+        const { mutate } = await useMutation(query, { variables });
+        const { data } = await mutate();
+
+        confirmSuccess("Finalização do treino cancelada com sucesso!", () => {
+          // Recarregar os dados do treino para atualizar o status
+          this.getTraining({ fetchPolicy: 'network-only' });
+        });
+      } catch (error) {
+        console.error(error);
+        this.error = true;
+
+        if (
+          error.graphQLErrors &&
+          error.graphQLErrors[0] &&
+          error.graphQLErrors[0].extensions &&
+          error.graphQLErrors[0].extensions.validation
+        ) {
+          this.errors = error.graphQLErrors[0].extensions.validation;
+
+          const errorMessages = Object.values(this.errors).map((item) => {
+            return item[0];
+          });
+
+          this.errorFields = Object.keys(this.errors);
+
+          const footer = errorMessages.join("<br>");
+
+          confirmError("Ocorreu um erro ao cancelar a finalização do treino!", footer);
+        } else {
+          const errorMessage = error.graphQLErrors?.[0]?.message || "Ocorreu um erro ao cancelar a finalização do treino!";
+          confirmError(errorMessage);
+        }
+      }
+      this.loading = false;
+    },
+
+    async cancelTraining(form) {
+      try {
+        this.loading = true;
+        this.error = false;
+
+        const query = gql`
+          ${TRAININGEDIT}
+        `;
+
+        const dateStart =
+          moment(form.dateValue).format("YYYY-MM-DD") +
+          " " +
+          moment(form.timeStartValue).format("HH:mm:ss");
+        const dateEnd =
+          moment(form.dateValue).format("YYYY-MM-DD") +
+          " " +
+          moment(form.timeEndValue).format("HH:mm:ss");
+
+        const variables = {
+          id: parseInt(form.id),
+          name: form.name,
+          description: form.description,
+          status: this.convertStatusToGraphQL('cancelled'), // Cancela o treino
+          teamId:
+            form.teams && form.teams.length > 0
+              ? parseInt(form.teams[0].id)
+              : null,
+          fundamentalId: form.fundamentals
+            ? form.fundamentals
+                .map((item) => item.id)
+                .filter((id) => id != null)
+            : [],
+          specificFundamentalId: form.specificFundamentals
+            ? form.specificFundamentals
+                .map((item) => item.id)
+                .filter((id) => id != null)
+            : [],
+          playerIds: form.standalonePlayerIds
+            ? form.standalonePlayerIds
+                .map((id) => parseInt(id))
+                .filter((id) => id != null)
+            : [],
+          dateStart,
+          dateEnd,
+        };
+
+        const { mutate } = await useMutation(query, { variables });
+        const { data } = await mutate();
+
+        confirmSuccess("Treino cancelado com sucesso!", () => {
+          // Recarregar os dados do treino para atualizar o status
+          this.getTraining({ fetchPolicy: 'network-only' });
+        });
+      } catch (error) {
+        console.error(error);
+        this.error = true;
+
+        if (
+          error.graphQLErrors &&
+          error.graphQLErrors[0] &&
+          error.graphQLErrors[0].extensions &&
+          error.graphQLErrors[0].extensions.validation
+        ) {
+          this.errors = error.graphQLErrors[0].extensions.validation;
+
+          const errorMessages = Object.values(this.errors).map((item) => {
+            return item[0];
+          });
+
+          this.errorFields = Object.keys(this.errors);
+
+          const footer = errorMessages.join("<br>");
+
+          confirmError("Ocorreu um erro ao cancelar o treino!", footer);
+        } else {
+          const errorMessage = error.graphQLErrors?.[0]?.message || "Ocorreu um erro ao cancelar o treino!";
+          confirmError(errorMessage);
+        }
+      }
+      this.loading = false;
+    },
+
+    async uncancelTraining(form) {
+      try {
+        this.loading = true;
+        this.error = false;
+
+        const query = gql`
+          ${TRAININGEDIT}
+        `;
+
+        const dateStart =
+          moment(form.dateValue).format("YYYY-MM-DD") +
+          " " +
+          moment(form.timeStartValue).format("HH:mm:ss");
+        const dateEnd =
+          moment(form.dateValue).format("YYYY-MM-DD") +
+          " " +
+          moment(form.timeEndValue).format("HH:mm:ss");
+
+        const variables = {
+          id: parseInt(form.id),
+          name: form.name,
+          description: form.description,
+          status: this.convertStatusToGraphQL('pending'), // Reativa o treino
+          teamId:
+            form.teams && form.teams.length > 0
+              ? parseInt(form.teams[0].id)
+              : null,
+          fundamentalId: form.fundamentals
+            ? form.fundamentals
+                .map((item) => item.id)
+                .filter((id) => id != null)
+            : [],
+          specificFundamentalId: form.specificFundamentals
+            ? form.specificFundamentals
+                .map((item) => item.id)
+                .filter((id) => id != null)
+            : [],
+          playerIds: form.standalonePlayerIds
+            ? form.standalonePlayerIds
+                .map((id) => parseInt(id))
+                .filter((id) => id != null)
+            : [],
+          dateStart,
+          dateEnd,
+        };
+
+        const { mutate } = await useMutation(query, { variables });
+        const { data } = await mutate();
+
+        confirmSuccess("Treino reativado com sucesso!", () => {
+          // Recarregar os dados do treino para atualizar o status
+          this.getTraining({ fetchPolicy: 'network-only' });
+        });
+      } catch (error) {
+        console.error(error);
+        this.error = true;
+
+        if (
+          error.graphQLErrors &&
+          error.graphQLErrors[0] &&
+          error.graphQLErrors[0].extensions &&
+          error.graphQLErrors[0].extensions.validation
+        ) {
+          this.errors = error.graphQLErrors[0].extensions.validation;
+
+          const errorMessages = Object.values(this.errors).map((item) => {
+            return item[0];
+          });
+
+          this.errorFields = Object.keys(this.errors);
+
+          const footer = errorMessages.join("<br>");
+
+          confirmError("Ocorreu um erro ao reativar o treino!", footer);
+        } else {
+          const errorMessage = error.graphQLErrors?.[0]?.message || "Ocorreu um erro ao reativar o treino!";
+          confirmError(errorMessage);
         }
       }
       this.loading = false;

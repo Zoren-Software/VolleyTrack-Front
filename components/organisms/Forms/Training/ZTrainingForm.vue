@@ -43,6 +43,18 @@
                 :error-messages="errors.description || []"
               />
 
+              <VaSelect
+                id="status"
+                v-model="form.status"
+                label="Status do Treino"
+                :options="statusOptions"
+                text-by="label"
+                value-by="value"
+                class="mb-3"
+                :error="errorFields.includes('status')"
+                :error-messages="errors.status || []"
+              />
+
               <h3 class="subsection-title">Fundamentos</h3>
               <div class="mb-5">
                 <ZListRelationFundamentals
@@ -303,6 +315,43 @@
         class="mr-1"
         >Salvar Scouts</va-button
       >
+      <va-button
+        color="#059669"
+        @click="finishTraining()"
+        v-if="form.status === 'PENDING' || form.status === 'pending'"
+        class="mr-1"
+      >
+        <va-icon name="check_circle" class="mr-2" />
+        Finalizar Treino
+      </va-button>
+      <va-button
+        color="#d97706"
+        @click="unfinishTraining()"
+        v-if="form.status === 'FINISHED' || form.status === 'finished'"
+        class="mr-1"
+      >
+        <va-icon name="cancel" class="mr-2" />
+        Cancelar Finalização
+      </va-button>
+      <va-button
+        color="#dc2626"
+        @click="cancelTraining()"
+        v-if="form.status === 'PENDING' || form.status === 'pending'"
+        class="mr-1"
+      >
+        <va-icon name="block" class="mr-2" />
+        Cancelar Treino
+      </va-button>
+      <va-button
+        color="#059669"
+        @click="uncancelTraining()"
+        v-if="form.status === 'CANCELLED' || form.status === 'cancelled'"
+        class="mr-1"
+      >
+        <va-icon name="check_circle" class="mr-2" />
+        Reativar Treino
+      </va-button>
+
       <va-button color="primary" @click="save()">Salvar</va-button>
     </div>
   </div>
@@ -315,6 +364,7 @@ import ZListRelationFundamentals from "~/components/organisms/List/Relations/ZLi
 import ZListRelationSpecificFundamentals from "~/components/organisms/List/Relations/ZListRelationSpecificFundamentals";
 import ZListRelationTeams from "~/components/organisms/List/Relations/ZListRelationTeams";
 import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
+import Swal from "sweetalert2";
 import ZDateTimeRangePicker from "~/components/molecules/Inputs/ZDateTimeRangePicker.vue";
 import ZSelectFundamental from "~/components/molecules/Selects/ZSelectFundamental.vue";
 import ZSelectSpecificFundamental from "~/components/molecules/Selects/ZSelectSpecificFundamental.vue";
@@ -398,13 +448,22 @@ export default {
     "update:errorFields",
     "saveAndContinue",
     "saveScouts",
+    "finish",
+    "unfinish",
+    "cancel",
+    "uncancel",
   ],
 
   data() {
     return {
       radioOptions: [
-        { label: 'Alterar apenas este treino', value: false },
-        { label: 'Alterar este treino e todos os futuros', value: true },
+        { label: "Alterar apenas este treino", value: false },
+        { label: "Alterar este treino e todos os futuros", value: true },
+      ],
+      statusOptions: [
+        { label: "Agendado", value: "pending" },
+        { label: "Finalizado", value: "finished" },
+        { label: "Cancelado", value: "cancelled" },
       ],
       user: localStorage.getItem("user")
         ? JSON.parse(localStorage.getItem("user"))
@@ -414,6 +473,7 @@ export default {
       teams: [],
       form: {
         ...this.data,
+        status: this.data.status || "pending",
         players: this.data.players || [],
         scouts: this.data.scouts || [],
         teams: this.data.teams || [],
@@ -1579,6 +1639,142 @@ export default {
         console.error("DEBUG - saveScoutsOnly: Erro ao salvar scouts:", error);
         // Emite evento mesmo com erro para não bloquear o fluxo
         this.$emit("saveScouts", this.form);
+      }
+    },
+
+    async finishTraining() {
+      // Mostrar modal de confirmação
+      const result = await Swal.fire({
+        title: "Finalizar Treino?",
+        html: `
+          <div style="text-align: left; padding: 10px 0;">
+            <p style="margin-bottom: 15px; font-size: 16px;">
+              <strong>Deseja finalizar este treino?</strong>
+            </p>
+            <div style="background-color: #f0f9ff; padding: 15px; border-radius: 8px; border-left: 4px solid #059669;">
+              <p style="margin: 0; font-size: 14px; color: #374151;">
+                Ao finalizar o treino, o status será alterado para <strong>"Finalizado"</strong>.
+              </p>
+            </div>
+            <p style="margin-top: 15px; font-size: 14px; color: #6b7280;">
+              Esta ação pode ser revertida editando o status do treino.
+            </p>
+          </div>
+        `,
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: "Sim, finalizar!",
+        confirmButtonColor: "#059669",
+        cancelButtonColor: "#6b7280",
+        cancelButtonText: "Cancelar",
+        reverseButtons: true,
+      });
+
+      if (result.isConfirmed) {
+        // Emite evento para finalizar o treino
+        this.$emit("finish", this.form);
+      }
+    },
+
+    async unfinishTraining() {
+      // Mostrar modal de confirmação
+      const result = await Swal.fire({
+        title: "Cancelar Finalização do Treino?",
+        html: `
+          <div style="text-align: left; padding: 10px 0;">
+            <p style="margin-bottom: 15px; font-size: 16px;">
+              <strong>Deseja cancelar a finalização deste treino?</strong>
+            </p>
+            <div style="background-color: #fef3c7; padding: 15px; border-radius: 8px; border-left: 4px solid #d97706;">
+              <p style="margin: 0; font-size: 14px; color: #374151;">
+                Ao cancelar a finalização, o status será alterado para <strong>"Agendado"</strong> e o treino poderá ser editado novamente.
+              </p>
+            </div>
+            <p style="margin-top: 15px; font-size: 14px; color: #6b7280;">
+              Esta ação pode ser revertida finalizando o treino novamente.
+            </p>
+          </div>
+        `,
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: "Sim, cancelar finalização!",
+        confirmButtonColor: "#d97706",
+        cancelButtonColor: "#6b7280",
+        cancelButtonText: "Cancelar",
+        reverseButtons: true,
+      });
+
+      if (result.isConfirmed) {
+        // Emite evento para cancelar a finalização do treino
+        this.$emit("unfinish", this.form);
+      }
+    },
+
+    async cancelTraining() {
+      // Mostrar modal de confirmação
+      const result = await Swal.fire({
+        title: "Cancelar Treino?",
+        html: `
+          <div style="text-align: left; padding: 10px 0;">
+            <p style="margin-bottom: 15px; font-size: 16px;">
+              <strong>Deseja cancelar este treino?</strong>
+            </p>
+            <div style="background-color: #fee2e2; padding: 15px; border-radius: 8px; border-left: 4px solid #dc2626;">
+              <p style="margin: 0; font-size: 14px; color: #374151;">
+                Ao cancelar o treino, o status será alterado para <strong>"Cancelado"</strong> e os jogadores serão notificados.
+              </p>
+            </div>
+            <p style="margin-top: 15px; font-size: 14px; color: #6b7280;">
+              Esta ação pode ser revertida reativando o treino.
+            </p>
+          </div>
+        `,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Sim, cancelar!",
+        confirmButtonColor: "#dc2626",
+        cancelButtonColor: "#6b7280",
+        cancelButtonText: "Não, manter ativo",
+        reverseButtons: true,
+      });
+
+      if (result.isConfirmed) {
+        // Emite evento para cancelar o treino
+        this.$emit("cancel", this.form);
+      }
+    },
+
+    async uncancelTraining() {
+      // Mostrar modal de confirmação
+      const result = await Swal.fire({
+        title: "Reativar Treino?",
+        html: `
+          <div style="text-align: left; padding: 10px 0;">
+            <p style="margin-bottom: 15px; font-size: 16px;">
+              <strong>Deseja reativar este treino?</strong>
+            </p>
+            <div style="background-color: #f0f9ff; padding: 15px; border-radius: 8px; border-left: 4px solid #059669;">
+              <p style="margin: 0; font-size: 14px; color: #374151;">
+                Ao reativar o treino, o status será alterado para <strong>"Agendado"</strong> e o treino voltará a estar ativo.
+              </p>
+            </div>
+            <p style="margin-top: 15px; font-size: 14px; color: #6b7280;">
+              Esta ação pode ser revertida cancelando o treino novamente.
+            </p>
+          </div>
+        `,
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: "Sim, reativar!",
+        confirmButtonColor: "#059669",
+        cancelButtonColor: "#6b7280",
+        cancelButtonText: "Cancelar",
+        reverseButtons: true,
+      });
+
+      if (result.isConfirmed) {
+        // Emite evento para reativar o treino
+        this.$emit("uncancel", this.form);
       }
     },
   },

@@ -1,6 +1,11 @@
 <template>
   <div class="training-cell">
-    <div class="training-id">Treino #{{ data.id }}</div>
+    <div class="training-header">
+      <div class="training-id">Treino #{{ data.id }}</div>
+      <div class="training-status-badge" :class="statusClass">
+        {{ statusLabel }}
+      </div>
+    </div>
     <div class="training-name">{{ data.name }}</div>
     <div v-if="isBeforeTrainingDate()" class="training-metrics">
       <div class="metrics-header">
@@ -54,6 +59,25 @@ export default {
     roundedConfirmationPresence() {
       return Math.round(this.metricsConfirmationPresence);
     },
+    status() {
+      return this.data.status || 'pending';
+    },
+    statusLabel() {
+      const statusMap = {
+        pending: 'Agendado',
+        finished: 'Finalizado',
+        cancelled: 'Cancelado',
+      };
+      return statusMap[this.status.toLowerCase()] || 'Agendado';
+    },
+    statusClass() {
+      const status = this.status.toLowerCase();
+      return {
+        'status-pending': status === 'pending',
+        'status-finished': status === 'finished',
+        'status-cancelled': status === 'cancelled',
+      };
+    },
   },
   methods: {
     isBeforeTrainingDate() {
@@ -71,11 +95,43 @@ export default {
   padding: 4px 0;
 }
 
+.training-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
 .training-id {
   font-weight: 700;
   font-size: 13px;
   color: #e9742b;
   line-height: 1.4;
+}
+
+.training-status-badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.status-pending {
+  background-color: #fef3c7;
+  color: #d97706;
+}
+
+.status-finished {
+  background-color: #d1fae5;
+  color: #059669;
+}
+
+.status-cancelled {
+  background-color: #fee2e2;
+  color: #dc2626;
 }
 
 .training-name {

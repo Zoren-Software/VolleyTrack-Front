@@ -6,6 +6,7 @@ mutation trainingEdit(
   $playerIds: [Int]
   $name: String!
   $description: String
+  $status: TrainingStatus
   $dateStart: String!
   $dateEnd: String!
   $updateAllFuture: Boolean
@@ -18,6 +19,7 @@ mutation trainingEdit(
     playerIds: $playerIds
     name: $name
     description: $description
+    status: $status
     dateStart: $dateStart
     dateEnd: $dateEnd
     updateAllFuture: $updateAllFuture
