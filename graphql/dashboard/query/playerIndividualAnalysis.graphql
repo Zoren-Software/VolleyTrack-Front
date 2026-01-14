@@ -25,6 +25,25 @@ query playerIndividualAnalysis($playerId: ID!) {
       totalC
       grandTotal
     }
+    teamRankings {
+      team {
+        id
+        name
+        teamCategory {
+          id
+          name
+        }
+        teamLevel {
+          id
+          name
+        }
+      }
+      presencePercentage
+      rank
+      totalConfirmations
+      totalPresences
+      totalPlayersInTeam
+    }
   }
 }
 
