@@ -49,6 +49,13 @@
       </div>
     </va-card>
 
+    <!-- Modal de Estatísticas -->
+    <ZPlayerStatsModal
+      v-if="selectedPlayerId"
+      v-model="showStatsModal"
+      :player-id="selectedPlayerId"
+    />
+
     <!-- DataTable -->
     <ZDatatableGeneric
       :buttonActionAdd="false"
@@ -134,6 +141,19 @@
               {{ formatPhone(rowKey.information.phone) }}
             </a>
           </div>
+        </div>
+      </template>
+      <!-- Botão de Estatísticas na coluna de ações -->
+      <template #cell(actions)="{ rowKey }">
+        <div class="action-buttons-wrapper">
+          <va-button
+            icon="bar_chart"
+            color="#e9742b"
+            size="small"
+            class="stats-btn action-btn"
+            :title="'Ver estatísticas de ' + (rowKey.displayName || rowKey.name)"
+            @click="openStatsModal(rowKey.id)"
+          />
         </div>
       </template>
       <template #cell(team)="{ rowKey: { teams } }">
@@ -259,6 +279,7 @@ import ZPosition from "~/components/molecules/Datatable/Slots/ZPosition";
 import ZCPF from "~/components/molecules/Datatable/Slots/ZCPF";
 import ZTeam from "~/components/molecules/Datatable/Slots/ZTeam";
 import ZTeamsExtra from "~/components/molecules/Badges/ZTeamsExtra.vue";
+import ZPlayerStatsModal from "~/components/molecules/Modal/ZPlayerStatsModal.vue";
 import USERDELETE from "~/graphql/user/mutation/userDelete.graphql";
 import ROLES from "~/graphql/role/query/roles.graphql";
 import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
@@ -278,6 +299,7 @@ export default defineComponent({
     ZSelectTeam,
     ZSelectRole,
     ZDataTableInputSearch,
+    ZPlayerStatsModal,
   },
 
   async created() {
@@ -335,6 +357,8 @@ export default defineComponent({
       selectColorOptions: ["primary", "danger", "warning", "#EF467F"],
       internalSearch: "",
       activePlanData: null,
+      showStatsModal: false,
+      selectedPlayerId: null,
     };
   },
   computed: {
@@ -400,6 +424,10 @@ export default defineComponent({
     },
     editPlayer(id) {
       this.$router.push(`/players/edit/${id}`);
+    },
+    openStatsModal(playerId) {
+      this.selectedPlayerId = playerId;
+      this.showStatsModal = true;
     },
     async deleteItems(ids) {
       try {
@@ -1083,6 +1111,29 @@ export default defineComponent({
   font-size: 14px;
   color: #6c757d;
   font-weight: 500;
+}
+
+.action-buttons-wrapper {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.stats-btn.action-btn {
+  min-width: 32px;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  padding: 0;
+  background-color: #e9742b !important;
+  color: white !important;
+  transition: all 0.2s ease;
+}
+
+.stats-btn.action-btn:hover {
+  background-color: #d6652a !important;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(233, 116, 43, 0.4);
 }
 
 @media (max-width: 768px) {

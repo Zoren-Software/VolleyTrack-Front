@@ -1,0 +1,30 @@
+query playerIndividualAnalysis($playerId: ID!) {
+  playerIndividualAnalysis(playerId: $playerId) {
+    player {
+      id
+      name
+      displayName
+      email
+      positions {
+        id
+        name
+      }
+    }
+    presencePercentage
+    trainingsCount
+    presencesCount
+    totalTrainingsCount
+    pendingTrainingsCount
+    topFundamentals {
+      fundamental {
+        id
+        name
+      }
+      totalA
+      totalB
+      totalC
+      grandTotal
+    }
+  }
+}
+
