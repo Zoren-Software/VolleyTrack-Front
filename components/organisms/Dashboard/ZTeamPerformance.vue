@@ -41,7 +41,28 @@
               <div class="stat-value" :class="getTrainingsValueClass(index)">
                 {{ teamData.trainingsCount }}
               </div>
-              <div class="stat-label">Treinos</div>
+              <div class="stat-label">
+                Treinos
+                <va-popover
+                  placement="top"
+                  trigger="hover"
+                  class="info-popover-wrapper"
+                >
+                  <va-icon
+                    name="info"
+                    size="14px"
+                    color="#6c757d"
+                    class="info-icon"
+                  />
+                  <template #title>Informação</template>
+                  <template #body>
+                    <p class="info-popover-text">
+                      Apenas treinos finalizados são considerados nas
+                      estatísticas.
+                    </p>
+                  </template>
+                </va-popover>
+              </div>
             </div>
 
             <div
@@ -422,6 +443,25 @@ export default {
   font-size: 11px;
   color: #6c757d;
   font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.info-icon {
+  cursor: help;
+  transition: color 0.2s ease;
+}
+
+.info-icon:hover {
+  color: #e9742b;
+}
+
+.info-popover-text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: white;
 }
 
 .team-footer {

@@ -97,7 +97,7 @@
                     getPresenceValueClass(playerData.presencePercentage, index)
                   "
                 >
-                  {{ formatPercentage(playerData.presencePercentage) }}
+                  {{ formatPercentage(playerData.presencePercentage ?? 0) }}
                 </div>
                 <div class="stat-label">Presença</div>
               </div>
@@ -107,22 +107,49 @@
                 :class="getTrainingsClass(index)"
               >
                 <div class="stat-value" :class="getTrainingsValueClass(index)">
-                  {{ playerData.trainingsCount }}
+                  {{ playerData.presencesCount || 0 }} / {{ playerData.trainingsCount || 0 }} / {{ playerData.pendingTrainingsCount || 0 }}
                 </div>
-                <div class="stat-label">Treinos</div>
+                <div class="stat-label">
+                  Treinos
+                  <va-popover
+                    placement="top"
+                    trigger="hover"
+                    class="info-popover-wrapper"
+                  >
+                    <va-icon
+                      name="info"
+                      size="14px"
+                      color="#6c757d"
+                      class="info-icon"
+                    />
+                    <template #title>Informação</template>
+                    <template #body>
+                      <p class="info-popover-text">
+                        Presenças / Treinos Finalizados / Treinos Agendados
+                      </p>
+                    </template>
+                  </va-popover>
+                </div>
               </div>
             </div>
 
             <div class="fundamentals-section">
-              <h4 class="fundamentals-title">Fundamentos Mais Treinados</h4>
+              <h4 class="fundamentals-title">Posição</h4>
               <div class="fundamentals-tags">
                 <span
-                  v-for="(fundamental, idx) in playerData.topFundamentals"
-                  :key="fundamental.fundamental.id"
+                  v-for="(position, idx) in playerData.player.positions || []"
+                  :key="position?.id || idx"
                   class="fundamental-tag"
                   :class="getTagColorClass(index, idx)"
                 >
-                  {{ fundamental.fundamental.name }}
+                  {{ position?.name }}
+                </span>
+                <span
+                  v-if="!playerData.player.positions || playerData.player.positions.length === 0"
+                  class="fundamental-tag"
+                  :class="getTagColorClass(index, 0)"
+                >
+                  Sem posição
                 </span>
               </div>
             </div>
@@ -369,13 +396,18 @@ export default {
       const {
         result: { value },
       } = useQuery(query, variables, {
-        fetchPolicy: fetchPolicyOptions.fetchPolicy || "cache-and-network",
+        fetchPolicy: fetchPolicyOptions.fetchPolicy || "network-only",
       });
 
       const { onResult } = useQuery(query, variables);
 
       onResult((result) => {
         if (result?.data?.playersIndividualAnalysis?.data) {
+          // Debug: verificar valores de presencePercentage
+          console.log('📊 Dados recebidos do GraphQL:', result.data.playersIndividualAnalysis.data.map(p => ({
+            player: p.player?.name,
+            presencePercentage: p.presencePercentage
+          })));
           this.players = result.data.playersIndividualAnalysis.data;
         }
         this.loading = false;
@@ -383,6 +415,11 @@ export default {
 
       if (value) {
         if (value?.playersIndividualAnalysis?.data) {
+          // Debug: verificar valores de presencePercentage
+          console.log('📊 Dados do cache/value:', value.playersIndividualAnalysis.data.map(p => ({
+            player: p.player?.name,
+            presencePercentage: p.presencePercentage
+          })));
           this.players = value.playersIndividualAnalysis.data;
         }
         this.loading = false;
@@ -941,6 +978,25 @@ export default {
   font-size: 11px;
   color: #6c757d;
   font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.info-icon {
+  cursor: help;
+  transition: color 0.2s ease;
+}
+
+.info-icon:hover {
+  color: #e9742b;
+}
+
+.info-popover-text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: white;
 }
 
 .fundamentals-stats-section {
