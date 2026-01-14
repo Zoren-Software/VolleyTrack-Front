@@ -107,7 +107,9 @@
                 :class="getTrainingsClass(index)"
               >
                 <div class="stat-value" :class="getTrainingsValueClass(index)">
-                  {{ playerData.presencesCount || 0 }} / {{ playerData.trainingsCount || 0 }} / {{ playerData.pendingTrainingsCount || 0 }}
+                  {{ playerData.presencesCount || 0 }} /
+                  {{ playerData.trainingsCount || 0 }} /
+                  {{ playerData.pendingTrainingsCount || 0 }}
                 </div>
                 <div class="stat-label">
                   Treinos
@@ -145,7 +147,10 @@
                   {{ position?.name }}
                 </span>
                 <span
-                  v-if="!playerData.player.positions || playerData.player.positions.length === 0"
+                  v-if="
+                    !playerData.player.positions ||
+                    playerData.player.positions.length === 0
+                  "
                   class="fundamental-tag"
                   :class="getTagColorClass(index, 0)"
                 >
@@ -154,15 +159,23 @@
               </div>
             </div>
 
-            <div class="fundamentals-stats-section">
-              <div
-                v-show="expandedStats[playerData.player.id]"
-                class="fundamentals-stats-expanded"
+            <div class="player-details-section">
+              <a
+                href="#"
+                class="player-details-link"
+                @click.prevent="openPlayerDetailsModal(playerData.player.id)"
               >
+                Detalhes do jogador
+              </a>
+            </div>
+
+            <div
+              v-if="expandedStats[playerData.player.id]"
+              class="fundamentals-stats-section"
+            >
+              <div class="fundamentals-stats-expanded">
                 <div class="fundamentals-title-wrapper">
-                  <h4 class="fundamentals-title">
-                    Estatísticas por Fundamental
-                  </h4>
+                  <h4 class="fundamentals-title">Estatísticas Fundamentos</h4>
                   <span class="fundamentals-top3-badge">TOP 3</span>
                 </div>
                 <div class="fundamentals-stats-list">
@@ -331,6 +344,13 @@
         </div>
       </div>
     </div>
+
+    <!-- Modal de Estatísticas do Jogador -->
+    <ZPlayerStatsModal
+      v-if="selectedPlayerId"
+      v-model="showPlayerStatsModal"
+      :player-id="selectedPlayerId"
+    />
   </div>
 </template>
 
@@ -340,6 +360,7 @@ import { useQuery } from "@vue/apollo-composable";
 import PLAYERS_INDIVIDUAL_ANALYSIS from "~/graphql/dashboard/query/playersIndividualAnalysis.graphql";
 import ZUser from "~/components/molecules/Datatable/Slots/ZUser.vue";
 import ZTop3Badge from "~/components/molecules/Badges/ZTop3Badge.vue";
+import ZPlayerStatsModal from "~/components/molecules/Modal/ZPlayerStatsModal.vue";
 import { Radar } from "vue-chartjs";
 import {
   Chart as ChartJS,
@@ -358,6 +379,7 @@ export default {
   components: {
     ZUser,
     ZTop3Badge,
+    ZPlayerStatsModal,
     Radar,
   },
   data() {
@@ -366,6 +388,8 @@ export default {
       loading: false,
       viewMode: {}, // 'info' ou 'chart'
       expandedStats: {}, // Controla quais jogadores têm estatísticas expandidas
+      showPlayerStatsModal: false,
+      selectedPlayerId: null,
     };
   },
   mounted() {
@@ -377,6 +401,54 @@ export default {
       return this.players.every(
         (playerData) => this.expandedStats[playerData.player.id]
       );
+    },
+    radarChartOptions() {
+      return {
+        responsive: true,
+        maintainAspectRatio: true,
+        aspectRatio: 1,
+        scales: {
+          r: {
+            beginAtZero: true,
+            max: 100,
+            ticks: {
+              stepSize: 20,
+              font: {
+                size: 9,
+              },
+              backdropPadding: 2,
+            },
+            pointLabels: {
+              font: {
+                size: 10,
+                weight: "500",
+              },
+              color: "#666",
+              padding: 8,
+            },
+            grid: {
+              color: "rgba(0, 0, 0, 0.1)",
+            },
+          },
+        },
+        plugins: {
+          tooltip: {
+            callbacks: {
+              label: function (context) {
+                return `${context.label}: ${context.parsed.r}%`;
+              },
+            },
+          },
+        },
+        layout: {
+          padding: {
+            top: 10,
+            bottom: 10,
+            left: 10,
+            right: 10,
+          },
+        },
+      };
     },
   },
   methods: {
@@ -404,10 +476,13 @@ export default {
       onResult((result) => {
         if (result?.data?.playersIndividualAnalysis?.data) {
           // Debug: verificar valores de presencePercentage
-          console.log('📊 Dados recebidos do GraphQL:', result.data.playersIndividualAnalysis.data.map(p => ({
-            player: p.player?.name,
-            presencePercentage: p.presencePercentage
-          })));
+          console.log(
+            "📊 Dados recebidos do GraphQL:",
+            result.data.playersIndividualAnalysis.data.map((p) => ({
+              player: p.player?.name,
+              presencePercentage: p.presencePercentage,
+            }))
+          );
           this.players = result.data.playersIndividualAnalysis.data;
         }
         this.loading = false;
@@ -416,10 +491,13 @@ export default {
       if (value) {
         if (value?.playersIndividualAnalysis?.data) {
           // Debug: verificar valores de presencePercentage
-          console.log('📊 Dados do cache/value:', value.playersIndividualAnalysis.data.map(p => ({
-            player: p.player?.name,
-            presencePercentage: p.presencePercentage
-          })));
+          console.log(
+            "📊 Dados do cache/value:",
+            value.playersIndividualAnalysis.data.map((p) => ({
+              player: p.player?.name,
+              presencePercentage: p.presencePercentage,
+            }))
+          );
           this.players = value.playersIndividualAnalysis.data;
         }
         this.loading = false;
@@ -647,53 +725,9 @@ export default {
         ],
       };
     },
-    get radarChartOptions() {
-      return {
-        responsive: true,
-        maintainAspectRatio: true,
-        aspectRatio: 1,
-        scales: {
-          r: {
-            beginAtZero: true,
-            max: 100,
-            ticks: {
-              stepSize: 20,
-              font: {
-                size: 9,
-              },
-              backdropPadding: 2,
-            },
-            pointLabels: {
-              font: {
-                size: 10,
-                weight: "500",
-              },
-              color: "#666",
-              padding: 8,
-            },
-            grid: {
-              color: "rgba(0, 0, 0, 0.1)",
-            },
-          },
-        },
-        plugins: {
-          tooltip: {
-            callbacks: {
-              label: function (context) {
-                return `${context.label}: ${context.parsed.r}%`;
-              },
-            },
-          },
-        },
-        layout: {
-          padding: {
-            top: 10,
-            bottom: 10,
-            left: 10,
-            right: 10,
-          },
-        },
-      };
+    openPlayerDetailsModal(playerId) {
+      this.selectedPlayerId = playerId;
+      this.showPlayerStatsModal = true;
     },
   },
 };
@@ -910,6 +944,9 @@ export default {
   flex-direction: column;
   flex: 1;
   min-height: 0;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
 }
 
 .toggle-view-btn {
@@ -1154,7 +1191,7 @@ export default {
   font-size: 12px;
   font-weight: 600;
   color: #6c757d;
-  margin: 15px 0 10px 0;
+  margin: 0 0 8px 0;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   white-space: nowrap;
@@ -1181,8 +1218,7 @@ export default {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-
-  margin-top: 12px;
+  margin-top: 0;
 }
 
 .fundamental-tag {
@@ -1455,7 +1491,27 @@ export default {
   }
 }
 
-/* Tablets (481px - 768px) */
+.player-details-section {
+  margin-top: auto;
+  padding-top: 8px;
+  border-top: 1px solid #e9ecef;
+}
+
+.player-details-link {
+  color: #1976d2;
+  font-size: 12px;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  display: inline-block;
+}
+
+.player-details-link:hover {
+  color: #1565c0;
+  text-decoration: underline;
+}
+
 @media (max-width: 768px) {
   .players-grid {
     grid-template-columns: 1fr;
