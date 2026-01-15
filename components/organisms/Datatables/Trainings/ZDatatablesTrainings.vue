@@ -616,12 +616,12 @@ export default defineComponent({
 
       // Preparar filtro de status
       const filterData = {
-        ...this.variablesGetTrainings.filter,
-        teamsIds: teamsIdsValues,
-        usersIds: usersIdsValues,
-        playersIds: playersIdsValues,
-        dateStart,
-        dateEnd,
+          ...this.variablesGetTrainings.filter,
+          teamsIds: teamsIdsValues,
+          usersIds: usersIdsValues,
+          playersIds: playersIdsValues,
+          dateStart,
+          dateEnd,
       };
 
       // Adicionar status apenas se não for null (todos)

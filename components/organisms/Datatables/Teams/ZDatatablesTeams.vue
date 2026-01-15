@@ -87,7 +87,43 @@
       <template #cell(players)="{ rowKey: { players } }">
         <span>{{ players?.length || 0 }} Jogadores</span>
       </template>
+      <!-- Botões de Ações na coluna de ações -->
+      <template #cell(actions)="{ rowKey }">
+        <div class="action-buttons-wrapper">
+          <va-button
+            icon="bar_chart"
+            color="#e9742b"
+            size="small"
+            class="stats-btn action-btn"
+            :title="'Ver estatísticas de ' + (rowKey.name || 'Time')"
+            @click="openStatsModal(rowKey.id)"
+          />
+          <va-button
+            icon="edit"
+            color="#1976d2"
+            size="small"
+            class="edit-btn action-btn"
+            :title="'Editar ' + (rowKey.name || 'Time')"
+            @click="editTeam(rowKey.id)"
+          />
+          <va-button
+            icon="delete"
+            color="#dc3545"
+            size="small"
+            class="delete-btn action-btn"
+            :title="'Deletar ' + (rowKey.name || 'Time')"
+            @click="deleteTeam(rowKey.id)"
+          />
+        </div>
+      </template>
     </ZDatatableGeneric>
+
+    <!-- Modal de Estatísticas do Time -->
+    <ZTeamStatsModal
+      v-if="selectedTeamId"
+      v-model="showTeamStatsModal"
+      :team-id="selectedTeamId"
+    />
 
     <!-- Summary Cards -->
     <div class="summary-cards">
@@ -147,6 +183,7 @@ import ZUser from "~/components/molecules/Datatable/Slots/ZUser";
 import ZDateTraining from "~/components/molecules/Datatable/Slots/ZDateTraining";
 import ZTeam from "~/components/molecules/Datatable/Slots/ZTeam";
 import ZBadgeCustom from "~/components/molecules/Badges/ZBadgeCustom";
+import ZTeamStatsModal from "~/components/molecules/Modal/ZTeamStatsModal.vue";
 import TEAMDELETE from "~/graphql/team/mutation/teamDelete.graphql";
 import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
 import { getActivePlan } from "~/services/stripeCheckoutService.js";
@@ -164,6 +201,7 @@ export default defineComponent({
     ZSelectUser,
     ZDataTableInputSearch,
     ZBadgeCustom,
+    ZTeamStatsModal,
   },
 
   created() {
@@ -219,6 +257,8 @@ export default defineComponent({
       selectColorOptions: ["primary", "danger", "warning", "#EF467F"],
       internalSearchValue: "",
       activePlanData: null,
+      showTeamStatsModal: false,
+      selectedTeamId: null,
     };
   },
   computed: {
@@ -274,6 +314,10 @@ export default defineComponent({
     },
     editTeam(id) {
       this.$router.push(`/teams/edit/${id}`);
+    },
+    openStatsModal(teamId) {
+      this.selectedTeamId = teamId;
+      this.showTeamStatsModal = true;
     },
     async deleteItems(ids) {
       try {
@@ -694,6 +738,41 @@ export default defineComponent({
   font-weight: 500;
 }
 
+.action-buttons-wrapper {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.action-btn {
+  min-width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.stats-btn {
+  background-color: #e9742b !important;
+  color: white !important;
+}
+
+.edit-btn {
+  background-color: #1976d2 !important;
+  color: white !important;
+}
+
+.delete-btn {
+  background-color: #dc3545 !important;
+  color: white !important;
+}
+
 @media (max-width: 768px) {
   .filter-content {
     flex-direction: column;
@@ -703,6 +782,15 @@ export default defineComponent({
   .filter-item {
     width: 100%;
     min-width: unset;
+  }
+
+  .action-buttons-wrapper {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .action-btn {
+    width: 100%;
   }
 }
 </style>

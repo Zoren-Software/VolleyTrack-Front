@@ -1,7 +1,7 @@
 <template>
   <div class="training-cell">
     <div class="training-header">
-      <div class="training-id">Treino #{{ data.id }}</div>
+    <div class="training-id">Treino #{{ data.id }}</div>
       <div class="training-status-badge" :class="statusClass">
         {{ statusLabel }}
       </div>

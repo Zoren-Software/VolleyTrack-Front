@@ -90,15 +90,22 @@
             <a
               href="#"
               class="team-details-link"
-              @click.prevent="navigateToTeams"
+              @click.prevent="openTeamStatsModal(teamData.team.id)"
             >
-              Detalhes do Time
+              Ver Estatísticas
             </a>
           </div>
         </div>
       </div>
     </div>
   </div>
+
+  <!-- Modal de Estatísticas do Time -->
+  <ZTeamStatsModal
+    v-if="selectedTeamId"
+    v-model="showTeamStatsModal"
+    :team-id="selectedTeamId"
+  />
 </template>
 
 <script>
@@ -107,17 +114,21 @@ import { useQuery } from "@vue/apollo-composable";
 import TEAMS_PERFORMANCE_ANALYSIS from "~/graphql/dashboard/query/teamsPerformanceAnalysis.graphql";
 import ZTeam from "~/components/molecules/Datatable/Slots/ZTeam.vue";
 import ZTop3Badge from "~/components/molecules/Badges/ZTop3Badge.vue";
+import ZTeamStatsModal from "~/components/molecules/Modal/ZTeamStatsModal.vue";
 
 export default {
   name: "ZTeamPerformance",
   components: {
     ZTeam,
     ZTop3Badge,
+    ZTeamStatsModal,
   },
   data() {
     return {
       teams: [],
       loading: false,
+      showTeamStatsModal: false,
+      selectedTeamId: null,
     };
   },
   mounted() {
@@ -198,6 +209,10 @@ export default {
     },
     navigateToTeams() {
       this.$router.push("/teams");
+    },
+    openTeamStatsModal(teamId) {
+      this.selectedTeamId = teamId;
+      this.showTeamStatsModal = true;
     },
   },
 };

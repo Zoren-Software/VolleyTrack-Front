@@ -1,0 +1,48 @@
+query teamPerformanceAnalysisDetail($teamId: ID!) {
+  teamPerformanceAnalysisDetail(teamId: $teamId) {
+    team {
+      id
+      name
+      teamCategory {
+        id
+        name
+      }
+      teamLevel {
+        id
+        name
+      }
+    }
+    playersCount
+    trainingsCount
+    totalTrainingsCount
+    averagePresencePercentage
+    players {
+      player {
+        id
+        name
+        displayName
+        positions {
+          id
+          name
+        }
+      }
+      presencePercentage
+      trainingsCount
+      presencesCount
+      totalTrainingsCount
+      pendingTrainingsCount
+      rank
+      topFundamentals {
+        fundamental {
+          id
+          name
+        }
+        totalA
+        totalB
+        totalC
+        grandTotal
+      }
+    }
+  }
+}
+
