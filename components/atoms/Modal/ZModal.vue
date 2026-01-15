@@ -12,6 +12,7 @@
     close-button
     :no-dismiss="false"
     class="z-modal"
+    style="z-index: 1001"
   >
     <template #header>
       <h5 class="font-bold text-lg va-h5">
@@ -86,7 +87,6 @@ export default {
   justify-content: flex-end;
   gap: 12px;
 }
-
 
 :deep(.z-modal .va-button) {
   border-radius: 8px;
