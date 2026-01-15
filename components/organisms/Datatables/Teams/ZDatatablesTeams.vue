@@ -763,6 +763,16 @@ export default defineComponent({
   color: white !important;
 }
 
+.stats-btn :deep(.va-icon),
+.stats-btn :deep(.material-icons) {
+  color: white !important;
+}
+
+.stats-btn:hover :deep(.va-icon),
+.stats-btn:hover :deep(.material-icons) {
+  color: white !important;
+}
+
 .edit-btn {
   background-color: #1976d2 !important;
   color: white !important;

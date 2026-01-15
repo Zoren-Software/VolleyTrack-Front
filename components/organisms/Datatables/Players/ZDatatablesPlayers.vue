@@ -1149,10 +1149,20 @@ export default defineComponent({
   color: white !important;
 }
 
+.stats-btn.action-btn :deep(.va-icon),
+.stats-btn.action-btn :deep(.material-icons) {
+  color: white !important;
+}
+
 .stats-btn.action-btn:hover {
   background-color: #d6652a !important;
   transform: translateY(-1px);
   box-shadow: 0 2px 8px rgba(233, 116, 43, 0.4);
+}
+
+.stats-btn.action-btn:hover :deep(.va-icon),
+.stats-btn.action-btn:hover :deep(.material-icons) {
+  color: white !important;
 }
 
 .edit-btn.action-btn {
