@@ -53,8 +53,13 @@ POST https://api.stripe.com/v1/payment_pages 400 (Bad Request)
 Certifique-se de que o arquivo `.env` contém:
 
 ```bash
+# Chave pública (pode ser exposta no cliente)
+# Usa prefixo NUXT_PUBLIC_ para variáveis públicas
 NUXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
-NUXT_PUBLIC_STRIPE_SECRET_KEY=sk_test_...
+
+# Chave secreta (apenas servidor)
+# Usa prefixo NUXT_ (sem PUBLIC_) para variáveis privadas
+NUXT_STRIPE_SECRET_KEY=sk_test_...
 ```
 
 #### Configuração do Nuxt
@@ -62,12 +67,23 @@ O `nuxt.config.ts` deve incluir:
 
 ```typescript
 runtimeConfig: {
+  // Variável privada (apenas servidor) - NÃO exposta no cliente
+  // Usa prefixo NUXT_ (sem PUBLIC_) no .env
+  stripeSecretKey: '', // NUXT_STRIPE_SECRET_KEY
+  
+  // Variáveis públicas (acessíveis no cliente)
+  // Usam prefixo NUXT_PUBLIC_ no .env
   public: {
     stripePublishableKey: '', // NUXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-    stripeSecretKey: '', // NUXT_PUBLIC_STRIPE_SECRET_KEY
   }
 }
 ```
+
+**⚠️ Segurança e Padrão Nuxt 3:**
+- Variáveis **privadas** (apenas servidor) usam prefixo `NUXT_` no `.env` (ex: `NUXT_STRIPE_SECRET_KEY`)
+- Variáveis **públicas** (cliente + servidor) usam prefixo `NUXT_PUBLIC_` no `.env` (ex: `NUXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`)
+- A `stripeSecretKey` nunca deve ter o prefixo `NUXT_PUBLIC_` pois isso a exporia no cliente
+- Sem o prefixo `NUXT_` ou `NUXT_PUBLIC_`, as variáveis não serão capturadas pelo `runtimeConfig` em produção
 
 ### 5. Verificação de Produtos e Preços
 

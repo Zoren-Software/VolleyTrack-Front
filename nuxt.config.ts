@@ -34,10 +34,15 @@ export default defineNuxtConfig({
     },
   },
   runtimeConfig: {
+    // Variáveis privadas (apenas servidor) - NÃO expostas no cliente
+    // Usam prefixo NUXT_ (sem PUBLIC_) no .env
+    stripeSecretKey: '', // can be overridden by NUXT_STRIPE_SECRET_KEY environment variable
+    
+    // Variáveis públicas (acessíveis no cliente e servidor)
+    // Usam prefixo NUXT_PUBLIC_ no .env
     public: {
       tawkto: '', // can be overridden by NUXT_PUBLIC_TAWKTO environment variable
       nameApplication: '', // can be overridden by NUXT_PUBLIC_NAME_APPLICATION environment variable
-      stripeSecretKey: '', // can be overridden by NUXT_PUBLIC_STRIPE_SECRET_KEY environment variable
       stripePublishableKey: '', // can be overridden by NUXT_PUBLIC_STRIPE_PUBLISHABLE_KEY environment variable
       apiEndpoint: env.API_ENDPOINT || 'http://api.volleytrack.local',
     }

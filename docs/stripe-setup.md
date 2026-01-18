@@ -35,12 +35,23 @@ No `nuxt.config.ts`, as configurações já estão prontas:
 
 ```typescript
 runtimeConfig: {
+  // Variável privada (apenas servidor) - NÃO exposta no cliente
+  // Usa prefixo NUXT_ (sem PUBLIC_) no .env
+  stripeSecretKey: '', // NUXT_STRIPE_SECRET_KEY
+  
+  // Variáveis públicas (acessíveis no cliente)
+  // Usam prefixo NUXT_PUBLIC_ no .env
   public: {
     stripePublishableKey: '', // NUXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-    stripeSecretKey: '', // NUXT_PUBLIC_STRIPE_SECRET_KEY
   }
 }
 ```
+
+**⚠️ Importante:**
+- `stripeSecretKey` é **privada** e só pode ser usada no servidor (server-side)
+- `stripePublishableKey` é **pública** e pode ser usada no cliente (client-side)
+- A chave secreta nunca deve ser exposta no frontend por questões de segurança
+- **Padrão Nuxt 3**: Variáveis privadas usam `NUXT_`, variáveis públicas usam `NUXT_PUBLIC_`
 
 ## 🧪 Testando a Integração
 
