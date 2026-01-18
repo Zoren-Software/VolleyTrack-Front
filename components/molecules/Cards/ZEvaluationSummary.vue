@@ -30,28 +30,28 @@
         <h4 class="chart-title">Performance por Fundamentos</h4>
         <div class="charts-container">
           <!-- Gráficos de Barras -->
-        <div class="chart-bars">
-          <div
-            v-for="fundamental in fundamentalsData"
-            :key="fundamental.id"
-            class="chart-bar-group"
-          >
-            <div class="fundamental-name">{{ fundamental.name }}</div>
-            <div class="bar-container">
-              <div
-                class="bar-segment bar-a"
-                :style="{ width: fundamental.aPercentage + '%' }"
-              ></div>
-              <div
-                class="bar-segment bar-b"
-                :style="{ width: fundamental.bPercentage + '%' }"
-              ></div>
-              <div
-                class="bar-segment bar-c"
-                :style="{ width: fundamental.cPercentage + '%' }"
-              ></div>
-            </div>
-            <div class="bar-total">{{ fundamental.total }}</div>
+          <div class="chart-bars">
+            <div
+              v-for="fundamental in fundamentalsData"
+              :key="fundamental.id"
+              class="chart-bar-group"
+            >
+              <div class="fundamental-name">{{ fundamental.name }}</div>
+              <div class="bar-container">
+                <div
+                  class="bar-segment bar-a"
+                  :style="{ width: fundamental.aPercentage + '%' }"
+                ></div>
+                <div
+                  class="bar-segment bar-b"
+                  :style="{ width: fundamental.bPercentage + '%' }"
+                ></div>
+                <div
+                  class="bar-segment bar-c"
+                  :style="{ width: fundamental.cPercentage + '%' }"
+                ></div>
+              </div>
+              <div class="bar-total">{{ fundamental.total }}</div>
             </div>
           </div>
 

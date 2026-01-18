@@ -67,16 +67,16 @@ export default {
     },
     // Converte status de minúsculas (banco) para maiúsculas (enum GraphQL)
     convertStatusToGraphQL(status) {
-      if (!status) return 'PENDING';
+      if (!status) return "PENDING";
       const statusMap = {
-        'pending': 'PENDING',
-        'finished': 'FINISHED',
-        'cancelled': 'CANCELLED',
-        'PENDING': 'PENDING',
-        'FINISHED': 'FINISHED',
-        'CANCELLED': 'CANCELLED',
+        pending: "PENDING",
+        finished: "FINISHED",
+        cancelled: "CANCELLED",
+        PENDING: "PENDING",
+        FINISHED: "FINISHED",
+        CANCELLED: "CANCELLED",
       };
-      return statusMap[status] || 'PENDING';
+      return statusMap[status] || "PENDING";
     },
     getTraining(fetchPolicyOptions = {}) {
       this.loading = true;
@@ -169,7 +169,7 @@ export default {
         // Se estiver na etapa 0 (Informações Essenciais), apenas mostra sucesso sem recarregar
         if (currentStep === 0) {
           confirmSuccess("Treino salvo com sucesso!");
-            this.errors = this.errorsDefault();
+          this.errors = this.errorsDefault();
           // Não recarrega os dados para preservar as presenças marcadas na etapa 2
           // this.getTraining({ fetchPolicy: 'network-only' });
         } else if (currentStep >= 2) {
@@ -403,7 +403,7 @@ export default {
           id: parseInt(form.id),
           name: form.name,
           description: form.description,
-          status: this.convertStatusToGraphQL('finished'), // Define status como finalizado
+          status: this.convertStatusToGraphQL("finished"), // Define status como finalizado
           teamId:
             form.teams && form.teams.length > 0
               ? parseInt(form.teams[0].id)
@@ -432,7 +432,7 @@ export default {
 
         confirmSuccess("Treino finalizado com sucesso!", () => {
           // Recarregar os dados do treino para atualizar o status
-          this.getTraining({ fetchPolicy: 'network-only' });
+          this.getTraining({ fetchPolicy: "network-only" });
         });
       } catch (error) {
         console.error(error);
@@ -456,7 +456,9 @@ export default {
 
           confirmError("Ocorreu um erro ao finalizar o treino!", footer);
         } else {
-          const errorMessage = error.graphQLErrors?.[0]?.message || "Ocorreu um erro ao finalizar o treino!";
+          const errorMessage =
+            error.graphQLErrors?.[0]?.message ||
+            "Ocorreu um erro ao finalizar o treino!";
           confirmError(errorMessage);
         }
       }
@@ -485,7 +487,7 @@ export default {
           id: parseInt(form.id),
           name: form.name,
           description: form.description,
-          status: this.convertStatusToGraphQL('pending'), // Volta para agendado
+          status: this.convertStatusToGraphQL("pending"), // Volta para agendado
           teamId:
             form.teams && form.teams.length > 0
               ? parseInt(form.teams[0].id)
@@ -514,7 +516,7 @@ export default {
 
         confirmSuccess("Finalização do treino cancelada com sucesso!", () => {
           // Recarregar os dados do treino para atualizar o status
-          this.getTraining({ fetchPolicy: 'network-only' });
+          this.getTraining({ fetchPolicy: "network-only" });
         });
       } catch (error) {
         console.error(error);
@@ -536,9 +538,14 @@ export default {
 
           const footer = errorMessages.join("<br>");
 
-          confirmError("Ocorreu um erro ao cancelar a finalização do treino!", footer);
+          confirmError(
+            "Ocorreu um erro ao cancelar a finalização do treino!",
+            footer
+          );
         } else {
-          const errorMessage = error.graphQLErrors?.[0]?.message || "Ocorreu um erro ao cancelar a finalização do treino!";
+          const errorMessage =
+            error.graphQLErrors?.[0]?.message ||
+            "Ocorreu um erro ao cancelar a finalização do treino!";
           confirmError(errorMessage);
         }
       }
@@ -567,7 +574,7 @@ export default {
           id: parseInt(form.id),
           name: form.name,
           description: form.description,
-          status: this.convertStatusToGraphQL('cancelled'), // Cancela o treino
+          status: this.convertStatusToGraphQL("cancelled"), // Cancela o treino
           teamId:
             form.teams && form.teams.length > 0
               ? parseInt(form.teams[0].id)
@@ -596,7 +603,7 @@ export default {
 
         confirmSuccess("Treino cancelado com sucesso!", () => {
           // Recarregar os dados do treino para atualizar o status
-          this.getTraining({ fetchPolicy: 'network-only' });
+          this.getTraining({ fetchPolicy: "network-only" });
         });
       } catch (error) {
         console.error(error);
@@ -620,7 +627,9 @@ export default {
 
           confirmError("Ocorreu um erro ao cancelar o treino!", footer);
         } else {
-          const errorMessage = error.graphQLErrors?.[0]?.message || "Ocorreu um erro ao cancelar o treino!";
+          const errorMessage =
+            error.graphQLErrors?.[0]?.message ||
+            "Ocorreu um erro ao cancelar o treino!";
           confirmError(errorMessage);
         }
       }
@@ -649,7 +658,7 @@ export default {
           id: parseInt(form.id),
           name: form.name,
           description: form.description,
-          status: this.convertStatusToGraphQL('pending'), // Reativa o treino
+          status: this.convertStatusToGraphQL("pending"), // Reativa o treino
           teamId:
             form.teams && form.teams.length > 0
               ? parseInt(form.teams[0].id)
@@ -678,7 +687,7 @@ export default {
 
         confirmSuccess("Treino reativado com sucesso!", () => {
           // Recarregar os dados do treino para atualizar o status
-          this.getTraining({ fetchPolicy: 'network-only' });
+          this.getTraining({ fetchPolicy: "network-only" });
         });
       } catch (error) {
         console.error(error);
@@ -702,7 +711,9 @@ export default {
 
           confirmError("Ocorreu um erro ao reativar o treino!", footer);
         } else {
-          const errorMessage = error.graphQLErrors?.[0]?.message || "Ocorreu um erro ao reativar o treino!";
+          const errorMessage =
+            error.graphQLErrors?.[0]?.message ||
+            "Ocorreu um erro ao reativar o treino!";
           confirmError(errorMessage);
         }
       }

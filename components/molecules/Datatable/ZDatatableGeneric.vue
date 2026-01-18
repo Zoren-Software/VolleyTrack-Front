@@ -102,15 +102,15 @@
               </div>
             </div>
             <div class="pagination-controls">
-            <va-pagination
-              v-model="currentPageActive"
-              :pages="paginatorInfo.lastPage"
-              :visible-pages="5"
-              buttons-preset="secondary"
+              <va-pagination
+                v-model="currentPageActive"
+                :pages="paginatorInfo.lastPage"
+                :visible-pages="5"
+                buttons-preset="secondary"
                 size="small"
-              rounded
-              gapped
-            />
+                rounded
+                gapped
+              />
             </div>
           </div>
         </td>

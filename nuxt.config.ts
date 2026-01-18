@@ -18,6 +18,22 @@ export default defineNuxtConfig({
         'localhost',
         'local',
       ],
+      watch: {
+        // Ignorar arquivos e pastas para reduzir file watchers
+        ignored: [
+          '**/node_modules/**',
+          '**/.git/**',
+          '**/.nuxt/**',
+          '**/.output/**',
+          '**/dist/**',
+          '**/coverage/**',
+          '**/*.log',
+          '**/.DS_Store',
+          '**/pnpm-lock.yaml',
+          '**/package-lock.json',
+          '**/yarn.lock',
+        ],
+      },
     },
   },
   apollo: {

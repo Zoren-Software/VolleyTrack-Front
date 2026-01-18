@@ -1,7 +1,7 @@
 <template>
   <div class="training-cell">
     <div class="training-header">
-    <div class="training-id">Treino #{{ data.id }}</div>
+      <div class="training-id">Treino #{{ data.id }}</div>
       <div class="training-status-badge" :class="statusClass">
         {{ statusLabel }}
       </div>
@@ -10,8 +10,10 @@
     <div v-if="isBeforeTrainingDate()" class="training-metrics">
       <div class="metrics-header">
         <span class="metrics-label">Confirmações de Treino</span>
-        <span class="metrics-percentage">{{ roundedConfirmationTraining }}%</span>
-    </div>
+        <span class="metrics-percentage"
+          >{{ roundedConfirmationTraining }}%</span
+        >
+      </div>
       <div class="progress-bar-container">
         <div
           class="progress-bar-fill"
@@ -22,7 +24,9 @@
     <div v-else class="training-metrics">
       <div class="metrics-header">
         <span class="metrics-label">Presença no Treino</span>
-        <span class="metrics-percentage success">{{ roundedConfirmationPresence }}%</span>
+        <span class="metrics-percentage success"
+          >{{ roundedConfirmationPresence }}%</span
+        >
       </div>
       <div class="progress-bar-container">
         <div
@@ -61,30 +65,38 @@ export default {
     },
     status() {
       // Usar displayStatus se disponível, caso contrário usar status
-      return this.data.displayStatus || this.data.status || 'pending';
+      return this.data.displayStatus || this.data.status || "pending";
     },
     statusLabel() {
       const statusMap = {
-        pending: 'Agendado',
-        pending_action: 'Pendente ação',
-        finished: 'Finalizado',
-        cancelled: 'Cancelado',
+        pending: "Agendado",
+        pending_action: "Pendente ação",
+        finished: "Finalizado",
+        cancelled: "Cancelado",
       };
-      return statusMap[this.status.toLowerCase()] || 'Agendado';
+      return statusMap[this.status.toLowerCase()] || "Agendado";
     },
     statusClass() {
       const status = this.status.toLowerCase();
       return {
-        'status-pending': status === 'pending',
-        'status-pending-action': status === 'pending_action',
-        'status-finished': status === 'finished',
-        'status-cancelled': status === 'cancelled',
+        "status-pending": status === "pending",
+        "status-pending-action": status === "pending_action",
+        "status-finished": status === "finished",
+        "status-cancelled": status === "cancelled",
       };
     },
   },
   methods: {
     isBeforeTrainingDate() {
       return new Date(this.data.dateStart) > new Date();
+    },
+  },
+  computed: {
+    metricsConfirmationTraining() {
+      return this.metrics.confirmedPercentage + this.metrics.rejectedPercentage;
+    },
+    metricsConfirmationPresence() {
+      return this.metrics.presencePercentage;
     },
   },
 };
