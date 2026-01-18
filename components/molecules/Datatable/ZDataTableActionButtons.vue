@@ -7,7 +7,7 @@
       v-if="buttonActionDelete"
       color="danger"
       class="mr-3"
-      :disabled="!(selectedItemsEmitted.length > 1)"
+      :disabled="selectedItemsEmitted.length === 0"
       @click="actionDelete"
       >{{ textButtonDelete }}</ZButton
     >

@@ -15,21 +15,23 @@
   <div class="mt-3 mb-3">
     <va-divider />
   </div>
-  <va-button to="/notifications" size="small" class="mr-6 mb-2 mr-5">
-    Ver todas as notificações
-  </va-button>
-  <va-button
-    size="small"
-    class="mr-6 mb-2"
-    @click="
-      clear({
-        recentToDeleteCount: 5,
-        markAllAsRead: false,
-      })
-    "
-  >
-    Limpar
-  </va-button>
+  <div class="notification-actions">
+    <va-button size="small" class="mr-6 mb-2 mr-5" @click="goToNotifications">
+      Ver todas as notificações
+    </va-button>
+    <va-button
+      size="small"
+      class="mr-6 mb-2"
+      @click="
+        clear({
+          recentToDeleteCount: 5,
+          markAllAsRead: false,
+        })
+      "
+    >
+      Limpar
+    </va-button>
+  </div>
 </template>
 
 <script>
@@ -142,6 +144,9 @@ export default {
 
     errorsDefault() {
       return {};
+    },
+    goToNotifications() {
+      this.$router.push("/notifications");
     },
   },
 };

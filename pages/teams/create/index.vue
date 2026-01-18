@@ -1,16 +1,23 @@
 <template>
-  <ZTeamForm
-    @save="create"
-    :loading="loading"
-    :errorFields="errorFields"
-    :errors="errors"
-  />
+  <div class="create-team-page">
+    <div class="page-header">
+      <h1 class="title">Cadastro de Time</h1>
+      <p class="subtitle">Crie um novo time para sua equipe</p>
+    </div>
+    <ZTeamForm
+      @save="create"
+      :loading="loading"
+      :errorFields="errorFields"
+      :errors="errors"
+    />
+  </div>
 </template>
 
 <script>
 import ZTeamForm from "~/components/organisms/Forms/Team/ZTeamForm";
 import TEAMCREATE from "~/graphql/team/mutation/teamCreate.graphql";
-import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
+import { confirmSuccess } from "~/utils/sweetAlert2/swalHelper";
+import { handleMutation } from "~/utils/graphql/mutationHandler";
 import moment from "moment";
 
 export default {
@@ -35,57 +42,50 @@ export default {
       };
     },
     async create(form) {
+      this.loading = true;
+      this.error = false;
+
       try {
-        this.loading = true;
-        this.error = false;
+        await handleMutation(
+          async () => {
+            const query = gql`
+              ${TEAMCREATE}
+            `;
 
-        const query = gql`
-          ${TEAMCREATE}
-        `;
+            const variables = {
+              name: form.name,
+              playerId: form.users.map((item) => item.id),
+              teamCategoryId: form.teamCategory.value,
+              teamLevelId: form.teamLevel.value,
+            };
 
-        const variables = {
-          name: form.name,
-          playerId: form.users.map((item) => item.id),
-          teamCategoryId: form.teamCategory.value,
-          teamLevelId: form.teamLevel.value,
-        };
+            const { mutate } = await useMutation(query, { variables });
+            return await mutate();
+          },
+          {
+            onSuccess: (data) => {
+              confirmSuccess("Time salvo com sucesso!", () => {
+                this.errors = this.errorsDefault();
+                this.$router.push("/teams");
+              });
+            },
+            onError: (error) => {
+              this.error = true;
 
-        const { mutate } = await useMutation(query, { variables });
-
-        const { data } = await mutate();
-
-        confirmSuccess("Time salvo com sucesso!", () => {
-          this.errors = this.errorsDefault();
-
-          this.$router.push("/teams");
-        });
-      } catch (error) {
-        console.error(error);
-        this.error = true;
-
-        if (
-          error.graphQLErrors &&
-          error.graphQLErrors[0] &&
-          error.graphQLErrors[0].extensions &&
-          error.graphQLErrors[0].extensions.validation
-        ) {
-          this.errors = error.graphQLErrors[0].extensions.validation;
-
-          const errorMessages = Object.values(this.errors).map((item) => {
-            return item[0];
-          });
-
-          this.errorFields = Object.keys(this.errors);
-
-          // criar um título para essas validacões que seram mostradas
-          const footer = errorMessages.join("<br>");
-
-          confirmError("Ocorreu um erro ao salvar o time!", footer);
-        } else {
-          confirmError("Ocorreu um erro ao salvar o time!");
-        }
+              if (
+                error.graphQLErrors &&
+                error.graphQLErrors[0]?.extensions?.validation
+              ) {
+                this.errors = error.graphQLErrors[0].extensions.validation;
+                this.errorFields = Object.keys(this.errors);
+              }
+            },
+            errorTitle: "Ocorreu um erro ao salvar o time!",
+          }
+        );
+      } finally {
+        this.loading = false;
       }
-      this.loading = false;
     },
   },
 };
@@ -96,3 +96,25 @@ useHead({
   titleTemplate: "Criar Time",
 });
 </script>
+
+<style scoped>
+.create-team-page {
+  width: 100%;
+}
+
+.page-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.title {
+  font-size: 30px;
+  font-weight: bold;
+  color: #0b1e3a;
+}
+
+.subtitle {
+  font-size: 16px;
+  color: #6c757d;
+}
+</style>

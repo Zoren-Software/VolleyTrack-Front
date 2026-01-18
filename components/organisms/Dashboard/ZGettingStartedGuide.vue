@@ -1,300 +1,252 @@
 <template>
-  <VaAccordion v-model="valueAccordion" class="max-w-sm" multiple>
-    <VaCollapse header="Guia de Primeiros Passos">
-      <template #content>
-        <h4 class="va-h4">Primeiros Passos no VolleyTrack</h4>
-        <p class="va-text-secondary py-3">
-          Bem-vindo ao VolleyTrack, a plataforma que transforma a gestão de
-          equipes de vôlei.
-          <br />
-          <span class="va-text-success">Inicie seu caminho para o sucesso</span>
-          organizando suas informações essenciais de maneira simples e
-          eficiente.
-          <br />
-          <br />
-          Vamos começar?
-        </p>
-        <p class="va-text-secondary py-3">
-          Para prosseguir, siga os passos abaixo:
-        </p>
-        <div class="row">
-          <div class="flex flex-col pr-3 md4">
-            <div class="item">
-              <ZCardRegisters
-                :step="step"
-                :stepDisabled="0"
-                @click="redirectCreatePlayers()"
-                stripe
-                title="Registrar Jogadores"
-                textButton="Adicionar Jogadores"
-                icon="person"
-              >
-                <p>
-                  Adicione detalhes dos jogadores para formar uma base sólida
-                  para sua equipe.
-                </p>
-              </ZCardRegisters>
-            </div>
-          </div>
-          <div class="flex flex-col pr-3 md4">
-            <div class="item">
-              <ZCardRegisters
-                :step="step"
-                :stepDisabled="1"
-                @click="redirectCreateTeams()"
-                stripe
-                title="Registrar Times"
-                textButton="Adicionar Times"
-                icon="group"
-              >
-                <p>
-                  Organize seus times de maneira eficaz, registrando cada
-                  detalhe importante.
-                </p>
-              </ZCardRegisters>
-            </div>
-          </div>
-          <div class="flex flex-col pr-3 md4">
-            <div class="item">
-              <ZCardRegisters
-                :step="step"
-                :stepDisabled="2"
-                @click="redirectCreateTrainings()"
-                stripe
-                title="Registrar Treinos"
-                textButton="Adicionar Treinos"
-                icon="fitness_center"
-              >
-                <p>
-                  Planeje e registre treinos para maximizar o desempenho e a
-                  preparação da equipe.
-                </p>
-              </ZCardRegisters>
-            </div>
-          </div>
-        </div>
-        <div class="row">
-          <div class="flex flex-col md12">
-            <div class="item stepper-custom">
-              <VaStepper
-                v-model="step"
-                :steps="steps"
-                color="danger"
-                linear
-                navigationDisabled
-                controls-hidden
-              >
-                <template #divider>
-                  <div class="divider gradient" />
-                </template>
-                <template
-                  v-for="(step, i) in steps"
-                  :key="i"
-                  #[`step-button-${i}`]="{ setStep, isActive, isCompleted }"
-                >
-                  <div
-                    class="step-button"
-                    :class="{
-                      'step-button--active': isActive,
-                      'step-button--completed': isCompleted,
-                    }"
-                    @click="
-                      () => {
-                        setStep(i);
-                        updateStepIcon(i);
-                      }
-                    "
-                  >
-                    <VaIcon :name="step.icon" />
-                  </div>
-                </template>
-              </VaStepper>
-            </div>
-          </div>
-        </div>
-        <p
-          class="va-text-secondary text-center py-3 px-3 va-text-center"
-          v-if="step == 3"
+  <div class="getting-started-guide">
+    <div class="welcome-section">
+      <h1 class="welcome-title">
+        Bem-vindo ao <span class="highlight">VolleyTrack</span>!
+      </h1>
+      <p class="welcome-subtitle">
+        Comece a gerenciar suas equipes de vôlei em minutos.
+        <br />
+        <strong
+          >Quanto mais você configurar, mais completo será o acompanhamento da
+          sua equipe!</strong
         >
-          Registros iniciais finalizados!
-        </p>
-      </template>
-    </VaCollapse>
-  </VaAccordion>
+      </p>
+    </div>
+
+    <div class="progress-section">
+      <h2 class="progress-title">Progresso da Configuração</h2>
+      <div class="progress-bar">
+        <div class="progress-bar-fill" :style="{ width: progress + '%' }"></div>
+      </div>
+      <p class="progress-text">{{ progress }}% concluído</p>
+    </div>
+
+    <div class="steps-section">
+      <div
+        class="step-card"
+        :class="{ completed: steps.registerPlayers.completed }"
+      >
+        <div class="step-icon">
+          <va-icon
+            name="check"
+            color="#28A745"
+            v-if="steps.registerPlayers.completed"
+          />
+          <va-icon name="person-add" color="#E9742B" v-else />
+        </div>
+        <div class="step-content">
+          <h3 class="step-title">Registrar Jogadores</h3>
+          <p class="step-description">Adicione os jogadores da sua equipe.</p>
+        </div>
+        <div
+          v-if="steps.registerPlayers.completed"
+          class="status-tag status-completed"
+        >
+          ✓ Concluído
+        </div>
+        <va-button v-else color="orange" @click="navigateTo('/players')">
+          Adicionar
+        </va-button>
+      </div>
+
+      <div
+        class="step-card"
+        :class="{ completed: steps.registerTeams.completed }"
+      >
+        <div class="step-icon">
+          <va-icon
+            name="check"
+            color="#28A745"
+            v-if="steps.registerTeams.completed"
+          />
+          <va-icon name="group" color="#E9742B" v-else />
+        </div>
+        <div class="step-content">
+          <h3 class="step-title">Registrar Times</h3>
+          <p class="step-description">Organize seus times.</p>
+        </div>
+        <div
+          v-if="steps.registerTeams.completed"
+          class="status-tag status-completed"
+        >
+          ✓ Concluído
+        </div>
+        <va-button v-else color="orange" @click="navigateTo('/teams')">
+          Adicionar
+        </va-button>
+      </div>
+
+      <div
+        class="step-card"
+        :class="{ completed: steps.registerTrainings.completed }"
+      >
+        <div class="step-icon">
+          <va-icon
+            name="check"
+            color="#28A745"
+            v-if="steps.registerTrainings.completed"
+          />
+          <va-icon name="schedule" color="#6C757D" v-else />
+        </div>
+        <div class="step-content">
+          <h3 class="step-title">Registrar Treinos</h3>
+          <p class="step-description">Planeje e registre os treinos.</p>
+        </div>
+        <div
+          v-if="steps.registerTrainings.completed"
+          class="status-tag status-completed"
+        >
+          ✓ Concluído
+        </div>
+        <va-button
+          v-else
+          :color="steps.registerTeams.completed ? 'orange' : 'secondary'"
+          :disabled="!steps.registerTeams.completed"
+          @click="navigateTo('/trainings')"
+        >
+          Adicionar
+        </va-button>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script>
-import ZCard from "~/components/atoms/Cards/ZCard";
-import ZButton from "~/components/atoms/Buttons/ZButton";
-import ZCardRegisters from "~/components/molecules/Cards/ZCardRegisters.vue";
-import { ref, watch, defineProps } from "vue";
-import { VaIcon } from "vuestic-ui";
-
 export default {
-  components: {
-    ZCard,
-    ZButton,
-    ZCardRegisters,
-  },
-
   data() {
     return {
-      token: "",
-      user: {},
+      progress: 33, // Progresso da configuração
+      steps: {
+        registerPlayers: { completed: true },
+        registerTeams: { completed: false },
+        registerTrainings: { completed: false },
+      },
     };
   },
-  mounted() {
-    this.token = localStorage.getItem("userToken") ?? "sem token";
-    this.user = JSON.parse(localStorage.getItem("user"));
-  },
-
   methods: {
-    redirectCreatePlayers() {
-      this.$router.push("/players/create");
-    },
-    redirectCreateTeams() {
-      this.$router.push("/teams/create");
-    },
-    redirectCreateTrainings() {
-      this.$router.push("/trainings/create");
+    navigateTo(route) {
+      this.$router.push(route);
     },
   },
 };
-</script>
-
-<script setup>
-const step = computed(() => {
-  if (props.totalTrainings >= 1) {
-    return 3;
-  } else if (props.totalTeams >= 1) {
-    return 2;
-  } else if (props.totalUsers >= 1) {
-    return 1;
-  }
-  return 0;
-});
-
-let valueAccordion = ref([true]);
-
-const props = defineProps({
-  totalUsers: {
-    type: Number,
-    default: 0,
-  },
-  totalTeams: {
-    type: Number,
-    default: 0,
-  },
-  totalTrainings: {
-    type: Number,
-    default: 0,
-  },
-});
-watch(step, (newValue) => {
-  if (newValue === 3) {
-    valueAccordion = [false];
-  } else {
-    valueAccordion = [true];
-  }
-});
-
-watch(
-  () => [props.totalUsers, props.totalTeams, props.totalTrainings],
-  ([users, teams, trainings]) => {
-    if (trainings >= 1) {
-      step.value = 3;
-    } else if (teams >= 1) {
-      step.value = 2;
-    } else if (users >= 1) {
-      step.value = 1;
-    } else {
-      step.value = 0;
-    }
-  },
-  { immediate: true }
-);
-
-let steps = [
-  {
-    label: "Jogadores",
-    icon: "person",
-    originalIcon: "person",
-    completedIcon: "check",
-  },
-  {
-    label: "Times",
-    icon: "group",
-    originalIcon: "group",
-    completedIcon: "check",
-  },
-  {
-    label: "Treinos",
-    icon: "fitness_center",
-    originalIcon: "fitness_center",
-    completedIcon: "check",
-  },
-];
-
-const updateStepIcon = (currentStep) => {
-  steps.forEach((step, index) => {
-    if (index < currentStep) {
-      step.icon = step.completedIcon;
-    }
-  });
-};
-
-watch(step, (newValue, oldValue) => {
-  if (newValue > oldValue) {
-    // Avançando para o próximo step
-    steps[oldValue].icon = steps[oldValue].completedIcon;
-  } else if (newValue < oldValue) {
-    // Retrocedendo para o step anterior
-    steps[newValue].icon = steps[newValue].originalIcon;
-  }
-});
 </script>
 
 <style scoped>
-.stepper-custom {
-  padding-right: 12rem;
-  padding-left: 12rem;
-  margin-top: 2rem;
-}
-.gradient {
-  background: linear-gradient(90deg, #f1aa30 0%, #fd1d1d 100%);
-}
-
-.divider {
-  flex-grow: 1;
-  margin: 0 1rem;
-  height: 2px;
-  width: 2rem;
-  border-radius: 1rem;
-}
-
-.step-button {
+.getting-started-guide {
+  background-color: #f8f9fa; /* Mantém a mesma cor de fundo */
+  padding: 40px 20px;
+  text-align: center;
   display: flex;
-  gap: 1rem;
-  color: white;
-  background-color: var(--va-secondary);
-  padding: 0.8rem;
-  border-radius: 50%;
-  transition: all 0.2s;
+  flex-direction: column;
+  align-items: center;
 }
 
-.step-button--active {
-  color: white;
-  background-color: var(--va-primary);
-  border-radius: 50%;
-  transition: all 0.2s;
+.welcome-section {
+  margin-bottom: 40px;
+  max-width: 800px;
 }
 
-.step-button--completed {
-  color: white;
-  background-color: var(--va-success);
+.welcome-title {
+  font-size: 32px;
+  font-weight: bold;
+  color: #0b1e3a;
 }
 
-.step-success {
-  color: var(--va-success);
+.highlight {
+  color: #e9742b;
+}
+
+.welcome-subtitle {
+  font-size: 18px;
+  color: #6c757d;
+}
+
+.progress-section {
+  margin-bottom: 40px;
+  max-width: 600px;
+  width: 100%;
+}
+
+.progress-title {
+  font-size: 20px;
+  font-weight: bold;
+  color: #0b1e3a;
+}
+
+.progress-bar {
+  background-color: #e9ecef;
+  border-radius: 8px;
+  height: 12px;
+  margin: 10px auto;
+  width: 100%;
+  position: relative;
+}
+
+.progress-bar-fill {
+  background-color: #e9742b;
+  height: 100%;
+  border-radius: 8px;
+}
+
+.progress-text {
+  font-size: 16px;
+  color: #6c757d;
+}
+
+.steps-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 600px;
+  width: 100%;
+}
+
+.step-card {
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.step-card.completed {
+  border-left: 4px solid #28a745;
+}
+
+.step-icon {
+  flex-shrink: 0;
+  margin-right: 20px;
+}
+
+.step-content {
+  flex-grow: 1;
+  text-align: left;
+}
+
+.step-title {
+  font-size: 18px;
+  font-weight: bold;
+  color: #0b1e3a;
+}
+
+.step-description {
+  font-size: 14px;
+  color: #6c757d;
+}
+
+.status-tag {
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 14px;
+  font-weight: bold;
+  display: inline-block;
+}
+
+.status-completed {
+  background-color: #e8f8f1;
+  color: #28a745;
 }
 </style>

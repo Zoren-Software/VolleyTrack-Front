@@ -1,12 +1,18 @@
 <template>
-  <ZTrainingForm
-    ref="trainingForm"
-    @save="create"
-    @saveAndContinue="createAndContinue"
-    :loading="loading"
-    :errorFields="errorFields"
-    :errors="errors"
-  />
+  <div class="create-training-page">
+    <div class="page-header">
+      <h1 class="title">Cadastro de Treino</h1>
+      <p class="subtitle">Crie um novo treino para sua equipe</p>
+    </div>
+    <ZTrainingForm
+      ref="trainingForm"
+      @save="create"
+      @saveAndContinue="createAndContinue"
+      :loading="loading"
+      :errorFields="errorFields"
+      :errors="errors"
+    />
+  </div>
 </template>
 
 <script>
@@ -56,9 +62,20 @@ export default {
         const variables = {
           name: form.name,
           description: form.description,
-          teamId: parseInt(form.teams.map((item) => item.id)[0]),
-          fundamentalId: form.fundamentals.map((item) => item.id),
-          specificFundamentalId: form.fundamentals.map((item) => item.id),
+          teamId:
+            form.teams && form.teams.length > 0
+              ? parseInt(form.teams[0].id)
+              : null,
+          fundamentalId: form.fundamentals
+            ? form.fundamentals
+                .map((item) => item.id)
+                .filter((id) => id != null)
+            : [],
+          specificFundamentalId: form.specificFundamentals
+            ? form.specificFundamentals
+                .map((item) => item.id)
+                .filter((id) => id != null)
+            : [],
           dateStart,
           dateEnd,
         };
@@ -121,9 +138,20 @@ export default {
         const variables = {
           name: form.name,
           description: form.description,
-          teamId: parseInt(form.teams.map((item) => item.id)[0]),
-          fundamentalId: form.fundamentals.map((item) => item.id),
-          specificFundamentalId: form.fundamentals.map((item) => item.id),
+          teamId:
+            form.teams && form.teams.length > 0
+              ? parseInt(form.teams[0].id)
+              : null,
+          fundamentalId: form.fundamentals
+            ? form.fundamentals
+                .map((item) => item.id)
+                .filter((id) => id != null)
+            : [],
+          specificFundamentalId: form.specificFundamentals
+            ? form.specificFundamentals
+                .map((item) => item.id)
+                .filter((id) => id != null)
+            : [],
           dateStart,
           dateEnd,
         };
@@ -171,3 +199,25 @@ useHead({
   titleTemplate: "Criar Treino",
 });
 </script>
+
+<style scoped>
+.create-training-page {
+  width: 100%;
+}
+
+.page-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.title {
+  font-size: 30px;
+  font-weight: bold;
+  color: #0b1e3a;
+}
+
+.subtitle {
+  font-size: 16px;
+  color: #6c757d;
+}
+</style>

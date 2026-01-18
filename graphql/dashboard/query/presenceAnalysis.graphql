@@ -1,0 +1,18 @@
+query presenceAnalysis($filter: DashboardSearchInput) {
+  presenceAnalysis(filter: $filter) {
+    generalPresenceRate
+    previousMonthComparison
+    totalConfirmations
+    totalPresences
+    totalAbsences
+    topTeamsByPresence {
+      team {
+        id
+        name
+      }
+      presencePercentage
+      previousMonthComparison
+    }
+  }
+}
+

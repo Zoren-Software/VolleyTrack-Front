@@ -29,6 +29,7 @@ mutation teamEdit(
     players {
       id
       name
+      displayName
       email
       userId
       emailVerifiedAt

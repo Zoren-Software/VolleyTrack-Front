@@ -20,18 +20,13 @@
         </VaSidebarItemTitle>
       </VaSidebarItemContent>
     </VaSidebarItem>
-    <ZNotificationSettingsForm v-model="openNotificationModal" />
   </VaSidebar>
 </template>
 
 <script>
-import ZNotificationSettingsForm from "~/components/organisms/Settings/ZNotificationSettingsForm.vue";
-
 export default {
   name: "ZSidebarSettings",
-  components: {
-    ZNotificationSettingsForm,
-  },
+  components: {},
   props: {
     modelValue: {
       type: Boolean,
@@ -41,7 +36,6 @@ export default {
   emits: ["update:modelValue"],
   data() {
     return {
-      openNotificationModal: false,
       menuSettings: [
         {
           title: "Configurações da Conta",
@@ -53,9 +47,7 @@ export default {
           title: "Configurações de Notificação",
           icon: "notifications",
           active: false,
-          action: () => {
-            this.openNotificationModal = true;
-          },
+          to: "/settings/notifications",
         },
         {
           title: "Fechar Configurações",

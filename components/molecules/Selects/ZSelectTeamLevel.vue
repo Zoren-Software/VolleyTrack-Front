@@ -32,7 +32,7 @@ export default {
   data() {
     return {
       hasMoreItems: true,
-      value: [],
+      value: null,
       loading: false,
       items: [],
       variablesGetTeams: {

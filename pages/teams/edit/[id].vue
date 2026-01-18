@@ -87,8 +87,8 @@ export default {
           id: form.id,
           name: form.name,
           playerId: form.users.map((item) => item.id),
-          teamCategoryId: form.teamCategory.value,
-          teamLevelId: form.teamLevel.value,
+          teamCategoryId: form.teamCategory?.value || form.teamCategory?.id,
+          teamLevelId: form.teamLevel?.value || form.teamLevel?.id,
         };
 
         const { mutate } = await useMutation(query, { variables });

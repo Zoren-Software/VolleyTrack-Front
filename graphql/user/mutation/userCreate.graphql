@@ -5,6 +5,8 @@ mutation userCreate(
   $rg: String
   $phone: String
   $birthDate: String
+  $nickname: String
+  $showNickname: Boolean
   $roleId: [Int!]!
   $positionId: [Int]
   $teamId: [Int]
@@ -18,6 +20,8 @@ mutation userCreate(
     rg: $rg
     phone: $phone
     birthDate: $birthDate
+    nickname: $nickname
+    showNickname: $showNickname
     roleId: $roleId
     positionId: $positionId
     teamId: $teamId
@@ -46,6 +50,8 @@ mutation userCreate(
       rg
       phone
       birthDate
+      nickname
+      showNickname
       createdAt
       updatedAt
     }

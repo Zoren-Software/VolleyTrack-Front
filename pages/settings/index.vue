@@ -1,11 +1,23 @@
 <template>
-  <ZSettingsForm
-    :data="data"
-    @save="edit"
-    :loading="loading"
-    :errorFields="errorFields"
-    :errors="errors"
-  />
+  <div class="list-page-container">
+    <!-- Page Header -->
+    <div class="page-header">
+      <div class="header-content">
+        <div>
+          <h1 class="page-title">Configurações</h1>
+          <p class="page-subtitle">Gerencie as configurações da sua conta</p>
+        </div>
+      </div>
+    </div>
+
+    <ZSettingsForm
+      :data="data"
+      @save="edit"
+      :loading="loading"
+      :errorFields="errorFields"
+      :errors="errors"
+    />
+  </div>
 </template>
 
 <script>
@@ -142,3 +154,51 @@ useHead({
   titleTemplate: "Configurações",
 });
 </script>
+
+<style scoped>
+.list-page-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.page-header {
+  margin-bottom: 32px;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.page-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #0b1e3a;
+  margin: 0 0 8px 0;
+  line-height: 1.2;
+}
+
+.page-subtitle {
+  font-size: 16px;
+  color: #6c757d;
+  margin: 0;
+  line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  .header-content {
+    flex-direction: column;
+  }
+
+  .page-title {
+    font-size: 24px;
+  }
+
+  .page-subtitle {
+    font-size: 14px;
+  }
+}
+</style>

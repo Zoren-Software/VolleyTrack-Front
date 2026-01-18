@@ -1,72 +1,173 @@
 <template>
-  <ZDatatableGeneric
-    buttonActionAdd
-    buttonActionDelete
-    includeActionsColumn
-    includeActionEditList
-    includeActionDeleteList
-    textAdvancedFilters
-    selectable
-    :items="items"
-    :columns="columns"
-    :loading="loading"
-    :paginatorInfo="paginatorInfo"
-    :filter="true"
-    @search="searchTrainings"
-    @actionSearch="getTeams"
-    @actionClear="clearSearch"
-    @add="addTeam"
-    @edit="editTeam"
-    @delete="deleteTeam"
-    @deletes="deleteTeams"
-    @update:currentPageActive="updateCurrentPageActive"
-  >
-    <!-- FILTER -->
-    <template #filter>
-      <!-- TODO - Pensar nos reais filtros que deveram existir aqui -->
-      <div class="row">
-        <div class="flex flex-col md6 mb-2">
-          <div class="item mr-2">
+  <div class="teams-listing">
+    <!-- Filter Card -->
+    <va-card class="filter-card">
+      <div class="filter-content">
+        <div class="search-section">
+          <label class="filter-label">Buscar</label>
+          <ZDataTableInputSearch
+            v-model="internalSearchValue"
+            placeholder="Nome do time..."
+            @actionSearch="handleSearch"
+          />
+        </div>
+        <div class="filters-section">
+          <div class="filter-item">
+            <label class="filter-label">Posição</label>
             <ZSelectPosition
-              label="Posições"
+              label=""
+              placeholder="Selecione uma posição"
               v-model="variablesGetTeams.filter.positionsIds"
               :teamsIds="variablesGetTeams.filter.teamsIds"
             />
           </div>
-        </div>
-        <div class="flex flex-col md6 mb-2">
-          <div class="item mr-2">
+          <div class="filter-item">
+            <label class="filter-label">Jogador</label>
             <ZSelectUser
-              label="Usuário Alteração"
-              v-model="variablesGetTeams.filter.usersIds"
-            />
-          </div>
-        </div>
-        <div class="flex flex-col md6 mb-2">
-          <div class="item mr-2">
-            <ZSelectUser
-              label="Jogadores"
+              label=""
+              placeholder="Selecione um jogador"
               v-model="variablesGetTeams.filter.playersIds"
             />
           </div>
         </div>
+        <div class="filter-actions">
+          <va-button
+            color="#E9742B"
+            class="search-button"
+            @click="handleSearch"
+          >
+            <va-icon name="search" class="button-icon" />
+            <span class="button-text">Pesquisar</span>
+          </va-button>
+        </div>
       </div>
-    </template>
+    </va-card>
 
-    <!-- CELL -->
-    <template #cell(name)="{ rowKey: { name } }">
-      {{ name }}
-    </template>
-    <template #cell(user)="{ rowKey: { user, createdAt, updatedAt } }">
-      <ZUser
-        :data="user || {}"
-        :createdAt="createdAt"
-        :updatedAt="updatedAt"
-        showUpdatedAt
-        showCreatedAt
-      />
-    </template>
-  </ZDatatableGeneric>
+    <!-- DataTable -->
+    <ZDatatableGeneric
+      :buttonActionAdd="false"
+      buttonActionDelete
+      includeActionsColumn
+      includeActionEditList
+      includeActionDeleteList
+      selectable
+      :items="items"
+      :columns="columns"
+      :loading="loading"
+      :paginatorInfo="paginatorInfo"
+      :filter="false"
+      @search="searchTeams"
+      @actionSearch="handleSearch"
+      @actionClear="clearSearch"
+      @update:search="searchTeams"
+      @add="addTeam"
+      @edit="editTeam"
+      @delete="deleteTeam"
+      @deletes="deleteTeams"
+      @update:currentPageActive="updateCurrentPageActive"
+    >
+      <!-- CELL -->
+      <template #cell(team)="{ rowKey }">
+        <ZTeam :data="rowKey" />
+      </template>
+      <template #cell(category)="{ rowKey: { teamCategory } }">
+        <ZBadgeCustom
+          :text="teamCategory?.name || 'Sem Categoria'"
+          backgroundColor="#F5F5F5"
+          textColor="#000000"
+        />
+      </template>
+      <template #cell(level)="{ rowKey: { teamLevel } }">
+        <ZBadgeCustom
+          :text="teamLevel?.name || 'Sem Nível Técnico'"
+          backgroundColor="#F5F5F5"
+          textColor="#000000"
+        />
+      </template>
+      <template #cell(players)="{ rowKey: { players } }">
+        <span>{{ players?.length || 0 }} Jogadores</span>
+      </template>
+      <!-- Botões de Ações na coluna de ações -->
+      <template #cell(actions)="{ rowKey }">
+        <div class="action-buttons-wrapper">
+          <va-button
+            icon="bar_chart"
+            color="#e9742b"
+            size="small"
+            class="stats-btn action-btn"
+            :title="'Ver estatísticas de ' + (rowKey.name || 'Time')"
+            @click="openStatsModal(rowKey.id)"
+          />
+          <va-button
+            icon="edit"
+            color="#1976d2"
+            size="small"
+            class="edit-btn action-btn"
+            :title="'Editar ' + (rowKey.name || 'Time')"
+            @click="editTeam(rowKey.id)"
+          />
+          <va-button
+            icon="delete"
+            color="#dc3545"
+            size="small"
+            class="delete-btn action-btn"
+            :title="'Deletar ' + (rowKey.name || 'Time')"
+            @click="deleteTeam(rowKey.id)"
+          />
+        </div>
+      </template>
+    </ZDatatableGeneric>
+
+    <!-- Modal de Estatísticas do Time -->
+    <ZTeamStatsModal
+      v-if="selectedTeamId"
+      v-model="showTeamStatsModal"
+      :team-id="selectedTeamId"
+    />
+
+    <!-- Summary Cards -->
+    <div class="summary-cards">
+      <va-card class="summary-card">
+        <div class="summary-content">
+          <div class="summary-icon">
+            <va-icon name="groups" size="large" color="#E9742B" />
+          </div>
+          <div class="summary-number-wrapper">
+            <div class="summary-number">
+              {{ paginatorInfo.total || 0
+              }}<span
+                v-if="showPlanLimits && planLimits.maxTeams"
+                class="plan-limit"
+              >
+                / {{ planLimits.maxTeams }}</span
+              >
+            </div>
+            <va-popover
+              v-if="showPlanLimits && planLimits.maxTeams"
+              placement="top"
+              trigger="hover"
+              class="plan-popover-wrapper"
+            >
+              <va-icon
+                name="info"
+                size="16px"
+                color="#6c757d"
+                class="plan-info-icon"
+              />
+              <template #title>Limite do Plano</template>
+              <template #body>
+                <p class="plan-popover-text">
+                  Você pode cadastrar até {{ planLimits.maxTeams }} times no seu
+                  plano atual.
+                </p>
+              </template>
+            </va-popover>
+          </div>
+          <div class="summary-label">Total de Times</div>
+        </div>
+      </va-card>
+    </div>
+  </div>
 </template>
 
 <script>
@@ -77,11 +178,15 @@ import ZDatatableGeneric from "~/components/molecules/Datatable/ZDatatableGeneri
 import ZSelectPosition from "~/components/molecules/Selects/ZSelectPosition";
 import ZSelectTeam from "~/components/molecules/Selects/ZSelectTeam";
 import ZSelectUser from "~/components/molecules/Selects/ZSelectUser";
+import ZDataTableInputSearch from "~/components/molecules/Datatable/ZDataTableInputSearch";
 import ZUser from "~/components/molecules/Datatable/Slots/ZUser";
 import ZDateTraining from "~/components/molecules/Datatable/Slots/ZDateTraining";
 import ZTeam from "~/components/molecules/Datatable/Slots/ZTeam";
+import ZBadgeCustom from "~/components/molecules/Badges/ZBadgeCustom";
+import ZTeamStatsModal from "~/components/molecules/Modal/ZTeamStatsModal.vue";
 import TEAMDELETE from "~/graphql/team/mutation/teamDelete.graphql";
 import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
+import { getActivePlan } from "~/services/stripeCheckoutService.js";
 
 //import { toRaw } from "vue"; // NOTE - Para debug
 
@@ -94,23 +199,33 @@ export default defineComponent({
     ZSelectPosition,
     ZSelectTeam,
     ZSelectUser,
+    ZDataTableInputSearch,
+    ZBadgeCustom,
+    ZTeamStatsModal,
   },
 
   created() {
     this.getTeams();
+    this.loadActivePlan();
   },
 
   data() {
     let loading = false;
 
     const columns = [
-      { key: "id", name: "id", sortable: true },
-      { key: "name", name: "name", label: "Time", sortable: true },
+      { key: "team", name: "team", label: "Time", sortable: false },
       {
-        key: "user",
-        name: "user",
-        label: "Usuário Alteração",
-        sortable: true,
+        key: "category",
+        name: "category",
+        label: "Categoria",
+        sortable: false,
+      },
+      { key: "level", name: "level", label: "Nível Técnico", sortable: false },
+      {
+        key: "players",
+        name: "players",
+        label: "Total de Jogadores",
+        sortable: false,
       },
     ];
 
@@ -140,9 +255,54 @@ export default defineComponent({
       selectedColor: "primary",
       selectModeOptions: ["single", "multiple"],
       selectColorOptions: ["primary", "danger", "warning", "#EF467F"],
+      internalSearchValue: "",
+      activePlanData: null,
+      showTeamStatsModal: false,
+      selectedTeamId: null,
     };
   },
+  computed: {
+    showPlanLimits() {
+      return (
+        this.activePlanData &&
+        this.activePlanData.has_active_plan &&
+        !this.isUnlimitedPlan
+      );
+    },
+    isUnlimitedPlan() {
+      if (!this.activePlanData || !this.activePlanData.product) {
+        return true;
+      }
 
+      const metadata = this.normalizeMetadata(
+        this.activePlanData.product.metadata
+      );
+      const maxPlayers = parseInt(metadata.max_players || "0");
+      const maxTeams = parseInt(metadata.max_teams || "0");
+      const maxTrainings = parseInt(metadata.max_trainings || "0");
+
+      return maxPlayers === 0 && maxTeams === 0 && maxTrainings === 0;
+    },
+    planLimits() {
+      if (!this.activePlanData || !this.activePlanData.product) {
+        return {
+          maxPlayers: null,
+          maxTeams: null,
+          maxTrainings: null,
+        };
+      }
+
+      const metadata = this.normalizeMetadata(
+        this.activePlanData.product.metadata
+      );
+
+      return {
+        maxPlayers: parseInt(metadata.max_players || "0") || null,
+        maxTeams: parseInt(metadata.max_teams || "0") || null,
+        maxTrainings: parseInt(metadata.max_trainings || "0") || null,
+      };
+    },
+  },
   methods: {
     unselectItem(item) {
       this.selectedItems = this.selectedItems.filter(
@@ -154,6 +314,10 @@ export default defineComponent({
     },
     editTeam(id) {
       this.$router.push(`/teams/edit/${id}`);
+    },
+    openStatsModal(teamId) {
+      this.selectedTeamId = teamId;
+      this.showTeamStatsModal = true;
     },
     async deleteItems(ids) {
       try {
@@ -221,15 +385,39 @@ export default defineComponent({
       this.getTeams();
     },
 
-    searchTrainings(search) {
-      this.variablesGetTeams.filter.search = `%${search}%`;
+    searchTeams(search) {
+      // Se search for vazio ou undefined, usar %%
+      if (!search || search === "") {
+        this.variablesGetTeams.filter.search = "%%";
+      } else {
+        // Remover os % se já existirem para evitar duplicação
+        const cleanSearch = search.replace(/%/g, "");
+        this.variablesGetTeams.filter.search = `%${cleanSearch}%`;
+      }
+    },
+
+    handleSearch() {
+      // Atualizar o filtro de busca com o valor do campo de busca
+      if (
+        this.internalSearchValue !== undefined &&
+        this.internalSearchValue !== null
+      ) {
+        this.searchTeams(this.internalSearchValue);
+      }
+      // Executar a busca com os filtros atualizados
+      this.getTeams({ fetchPolicy: "network-only" });
     },
 
     clearSearch() {
+      this.internalSearchValue = "";
       this.variablesGetTeams.filter = {
         search: "%%",
-        teamsIds: [],
+        usersIds: [],
+        playersIds: [],
+        positionsIds: [],
       };
+      // Recarregar dados após limpar filtros
+      this.getTeams({ fetchPolicy: "network-only" });
     },
 
     getTeams(fetchPolicyOptions = {}) {
@@ -240,17 +428,20 @@ export default defineComponent({
         ${TEAMS}
       `;
 
-      let positionsIdsValues = this.variablesGetTeams.filter.positionsIds.map(
-        (position) => position.value
-      );
+      let positionsIdsValues =
+        this.variablesGetTeams.filter.positionsIds?.map(
+          (position) => position?.value || position
+        ) || [];
 
-      let usersIdsValues = this.variablesGetTeams.filter.usersIds.map(
-        (user) => user.value
-      );
+      let usersIdsValues =
+        this.variablesGetTeams.filter.usersIds?.map(
+          (user) => user?.value || user
+        ) || [];
 
-      let playersIdsValues = this.variablesGetTeams.filter.playersIds.map(
-        (player) => player.value
-      );
+      let playersIdsValues =
+        this.variablesGetTeams.filter.playersIds?.map(
+          (player) => player?.value || player
+        ) || [];
 
       const consult = {
         ...this.variablesGetTeams,
@@ -264,27 +455,352 @@ export default defineComponent({
 
       const {
         result: { value },
+        onResult,
       } = useQuery(query, consult, {
-        fetchPolicy: fetchPolicyOptions.fetchPolicy || "cache-first", // Usa 'network-only' quando quer buscar nova consulta, senão 'cache-first'
+        fetchPolicy: fetchPolicyOptions.fetchPolicy || "cache-first",
       });
-
-      const { onResult } = useQuery(query, consult);
 
       onResult((result) => {
-        if (result?.data?.teams?.data.length > 0) {
-          this.paginatorInfo = result.data.teams.paginatorInfo;
-          this.items = result.data.teams.data;
+        this.loading = false;
+        if (result?.data?.teams) {
+          this.paginatorInfo = result.data.teams.paginatorInfo || {
+            currentPage: 1,
+            lastPage: 1,
+            total: 0,
+            firstItem: 0,
+            lastItem: 0,
+            perPage: 10,
+          };
+          this.items = (result.data.teams.data || []).map((team) => ({
+            ...team,
+            teamCategory: team.teamCategory || { name: "Sem Categoria" },
+            teamLevel: team.teamLevel || { name: "Sem Nível Técnico" },
+            players: team.players || [],
+          }));
+        } else {
+          this.items = [];
+          this.paginatorInfo = {
+            currentPage: 1,
+            lastPage: 1,
+            total: 0,
+            firstItem: 0,
+            lastItem: 0,
+            perPage: 10,
+          };
         }
       });
 
-      if (value) {
-        if (value?.teams?.data.length > 0) {
-          this.paginatorInfo = value.teams.paginatorInfo;
-          this.items = value.teams.data;
+      // Tratar dados em cache
+      if (value?.teams) {
+        this.loading = false;
+        this.paginatorInfo = value.teams.paginatorInfo || {
+          currentPage: 1,
+          lastPage: 1,
+          total: 0,
+          firstItem: 0,
+          lastItem: 0,
+          perPage: 10,
+        };
+        this.items = (value.teams.data || []).map((team) => ({
+          ...team,
+          teamCategory: team.teamCategory || { name: "Sem Categoria" },
+          teamLevel: team.teamLevel || { name: "Sem Nível Técnico" },
+          players: team.players || [],
+        }));
+      } else if (value && !value.teams) {
+        // Se value existe mas não tem teams, pode ser que ainda esteja carregando
+        // ou que não há dados
+        this.loading = false;
+        this.items = [];
+      }
+    },
+    async loadActivePlan() {
+      try {
+        const token =
+          localStorage.getItem("userToken") ||
+          localStorage.getItem("apollo:default.token");
+        if (!token) {
+          console.log("⚠️ Token não encontrado para carregar plano ativo");
+          return;
+        }
+
+        const tenantId = localStorage.getItem("tenant_id") || "default";
+        console.log("🔍 Carregando plano ativo - tenantId:", tenantId);
+
+        const result = await getActivePlan(token, tenantId);
+        console.log("🔍 Resultado do getActivePlan:", result);
+
+        if (result.success && result.data) {
+          this.activePlanData = result.data;
+          console.log("✅ Plano ativo carregado:", result.data);
+        } else {
+          console.log("⚠️ Plano ativo não encontrado ou erro:", result);
+        }
+      } catch (error) {
+        console.error("❌ Erro ao carregar plano ativo:", error);
+      }
+    },
+    normalizeMetadata(metadata) {
+      if (!metadata) return {};
+
+      if (typeof metadata === "string") {
+        try {
+          return JSON.parse(metadata);
+        } catch (e) {
+          return {};
         }
       }
-      this.loading = false;
+
+      return metadata;
     },
   },
 });
 </script>
+
+<style scoped>
+.teams-listing {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.filter-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.filter-content {
+  display: flex;
+  gap: 20px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.search-section {
+  flex: 1;
+  min-width: 300px;
+}
+
+.filters-section {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.filter-item {
+  min-width: 200px;
+}
+
+.filter-item :deep(.va-input-wrapper) {
+  margin-bottom: 0;
+}
+
+.filter-item :deep(.va-select) {
+  margin-top: 0;
+}
+
+.filter-item :deep(.va-input-wrapper__field) {
+  margin-top: 0;
+}
+
+.filter-item :deep(.va-input-wrapper__label) {
+  display: none;
+}
+
+.filter-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #0b1e3a;
+  margin-bottom: 8px;
+}
+
+.filter-actions {
+  display: flex;
+  align-items: flex-end;
+  margin-left: auto;
+}
+
+.search-button {
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-weight: 500;
+  white-space: nowrap;
+  background-color: #e9742b !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(233, 116, 43, 0.3);
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  height: 40px;
+}
+
+.search-button:hover {
+  background-color: #d6652a !important;
+  box-shadow: 0 4px 12px rgba(233, 116, 43, 0.4);
+  transform: translateY(-1px);
+}
+
+.search-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(233, 116, 43, 0.3);
+}
+
+.search-button .button-icon {
+  font-size: 18px;
+  color: #ffffff;
+}
+
+.search-button .button-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: #ffffff;
+}
+
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-top: 24px;
+}
+
+.summary-card {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  text-align: center;
+}
+
+.summary-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.summary-icon {
+  margin-bottom: 8px;
+}
+
+.summary-number-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.summary-number {
+  font-size: 36px;
+  font-weight: 700;
+  color: #0b1e3a;
+}
+
+.plan-limit {
+  color: #9e9e9e;
+  font-weight: 500;
+  font-size: 30px;
+}
+
+.plan-popover-wrapper {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+}
+
+.plan-info-icon {
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+
+.plan-info-icon:hover {
+  opacity: 1;
+}
+
+.plan-popover-text {
+  font-size: 13px;
+  color: #6c757d;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.summary-label {
+  font-size: 14px;
+  color: #6c757d;
+  font-weight: 500;
+}
+
+.action-buttons-wrapper {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.action-btn {
+  min-width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.stats-btn {
+  background-color: #e9742b !important;
+  color: white !important;
+}
+
+.stats-btn :deep(.va-icon),
+.stats-btn :deep(.material-icons) {
+  color: white !important;
+}
+
+.stats-btn:hover :deep(.va-icon),
+.stats-btn:hover :deep(.material-icons) {
+  color: white !important;
+}
+
+.edit-btn {
+  background-color: #1976d2 !important;
+  color: white !important;
+}
+
+.delete-btn {
+  background-color: #dc3545 !important;
+  color: white !important;
+}
+
+@media (max-width: 768px) {
+  .filter-content {
+    flex-direction: column;
+  }
+
+  .search-section,
+  .filter-item {
+    width: 100%;
+    min-width: unset;
+  }
+
+  .action-buttons-wrapper {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .action-btn {
+    width: 100%;
+  }
+}
+</style>

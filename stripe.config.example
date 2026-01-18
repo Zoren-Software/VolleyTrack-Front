@@ -1,0 +1,17 @@
+# Stripe Configuration
+# Copie este arquivo para .env e preencha com suas chaves
+# IMPORTANTE: No Nuxt 3, use os prefixos corretos para variáveis de ambiente
+
+# Chave pública (pode ser exposta no cliente)
+# Usa prefixo NUXT_PUBLIC_ para variáveis públicas
+NUXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_your_publishable_key_here
+
+# Chave secreta (apenas servidor - NUNCA expor no cliente)
+# Usa prefixo NUXT_ (sem PUBLIC_) para variáveis privadas
+NUXT_STRIPE_SECRET_KEY=sk_test_your_secret_key_here
+
+# Stripe Webhook Secret (opcional, apenas servidor)
+NUXT_STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret_here
+
+# Environment
+NODE_ENV=development

@@ -5,6 +5,7 @@ query user($id: ID!)
   ) {
     id
     name
+    displayName
     email
     positions {
       id
@@ -33,6 +34,8 @@ query user($id: ID!)
       rg
       phone
       birthDate
+      nickname
+      showNickname
       createdAt
       updatedAt
     }

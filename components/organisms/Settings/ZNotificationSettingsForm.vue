@@ -4,32 +4,52 @@
     title="Configurações de Notificação"
     @submit="salvarConfiguracoes"
   >
+    <div class="notification-settings-container">
     <div
       v-for="(item, index) in data"
       :key="item.id"
-      class="mb-6 pb-3 border-b border-gray-200 last:border-b-0 mt-3"
-    >
+        class="notification-card"
+      >
+        <div class="notification-header">
+          <div class="notification-icon-wrapper">
+            <va-icon
+              :name="getNotificationIcon(item.notificationType?.key)"
+              :color="getNotificationColor(item.notificationType?.key)"
+              size="24px"
+            />
+          </div>
       <h6
-        class="text-base font-semibold text-gray-700 mb-2 va-h6"
+            class="notification-title"
         v-if="item.notificationType?.description"
       >
         {{ item.notificationType.description }}
       </h6>
+        </div>
 
+        <div class="notification-options">
       <div
-        class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 pl-2"
+            v-if="item.notificationType.allowEmail"
+            class="notification-option"
       >
+            <va-icon name="email" size="18px" color="#6b7280" />
         <VaCheckbox
-          v-if="item.notificationType.allowEmail"
           v-model="form[item.notificationType.key].viaEmail"
           label="Receber por e-mail"
-          class="mb-2 sm:mb-0 mr-5 mt-3"
+              class="notification-checkbox"
         />
+          </div>
+          <div
+            v-if="item.notificationType.allowSystem"
+            class="notification-option"
+          >
+            <va-icon name="notifications" size="18px" color="#6b7280" />
         <VaCheckbox
-          v-if="item.notificationType.allowSystem"
           v-model="form[item.notificationType.key].viaSystem"
           label="Receber no sistema"
+              class="notification-checkbox"
         />
+          </div>
+        </div>
       </div>
     </div>
   </ZFormModal>
@@ -71,6 +91,26 @@ export default {
     },
   },
   methods: {
+    getNotificationIcon(key) {
+      const iconMap = {
+        training_created: "event",
+        training_canceled: "cancel",
+        training_updated: "edit",
+        evaluation_available: "assessment",
+        technical_comments: "comment",
+      };
+      return iconMap[key] || "notifications";
+    },
+    getNotificationColor(key) {
+      const colorMap = {
+        training_created: "#10b981",
+        training_canceled: "#ef4444",
+        training_updated: "#3b82f6",
+        evaluation_available: "#f59e0b",
+        technical_comments: "#8b5cf6",
+      };
+      return colorMap[key] || "#6b7280";
+    },
     getNotificationSettings() {
       const query = gql`
         ${NOTIFICATIONSETTINGS}
@@ -152,3 +192,103 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.notification-settings-container {
+  padding: 8px 0;
+}
+
+.notification-card {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+  transition: all 0.2s ease;
+}
+
+.notification-card:last-child {
+  margin-bottom: 0;
+}
+
+.notification-card:hover {
+  border-color: #d1d5db;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.notification-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.notification-icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.notification-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+  flex: 1;
+}
+
+.notification-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.notification-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  transition: all 0.2s ease;
+}
+
+.notification-option:hover {
+  border-color: #d1d5db;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.notification-checkbox {
+  flex: 1;
+}
+
+.notification-checkbox :deep(.va-checkbox__label) {
+  font-size: 14px;
+  color: #374151;
+  font-weight: 500;
+}
+
+.notification-checkbox :deep(.va-checkbox__input-wrapper) {
+  margin-right: 8px;
+}
+
+/* Responsividade */
+@media (min-width: 640px) {
+  .notification-options {
+    flex-direction: row;
+    gap: 16px;
+  }
+
+  .notification-option {
+    flex: 1;
+  }
+}
+</style>

@@ -8,7 +8,7 @@
       :label="passwordLabel"
       :rules="passwordRules"
       @input="validatePassword"
-      :error-messages="errorMessages"
+      :error-messages="normalizedErrorMessages"
       :error="error"
     >
       <template #appendInner>
@@ -58,8 +58,8 @@ export default {
       ],
     },
     errorMessages: {
-      type: String,
-      default: "",
+      type: [String, Array],
+      default: () => "",
     },
     error: {
       type: Boolean,
@@ -72,6 +72,12 @@ export default {
     confirmPassword: "",
   }),
   computed: {
+    normalizedErrorMessages() {
+      if (Array.isArray(this.errorMessages)) {
+        return this.errorMessages.length > 0 ? this.errorMessages : "";
+      }
+      return this.errorMessages || "";
+    },
     passwordRules() {
       return [
         ...this.rules,
@@ -102,3 +108,19 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+/* Remover apenas a borda da label do input de senha, mantendo a borda do campo */
+:deep(.va-input-wrapper__label) {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+:deep(.va-input-wrapper__label *) {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+</style>
