@@ -160,6 +160,7 @@
         </va-button>
         <va-button
           color="#E9742B"
+          text-color="#FFFFFF"
           :disabled="loading"
           @click="handleSubmit"
         >
@@ -481,8 +482,13 @@ export default {
 .modal-footer .va-button[style*="background: #E9742B"] {
   background: #e9742b !important;
   border: none !important;
-  color: white !important;
+  color: #ffffff !important;
   box-shadow: 0 2px 4px rgba(233, 116, 43, 0.2);
+}
+
+.modal-footer .va-button[color="#E9742B"] :deep(.va-button__content),
+.modal-footer .va-button[style*="background: #E9742B"] :deep(.va-button__content) {
+  color: #ffffff !important;
 }
 
 .modal-footer .va-button[color="#E9742B"]:hover,
@@ -490,6 +496,11 @@ export default {
   background: #d8651f !important;
   box-shadow: 0 4px 8px rgba(233, 116, 43, 0.3);
   transform: translateY(-1px);
+}
+
+.modal-footer .va-button[color="#E9742B"]:hover :deep(.va-button__content),
+.modal-footer .va-button[style*="background: #E9742B"]:hover :deep(.va-button__content) {
+  color: #ffffff !important;
 }
 
 .modal-footer .va-button:disabled {
