@@ -8,9 +8,16 @@
     multiple
     return-object
     @click="getTeams(true)"
-    @scroll-bottom="loadMore"
-    @update-search="newSearch"
-  />
+    @scrollBottom="loadMore"
+    @updateSearch="newSearch"
+  >
+    <!-- Debug: mostrar quantidade de itens -->
+    <template v-if="false" #default>
+      <div style="padding: 10px; background: yellow;">
+        Debug: {{ items.length }} itens disponíveis
+      </div>
+    </template>
+  </ZSelect>
 </template>
 
 <script>
@@ -47,7 +54,7 @@ export default {
       items: [],
       variablesGetTeams: {
         page: 1,
-        perPage: 10,
+        first: 10,
         filter: {
           search: "%%",
           positionsIds: this.positionsIds,
@@ -80,41 +87,80 @@ export default {
       });
       this.getTeams();
     },
+    items(newItems) {
+      console.log('ZSelectTeam - Items mudaram, nova quantidade:', newItems.length);
+      console.log('ZSelectTeam - Items:', newItems);
+    },
   },
 
   methods: {
-    getTeams(click = false) {
+    async getTeams(click = false) {
+      console.log('ZSelectTeam - getTeams chamado, click:', click);
+      
       if (click) {
         this.items = [];
         this.variablesGetTeams.page = 1;
       }
+      
+      // Evitar múltiplas chamadas simultâneas
+      if (this.loading) {
+        console.log('ZSelectTeam - Já está carregando, ignorando chamada');
+        return;
+      }
+      
       this.loading = true;
 
-      setTimeout(() => {
+      try {
         const query = gql`
           ${TEAMS}
         `;
 
-        const {
-          result: { value },
-        } = useQuery(query, this.variablesGetTeams);
+        console.log('ZSelectTeam - Executando query com variáveis:', this.variablesGetTeams);
 
-        const { onResult } = useQuery(query, this.variablesGetTeams);
+        // Usar o cliente Apollo diretamente
+        const nuxtApp = useNuxtApp();
+        const apolloClient = nuxtApp._apolloClients?.default;
 
-        onResult((result) => {
-          this.handleResult(result.data);
-        });
-
-        if (value) {
-          this.handleResult(value);
+        if (!apolloClient) {
+          console.error('ZSelectTeam - Cliente Apollo não encontrado');
+          this.loading = false;
+          return;
         }
 
+        const result = await apolloClient.query({
+          query,
+          variables: this.variablesGetTeams,
+          fetchPolicy: 'network-only',
+        });
+
+        console.log('ZSelectTeam - Resultado da query:', result);
+
+        if (result?.data) {
+          this.handleResult(result.data);
+        } else {
+          console.log('ZSelectTeam - Nenhum dado no resultado');
+          this.loading = false;
+          this.hasMoreItems = false;
+        }
+      } catch (error) {
+        console.error('ZSelectTeam - Erro ao buscar times:', error);
         this.loading = false;
-      }, 400);
+        this.hasMoreItems = false;
+      }
     },
 
     handleResult(result) {
-      if (result?.teams?.data.length > 0) {
+      console.log('ZSelectTeam - handleResult chamado:', result);
+      
+      if (!result) {
+        console.log('ZSelectTeam - Sem resultado');
+        this.loading = false;
+        this.hasMoreItems = false;
+        return;
+      }
+
+      if (result?.teams?.data && result.teams.data.length > 0) {
+        console.log('ZSelectTeam - Processando', result.teams.data.length, 'times');
         this.paginatorInfo = result.teams.paginatorInfo;
 
         const newItems = result.teams.data.map((item) => {
@@ -132,11 +178,22 @@ export default {
           return allItems.find((a) => a.value === value);
         });
 
+        console.log('ZSelectTeam - Itens atualizados:', uniqueItems.length);
+        console.log('ZSelectTeam - Itens:', uniqueItems);
         this.items = uniqueItems;
         this.hasMoreItems = result.teams.paginatorInfo.hasMorePages;
+        
+        // Forçar atualização do componente
+        this.$nextTick(() => {
+          this.$forceUpdate();
+          console.log('ZSelectTeam - Componente atualizado, items.length:', this.items.length);
+        });
       } else {
+        console.log('ZSelectTeam - Nenhum time encontrado');
         this.hasMoreItems = false;
       }
+      
+      this.loading = false;
     },
     newSearch(newSearchValue) {
       this.variablesGetTeams.filter.search = `%${newSearchValue}%`;

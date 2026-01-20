@@ -10,6 +10,9 @@
     clearable
     clearable-icon="cancel"
     no-options-text="Nenhuma opção encontrada"
+    @click="$emit('click', $event)"
+    @scroll-bottom="$emit('scrollBottom', $event)"
+    @update:search="$emit('updateSearch', $event)"
   >
     <template v-for="(_, slotName) in $slots" #[slotName]="scope">
       <slot :name="slotName" v-bind="scope"></slot>
@@ -29,7 +32,7 @@ export default {
       default: () => [],
     },
   },
-  emits: ["update:modelValue"],
+  emits: ["update:modelValue", "click", "scrollBottom", "updateSearch"],
   data() {
     return {
       value: this.modelValue ?? null,
