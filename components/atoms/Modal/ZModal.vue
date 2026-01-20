@@ -61,6 +61,12 @@ export default {
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
 }
 
+/* Permitir que dropdowns apareçam fora do container */
+:deep(.z-modal .va-modal__content) {
+  overflow-y: auto;
+  overflow-x: visible;
+}
+
 :deep(.z-modal .va-modal__header) {
   padding: 24px 24px 20px;
   border-bottom: 1px solid #e5e7eb;

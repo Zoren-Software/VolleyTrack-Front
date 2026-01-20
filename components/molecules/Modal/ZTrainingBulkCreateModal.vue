@@ -14,18 +14,21 @@
     </div>
   </VaModal>
 
-  <ZModal
+  <VaModal
     :model-value="modelValue"
     @update:modelValue="$emit('update:modelValue', $event)"
-    title="Cadastrar Treinos Futuros"
-    ok-text="Cadastrar"
-    cancel-text="Cancelar"
-    :ok-disabled="loading"
-    @ok="handleSubmit"
-    @cancel="close"
+    size="large"
+    close-button
+    :no-dismiss="false"
+    hide-default-actions
+    class="bulk-create-modal"
   >
+    <template #header>
+      <h5 class="modal-title">Cadastrar Treinos Futuros</h5>
+    </template>
+
     <div class="bulk-create-form">
-      <div class="flex flex-col gap-6">
+      <div class="form-content">
         <!-- Seção: Informações Básicas -->
         <div class="form-section">
           <h2 class="section-title">Informações Básicas</h2>
@@ -146,11 +149,28 @@
         </div>
       </div>
     </div>
-  </ZModal>
+
+    <template #footer>
+      <div class="modal-footer">
+        <va-button
+          preset="secondary"
+          @click="close"
+        >
+          Cancelar
+        </va-button>
+        <va-button
+          color="#E9742B"
+          :disabled="loading"
+          @click="handleSubmit"
+        >
+          Cadastrar
+        </va-button>
+      </div>
+    </template>
+  </VaModal>
 </template>
 
 <script>
-import ZModal from "~/components/atoms/Modal/ZModal.vue";
 import ZSelectTeam from "~/components/molecules/Selects/ZSelectTeam.vue";
 import ZTimeInput from "~/components/atoms/Inputs/ZTimeInput.vue";
 import TRAININGBULKCREATE from "~/graphql/training/mutation/trainingBulkCreate.graphql";
@@ -159,7 +179,6 @@ import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
 export default {
   name: "ZTrainingBulkCreateModal",
   components: {
-    ZModal,
     ZSelectTeam,
     ZTimeInput,
   },
@@ -400,12 +419,97 @@ export default {
 </script>
 
 <style scoped>
+/* Modal simplificado */
+.bulk-create-modal :deep(.va-modal__container) {
+  border-radius: 16px;
+}
+
+.bulk-create-modal :deep(.va-modal__header) {
+  padding: 24px 24px 20px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.modal-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.bulk-create-modal :deep(.va-modal__content) {
+  padding: 24px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+/* Footer do modal */
+.bulk-create-modal :deep(.va-modal__footer) {
+  padding: 20px 24px;
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  width: 100%;
+}
+
+.modal-footer .va-button {
+  border-radius: 8px;
+  font-weight: 500;
+  padding: 10px 20px;
+  transition: all 0.2s ease;
+}
+
+.modal-footer .va-button--secondary {
+  background: white;
+  border: 1px solid #d1d5db;
+  color: #374151;
+}
+
+.modal-footer .va-button--secondary:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.modal-footer .va-button[color="#E9742B"],
+.modal-footer .va-button[style*="background: #E9742B"] {
+  background: #e9742b !important;
+  border: none !important;
+  color: white !important;
+  box-shadow: 0 2px 4px rgba(233, 116, 43, 0.2);
+}
+
+.modal-footer .va-button[color="#E9742B"]:hover,
+.modal-footer .va-button[style*="background: #E9742B"]:hover {
+  background: #d8651f !important;
+  box-shadow: 0 4px 8px rgba(233, 116, 43, 0.3);
+  transform: translateY(-1px);
+}
+
+.modal-footer .va-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Form */
 .bulk-create-form {
   position: relative;
 }
 
+.form-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
 .form-section {
-  margin-bottom: 24px;
+  margin-bottom: 0;
 }
 
 .section-title {
@@ -503,21 +607,6 @@ export default {
 
 .info-list li {
   margin-bottom: 6px;
-}
-
-/* Remover bordas estranhas das labels */
-.bulk-create-form :deep(.va-input-wrapper__label) {
-  border: none !important;
-  outline: none !important;
-  box-shadow: none !important;
-  background: transparent !important;
-}
-
-.bulk-create-form :deep(.va-date-input-wrapper__label) {
-  border: none !important;
-  outline: none !important;
-  box-shadow: none !important;
-  background: transparent !important;
 }
 
 /* Loading Modal */
