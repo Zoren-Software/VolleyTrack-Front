@@ -91,14 +91,6 @@ export default {
       return new Date(this.data.dateStart) > new Date();
     },
   },
-  computed: {
-    metricsConfirmationTraining() {
-      return this.metrics.confirmedPercentage + this.metrics.rejectedPercentage;
-    },
-    metricsConfirmationPresence() {
-      return this.metrics.presencePercentage;
-    },
-  },
 };
 </script>
 
