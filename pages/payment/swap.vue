@@ -365,7 +365,24 @@ const loadPreview = async () => {
     }
   } catch (err) {
     console.error("❌ Erro ao carregar preview:", err);
-    error.value = err.message;
+    const msg = err?.message || "";
+    // Sem assinatura ativa (ex.: após cancelar): redirecionar para escolher/assinar novo plano
+    if (msg === "NO_ACTIVE_SUBSCRIPTION" || /assinatura ativa não encontrada/i.test(msg)) {
+      await router.replace({
+        path: "/payment",
+        query: { sem_plano_ativo: "1" },
+      });
+      return;
+    }
+    // Preço/plano não encontrado: redirecionar para página de planos
+    if (/new price not found|preço ou produto não encontrado/i.test(msg)) {
+      await router.replace({
+        path: "/payment",
+        query: { preco_nao_encontrado: "1" },
+      });
+      return;
+    }
+    error.value = msg;
   } finally {
     loading.value = false;
   }

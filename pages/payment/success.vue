@@ -164,6 +164,7 @@ import {
   getCheckoutSession,
   getCurrentSessionId,
   syncCheckoutSession,
+  clearPendingCheckoutSessionId,
 } from "~/services/stripeCheckoutService.js";
 
 // Head
@@ -236,6 +237,7 @@ const syncSessionData = async (sessionId) => {
     if (result.success) {
       syncData.value = result.data;
       console.log("✅ Sessão sincronizada com sucesso:", syncData.value);
+      clearPendingCheckoutSessionId();
 
       // Se temos dados de sincronização, usar eles para atualizar as informações
       if (syncData.value.subscription) {
