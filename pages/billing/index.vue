@@ -275,6 +275,23 @@
                 >
                   <span>Baixar PDF</span>
                 </a>
+                <a
+                  v-if="invoice.nfse_pdf_url"
+                  :href="invoice.nfse_pdf_url"
+                  target="_blank"
+                  class="action-button nf-button"
+                >
+                  <span>Baixar NF</span>
+                </a>
+                <button
+                  v-else-if="invoice.nfse_service_invoice_id"
+                  type="button"
+                  class="action-button nf-button"
+                  :disabled="nfsePdfLoading === invoice.id"
+                  @click="openNfsePdf(invoice)"
+                >
+                  <span>{{ nfsePdfLoading === invoice.id ? 'Carregando...' : 'Baixar NF' }}</span>
+                </button>
               </div>
             </div>
           </div>
@@ -326,6 +343,7 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import { useUser } from "~/composables/useUser";
+import Swal from "sweetalert2";
 
 const runtimeConfig = useRuntimeConfig();
 const { getUserEmail } = useUser();
@@ -352,6 +370,7 @@ const summary = ref({
   lifetime_payments_count: 0,
   lifetime_total_amount: 0,
 });
+const nfsePdfLoading = ref(null); // invoice.id quando está buscando PDF da NF
 
 // Função para obter tenant_id
 const getTenantId = () => {
@@ -392,6 +411,45 @@ const getStatusLabel = (status) => {
     uncollectible: "Inadimplente",
   };
   return labels[status] || status;
+};
+
+// Abrir PDF da NFSe: direto se tiver URL, senão busca no backend (atualiza vínculo e retorna URL)
+const openNfsePdf = async (invoice) => {
+  if (invoice.nfse_pdf_url) {
+    window.open(invoice.nfse_pdf_url, "_blank");
+    return;
+  }
+  if (!invoice.nfse_service_invoice_id) return;
+  const apiBaseUrl = runtimeConfig.public.apiEndpoint || "http://api.volleytrack.local";
+  const token = localStorage.getItem("userToken") || localStorage.getItem("apollo:default.token");
+  if (!token) return;
+  nfsePdfLoading.value = invoice.id;
+  try {
+    const res = await fetch(
+      `${apiBaseUrl}/v1/invoices/${encodeURIComponent(invoice.id)}/nfse-pdf`,
+      {
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    const data = await res.json().catch(() => ({}));
+    if (data.success && data.data?.pdf_url) {
+      window.open(data.data.pdf_url, "_blank");
+      invoice.nfse_pdf_url = data.data.pdf_url;
+    } else {
+      const message = data.message || "Não foi possível obter o PDF da NFSe. Tente novamente em instantes.";
+      await Swal.fire({
+        icon: "warning",
+        title: "PDF não disponível",
+        text: message,
+        confirmButtonText: "Entendi",
+      });
+    }
+  } finally {
+    nfsePdfLoading.value = null;
+  }
 };
 
 // Função para carregar faturas
@@ -1007,6 +1065,28 @@ onMounted(() => {
   background: #059669;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.nf-button {
+  background: #f59e0b;
+  color: white;
+}
+
+.nf-button:hover {
+  background: #d97706;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+.invoice-actions button.action-button {
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.invoice-actions button.action-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
 .pagination-container {
