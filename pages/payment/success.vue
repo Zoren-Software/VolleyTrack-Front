@@ -140,11 +140,11 @@
       </div>
 
       <div class="action-buttons">
-        <NuxtLink to="/" class="btn btn-primary">
-          Ir para o Dashboard
+        <NuxtLink to="/payment" class="btn btn-primary">
+          Pagamentos
         </NuxtLink>
-        <NuxtLink to="/settings" class="btn btn-secondary">
-          Configurações
+        <NuxtLink to="/billing" class="btn btn-secondary">
+          Faturamentos
         </NuxtLink>
       </div>
 
@@ -164,6 +164,7 @@ import {
   getCheckoutSession,
   getCurrentSessionId,
   syncCheckoutSession,
+  clearPendingCheckoutSessionId,
 } from "~/services/stripeCheckoutService.js";
 
 // Head
@@ -236,6 +237,7 @@ const syncSessionData = async (sessionId) => {
     if (result.success) {
       syncData.value = result.data;
       console.log("✅ Sessão sincronizada com sucesso:", syncData.value);
+      clearPendingCheckoutSessionId();
 
       // Se temos dados de sincronização, usar eles para atualizar as informações
       if (syncData.value.subscription) {

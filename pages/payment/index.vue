@@ -22,17 +22,31 @@
         >
       </div>
 
-      <!-- Header -->
+      <!-- Header + botões na mesma linha (etapa 1) para alinhamento -->
       <Transition name="fade" mode="out-in">
-        <div
-          v-if="!showPlansSelection"
-          key="header-current"
-          class="page-header-modern"
-        >
-          <h1 class="main-title">Seu Plano Atual</h1>
-          <p class="main-subtitle">
-            Gerencie sua assinatura e método de pagamento
-          </p>
+        <div v-if="!showPlansSelection" key="header-current" class="header-with-actions">
+          <div class="page-header-modern page-header-left">
+            <h1 class="main-title">Seu Plano Atual</h1>
+            <p class="main-subtitle">
+              Gerencie sua assinatura e método de pagamento
+            </p>
+          </div>
+          <div class="billing-button-top">
+            <NuxtLink to="/billing" class="billing-link-modern">
+              <span class="billing-icon">📄</span>
+              <span>Ver Faturamentos</span>
+            </NuxtLink>
+            <button
+              v-if="emailValidation.validated && emailValidation.valid"
+              type="button"
+              class="billing-edit-button"
+              :disabled="billingEditLoading"
+              @click="openBillingEdit"
+            >
+              <span class="billing-icon">✏️</span>
+              <span>{{ billingEditLoading ? 'Carregando...' : 'Editar dados de faturamento' }}</span>
+            </button>
+          </div>
         </div>
         <div v-else key="header-plans" class="page-header-modern">
           <h1 class="main-title">Escolha o plano ideal para sua equipe</h1>
@@ -40,16 +54,6 @@
             Compare os recursos e selecione o plano que melhor atende às suas
             necessidades
           </p>
-        </div>
-      </Transition>
-
-      <!-- Botão Ver Faturamentos (apenas na etapa 1) -->
-      <Transition name="fade">
-        <div v-if="!showPlansSelection" class="billing-button-top">
-          <NuxtLink to="/billing" class="billing-link-modern">
-            <span class="billing-icon">📄</span>
-            <span>Ver Faturamentos</span>
-          </NuxtLink>
         </div>
       </Transition>
 
@@ -499,7 +503,7 @@
             "
             :class="{
               'subscribe-button': true,
-              'swap-button': activePlanData && activePlanData.customer_id,
+              'swap-button': canSwapPlan,
               disabled:
                 !emailValidation.validated ||
                 !emailValidation.valid ||
@@ -521,7 +525,7 @@
                 : selectedPlan?.metadata?.plan_type === "lifetime" &&
                   hasPurchasedLifetimePlan()
                 ? "💎 Plano Vitalício já comprado"
-                : activePlanData && activePlanData.customer_id
+                : canSwapPlan
                 ? `🔄 Trocar para ${selectedPlan.name} - R$ ${getPlanPrice(
                     selectedPlan
                   )}${getPlanPeriod(selectedPlan)}`
@@ -559,6 +563,16 @@
       :error-data="errorData"
       @upgrade-clicked="hideModal"
     />
+
+    <!-- Modal: dados para Nota Fiscal (checkout ou edição) -->
+    <BillingFormModal
+      v-model="showBillingModal"
+      :title="billingModalIntent === 'edit' ? 'Editar dados de faturamento' : (billingInitialData ? 'Confirmar dados de faturamento' : 'Dados para Nota Fiscal')"
+      :initial-data="billingInitialData"
+      :submit-button-text="billingModalIntent === 'edit' ? 'Salvar' : 'Continuar para pagamento'"
+      @submit="onBillingFormSubmit"
+      @cancel="showBillingModal = false"
+    />
   </div>
 </template>
 
@@ -568,19 +582,26 @@ import { loadStripe } from "@stripe/stripe-js";
 import {
   createCheckoutSession,
   redirectToCheckout,
+  setPendingCheckoutSessionId,
   validateCheckoutData,
+  updateCustomerBilling,
+  getCustomerBilling,
 } from "~/services/stripeCheckoutService.js";
 import { getLifetimePlansCount } from "~/services/lifetimePlanService.js";
 import ActivePlanChecker from "~/components/ActivePlanChecker.vue";
+import BillingFormModal from "~/components/BillingFormModal.vue";
 import PaymentMethodCard from "~/components/PaymentMethodCard.vue";
 import PlanLimitErrorModal from "~/components/PlanLimitErrorModal.vue";
 import { usePlanLimitError } from "~/composables/usePlanLimitError.js";
+import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
 import { useQuery } from "@vue/apollo-composable";
 import gql from "graphql-tag";
 
 // Configurações do Stripe
 const runtimeConfig = useRuntimeConfig();
 const stripeKey = runtimeConfig.public.stripePublishableKey;
+const route = useRoute();
+const router = useRouter();
 
 // Composable para usuário
 const { user, getUserInfo, getUserEmail } = useUser();
@@ -707,6 +728,14 @@ const lifetimePlanData = computed(
 const lifetimePlanTier = computed(() =>
   getPlanTierInfo(lifetimePlanData.value?.product?.metadata)
 );
+// Só mostrar botão "Trocar" quando a assinatura estiver ativa (não cancelada)
+const canSwapPlan = computed(() => {
+  const d = activePlanData.value;
+  if (!d?.customer_id || d?.has_active_plan !== true) return false;
+  const sub = d.subscription;
+  const canceled = sub?.cancel_at_period_end === true || sub?.status === "canceled" || sub?.canceled_at != null;
+  return !canceled;
+});
 const lifetimePlanPriceId = computed(
   () =>
     lifetimePlanData.value?.price?.stripe_id ??
@@ -1832,10 +1861,16 @@ const handleSubscriptionAction = async () => {
     return;
   }
 
-  // Verificar se tem plano ativo
+  // Só redirecionar para troca (swap) se a assinatura estiver realmente ativa (não cancelada).
+  // Assinatura cancelada ou "ativa até fim do período" deve fazer checkout normal (nova assinatura).
+  const sub = activePlanData.value?.subscription;
+  const isSubscriptionCanceled =
+    sub?.cancel_at_period_end === true || sub?.status === "canceled" || sub?.canceled_at != null;
   const hasActivePlan =
-    activePlanData.value && activePlanData.value.customer_id;
-  console.log("🔍 hasActivePlan:", hasActivePlan);
+    activePlanData.value?.has_active_plan === true &&
+    activePlanData.value?.customer_id &&
+    !isSubscriptionCanceled;
+  console.log("🔍 hasActivePlan (para swap):", hasActivePlan, "has_active_plan:", activePlanData.value?.has_active_plan, "isSubscriptionCanceled:", isSubscriptionCanceled);
 
   // Verificar se o plano ativo é vitalício (one_time_payment)
   const isLifetimePlan =
@@ -1894,9 +1929,9 @@ const handleSubscriptionAction = async () => {
     // permitir checkout normal (upgrade de vitalício para assinatura)
     if (isLifetimePlan && selectedPlanIsRecurring) {
       console.log(
-        "💎 Usuário com plano vitalício tentando fazer upgrade para plano recorrente - permitindo checkout normal"
+        "💎 Usuário com plano vitalício tentando fazer upgrade para plano recorrente - abrindo dados para NF"
       );
-      subscribeToPlan();
+      await openBillingModalForCheckout();
       return;
     }
 
@@ -1924,12 +1959,64 @@ const handleSubscriptionAction = async () => {
       );
     }
   } else {
-    // Se não tem plano ativo, fazer checkout normal
-    console.log("🔄 Usuário não tem plano ativo, fazendo checkout normal");
-    console.log("🔍 Motivo: activePlanData.value =", activePlanData.value);
-    console.log("🔍 Motivo: customer_id =", activePlanData.value?.customer_id);
-    subscribeToPlan();
+    // Se não tem plano ativo, abrir formulário de dados para NF (pré-preenchido se já existir) e depois checkout
+    console.log("🔄 Usuário não tem plano ativo - abrindo dados para NF antes do checkout");
+    await openBillingModalForCheckout();
   }
+};
+
+// Modal: dados de faturamento para Nota Fiscal (checkout ou edição)
+const showBillingModal = ref(false);
+/** 'checkout' = abriu ao clicar Assinar; 'edit' = abriu ao clicar Editar dados de faturamento */
+const billingModalIntent = ref('checkout');
+const billingInitialData = ref(null);
+const billingEditLoading = ref(false);
+
+/** Abre o modal de faturamento para checkout, pré-preenchendo com dados existentes do tenant quando houver */
+const openBillingModalForCheckout = async () => {
+  try {
+    const res = await getCustomerBilling(getTenantId());
+    billingInitialData.value = res.data ?? null;
+  } catch (_) {
+    billingInitialData.value = null;
+  }
+  billingModalIntent.value = 'checkout';
+  showBillingModal.value = true;
+};
+
+const openBillingEdit = async () => {
+  billingEditLoading.value = true;
+  try {
+    const res = await getCustomerBilling(getTenantId());
+    billingInitialData.value = res.data ?? null;
+    billingModalIntent.value = 'edit';
+    showBillingModal.value = true;
+  } catch (e) {
+    confirmError(e.message || 'Erro ao carregar dados de faturamento.');
+  } finally {
+    billingEditLoading.value = false;
+  }
+};
+
+const onBillingFormSubmit = async (payload) => {
+  const tenantId = getTenantId();
+  const result = await updateCustomerBilling({
+    tenant_id: tenantId,
+    federal_tax_number: payload.federal_tax_number,
+    billing_address: payload.billing_address,
+  });
+  if (!result.success) {
+    confirmError(result.error || "Erro ao salvar dados. Tente novamente.");
+    return;
+  }
+  showBillingModal.value = false;
+  if (billingModalIntent.value === 'edit') {
+    billingInitialData.value = null;
+    billingModalIntent.value = 'checkout';
+    confirmSuccess('Dados de faturamento salvos com sucesso.');
+    return;
+  }
+  subscribeToPlan();
 };
 
 // Função para validar limites do plano antes de assinar
@@ -2378,13 +2465,21 @@ const subscribeToPlan = async () => {
 
       // Verificar se é erro de subscription existente
       if (sessionResult.isExistingSubscription) {
+        // Só redirecionar para swap se a assinatura for realmente ativa (não cancelada).
+        // Se estiver cancelada/em fim de período, o swap falharia e geraria o modal "plano não encontrado".
+        if (!canSwapPlan.value) {
+          confirmError(
+            "Você ainda possui uma assinatura ativa até o fim do período atual. " +
+            "Para alterar o plano agora, use a opção \"Trocar\" no card do seu plano. " +
+            "Para assinar um novo plano após o cancelamento, aguarde a data de término do período."
+          );
+          return;
+        }
         console.log(
           "🔄 Customer já possui assinatura ativa, redirecionando para troca de planos"
         );
         console.log("🔍 Dados do erro:", sessionResult.errorData);
 
-        // Redirecionar automaticamente para a tela de troca de planos
-        // Usar o price_id do plano selecionado como parâmetro
         const priceId = selectedPlan.value.prices?.data?.[0]?.id;
         if (priceId) {
           const swapUrl = `/payment/swap?price_id=${encodeURIComponent(
@@ -2421,6 +2516,9 @@ const subscribeToPlan = async () => {
     if (!sessionResult.sessionId) {
       throw new Error("Session ID não encontrado na resposta da API");
     }
+
+    // Guardar session_id para a página de sucesso (fallback se a URL não vier com ?session_id)
+    setPendingCheckoutSessionId(sessionResult.sessionId);
 
     // Redirecionar para o checkout do Stripe
     const redirectResult = await redirectToCheckout(
@@ -2527,6 +2625,19 @@ onMounted(async () => {
   try {
     console.log("🚀 Iniciando carregamento da página...");
 
+    // Aviso quando redirecionado da tela "Trocar plano" por não ter assinatura ativa
+    if (route.query.sem_plano_ativo === "1") {
+      confirmSuccess("Você não tem um plano ativo. Escolha um plano abaixo para assinar.", () => {
+        router.replace({ path: "/payment", query: {} });
+      });
+    }
+    // Aviso quando o plano selecionado para troca não foi encontrado
+    if (route.query.preco_nao_encontrado === "1") {
+      confirmSuccess("Plano selecionado não encontrado. Escolha um plano na lista abaixo.", () => {
+        router.replace({ path: "/payment", query: {} });
+      });
+    }
+
     // Carregar informações do usuário logado
     await getUserInfo();
     console.log("🔍 Info do usuário:", user.value);
@@ -2570,9 +2681,46 @@ onMounted(async () => {
   max-width: 1400px;
   margin: 0 auto;
   width: 100%;
+  padding-left: 24px;
+  padding-right: 24px;
+  box-sizing: border-box;
 }
 
-/* Header Moderno */
+/* Header + botões na mesma linha (alinhado com o conteúdo abaixo) */
+.header-with-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  margin-bottom: 24px;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.header-with-actions .page-header-modern {
+  margin-bottom: 0;
+  flex: 1;
+  min-width: 0;
+}
+
+.header-with-actions .billing-button-top {
+  margin-bottom: 0;
+  flex-shrink: 0;
+  width: auto;
+  max-width: none;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.page-header-left {
+  text-align: left;
+}
+
+/* Header Moderno (tela de escolha de planos) */
 .page-header-modern {
   text-align: center;
   margin-bottom: 32px;
@@ -2597,16 +2745,52 @@ onMounted(async () => {
   margin: 0;
 }
 
-/* Botão Ver Faturamentos acima dos cards */
+/* Botão Ver Faturamentos + Editar dados de faturamento (dentro de .header-with-actions ou sozinho) */
 .billing-button-top {
   display: flex;
   justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
   margin-bottom: 20px;
   max-width: 1200px;
   margin-left: auto;
   margin-right: auto;
   width: 100%;
   box-sizing: border-box;
+}
+
+.billing-edit-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 24px;
+  background: white;
+  color: #374151;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 2px solid #e5e7eb;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.billing-edit-button:hover:not(:disabled) {
+  background: #f9fafb;
+  border-color: #3b82f6;
+  color: #2563eb;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.billing-edit-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.billing-edit-button .billing-icon {
+  font-size: 1.25rem;
 }
 
 /* Botão Voltar */

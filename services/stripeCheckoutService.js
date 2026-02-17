@@ -287,6 +287,21 @@ const isValidEmail = (email) => {
   return emailRegex.test(email)
 }
 
+const STRIPE_SESSION_STORAGE_KEY = 'stripe_checkout_session_id_pending'
+
+/**
+ * Guardar session_id antes do redirect ao Stripe (fallback se a URL de retorno não vier com ?session_id).
+ */
+export const setPendingCheckoutSessionId = (sessionId) => {
+  if (process.client && sessionId) {
+    try {
+      sessionStorage.setItem(STRIPE_SESSION_STORAGE_KEY, sessionId)
+    } catch (e) {
+      console.warn('Não foi possível salvar session_id no sessionStorage', e)
+    }
+  }
+}
+
 /**
  * Extrair session ID da URL
  * @param {string} url - URL para extrair session ID
@@ -304,14 +319,34 @@ export const extractSessionIdFromUrl = (url) => {
 }
 
 /**
- * Extrair session ID da URL atual
+ * Extrair session ID da URL atual ou do sessionStorage (fallback quando Stripe não envia na URL).
  * @returns {string|null} Session ID ou null
  */
 export const getCurrentSessionId = () => {
-  if (process.client) {
-    return extractSessionIdFromUrl(window.location.href)
+  if (!process.client) return null
+  const fromUrl = extractSessionIdFromUrl(window.location.href)
+  if (fromUrl) return fromUrl
+  try {
+    const fromStorage = sessionStorage.getItem(STRIPE_SESSION_STORAGE_KEY)
+    if (fromStorage) {
+      console.log('🔍 Session ID obtido do sessionStorage (fallback):', fromStorage)
+      return fromStorage
+    }
+  } catch (e) {
+    console.warn('Erro ao ler session_id do sessionStorage', e)
   }
   return null
+}
+
+/**
+ * Remover session_id pendente do sessionStorage após sync bem-sucedido.
+ */
+export const clearPendingCheckoutSessionId = () => {
+  if (process.client) {
+    try {
+      sessionStorage.removeItem(STRIPE_SESSION_STORAGE_KEY)
+    } catch (_) {}
+  }
 }
 
 /**
@@ -324,11 +359,18 @@ export const syncCheckoutSession = async (sessionId) => {
     console.log('🔍 Sincronizando sessão de checkout:', sessionId)
 
     const apiBaseUrl = getApiBaseUrl();
-    const response = await fetch(`${apiBaseUrl}/v1/checkout-session/${sessionId}/sync`, {
+    const url = `${apiBaseUrl}/v1/checkout-session/${sessionId}/sync`;
+    console.log('🔍 URL do sync:', url);
+
+    const token = localStorage.getItem('userToken') || localStorage.getItem('apollo:default.token');
+    const headers = {
+      'Accept': 'application/json'
+    };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const response = await fetch(url, {
       method: 'GET',
-      headers: {
-        'Accept': 'application/json'
-      }
+      headers
     })
 
     console.log('🔍 Response status:', response.status)
@@ -363,6 +405,78 @@ export const syncCheckoutSession = async (sessionId) => {
     }
   }
 }
+
+/**
+ * Buscar dados de faturamento do customer (para edição na tela).
+ * @param {string} tenantId - ID do tenant
+ * @returns {Promise<{ success: boolean, data?: { federal_tax_number: string, billing_address: object } | null, error?: string }>}
+ */
+export const getCustomerBilling = async (tenantId) => {
+  try {
+    const token = localStorage.getItem('userToken') || localStorage.getItem('apollo:default.token');
+    if (!token) {
+      throw new Error('Token de autenticação não encontrado. Faça login novamente.');
+    }
+    const apiBaseUrl = getApiBaseUrl();
+    const response = await fetch(`${apiBaseUrl}/v1/customers/billing?tenant_id=${encodeURIComponent(tenantId)}`, {
+      method: 'GET',
+      headers: {
+        Accept: 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Erro ao carregar dados de faturamento');
+    }
+    const data = await response.json();
+    return { success: true, data: data.data ?? null };
+  } catch (error) {
+    console.error('Erro ao buscar billing:', error);
+    return { success: false, error: error.message, data: null };
+  }
+};
+
+/**
+ * Atualizar dados de faturamento do customer (CPF/CNPJ e endereço) para emissão da Nota Fiscal.
+ * Deve ser chamado antes de criar a sessão de checkout.
+ * @param {Object} params
+ * @param {string} params.tenant_id - ID do tenant
+ * @param {string} params.federal_tax_number - CPF (11 dígitos) ou CNPJ (14 dígitos), somente números
+ * @param {Object} params.billing_address - Endereço: street, number, district, city { code, name }, state, postal_code, country
+ * @returns {Promise<Object>}
+ */
+export const updateCustomerBilling = async (params) => {
+  try {
+    const token = localStorage.getItem('userToken') || localStorage.getItem('apollo:default.token');
+    if (!token) {
+      throw new Error('Token de autenticação não encontrado. Faça login novamente.');
+    }
+    const apiBaseUrl = getApiBaseUrl();
+    const response = await fetch(`${apiBaseUrl}/v1/customers/billing?tenant_id=${encodeURIComponent(params.tenant_id)}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        federal_tax_number: params.federal_tax_number.replace(/\D/g, ''),
+        billing_address: params.billing_address,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Erro ao salvar dados de faturamento');
+    }
+    return { success: true };
+  } catch (error) {
+    console.error('Erro ao atualizar billing:', error);
+    return { success: false, error: error.message };
+  }
+};
 
 /**
  * Consultar plano ativo do customer
