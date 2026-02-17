@@ -22,17 +22,31 @@
         >
       </div>
 
-      <!-- Header -->
+      <!-- Header + botões na mesma linha (etapa 1) para alinhamento -->
       <Transition name="fade" mode="out-in">
-        <div
-          v-if="!showPlansSelection"
-          key="header-current"
-          class="page-header-modern"
-        >
-          <h1 class="main-title">Seu Plano Atual</h1>
-          <p class="main-subtitle">
-            Gerencie sua assinatura e método de pagamento
-          </p>
+        <div v-if="!showPlansSelection" key="header-current" class="header-with-actions">
+          <div class="page-header-modern page-header-left">
+            <h1 class="main-title">Seu Plano Atual</h1>
+            <p class="main-subtitle">
+              Gerencie sua assinatura e método de pagamento
+            </p>
+          </div>
+          <div class="billing-button-top">
+            <NuxtLink to="/billing" class="billing-link-modern">
+              <span class="billing-icon">📄</span>
+              <span>Ver Faturamentos</span>
+            </NuxtLink>
+            <button
+              v-if="emailValidation.validated && emailValidation.valid"
+              type="button"
+              class="billing-edit-button"
+              :disabled="billingEditLoading"
+              @click="openBillingEdit"
+            >
+              <span class="billing-icon">✏️</span>
+              <span>{{ billingEditLoading ? 'Carregando...' : 'Editar dados de faturamento' }}</span>
+            </button>
+          </div>
         </div>
         <div v-else key="header-plans" class="page-header-modern">
           <h1 class="main-title">Escolha o plano ideal para sua equipe</h1>
@@ -40,26 +54,6 @@
             Compare os recursos e selecione o plano que melhor atende às suas
             necessidades
           </p>
-        </div>
-      </Transition>
-
-      <!-- Botão Ver Faturamentos + Editar dados de faturamento (apenas etapa 1; editar só para dono com email válido) -->
-      <Transition name="fade">
-        <div v-if="!showPlansSelection" class="billing-button-top">
-          <NuxtLink to="/billing" class="billing-link-modern">
-            <span class="billing-icon">📄</span>
-            <span>Ver Faturamentos</span>
-          </NuxtLink>
-          <button
-            v-if="emailValidation.validated && emailValidation.valid"
-            type="button"
-            class="billing-edit-button"
-            :disabled="billingEditLoading"
-            @click="openBillingEdit"
-          >
-            <span class="billing-icon">✏️</span>
-            <span>{{ billingEditLoading ? 'Carregando...' : 'Editar dados de faturamento' }}</span>
-          </button>
         </div>
       </Transition>
 
@@ -2687,9 +2681,46 @@ onMounted(async () => {
   max-width: 1400px;
   margin: 0 auto;
   width: 100%;
+  padding-left: 24px;
+  padding-right: 24px;
+  box-sizing: border-box;
 }
 
-/* Header Moderno */
+/* Header + botões na mesma linha (alinhado com o conteúdo abaixo) */
+.header-with-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  margin-bottom: 24px;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.header-with-actions .page-header-modern {
+  margin-bottom: 0;
+  flex: 1;
+  min-width: 0;
+}
+
+.header-with-actions .billing-button-top {
+  margin-bottom: 0;
+  flex-shrink: 0;
+  width: auto;
+  max-width: none;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.page-header-left {
+  text-align: left;
+}
+
+/* Header Moderno (tela de escolha de planos) */
 .page-header-modern {
   text-align: center;
   margin-bottom: 32px;
@@ -2714,7 +2745,7 @@ onMounted(async () => {
   margin: 0;
 }
 
-/* Botão Ver Faturamentos + Editar dados de faturamento acima dos cards */
+/* Botão Ver Faturamentos + Editar dados de faturamento (dentro de .header-with-actions ou sozinho) */
 .billing-button-top {
   display: flex;
   justify-content: flex-end;

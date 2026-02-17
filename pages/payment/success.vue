@@ -140,11 +140,11 @@
       </div>
 
       <div class="action-buttons">
-        <NuxtLink to="/" class="btn btn-primary">
-          Ir para o Dashboard
+        <NuxtLink to="/payment" class="btn btn-primary">
+          Pagamentos
         </NuxtLink>
-        <NuxtLink to="/settings" class="btn btn-secondary">
-          Configurações
+        <NuxtLink to="/billing" class="btn btn-secondary">
+          Faturamentos
         </NuxtLink>
       </div>
 
