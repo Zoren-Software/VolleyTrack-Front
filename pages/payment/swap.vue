@@ -59,12 +59,12 @@
           </div>
         </div>
 
-        <!-- Proration Details -->
+        <!-- Detalhes da troca (sem pro-rata: próxima cobrança = valor integral do novo plano) -->
         <div class="proration-section">
           <h3>Detalhes da Troca</h3>
           <div class="proration-card">
             <div class="proration-item">
-              <span class="label">Valor do novo plano:</span>
+              <span class="label">Valor do novo plano (próxima cobrança):</span>
               <span class="value charge">{{
                 formatCurrency(previewData.charge_amount)
               }}</span>
@@ -77,19 +77,17 @@
             </div>
           </div>
 
-          <!-- Aviso sobre Ativação Imediata -->
           <div class="activation-notice">
             <div class="notice-icon">✅</div>
             <div class="notice-content">
-              <strong>Plano será ativado imediatamente!</strong>
+              <strong>Plano ativado na hora, sem cobrança agora</strong>
               <p>
-                Você terá acesso ao novo plano agora mesmo. Não há cobrança no
-                momento da troca. A próxima cobrança com o valor de
+                O novo plano passa a valer imediatamente. Não há cobrança no
+                momento da troca nem ajustes proporcionais. Na data abaixo você
+                será cobrado pelo valor integral do novo plano:
                 <strong>{{ formatCurrency(previewData.charge_amount) }}</strong>
-                acontecerá em
-                <strong>
-                  {{ formatDate(previewData.next_billing_date) }} </strong
-                >.
+                em
+                <strong>{{ formatDate(previewData.next_billing_date) }}</strong>.
               </p>
             </div>
           </div>
@@ -285,83 +283,17 @@ const loadPreview = async () => {
     newPlan.value = result.data.new_plan;
 
     console.log("✅ Preview carregado com sucesso:", result.data);
-    console.log("🔍 previewData.value:", previewData.value);
-    console.log("🔍 currentPlan.value:", currentPlan.value);
-    console.log("🔍 newPlan.value:", newPlan.value);
-    console.log("🔍 proration_info:", previewData.value?.proration_info);
-    console.log(
-      "🔍 subscription_period:",
-      previewData.value?.subscription_period
-    );
 
-    // Mapear dados da nova estrutura da API
-    if (previewData.value && previewData.value.proration_info) {
-      const prorationInfo = previewData.value.proration_info;
-      const subscriptionPeriod = previewData.value.subscription_period;
-
-      // Crédito do plano atual: valor proporcional dos dias não usados
-      previewData.value.credit_amount =
-        prorationInfo.current_plan.prorated_credit || 0;
-
-      // Valor do novo plano na próxima fatura: valor TOTAL do novo plano
-      // (não proporcional, pois a cobrança só acontece na próxima fatura)
-      previewData.value.charge_amount = newPlan.value?.amount || 0;
-
-      // Total na próxima fatura: valor total do novo plano - crédito do plano atual
-      previewData.value.total_amount =
-        (newPlan.value?.amount || 0) -
-        (prorationInfo.current_plan.prorated_credit || 0);
-
-      // Mapear dados do período da assinatura
-      if (subscriptionPeriod) {
-        previewData.value.days_remaining = subscriptionPeriod.days_remaining;
-        previewData.value.next_billing_date =
-          subscriptionPeriod.current_period_end;
-      } else {
-        // Fallback para swap_summary se subscription_period não estiver disponível
-        previewData.value.days_remaining = prorationInfo.days_remaining;
-        previewData.value.next_billing_date =
-          previewData.value.swap_summary?.next_billing_date;
-      }
-
-      console.log("🔧 Dados mapeados da nova estrutura da API:", {
-        credit_amount: previewData.value.credit_amount,
-        charge_amount: previewData.value.charge_amount,
-        total_amount: previewData.value.total_amount,
-        days_remaining: previewData.value.days_remaining,
-        next_billing_date: previewData.value.next_billing_date,
-      });
-
-      // Debug: verificar estrutura completa
-      console.log(
-        "📊 currentPlan.value estrutura completa:",
-        JSON.stringify(currentPlan.value, null, 2)
-      );
-      console.log(
-        "📊 newPlan.value estrutura completa:",
-        JSON.stringify(newPlan.value, null, 2)
-      );
-    } else {
-      console.warn("⚠️ proration_info não encontrado na resposta da API");
-      console.log(
-        "📋 Estrutura completa da resposta:",
-        JSON.stringify(previewData.value, null, 2)
-      );
-
-      // Fallback para estrutura antiga, se necessário
-      if (previewData.value.swap_summary) {
-        const currentAmount = currentPlan.value?.amount || 0;
-        const newAmount = newPlan.value?.amount || 0;
-
-        previewData.value.credit_amount = -currentAmount;
-        previewData.value.charge_amount = newAmount;
-        previewData.value.total_amount =
-          previewData.value.swap_summary.immediate_charge ||
-          newAmount - currentAmount;
-        previewData.value.days_remaining = 30;
-        previewData.value.next_billing_date =
-          previewData.value.swap_summary.next_billing_date;
-      }
+    // Troca sem pro-rata: próxima cobrança = valor integral do novo plano
+    const subscriptionPeriod = previewData.value?.subscription_period;
+    const swapSummary = previewData.value?.swap_summary;
+    previewData.value.charge_amount = newPlan.value?.amount ?? 0;
+    previewData.value.next_billing_date =
+      subscriptionPeriod?.current_period_end ??
+      swapSummary?.next_billing_date ??
+      null;
+    if (subscriptionPeriod) {
+      previewData.value.days_remaining = subscriptionPeriod.days_remaining;
     }
   } catch (err) {
     console.error("❌ Erro ao carregar preview:", err);
@@ -506,10 +438,11 @@ const confirmSwap = async () => {
     const successURL = `${window.location.origin}/payment/success`;
     const cancelURL = `${window.location.origin}/payment/cancel`;
 
+    // none: sem pro-rata; troca imediata do plano, próxima cobrança = valor integral do novo plano (sem NF no momento da troca)
     const result = await planSwapService.swapPlan(
       customerId,
       priceId,
-      "create_prorations",
+      "none",
       successURL,
       cancelURL
     );

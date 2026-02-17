@@ -275,23 +275,56 @@
                 >
                   <span>Baixar PDF</span>
                 </a>
-                <a
-                  v-if="invoice.nfse_pdf_url"
-                  :href="invoice.nfse_pdf_url"
-                  target="_blank"
-                  class="action-button nf-button"
+                <!-- NFSe: dropdown com PDF (principal) e XML (secundário) -->
+                <div
+                  v-if="invoice.nfse_pdf_url || invoice.nfse_service_invoice_id"
+                  class="nf-dropdown-wrap"
                 >
-                  <span>Baixar NF</span>
-                </a>
-                <button
-                  v-else-if="invoice.nfse_service_invoice_id"
-                  type="button"
-                  class="action-button nf-button"
-                  :disabled="nfsePdfLoading === invoice.id"
-                  @click="openNfsePdf(invoice)"
-                >
-                  <span>{{ nfsePdfLoading === invoice.id ? 'Carregando...' : 'Baixar NF' }}</span>
-                </button>
+                  <div class="nf-dropdown-group">
+                    <a
+                      v-if="invoice.nfse_pdf_url"
+                      :href="invoice.nfse_pdf_url"
+                      target="_blank"
+                      class="action-button nf-button nf-dropdown-main"
+                    >
+                      <span>Baixar NF (PDF)</span>
+                    </a>
+                    <button
+                      v-else
+                      type="button"
+                      class="action-button nf-button nf-dropdown-main"
+                      :disabled="nfsePdfLoading === invoice.id"
+                      @click="openNfsePdf(invoice)"
+                    >
+                      <span>{{ nfsePdfLoading === invoice.id ? 'Carregando...' : 'Baixar NF (PDF)' }}</span>
+                    </button>
+                    <button
+                      type="button"
+                      class="nf-dropdown-trigger"
+                      :disabled="nfsePdfLoading === invoice.id"
+                      :aria-expanded="nfseDropdownOpen === invoice.id"
+                      @click="toggleNfseDropdown(invoice.id)"
+                    >
+                      <span class="nf-dropdown-caret">▼</span>
+                    </button>
+                  </div>
+                  <Transition name="nf-dropdown">
+                    <div
+                      v-show="nfseDropdownOpen === invoice.id"
+                      class="nf-dropdown-menu"
+                      role="menu"
+                    >
+                      <button
+                        type="button"
+                        class="nf-dropdown-item"
+                        :disabled="nfseXmlLoading === invoice.id"
+                        @click="openNfseXml(invoice)"
+                      >
+                        {{ nfseXmlLoading === invoice.id ? 'Carregando...' : 'Baixar XML da NF' }}
+                      </button>
+                    </div>
+                  </Transition>
+                </div>
               </div>
             </div>
           </div>
@@ -341,7 +374,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, onUnmounted, computed } from "vue";
 import { useUser } from "~/composables/useUser";
 import Swal from "sweetalert2";
 
@@ -371,6 +404,8 @@ const summary = ref({
   lifetime_total_amount: 0,
 });
 const nfsePdfLoading = ref(null); // invoice.id quando está buscando PDF da NF
+const nfseXmlLoading = ref(null); // invoice.id quando está buscando XML da NF
+const nfseDropdownOpen = ref(null); // invoice.id quando o dropdown está aberto
 
 // Função para obter tenant_id
 const getTenantId = () => {
@@ -451,6 +486,67 @@ const openNfsePdf = async (invoice) => {
     nfsePdfLoading.value = null;
   }
 };
+
+const toggleNfseDropdown = (invoiceId) => {
+  nfseDropdownOpen.value = nfseDropdownOpen.value === invoiceId ? null : invoiceId;
+};
+
+// Download do XML da NFSe (chamada ao backend que retorna attachment)
+const openNfseXml = async (invoice) => {
+  if (!invoice.nfse_service_invoice_id) return;
+  const apiBaseUrl = runtimeConfig.public.apiEndpoint || "http://api.volleytrack.local";
+  const token = localStorage.getItem("userToken") || localStorage.getItem("apollo:default.token");
+  if (!token) return;
+  nfseXmlLoading.value = invoice.id;
+  nfseDropdownOpen.value = null;
+  try {
+    const res = await fetch(
+      `${apiBaseUrl}/v1/invoices/${encodeURIComponent(invoice.id)}/nfse-xml`,
+      {
+        headers: {
+          Accept: "application/xml, application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    const contentType = res.headers.get("content-type") || "";
+    if (res.ok && contentType.includes("application/xml")) {
+      const xml = await res.text();
+      const blob = new Blob([xml], { type: "application/xml" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `nfse-${invoice.id || "nota"}.xml`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } else {
+      const data = await res.json().catch(() => ({}));
+      const message = data.message || "Não foi possível obter o XML da NFSe. Tente novamente em instantes.";
+      await Swal.fire({
+        icon: "warning",
+        title: "XML não disponível",
+        text: message,
+        confirmButtonText: "Entendi",
+      });
+    }
+  } finally {
+    nfseXmlLoading.value = null;
+  }
+};
+
+// Fechar dropdown ao clicar fora
+function onDocumentClick(e) {
+  if (nfseDropdownOpen.value != null && !e.target.closest?.(".nf-dropdown-wrap")) {
+    nfseDropdownOpen.value = null;
+  }
+}
+
+onMounted(() => {
+  if (process.client) document.addEventListener("click", onDocumentClick);
+});
+onUnmounted(() => {
+  if (process.client) document.removeEventListener("click", onDocumentClick);
+});
 
 // Função para carregar faturas
 const loadInvoices = async (lifetimePage = 1, subscriptionPage = 1) => {
@@ -1087,6 +1183,108 @@ onMounted(() => {
 .invoice-actions button.action-button:disabled {
   opacity: 0.7;
   cursor: not-allowed;
+}
+
+/* NFSe dropdown: botão principal + seta com menu (PDF + XML) */
+.nf-dropdown-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.nf-dropdown-group {
+  display: inline-flex;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.2);
+}
+
+.nf-dropdown-main {
+  flex: 1;
+  border-radius: 0;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  min-width: 0;
+}
+
+.nf-dropdown-main:hover {
+  transform: none;
+}
+
+.nf-dropdown-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  padding: 0;
+  background: #d97706;
+  color: white;
+  border: none;
+  border-left: 1px solid rgba(255, 255, 255, 0.25);
+  cursor: pointer;
+  font-size: 0.7rem;
+  transition: background 0.2s ease;
+}
+
+.nf-dropdown-trigger:hover:not(:disabled) {
+  background: #b45309;
+}
+
+.nf-dropdown-trigger:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.nf-dropdown-caret {
+  pointer-events: none;
+}
+
+.nf-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  min-width: 180px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+  border: 1px solid #e5e7eb;
+  z-index: 50;
+  overflow: hidden;
+}
+
+.nf-dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #374151;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.nf-dropdown-item:hover:not(:disabled) {
+  background: #f3f4f6;
+  color: #f59e0b;
+}
+
+.nf-dropdown-item:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.nf-dropdown-enter-active,
+.nf-dropdown-leave-active {
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.nf-dropdown-enter-from,
+.nf-dropdown-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
 }
 
 .pagination-container {

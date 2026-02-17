@@ -102,7 +102,7 @@ class PlanSwapService {
    * @param {string} cancelUrl - URL de cancelamento (opcional)
    * @returns {Promise<Object>} Resultado da troca
    */
-  async swapPlan(customerId, newPriceId, prorationBehavior = 'create_prorations', successUrl = null, cancelUrl = null) {
+  async swapPlan(customerId, newPriceId, prorationBehavior = 'none', successUrl = null, cancelUrl = null) {
     try {
       console.log('🔄 Executando troca de planos:', { customerId, newPriceId, prorationBehavior, successUrl, cancelUrl })
 
