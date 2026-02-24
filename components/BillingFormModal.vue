@@ -168,13 +168,58 @@ const addressFetchedFromCep = ref(false);
 
 const billingFormRef = ref(null);
 
+/** Validação estática de CPF (11 dígitos, dígitos verificadores). */
+function isValidCPF(value) {
+  const digits = (value || '').replace(/\D/g, '');
+  if (digits.length !== 11) return false;
+  if (/^(\d)\1{10}$/.test(digits)) return false; // 111.111.111-11 etc.
+  let sum = 0;
+  for (let i = 0; i < 9; i++) sum += parseInt(digits[i], 10) * (10 - i);
+  let rest = (sum * 10) % 11;
+  if (rest === 10) rest = 0;
+  if (rest !== parseInt(digits[9], 10)) return false;
+  sum = 0;
+  for (let i = 0; i < 10; i++) sum += parseInt(digits[i], 10) * (11 - i);
+  rest = (sum * 10) % 11;
+  if (rest === 10) rest = 0;
+  if (rest !== parseInt(digits[10], 10)) return false;
+  return true;
+}
+
+/** Validação estática de CNPJ (14 dígitos, dígitos verificadores). */
+function isValidCNPJ(value) {
+  const digits = (value || '').replace(/\D/g, '');
+  if (digits.length !== 14) return false;
+  if (/^(\d)\1{13}$/.test(digits)) return false; // 11.111.111/1111-11 etc.
+  const weights1 = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+  let sum = 0;
+  for (let i = 0; i < 12; i++) sum += parseInt(digits[i], 10) * weights1[i];
+  let rest = sum % 11;
+  const digit1 = rest < 2 ? 0 : 11 - rest;
+  if (digit1 !== parseInt(digits[12], 10)) return false;
+  const weights2 = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+  sum = 0;
+  for (let i = 0; i < 13; i++) sum += parseInt(digits[i], 10) * weights2[i];
+  rest = sum % 11;
+  const digit2 = rest < 2 ? 0 : 11 - rest;
+  if (digit2 !== parseInt(digits[13], 10)) return false;
+  return true;
+}
+
 const taxNumberRules = computed(() => {
-  const len = form.value.tipo === 'pj' ? 14 : 11;
+  const isPJ = form.value.tipo === 'pj';
+  const len = isPJ ? 14 : 11;
   return [
     validators.required,
     (v) => {
       const digits = (v || '').replace(/\D/g, '');
-      return digits.length === len ? true : (form.value.tipo === 'pj' ? 'CNPJ deve ter 14 dígitos' : 'CPF deve ter 11 dígitos');
+      if (digits.length !== len) {
+        return isPJ ? 'CNPJ deve ter 14 dígitos' : 'CPF deve ter 11 dígitos';
+      }
+      if (isPJ) {
+        return isValidCNPJ(v) ? true : 'CNPJ inválido';
+      }
+      return isValidCPF(v) ? true : 'CPF inválido';
     },
   ];
 });
