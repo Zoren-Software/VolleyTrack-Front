@@ -8,131 +8,156 @@
     <div v-else-if="error" class="error">
       <div class="error-icon">⚠️</div>
       <p>Erro ao verificar plano: {{ error }}</p>
-      <button @click="checkActivePlan" class="btn-retry">
-        Tentar Novamente
+      <button
+        @click="checkActivePlan"
+        class="btn-retry"
+        :disabled="retryAfterCountdown > 0"
+      >
+        {{ retryAfterCountdown > 0 ? `Tentar novamente em ${retryAfterCountdown}s` : 'Tentar Novamente' }}
       </button>
     </div>
 
-    <div v-else-if="activePlan" class="active-plan">
-      <div class="plan-header">
-        <h3>Seu Plano</h3>
-        <div class="status-badge" :class="activePlan.subscription?.status">
-          {{ getSubscriptionStatusText(activePlan.subscription?.status) }}
-        </div>
-      </div>
-
-      <div class="plan-details">
-        <div class="plan-info">
-          <h4>
+    <div v-else-if="displayPlans.length" class="active-plans-wrapper">
+      <h3 v-if="displayPlans.length > 1" class="plans-section-title">Seus planos</h3>
+      <div
+        v-for="(plan, index) in displayPlans"
+        :key="plan.subscription?.id || plan.subscription?.stripe_id || index"
+        class="active-plan"
+      >
+        <div class="plan-header">
+          <h3>{{ displayPlans.length > 1 ? 'Plano' : 'Seu Plano' }}</h3>
+          <div
+            class="status-badge"
+            :class="[
+              plan.subscription?.status,
+              isPlanCanceledButActive(plan) ? 'canceled-but-active' : ''
+            ]"
+          >
             {{
-              activePlan.is_full_access
-                ? "Plano ativado manualmente sem pagamento"
-                : activePlan.product?.name || "Plano Ativo"
+              isPlanCanceledButActive(plan)
+                ? `Cancelado (ativo até ${formatDate(plan.subscription?.current_period_end)})`
+                : getSubscriptionStatusText(plan.subscription?.status)
             }}
-          </h4>
-          <p
-            v-if="activePlan.is_full_access"
-            class="plan-description"
-          >
-            Este plano foi ativado via configuração no banco de dados e não requer pagamento.
-          </p>
-          <p
-            v-else-if="activePlan.product?.description"
-            class="plan-description"
-          >
-            {{ activePlan.product.description }}
-          </p>
+          </div>
         </div>
 
-        <div class="plan-stats">
-          <div class="stat-item">
-            <span class="stat-label">Valor:</span>
-            <span
-              v-if="activePlan.is_full_access"
-              class="stat-value price free-price"
+        <div class="plan-details">
+          <div class="plan-info">
+            <h4>
+              {{
+                plan.is_full_access
+                  ? "Plano ativado manualmente sem pagamento"
+                  : plan.product?.name || "Plano Ativo"
+              }}
+            </h4>
+            <p
+              v-if="plan.is_full_access"
+              class="plan-description"
             >
-              R$ 0,00
-            </span>
-            <span v-else class="stat-value price">
-              R$ {{ formatPrice(activePlan.price?.unit_amount) }}
+              Este plano foi ativado via configuração no banco de dados e não requer pagamento.
+            </p>
+            <p
+              v-else-if="plan.product?.description"
+              class="plan-description"
+            >
+              {{ plan.product.description }}
+            </p>
+          </div>
+
+          <div class="plan-stats">
+            <div class="stat-item">
+              <span class="stat-label">Valor:</span>
               <span
-                v-if="activePlan.price?.type === 'recurring'"
-                class="recurring"
+                v-if="plan.is_full_access"
+                class="stat-value price free-price"
               >
-                /
-                {{
-                  getRecurringInterval(activePlan.price?.recurring?.interval)
-                }}
+                R$ 0,00
               </span>
-            </span>
+              <span v-else class="stat-value price">
+                R$ {{ formatPrice(plan.price?.unit_amount) }}
+                <span
+                  v-if="plan.price?.type === 'recurring'"
+                  class="recurring"
+                >
+                  /
+                  {{
+                    getRecurringInterval(plan.price?.recurring?.interval)
+                  }}
+                </span>
+              </span>
+            </div>
+
+            <div
+              v-if="!plan.is_full_access && plan.subscription?.current_period_end"
+              class="stat-item"
+            >
+              <span
+                class="stat-label"
+                :class="{ 'canceled-label': isPlanCanceledButActive(plan) }"
+              >
+                Próxima cobrança:
+              </span>
+              <span
+                class="stat-value"
+                :class="{ 'canceled-value': isPlanCanceledButActive(plan) }"
+              >
+                {{ formatDate(plan.subscription.current_period_end) }}
+              </span>
+            </div>
+            <div v-if="plan.is_full_access" class="stat-item">
+              <span class="stat-label">Status:</span>
+              <span class="stat-value" style="color: #10b981; font-weight: 700;">
+                Ativo via configuração manual
+              </span>
+            </div>
           </div>
 
+          <!-- Aviso de Cancelamento (só para plano cancelado mas ainda ativo) -->
           <div
-            v-if="!activePlan.is_full_access && activePlan.subscription?.current_period_end"
-            class="stat-item"
+            v-if="!plan.is_full_access && isPlanCanceledButActive(plan)"
+            class="cancellation-notice"
           >
-            <span class="stat-label" :class="{ 'canceled-label': isCanceled }"
-              >Próxima cobrança:</span
-            >
-            <span
-              class="stat-value"
-              :class="{ 'canceled-value': isCanceled }"
-              >{{
-                formatDate(activePlan.subscription.current_period_end)
-              }}</span
-            >
+            <div class="notice-header">
+              <span class="notice-icon">⚠️</span>
+              <h4 class="notice-title">Sua assinatura foi cancelada</h4>
+            </div>
+            <p class="notice-text">
+              Você continuará com acesso até
+              <strong>{{ formatDate(plan.subscription?.current_period_end) }}.</strong>
+              Não haverá novas cobranças após esta data.
+            </p>
           </div>
-          <div
-            v-if="activePlan.is_full_access"
-            class="stat-item"
-          >
-            <span class="stat-label">Status:</span>
-            <span class="stat-value" style="color: #10b981; font-weight: 700;">
-              Ativo via configuração manual
-            </span>
-          </div>
-        </div>
 
-        <!-- Aviso de Cancelamento -->
-        <div v-if="!activePlan.is_full_access && isCanceled" class="cancellation-notice">
-          <div class="notice-header">
-            <span class="notice-icon">⚠️</span>
-            <h4 class="notice-title">Sua assinatura foi cancelada</h4>
+          <!-- Ações em todos os planos (cancelar/upgrade por plano) -->
+          <div class="plan-actions">
+            <button
+              v-if="!plan.is_full_access"
+              @click="manageSubscription(plan)"
+              class="btn btn-cancel"
+              :disabled="isPlanCanceledButActive(plan)"
+              :class="{ 'btn-disabled': isPlanCanceledButActive(plan) }"
+            >
+              {{
+                isPlanCanceledButActive(plan)
+                  ? "Assinatura Cancelada"
+                  : "Cancelar Assinatura"
+              }}
+            </button>
+            <button
+              v-if="!plan.is_full_access"
+              @click="upgradePlan(plan)"
+              class="btn btn-primary upgrade-btn"
+              :class="{ 'upgrade-animation': props.showUpgradeAnimations }"
+            >
+              <span class="upgrade-text">{{
+                props.showUpgradeAnimations ? "Parar Animações" : "Fazer Upgrade"
+              }}</span>
+              <span
+                v-if="props.showUpgradeAnimations"
+                class="upgrade-sparkle"
+              >✨</span>
+            </button>
           </div>
-          <p class="notice-text">
-            Você continuará com acesso até
-            <strong
-              >{{
-                formatDate(activePlan.subscription?.current_period_end)
-              }}.</strong
-            >
-            Não haverá novas cobranças após esta data.
-          </p>
-        </div>
-
-        <div class="plan-actions">
-          <button
-            v-if="!activePlan.is_full_access"
-            @click="manageSubscription"
-            class="btn btn-cancel"
-            :disabled="isCanceled"
-            :class="{ 'btn-disabled': isCanceled }"
-          >
-            {{ isCanceled ? "Assinatura Cancelada" : "Cancelar Assinatura" }}
-          </button>
-          <button
-            v-if="!activePlan.is_full_access"
-            @click="upgradePlan"
-            class="btn btn-primary upgrade-btn"
-            :class="{ 'upgrade-animation': props.showUpgradeAnimations }"
-          >
-            <span class="upgrade-text">{{
-              props.showUpgradeAnimations ? "Parar Animações" : "Fazer Upgrade"
-            }}</span>
-            <span class="upgrade-sparkle" v-if="props.showUpgradeAnimations"
-              >✨</span
-            >
-          </button>
         </div>
       </div>
     </div>
@@ -381,22 +406,43 @@ const emit = defineEmits([
 
 // Estado da aplicação
 const activePlan = ref(null);
+const activePlans = ref([]); // lista de planos (ativos + cancelado-ainda-ativo) vinda da API
 const loading = ref(true);
 const error = ref(null);
 const refreshTimer = ref(null);
+const retryAfterCountdown = ref(0); // segundos restantes antes de permitir novo retry (após 429)
 const trialInfo = ref(null);
 const deletionInfo = ref(null);
 const timeRemaining = ref(null); // Para contagem regressiva do trial
 const deadlineCountdown = ref(null); // Para contagem regressiva do deadline
 const deletionCountdown = ref(null); // Para contagem regressiva da exclusão agendada
 
-// Verificar se o plano está cancelado
+// Verificar se o plano está cancelado (plano principal, compatibilidade)
 const isCanceled = computed(() => {
   return (
     activePlan.value?.subscription?.cancel_at_period_end === true &&
     activePlan.value?.subscription?.canceled_at !== null
   );
 });
+
+// Lista de planos para exibição: múltiplos da API ou único (plano principal)
+const displayPlans = computed(() => {
+  if (activePlans.value?.length) return activePlans.value;
+  if (activePlan.value) return [activePlan.value];
+  return [];
+});
+
+// Verificar se um plano está cancelado mas ainda ativo (acesso até fim do período)
+function isPlanCanceledButActive(plan) {
+  if (!plan) return false;
+  if (plan.is_canceled_but_active === true) return true;
+  return (
+    plan.subscription?.cancel_at_period_end === true &&
+    plan.subscription?.canceled_at != null &&
+    plan.subscription?.current_period_end &&
+    new Date(plan.subscription.current_period_end) > new Date()
+  );
+}
 
 // Formatar mensagem do trial com dias arredondados
 const formattedTrialMessage = computed(() => {
@@ -673,6 +719,24 @@ const checkActivePlan = async () => {
       if (emitPlan) {
         activePlan.value = buildPlanPayload(responseData);
 
+        // Lista de planos: usar data.plans da API quando existir (ativos + cancelado-ainda-ativo)
+        if (responseData.plans?.length) {
+          activePlans.value = responseData.plans.map((p) => {
+            const payload = buildPlanPayload({
+              ...responseData,
+              subscription: p.subscription,
+              product: p.product,
+              price: p.price,
+              customer_id: responseData.customer_id,
+              has_active_plan: true,
+            });
+            if (payload) payload.is_canceled_but_active = p.is_canceled_but_active === true;
+            return payload;
+          }).filter(Boolean);
+        } else {
+          activePlans.value = [];
+        }
+
         // Extrair customer_id da nova estrutura da API
         const customerId = activePlan.value.customer_id;
 
@@ -711,6 +775,7 @@ const checkActivePlan = async () => {
         console.log("✅ Plano ativo carregado:", activePlan.value);
       } else {
         activePlan.value = null;
+        activePlans.value = [];
 
         // Extrair informações de trial se disponível
         if (response.data.trial_info) {
@@ -771,7 +836,13 @@ const checkActivePlan = async () => {
         );
       }
     } else {
-      throw new Error(response.error || "Erro ao consultar plano ativo");
+      // 429: usar mensagem amigável e tempo de espera
+      if (response.is429 && response.retryAfterSeconds) {
+        error.value = response.error || "Muitas requisições. Aguarde e tente novamente.";
+        startRetryAfterCountdown(response.retryAfterSeconds);
+      } else {
+        throw new Error(response.error || "Erro ao consultar plano ativo");
+      }
     }
   } catch (err) {
     console.error("❌ Erro ao verificar plano ativo:", err);
@@ -800,6 +871,19 @@ const clearRefreshTimer = () => {
     refreshTimer.value = null;
   }
 };
+
+let retryAfterInterval = null;
+function startRetryAfterCountdown(seconds) {
+  retryAfterCountdown.value = seconds;
+  if (retryAfterInterval) clearInterval(retryAfterInterval);
+  retryAfterInterval = setInterval(() => {
+    retryAfterCountdown.value = Math.max(0, retryAfterCountdown.value - 1);
+    if (retryAfterCountdown.value <= 0 && retryAfterInterval) {
+      clearInterval(retryAfterInterval);
+      retryAfterInterval = null;
+    }
+  }, 1000);
+}
 
 // Funções auxiliares
 const formatDate = (dateString) => {
@@ -839,30 +923,40 @@ const getRecurringInterval = (interval) => {
   return intervalMap[interval] || interval || "período";
 };
 
-// Ações do usuário
-const manageSubscription = async () => {
-  console.log("🔄 Iniciando cancelamento de assinatura...");
+// Mesmo fallback de tenant_id usado na página de pagamento (validação de compra)
+const getTenantIdForValidation = () => {
+  if (process.client) {
+    const stored = props.tenantId || localStorage.getItem("tenant_id");
+    if (stored) return stored;
+    return "default";
+  }
+  return "default";
+};
 
-  // Validar email do usuário antes de permitir cancelamento
+// Ações do usuário (plan = plano específico para cancelar; se múltiplos planos, indica qual)
+const manageSubscription = async (plan = null) => {
+  const targetPlan = plan || activePlan.value;
+  console.log("🔄 Iniciando cancelamento de assinatura...", targetPlan?.subscription?.id);
+
+  // Validar email do usuário antes de permitir cancelamento (mesma lógica da página de pagamento)
   try {
-    const { getUserEmail } = useUser();
+    const { getUserInfo, getUserEmail } = useUser();
+    await getUserInfo();
     const userEmail = getUserEmail();
 
     if (!userEmail) {
       throw new Error("Email do usuário não encontrado");
     }
 
-    // Validar email via API
+    // Validar email via API (mesma URL e payload usados na compra)
     const token = getAuthToken();
     if (!token) {
       throw new Error("Token de autenticação não encontrado");
     }
 
-    const tenantId = props.tenantId || localStorage.getItem("tenant_id");
+    const tenantId = getTenantIdForValidation();
     const validateResponse = await fetch(
-      `${
-        process.env.NUXT_PUBLIC_API_URL || "http://volleytrack.local"
-      }/v1/customers/check-email`,
+      `${apiEndpoint}/v1/customers/check-email`,
       {
         method: "POST",
         headers: {
@@ -878,21 +972,24 @@ const manageSubscription = async () => {
     );
 
     if (!validateResponse.ok) {
-      const errorData = await validateResponse.json();
-      throw new Error(errorData.message || "Erro na validação do email");
+      let errorMessage = "Erro na validação do email";
+      try {
+        const errorData = await validateResponse.json();
+        errorMessage = errorData.message || errorMessage;
+      } catch (_) {}
+      throw new Error(errorMessage);
     }
 
     const validateData = await validateResponse.json();
 
     if (!validateData.success || !validateData.exists) {
-      // Email inválido - mostrar mensagem discreta e bloquear cancelamento
       Swal.fire({
         icon: "error",
         title: "Ação não permitida",
         html: `
           <div style="text-align: left; padding: 10px 0;">
             <p style="font-size: 1.1rem; margin-bottom: 15px; color: #333;">
-              <strong>❌ Seu usuário é inválido para cancelar o plano</strong>
+              <strong>❌ ${validateData.message || "Seu usuário é inválido para cancelar o plano"}</strong>
             </p>
             <p style="margin: 15px 0 0 0; font-size: 0.95rem; color: #666;">
               Entre em contato com o suporte se for necessário rever isso.
@@ -908,14 +1005,14 @@ const manageSubscription = async () => {
   } catch (error) {
     console.error("❌ Erro na validação do email:", error);
 
-    // Em caso de erro na validação, também bloquear por segurança
+    const message = error?.message || "Seu usuário é inválido para cancelar o plano";
     Swal.fire({
       icon: "error",
       title: "Erro na Validação",
       html: `
         <div style="text-align: left; padding: 10px 0;">
           <p style="font-size: 1.1rem; margin-bottom: 15px; color: #333;">
-            <strong>❌ Seu usuário é inválido para cancelar o plano</strong>
+            <strong>❌ ${message}</strong>
           </p>
           <p style="margin: 15px 0 0 0; font-size: 0.95rem; color: #666;">
             Entre em contato com o suporte se for necessário rever isso.
@@ -929,13 +1026,14 @@ const manageSubscription = async () => {
     return;
   }
 
+  const planName = targetPlan?.product?.name || "esta assinatura";
   // Confirmar cancelamento com SweetAlert2
   const { value: confirmed } = await Swal.fire({
     title: "Cancelar Assinatura?",
     html: `
       <div style="text-align: left; padding: 10px 0;">
         <p style="margin-bottom: 15px;">
-          Tem certeza que deseja cancelar sua assinatura?
+          Tem certeza que deseja cancelar <strong>${planName}</strong>?
         </p>
         <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 12px; border-radius: 8px; margin: 15px 0;">
           <p style="margin: 0; color: #92400e; font-weight: 600;">
@@ -977,6 +1075,13 @@ const manageSubscription = async () => {
     }
 
     // Chamar API de cancelamento
+    const payload = {
+      customer_id: parseInt(customerId),
+      cancel_at_period_end: true,
+    };
+    if (targetPlan?.subscription?.id) payload.subscription_id = targetPlan.subscription.id;
+    else if (targetPlan?.subscription?.stripe_id) payload.stripe_subscription_id = targetPlan.subscription.stripe_id;
+
     const response = await fetch(`${apiEndpoint}/v1/subscriptions/cancel`, {
       method: "POST",
       headers: {
@@ -984,10 +1089,7 @@ const manageSubscription = async () => {
         Accept: "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({
-        customer_id: parseInt(customerId),
-        cancel_at_period_end: true,
-      }),
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
@@ -1039,12 +1141,12 @@ const manageSubscription = async () => {
   }
 };
 
-const upgradePlan = () => {
-  console.log("🔄 Botão Fazer Upgrade clicado!");
+const upgradePlan = (plan = null) => {
+  console.log("🔄 Botão Fazer Upgrade clicado!", plan?.product?.name);
   console.log("🔍 showUpgradeAnimations atual:", props.showUpgradeAnimations);
 
-  // Emitir evento para toggle das animações nos planos
-  emit("upgrade-clicked");
+  // Emitir evento para toggle das animações nos planos (plan opcional para contexto futuro)
+  emit("upgrade-clicked", plan);
 
   console.log("✅ Evento 'upgrade-clicked' emitido");
 };
@@ -1172,6 +1274,29 @@ onUnmounted(() => {
 .status-badge.canceled {
   background: #fee2e2;
   color: #991b1b;
+}
+
+.status-badge.canceled-but-active {
+  background: #fef3c7;
+  color: #92400e;
+  text-transform: none;
+}
+
+.active-plans-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.active-plans-wrapper .active-plan {
+  margin-bottom: 0;
+}
+
+.plans-section-title {
+  margin: 0 0 0.75rem 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary, #1f2937);
 }
 
 .plan-details {

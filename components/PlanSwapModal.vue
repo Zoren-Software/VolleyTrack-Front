@@ -196,9 +196,11 @@ const confirmSwap = async () => {
       newPriceId: props.newPriceId,
     });
 
+    // none: sem pro-rata; próxima cobrança será o valor integral do novo plano
     const response = await planSwapService.swapPlan(
       props.customerId,
-      props.newPriceId
+      props.newPriceId,
+      "none"
     );
 
     if (response.success) {

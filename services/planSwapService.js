@@ -59,17 +59,21 @@ class PlanSwapService {
       if (!response.ok) {
         const errorData = await response.json()
         console.error('❌ Erro no preview da troca:', errorData)
-        
+        const msg = errorData.message || 'Erro desconhecido'
+
         if (response.status === 401) {
           throw new Error('Token de autenticação inválido')
         } else if (response.status === 404) {
-          throw new Error('Assinatura ativa não encontrada para este customer')
+          // Repassar mensagem do backend para distinguir "sem assinatura" de "preço não encontrado"
+          const isNoActiveSubscription =
+            /no active subscription|assinatura ativa não encontrada/i.test(msg)
+          throw new Error(isNoActiveSubscription ? 'NO_ACTIVE_SUBSCRIPTION' : msg)
         } else if (response.status === 400) {
-          throw new Error(errorData.message || 'Erro na validação dos dados')
+          throw new Error(msg || 'Erro na validação dos dados')
         } else if (response.status === 500) {
-          throw new Error(`Erro do servidor: ${errorData.message || 'Erro interno'}`)
+          throw new Error(`Erro do servidor: ${msg || 'Erro interno'}`)
         } else {
-          throw new Error(`Erro HTTP ${response.status}: ${errorData.message || 'Erro desconhecido'}`)
+          throw new Error(`Erro HTTP ${response.status}: ${msg}`)
         }
       }
 
@@ -98,7 +102,7 @@ class PlanSwapService {
    * @param {string} cancelUrl - URL de cancelamento (opcional)
    * @returns {Promise<Object>} Resultado da troca
    */
-  async swapPlan(customerId, newPriceId, prorationBehavior = 'create_prorations', successUrl = null, cancelUrl = null) {
+  async swapPlan(customerId, newPriceId, prorationBehavior = 'none', successUrl = null, cancelUrl = null) {
     try {
       console.log('🔄 Executando troca de planos:', { customerId, newPriceId, prorationBehavior, successUrl, cancelUrl })
 
