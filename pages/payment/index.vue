@@ -1,6 +1,11 @@
 <template>
   <div class="subscription-plans-page">
-    <div class="container">
+    <!-- Bloqueia a tela até o check-email terminar; sem cache, sempre chama a API -->
+    <div v-if="!emailValidationReady" class="page-loading-email-validation">
+      <div class="loading-spinner"></div>
+      <p>Validando e-mail...</p>
+    </div>
+    <div v-else class="container">
       <!-- Mensagem de Sucesso Discreta (Canto Inferior Esquerdo) -->
       <div
         v-if="emailValidation.validated && emailValidation.valid"
@@ -12,7 +17,11 @@
 
       <!-- Mensagem de Erro Discreta (Canto Inferior Esquerdo): só exibir após o plano ativo ter carregado, para evitar mostrar "inválido" quando o usuário acabou de logar e os dados ainda não carregaram -->
       <div
-        v-if="emailValidation.validated && !emailValidation.valid && !activePlanLoading"
+        v-if="
+          emailValidation.validated &&
+          !emailValidation.valid &&
+          !activePlanLoading
+        "
         class="validation-error-discrete-fixed"
       >
         <div class="validation-icon-small">❌</div>
@@ -24,7 +33,11 @@
 
       <!-- Header + botões na mesma linha (etapa 1) para alinhamento -->
       <Transition name="fade" mode="out-in">
-        <div v-if="!showPlansSelection" key="header-current" class="header-with-actions">
+        <div
+          v-if="!showPlansSelection"
+          key="header-current"
+          class="header-with-actions"
+        >
           <div class="page-header-modern page-header-left">
             <h1 class="main-title">Seu Plano Atual</h1>
             <p class="main-subtitle">
@@ -44,7 +57,11 @@
               @click="openBillingEdit"
             >
               <span class="billing-icon">✏️</span>
-              <span>{{ billingEditLoading ? 'Carregando...' : 'Editar dados de faturamento' }}</span>
+              <span>{{
+                billingEditLoading
+                  ? "Carregando..."
+                  : "Editar dados de faturamento"
+              }}</span>
             </button>
           </div>
         </div>
@@ -517,21 +534,21 @@
               subscriptionLoading
                 ? "Processando..."
                 : !emailValidation.validated
-                ? "Aguardando validação..."
-                : !emailValidation.valid
-                ? "E-mail não validado - Contate o suporte"
-                : isPlanActive(selectedPlan)
-                ? "Este plano já está ativo"
-                : selectedPlan?.metadata?.plan_type === "lifetime" &&
-                  hasPurchasedLifetimePlan()
-                ? "💎 Plano Vitalício já comprado"
-                : canSwapPlan
-                ? `🔄 Trocar para ${selectedPlan.name} - R$ ${getPlanPrice(
-                    selectedPlan
-                  )}${getPlanPeriod(selectedPlan)}`
-                : `Assinar ${selectedPlan.name} - R$ ${getPlanPrice(
-                    selectedPlan
-                  )}${getPlanPeriod(selectedPlan)}`
+                  ? "Aguardando validação..."
+                  : !emailValidation.valid
+                    ? "E-mail não validado - Contate o suporte"
+                    : isPlanActive(selectedPlan)
+                      ? "Este plano já está ativo"
+                      : selectedPlan?.metadata?.plan_type === "lifetime" &&
+                          hasPurchasedLifetimePlan()
+                        ? "💎 Plano Vitalício já comprado"
+                        : canSwapPlan
+                          ? `🔄 Trocar para ${selectedPlan.name} - R$ ${getPlanPrice(
+                              selectedPlan,
+                            )}${getPlanPeriod(selectedPlan)}`
+                          : `Assinar ${selectedPlan.name} - R$ ${getPlanPrice(
+                              selectedPlan,
+                            )}${getPlanPeriod(selectedPlan)}`
             }}
           </button>
         </div>
@@ -567,9 +584,17 @@
     <!-- Modal: dados para Nota Fiscal (checkout ou edição) -->
     <BillingFormModal
       v-model="showBillingModal"
-      :title="billingModalIntent === 'edit' ? 'Editar dados de faturamento' : (billingInitialData ? 'Confirmar dados de faturamento' : 'Dados para Nota Fiscal')"
+      :title="
+        billingModalIntent === 'edit'
+          ? 'Editar dados de faturamento'
+          : billingInitialData
+            ? 'Confirmar dados de faturamento'
+            : 'Dados para Nota Fiscal'
+      "
       :initial-data="billingInitialData"
-      :submit-button-text="billingModalIntent === 'edit' ? 'Salvar' : 'Continuar para pagamento'"
+      :submit-button-text="
+        billingModalIntent === 'edit' ? 'Salvar' : 'Continuar para pagamento'
+      "
       @submit="onBillingFormSubmit"
       @cancel="showBillingModal = false"
     />
@@ -577,7 +602,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick, watch } from "vue";
+import { ref, computed, onMounted, nextTick } from "vue";
 import { loadStripe } from "@stripe/stripe-js";
 import {
   createCheckoutSession,
@@ -636,48 +661,6 @@ const refreshingPlans = ref(false);
 const lifetimeCounter = ref(null);
 
 const PLANS_CACHE_KEY = "subscription_plans_cache";
-
-// Cache da validação de e-mail para exibir mensagem assim que o usuário entra na página (ex.: após login)
-const EMAIL_VALIDATION_CACHE_KEY = "payment_email_validation";
-const EMAIL_VALIDATION_CACHE_TTL_MS = 30 * 60 * 1000; // 30 min
-
-function applyEmailValidationFromCache() {
-  if (typeof window === "undefined") return;
-  try {
-    const raw = localStorage.getItem(EMAIL_VALIDATION_CACHE_KEY);
-    if (!raw) return;
-    const data = JSON.parse(raw);
-    if (!data || typeof data.validated !== "boolean") return;
-    const tenant = getTenantId();
-    if (data.tenant_id !== tenant) return;
-    const age = Date.now() - (data.timestamp || 0);
-    if (age > EMAIL_VALIDATION_CACHE_TTL_MS) return;
-    emailValidation.value.loading = false;
-    emailValidation.value.validated = data.validated;
-    emailValidation.value.valid = data.valid === true;
-    emailValidation.value.customerData = data.customerData || null;
-    emailValidation.value.error = data.error || null;
-  } catch (_) {
-    /* ignore */
-  }
-}
-
-function saveEmailValidationToCache() {
-  if (typeof window === "undefined") return;
-  try {
-    const payload = {
-      tenant_id: getTenantId(),
-      validated: emailValidation.value.validated,
-      valid: emailValidation.value.valid,
-      customerData: emailValidation.value.customerData || null,
-      error: emailValidation.value.error || null,
-      timestamp: Date.now(),
-    };
-    localStorage.setItem(EMAIL_VALIDATION_CACHE_KEY, JSON.stringify(payload));
-  } catch (_) {
-    /* ignore */
-  }
-}
 const PLANS_CACHE_VERSION = "v2";
 const PLANS_CACHE_TTL_MS = 1000 * 60 * 60 * 4; // 4 horas
 const PLANS_REQUEST_TIMEOUT_MS = 15000; // 15 segundos
@@ -752,6 +735,8 @@ const emailValidation = ref({
   customerData: null,
   error: null,
 });
+// true só após o check-email ter sido chamado na tela; bloqueia o restante da página até lá
+const emailValidationReady = ref(false);
 
 // Estado do plano ativo
 const activePlanData = ref(null);
@@ -759,33 +744,36 @@ const activePlanLoading = ref(true);
 const showUpgradeAnimations = ref(false);
 const showPlansSelection = ref(false); // Controla qual etapa está sendo exibida
 const activeProductMetadata = computed(() =>
-  normalizeMetadata(activePlanData.value?.product?.metadata)
+  normalizeMetadata(activePlanData.value?.product?.metadata),
 );
 const activePlanTier = computed(() =>
-  getPlanTierInfo(activePlanData.value?.product?.metadata)
+  getPlanTierInfo(activePlanData.value?.product?.metadata),
 );
 const lifetimePlanData = computed(
-  () => activePlanData.value?.lifetime_plan ?? null
+  () => activePlanData.value?.lifetime_plan ?? null,
 );
 const lifetimePlanTier = computed(() =>
-  getPlanTierInfo(lifetimePlanData.value?.product?.metadata)
+  getPlanTierInfo(lifetimePlanData.value?.product?.metadata),
 );
 // Só mostrar botão "Trocar" quando a assinatura estiver ativa (não cancelada)
 const canSwapPlan = computed(() => {
   const d = activePlanData.value;
   if (!d?.customer_id || d?.has_active_plan !== true) return false;
   const sub = d.subscription;
-  const canceled = sub?.cancel_at_period_end === true || sub?.status === "canceled" || sub?.canceled_at != null;
+  const canceled =
+    sub?.cancel_at_period_end === true ||
+    sub?.status === "canceled" ||
+    sub?.canceled_at != null;
   return !canceled;
 });
 const lifetimePlanPriceId = computed(
   () =>
     lifetimePlanData.value?.price?.stripe_id ??
     lifetimePlanData.value?.price?.id ??
-    null
+    null,
 );
 const lifetimePurchaseDate = computed(
-  () => lifetimePlanData.value?.subscription?.purchased_at ?? null
+  () => lifetimePlanData.value?.subscription?.purchased_at ?? null,
 );
 const lifetimePurchaseLabel = computed(() => {
   const formatted = formatDateBR(lifetimePurchaseDate.value);
@@ -827,7 +815,7 @@ const displayedPlans = computed(() => {
       plan.metadata?.plan_type &&
       plan.metadata?.plan_type !== "test" &&
       plan.name !== "Product Test" &&
-      isPlanRenderable(plan)
+      isPlanRenderable(plan),
   );
 
   // Filtrar planos baseado na periodicidade selecionada
@@ -896,7 +884,7 @@ const checkoutMode = computed(() => {
   const priceData = selectedPlan.value.prices?.data?.[0];
   if (!priceData) {
     console.log(
-      "⚠️ Price data não encontrado, usando subscription como padrão"
+      "⚠️ Price data não encontrado, usando subscription como padrão",
     );
     return "subscription";
   }
@@ -915,7 +903,32 @@ const checkoutMode = computed(() => {
   return "subscription";
 });
 
-// Validar email do customer (tentativa de API + fallback)
+// Aguardar token de auth aparecer (útil logo após login/redirect)
+function getAuthTokenNow() {
+  if (typeof window === "undefined") return null;
+  return (
+    localStorage.getItem("userToken") ||
+    localStorage.getItem("apollo:default.token") ||
+    null
+  );
+}
+function waitForAuthToken(maxMs = 3500) {
+  return new Promise((resolve) => {
+    if (getAuthTokenNow()) {
+      resolve();
+      return;
+    }
+    const deadline = Date.now() + maxMs;
+    const t = setInterval(() => {
+      if (getAuthTokenNow() || Date.now() >= deadline) {
+        clearInterval(t);
+        resolve();
+      }
+    }, 400);
+  });
+}
+
+// Validar email do customer: só a API define se o email é o da conta/tenant (pronto para pagamento). Sem fallback por role.
 const validateCustomerEmailGraphQL = async () => {
   try {
     emailValidation.value.loading = true;
@@ -926,67 +939,16 @@ const validateCustomerEmailGraphQL = async () => {
       throw new Error("Email do usuário não encontrado");
     }
 
-    // Validação básica de formato de email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(userEmail)) {
-      console.error("❌ Formato de email inválido:", userEmail);
       throw new Error("Formato de email inválido");
     }
 
-    // Tentar fazer chamada para API REST primeiro
-    try {
-      await validateCustomerEmailAPI(userEmail);
-      return; // Se a API funcionou, sair da função
-    } catch (apiError) {
-      // API não disponível, usar validação local
-    }
-
-    // Fallback: validação local usando dados do GraphQL
-
-    // Verificar se o usuário está logado e tem dados válidos
-    if (!user.value || !user.value.id) {
-      throw new Error("Usuário não está logado corretamente");
-    }
-
-    // Verificar se o usuário tem roles (administrador)
-    if (!user.value.roles || user.value.roles.length === 0) {
-      throw new Error("Usuário não possui permissões de administrador");
-    }
-
-    // Verificar se tem pelo menos um role válido
-    const validRoles = ["admin", "administrator", "super_admin", "owner"];
-    const hasValidRole = user.value.roles.some((role) =>
-      validRoles.includes(role.name.toLowerCase())
-    );
-
-    if (!hasValidRole) {
-      throw new Error(
-        "Usuário não possui permissões de administrador necessárias"
-      );
-    }
-
-    // Se chegou até aqui, o email é válido
-    emailValidation.value.validated = true;
-    emailValidation.value.valid = true;
-    emailValidation.value.customerData = {
-      id: user.value.id,
-      name: user.value.name,
-      email: user.value.email,
-      tenant_id: getTenantId(),
-      email_verified_at: user.value.emailVerifiedAt || new Date().toISOString(),
-      created_at: user.value.createdAt || new Date().toISOString(),
-    };
-
-    saveEmailValidationToCache();
-    console.log(
-      "✅ Validação de email bem-sucedida (fallback local):",
-      emailValidation.value
-    );
+    await validateCustomerEmailAPI(userEmail);
   } catch (err) {
     console.error("❌ Erro na validação do email:", err);
     emailValidation.value.error = err.message;
-    // Só marcar como "validado" quando a API disser explicitamente que o usuário é inválido (exists: false).
-    // Falhas de token, 401, usuário não carregado etc. não são "validado + inválido" — assim evitamos mostrar a mensagem de erro no momento errado (ex.: logo após login).
+    // Só marcar validated + valid quando a API responder; em falhas (rede, 401, etc.) não mostrar sucesso nem erro de "inválido"
     emailValidation.value.validated = false;
     emailValidation.value.valid = false;
   } finally {
@@ -994,26 +956,26 @@ const validateCustomerEmailGraphQL = async () => {
   }
 };
 
-// Função para tentar validar via API REST
+// Rota de validação: usuário logado + email igual ao do customer no tenant = dono da conta. Só o dono pode comprar/alterar/cancelar plano.
 const validateCustomerEmailAPI = async (userEmail) => {
   const token = localStorage.getItem("userToken");
   const apolloToken = localStorage.getItem("apollo:default.token");
-
   const authToken = token || apolloToken;
 
   if (!authToken) {
     throw new Error("Token de autenticação não encontrado");
   }
 
-  // Rota correta para validação de email
-  const correctRoute = "http://volleytrack.local/v1/customers/check-email";
-
+  const apiBase = (
+    runtimeConfig.public?.apiEndpoint || "http://api.volleytrack.local"
+  ).replace(/\/$/, "");
+  const url = `${apiBase}/v1/customers/check-email`;
   const requestBody = {
     email: userEmail,
     tenant_id: getTenantId(),
   };
 
-  const response = await fetch(correctRoute, {
+  const response = await fetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -1023,27 +985,51 @@ const validateCustomerEmailAPI = async (userEmail) => {
     body: JSON.stringify(requestBody),
   });
 
+  let data = {};
+  try {
+    data = await response.json();
+  } catch (_) {}
+
+  // 200: backend encontrou (ou não) o customer para este email + tenant_id
   if (response.ok) {
-    const data = await response.json();
-    if (data.success) {
+    if (data.success && data.exists === true) {
       emailValidation.value.validated = true;
-      emailValidation.value.valid = data.exists;
-      emailValidation.value.customerData = data.data;
-      saveEmailValidationToCache();
-      return; // Sucesso, sair da função
-    } else {
-      throw new Error(data.message || "Erro na validação do customer");
+      emailValidation.value.valid = true;
+      emailValidation.value.customerData = data.data || null;
+      emailValidation.value.error = null;
+      return;
     }
-  } else if (response.status === 401) {
+    if (data.success === false && data.exists === false) {
+      emailValidation.value.validated = true;
+      emailValidation.value.valid = false;
+      emailValidation.value.customerData = null;
+      emailValidation.value.error =
+        data.message || "Este e-mail não é o dono da conta neste tenant.";
+      return;
+    }
+    throw new Error(data.message || "Erro na validação do customer");
+  }
+
+  if (response.status === 401) {
     throw new Error("Token de autenticação inválido ou expirado");
-  } else if (response.status === 403) {
-    throw new Error("Acesso negado - só é possível verificar o próprio email");
-  } else {
-    const errorData = await response.json();
+  }
+  if (response.status === 403) {
     throw new Error(
-      `HTTP ${response.status}: ${errorData.message || "Erro desconhecido"}`
+      "Acesso negado - só é possível verificar o próprio e-mail.",
     );
   }
+  // 404: customer não encontrado para este tenant = usuário não é o dono da conta
+  if (response.status === 404) {
+    emailValidation.value.validated = true;
+    emailValidation.value.valid = false;
+    emailValidation.value.customerData = null;
+    emailValidation.value.error =
+      data.message || "Customer não encontrado para este tenant.";
+    return;
+  }
+  throw new Error(
+    data.message || `Erro ${response.status}: ${response.statusText}`,
+  );
 };
 
 // Funções de validação removidas - usando apenas validateCustomerEmailGraphQL
@@ -1096,7 +1082,7 @@ const savePlansToCache = (planList) => {
         version: PLANS_CACHE_VERSION,
         timestamp: Date.now(),
         data: planList,
-      })
+      }),
     );
     console.log("💾 Planos atualizados no cache local");
   } catch (cacheError) {
@@ -1117,7 +1103,7 @@ const createAbortableRequest = () => {
   const controller = new AbortController();
   const timeoutId = setTimeout(
     () => controller.abort(),
-    PLANS_REQUEST_TIMEOUT_MS
+    PLANS_REQUEST_TIMEOUT_MS,
   );
 
   return { controller, timeoutId };
@@ -1215,7 +1201,7 @@ const getYearlyDiscount = (plan) => {
   const monthlyPlan = plans.value.find(
     (p) =>
       p.metadata?.plan_type === plan.metadata?.plan_type &&
-      p.metadata?.type === "monthly"
+      p.metadata?.type === "monthly",
   );
 
   const monthlyPrice = getPlanPrimaryPrice(monthlyPlan)?.unit_amount;
@@ -1238,7 +1224,7 @@ const getLifetimeSavings = (plan) => {
 
   // Encontrar o plano pro anual correspondente
   const proYearlyPlan = plans.value.find(
-    (p) => p.metadata?.plan_type === "pro" && p.metadata?.type === "yearly"
+    (p) => p.metadata?.plan_type === "pro" && p.metadata?.type === "yearly",
   );
 
   const proYearlyPrice = getPlanPrimaryPrice(proYearlyPlan)?.unit_amount;
@@ -1370,7 +1356,7 @@ const getYearlyPrice = (plan) => {
     const yearlyPlan = plans.value.find(
       (p) =>
         p.metadata?.plan_type === plan.metadata?.plan_type &&
-        p.metadata?.type === "yearly"
+        p.metadata?.type === "yearly",
     );
     if (yearlyPlan) {
       return getPlanPrice(yearlyPlan);
@@ -1495,7 +1481,7 @@ const getOfferType = (plan) => {
 // Calcular desconto geral anual
 const getGeneralYearlyDiscount = computed(() => {
   const yearlyPlans = plans.value.filter(
-    (plan) => plan.metadata?.type === "yearly"
+    (plan) => plan.metadata?.type === "yearly",
   );
 
   if (yearlyPlans.length === 0) return 0;
@@ -1529,7 +1515,7 @@ const selectPlan = (plan) => {
 // com o badge "Plano em Uso" e não deve ser selecionável
 const autoSelectActivePlan = () => {
   console.log(
-    "ℹ️ Plano ativo detectado - botões serão bloqueados via isPlanDisabled()"
+    "ℹ️ Plano ativo detectado - botões serão bloqueados via isPlanDisabled()",
   );
 };
 
@@ -1692,7 +1678,7 @@ const detectYearlyPlan = (planData) => {
   // Palavras-chave que indicam plano anual
   const yearlyKeywords = ["anual", "yearly", "year", "ano"];
   const isYearlyByName = yearlyKeywords.some((keyword) =>
-    productName.includes(keyword)
+    productName.includes(keyword),
   );
 
   if (isYearlyByName) {
@@ -1800,7 +1786,7 @@ const onActivePlanLoaded = (planData) => {
   console.log("📋 Plano ativo carregado:", planData);
   console.log(
     "🔍 Estrutura completa do planData:",
-    JSON.stringify(planData, null, 2)
+    JSON.stringify(planData, null, 2),
   );
   console.log("🔍 planData.customer_id:", planData?.customer_id);
   console.log("🔍 planData.has_active_plan:", planData?.has_active_plan);
@@ -1815,8 +1801,6 @@ const onActivePlanLoaded = (planData) => {
   }
 
   activePlanLoading.value = false;
-
-  // A validação de e-mail é disparada pelo watch(activePlanLoading) quando loading vira false, para funcionar no trial sem F5.
 
   if (planData) {
     console.log("✅ Cliente possui plano ativo:", planData.product?.name);
@@ -1849,16 +1833,7 @@ const onActivePlanError = (error) => {
   // Não bloquear a interface por erro de carregamento do plano ativo
 };
 
-// Quando o plano/trial termina de carregar (ou dá erro), rodar validação de e-mail se ainda não foi feita — garante trial sem F5.
-watch(activePlanLoading, async (loading, previous) => {
-  if (previous === true && loading === false && !emailValidation.value.validated) {
-    await getUserInfo();
-    await validateCustomerEmailGraphQL();
-  }
-});
-
 const onUpgradeClicked = async () => {
-  // No cenário trial, garantir validação do e-mail antes de ir para a seleção de planos, para não mostrar "Aguardando validação..." na tela de compra
   if (!emailValidation.value.validated) {
     await getUserInfo();
     await validateCustomerEmailGraphQL();
@@ -1889,7 +1864,7 @@ const initializeStripe = async () => {
 
     console.log(
       "🔑 Inicializando Stripe com chave:",
-      stripeKey.substring(0, 20) + "..."
+      stripeKey.substring(0, 20) + "...",
     );
     stripe.value = await loadStripe(stripeKey);
 
@@ -1914,7 +1889,7 @@ const handleSubscriptionAction = async () => {
   if (selectedPlan.value && isPlanActive(selectedPlan.value)) {
     console.log("⚠️ Tentativa de trocar para o plano que já está ativo");
     alert(
-      "Este plano já está ativo. Selecione um plano diferente para trocar."
+      "Este plano já está ativo. Selecione um plano diferente para trocar.",
     );
     return;
   }
@@ -1923,12 +1898,21 @@ const handleSubscriptionAction = async () => {
   // Assinatura cancelada ou "ativa até fim do período" deve fazer checkout normal (nova assinatura).
   const sub = activePlanData.value?.subscription;
   const isSubscriptionCanceled =
-    sub?.cancel_at_period_end === true || sub?.status === "canceled" || sub?.canceled_at != null;
+    sub?.cancel_at_period_end === true ||
+    sub?.status === "canceled" ||
+    sub?.canceled_at != null;
   const hasActivePlan =
     activePlanData.value?.has_active_plan === true &&
     activePlanData.value?.customer_id &&
     !isSubscriptionCanceled;
-  console.log("🔍 hasActivePlan (para swap):", hasActivePlan, "has_active_plan:", activePlanData.value?.has_active_plan, "isSubscriptionCanceled:", isSubscriptionCanceled);
+  console.log(
+    "🔍 hasActivePlan (para swap):",
+    hasActivePlan,
+    "has_active_plan:",
+    activePlanData.value?.has_active_plan,
+    "isSubscriptionCanceled:",
+    isSubscriptionCanceled,
+  );
 
   // Verificar se o plano ativo é vitalício (one_time_payment)
   const isLifetimePlan =
@@ -1945,7 +1929,7 @@ const handleSubscriptionAction = async () => {
 
   // Validar limites do plano antes de prosseguir
   console.log(
-    "🔍 ========== CHAMANDO validatePlanLimits (handleSubscriptionAction) =========="
+    "🔍 ========== CHAMANDO validatePlanLimits (handleSubscriptionAction) ==========",
   );
   console.log("🔍 selectedPlan.value:", selectedPlan.value);
   const limitValidation = await validatePlanLimits(selectedPlan.value);
@@ -1954,7 +1938,7 @@ const handleSubscriptionAction = async () => {
 
   if (!limitValidation.canSubscribe) {
     console.log(
-      "🚨 ========== BLOQUEANDO ASSINATURA - EXIBINDO MODAL (handleSubscriptionAction) =========="
+      "🚨 ========== BLOQUEANDO ASSINATURA - EXIBINDO MODAL (handleSubscriptionAction) ==========",
     );
     subscriptionLoading.value = false;
     stripeLoading.value = false;
@@ -1987,7 +1971,7 @@ const handleSubscriptionAction = async () => {
     // permitir checkout normal (upgrade de vitalício para assinatura)
     if (isLifetimePlan && selectedPlanIsRecurring) {
       console.log(
-        "💎 Usuário com plano vitalício tentando fazer upgrade para plano recorrente - abrindo dados para NF"
+        "💎 Usuário com plano vitalício tentando fazer upgrade para plano recorrente - abrindo dados para NF",
       );
       await openBillingModalForCheckout();
       return;
@@ -2002,23 +1986,25 @@ const handleSubscriptionAction = async () => {
 
     if (priceId && customerId) {
       const swapUrl = `/payment/swap?price_id=${encodeURIComponent(
-        priceId
+        priceId,
       )}&customer_id=${encodeURIComponent(customerId)}`;
       console.log(
         "🔄 Usuário tem plano ativo, redirecionando para troca de planos:",
-        swapUrl
+        swapUrl,
       );
       window.location.href = swapUrl;
     } else {
       alert(
         `Erro: ${
           !priceId ? "ID do preço" : "ID do customer"
-        } não encontrado para redirecionamento`
+        } não encontrado para redirecionamento`,
       );
     }
   } else {
     // Se não tem plano ativo, abrir formulário de dados para NF (pré-preenchido se já existir) e depois checkout
-    console.log("🔄 Usuário não tem plano ativo - abrindo dados para NF antes do checkout");
+    console.log(
+      "🔄 Usuário não tem plano ativo - abrindo dados para NF antes do checkout",
+    );
     await openBillingModalForCheckout();
   }
 };
@@ -2026,7 +2012,7 @@ const handleSubscriptionAction = async () => {
 // Modal: dados de faturamento para Nota Fiscal (checkout ou edição)
 const showBillingModal = ref(false);
 /** 'checkout' = abriu ao clicar Assinar; 'edit' = abriu ao clicar Editar dados de faturamento */
-const billingModalIntent = ref('checkout');
+const billingModalIntent = ref("checkout");
 const billingInitialData = ref(null);
 const billingEditLoading = ref(false);
 
@@ -2038,7 +2024,7 @@ const openBillingModalForCheckout = async () => {
   } catch (_) {
     billingInitialData.value = null;
   }
-  billingModalIntent.value = 'checkout';
+  billingModalIntent.value = "checkout";
   showBillingModal.value = true;
 };
 
@@ -2047,10 +2033,10 @@ const openBillingEdit = async () => {
   try {
     const res = await getCustomerBilling(getTenantId());
     billingInitialData.value = res.data ?? null;
-    billingModalIntent.value = 'edit';
+    billingModalIntent.value = "edit";
     showBillingModal.value = true;
   } catch (e) {
-    confirmError(e.message || 'Erro ao carregar dados de faturamento.');
+    confirmError(e.message || "Erro ao carregar dados de faturamento.");
   } finally {
     billingEditLoading.value = false;
   }
@@ -2068,10 +2054,10 @@ const onBillingFormSubmit = async (payload) => {
     return;
   }
   showBillingModal.value = false;
-  if (billingModalIntent.value === 'edit') {
+  if (billingModalIntent.value === "edit") {
     billingInitialData.value = null;
-    billingModalIntent.value = 'checkout';
-    confirmSuccess('Dados de faturamento salvos com sucesso.');
+    billingModalIntent.value = "checkout";
+    confirmSuccess("Dados de faturamento salvos com sucesso.");
     return;
   }
   subscribeToPlan();
@@ -2090,7 +2076,7 @@ const validatePlanLimits = async (plan) => {
     console.log("🔍 activePlanData.value:", activePlanData.value);
     console.log(
       "🔍 activePlanData.value?.isTrial:",
-      activePlanData.value?.isTrial
+      activePlanData.value?.isTrial,
     );
 
     if (activePlanData.value?.isTrial) {
@@ -2160,7 +2146,7 @@ const validatePlanLimits = async (plan) => {
     try {
       console.log("🔍 Criando queries GraphQL...");
       console.log(
-        "🔍 IMPORTANTE: Contando TODOS os usuários (sem filtro de role), como o backend faz"
+        "🔍 IMPORTANTE: Contando TODOS os usuários (sem filtro de role), como o backend faz",
       );
 
       // Usar o cliente Apollo diretamente
@@ -2221,14 +2207,14 @@ const validatePlanLimits = async (plan) => {
         currentPlayers,
         "(tipo:",
         typeof currentPlayers,
-        ")"
+        ")",
       );
       console.log(
         "🔍 currentTeams:",
         currentTeams,
         "(tipo:",
         typeof currentTeams,
-        ")"
+        ")",
       );
     } catch (error) {
       console.error("❌ ========== ERRO AO BUSCAR DADOS ==========");
@@ -2247,14 +2233,14 @@ const validatePlanLimits = async (plan) => {
       currentPlayers,
       "(tipo:",
       typeof currentPlayers,
-      ")"
+      ")",
     );
     console.log(
       "🔍 currentTeams:",
       currentTeams,
       "(tipo:",
       typeof currentTeams,
-      ")"
+      ")",
     );
 
     // Verificar se excede limites
@@ -2269,14 +2255,14 @@ const validatePlanLimits = async (plan) => {
     console.log(
       "🔍 playersExceeded:",
       playersExceeded,
-      "(maxPlayers > 0 && currentPlayers > maxPlayers)"
+      "(maxPlayers > 0 && currentPlayers > maxPlayers)",
     );
     console.log("🔍 maxTeams > 0:", maxTeams > 0);
     console.log("🔍 currentTeams > maxTeams:", currentTeams > maxTeams);
     console.log(
       "🔍 teamsExceeded:",
       teamsExceeded,
-      "(maxTeams > 0 && currentTeams > maxTeams)"
+      "(maxTeams > 0 && currentTeams > maxTeams)",
     );
     console.log("🔍 Comparação detalhada jogadores:", {
       current: currentPlayers,
@@ -2353,7 +2339,7 @@ const validatePlanLimits = async (plan) => {
 
       console.log("❌ Retornando canSubscribe: false");
       console.log(
-        "🚀 ========== FIM validatePlanLimits (BLOQUEADO) =========="
+        "🚀 ========== FIM validatePlanLimits (BLOQUEADO) ==========",
       );
 
       return {
@@ -2397,7 +2383,7 @@ const subscribeToPlan = async () => {
 
     if (!emailValidation.value.valid) {
       alert(
-        "Seu e-mail não está registrado como administrador. Entre em contato com o suporte para prosseguir com o pagamento."
+        "Seu e-mail não está registrado como administrador. Entre em contato com o suporte para prosseguir com o pagamento.",
       );
       return;
     }
@@ -2415,19 +2401,19 @@ const subscribeToPlan = async () => {
 
     // Validar limites do plano antes de prosseguir
     console.log(
-      "🔍 ========== CHAMANDO validatePlanLimits (subscribeToPlan) =========="
+      "🔍 ========== CHAMANDO validatePlanLimits (subscribeToPlan) ==========",
     );
     console.log("🔍 selectedPlan.value:", selectedPlan.value);
     const limitValidation = await validatePlanLimits(selectedPlan.value);
     console.log("🔍 Resultado da validação:", limitValidation);
     console.log(
       "🔍 limitValidation.canSubscribe:",
-      limitValidation.canSubscribe
+      limitValidation.canSubscribe,
     );
 
     if (!limitValidation.canSubscribe) {
       console.log(
-        "🚨 ========== BLOQUEANDO ASSINATURA - EXIBINDO MODAL =========="
+        "🚨 ========== BLOQUEANDO ASSINATURA - EXIBINDO MODAL ==========",
       );
       subscriptionLoading.value = false;
       stripeLoading.value = false;
@@ -2469,20 +2455,20 @@ const subscribeToPlan = async () => {
     // Validação mais robusta
     if (isRecurring && mode === "payment") {
       throw new Error(
-        "Modo de pagamento incompatível com o tipo de preço. O plano selecionado é recorrente (assinatura) mas está sendo processado como pagamento único."
+        "Modo de pagamento incompatível com o tipo de preço. O plano selecionado é recorrente (assinatura) mas está sendo processado como pagamento único.",
       );
     }
 
     if (priceType === "one_time" && mode === "subscription") {
       throw new Error(
-        "Modo de pagamento incompatível com o tipo de preço. O plano selecionado é único (vitalício) mas está sendo processado como assinatura."
+        "Modo de pagamento incompatível com o tipo de preço. O plano selecionado é único (vitalício) mas está sendo processado como assinatura.",
       );
     }
 
     // Validação adicional para casos edge
     if (!isRecurring && priceType !== "one_time" && mode === "subscription") {
       console.warn(
-        "⚠️ Aviso: Preço sem recurring nem one_time, mas usando subscription"
+        "⚠️ Aviso: Preço sem recurring nem one_time, mas usando subscription",
       );
     }
 
@@ -2528,20 +2514,20 @@ const subscribeToPlan = async () => {
         if (!canSwapPlan.value) {
           confirmError(
             "Você ainda possui uma assinatura ativa até o fim do período atual. " +
-            "Para alterar o plano agora, use a opção \"Trocar\" no card do seu plano. " +
-            "Para assinar um novo plano após o cancelamento, aguarde a data de término do período."
+              'Para alterar o plano agora, use a opção "Trocar" no card do seu plano. ' +
+              "Para assinar um novo plano após o cancelamento, aguarde a data de término do período.",
           );
           return;
         }
         console.log(
-          "🔄 Customer já possui assinatura ativa, redirecionando para troca de planos"
+          "🔄 Customer já possui assinatura ativa, redirecionando para troca de planos",
         );
         console.log("🔍 Dados do erro:", sessionResult.errorData);
 
         const priceId = selectedPlan.value.prices?.data?.[0]?.id;
         if (priceId) {
           const swapUrl = `/payment/swap?price_id=${encodeURIComponent(
-            priceId
+            priceId,
           )}`;
           console.log("🔄 Redirecionando para:", swapUrl);
           window.location.href = swapUrl;
@@ -2552,10 +2538,10 @@ const subscribeToPlan = async () => {
       } else {
         console.log(
           "❌ Erro não relacionado a subscription existente:",
-          sessionResult.error
+          sessionResult.error,
         );
         throw new Error(
-          sessionResult.error || "Erro ao criar sessão de checkout"
+          sessionResult.error || "Erro ao criar sessão de checkout",
         );
       }
     }
@@ -2563,11 +2549,11 @@ const subscribeToPlan = async () => {
     console.log("✅ Sessão criada:", sessionResult.data);
     console.log(
       "🔍 Session ID para redirecionamento:",
-      sessionResult.sessionId
+      sessionResult.sessionId,
     );
     console.log(
       "🔍 Email na resposta da sessão:",
-      sessionResult.data?.customer_email
+      sessionResult.data?.customer_email,
     );
 
     // Verificar se sessionId existe antes de redirecionar
@@ -2581,12 +2567,12 @@ const subscribeToPlan = async () => {
     // Redirecionar para o checkout do Stripe
     const redirectResult = await redirectToCheckout(
       stripe.value,
-      sessionResult.sessionId
+      sessionResult.sessionId,
     );
 
     if (!redirectResult.success) {
       throw new Error(
-        redirectResult.error || "Erro ao redirecionar para checkout"
+        redirectResult.error || "Erro ao redirecionar para checkout",
       );
     }
 
@@ -2607,22 +2593,22 @@ const subscribeToPlan = async () => {
           "1. Acesse: https://dashboard.stripe.com/account/checkout/settings\n" +
           "2. Na seção 'Client-only integration', clique em 'Enable'\n" +
           "3. Salve as configurações\n" +
-          "4. Tente novamente"
+          "4. Tente novamente",
       );
     } else if (
       error.message.includes(
-        "You must provide one of lineItems, items, or sessionId"
+        "You must provide one of lineItems, items, or sessionId",
       )
     ) {
       alert(
         "❌ ERRO: Session ID não encontrado na resposta da API.\n\n" +
           "Verifique os logs do console para mais detalhes.\n" +
-          "Possível problema na estrutura da resposta do backend."
+          "Possível problema na estrutura da resposta do backend.",
       );
     } else if (error.message.includes("Session ID não encontrado")) {
       alert(
         "❌ ERRO: Session ID não encontrado na resposta da API.\n\n" +
-          "Verifique se o backend está retornando o session_id corretamente."
+          "Verifique se o backend está retornando o session_id corretamente.",
       );
     } else if (
       error.message.includes("recurring price") ||
@@ -2631,13 +2617,13 @@ const subscribeToPlan = async () => {
       alert(
         "❌ ERRO: Modo de pagamento incompatível com o tipo de preço.\n\n" +
           "O plano selecionado é recorrente (assinatura) mas está sendo processado como pagamento único.\n" +
-          "Tente novamente ou entre em contato com o suporte."
+          "Tente novamente ou entre em contato com o suporte.",
       );
     } else if (error.message.includes("price")) {
       alert("Erro: ID do preço inválido. Verifique a configuração dos planos.");
     } else if (error.message.includes("stripe")) {
       alert(
-        "Erro de conexão com Stripe. Verifique sua internet e tente novamente."
+        "Erro de conexão com Stripe. Verifique sua internet e tente novamente.",
       );
     } else if (error.message.includes("Dados inválidos")) {
       alert(`Erro de validação: ${error.message}`);
@@ -2683,29 +2669,40 @@ onMounted(async () => {
   try {
     console.log("🚀 Iniciando carregamento da página...");
 
-    // Aplicar cache da validação de e-mail imediatamente para exibir "E-mail válido - Pronto para pagamento" (ou erro) assim que o usuário entra, sem esperar a nova validação
-    if (process.client) {
-      applyEmailValidationFromCache();
+    // Primeiro: check-email na tela; nada da página carrega antes disso (sem cache)
+    await waitForAuthToken(3500);
+    await getUserInfo();
+    console.log("🔍 Info do usuário:", user.value);
+    await validateCustomerEmailGraphQL();
+    // Logo após login a sessão pode responder 401 na 1ª chamada; repetir até obter resposta da API (validated) ou esgotar tentativas
+    const retryDelays = [2000, 3500];
+    for (const delayMs of retryDelays) {
+      if (emailValidation.value.validated) break;
+      await new Promise((r) => setTimeout(r, delayMs));
+      await getUserInfo();
+      await validateCustomerEmailGraphQL();
     }
+    emailValidationReady.value = true;
 
     // Aviso quando redirecionado da tela "Trocar plano" por não ter assinatura ativa
     if (route.query.sem_plano_ativo === "1") {
-      confirmSuccess("Você não tem um plano ativo. Escolha um plano abaixo para assinar.", () => {
-        router.replace({ path: "/payment", query: {} });
-      });
+      confirmSuccess(
+        "Você não tem um plano ativo. Escolha um plano abaixo para assinar.",
+        () => {
+          router.replace({ path: "/payment", query: {} });
+        },
+      );
     }
-    // Aviso quando o plano selecionado para troca não foi encontrado
     if (route.query.preco_nao_encontrado === "1") {
-      confirmSuccess("Plano selecionado não encontrado. Escolha um plano na lista abaixo.", () => {
-        router.replace({ path: "/payment", query: {} });
-      });
+      confirmSuccess(
+        "Plano selecionado não encontrado. Escolha um plano na lista abaixo.",
+        () => {
+          router.replace({ path: "/payment", query: {} });
+        },
+      );
     }
 
-    // Carregar informações do usuário logado (a validação de e-mail roda em onActivePlanLoaded, após plano/trial carregar, para funcionar no trial sem F5)
-    await getUserInfo();
-    console.log("🔍 Info do usuário:", user.value);
-
-    // Carregar planos da API
+    // Só depois do check-email: carregar planos, Stripe, etc.
     await loadPlans();
 
     // Carregar contador de planos vitalícios
@@ -2718,7 +2715,7 @@ onMounted(async () => {
 
     console.log(
       "🔑 Chave do Stripe encontrada:",
-      stripeKey.substring(0, 20) + "..."
+      stripeKey.substring(0, 20) + "...",
     );
 
     // Inicializar Stripe
@@ -2735,6 +2732,29 @@ onMounted(async () => {
 <style scoped>
 .subscription-plans-page {
   background: #f9fafb;
+}
+
+.page-loading-email-validation {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  gap: 1rem;
+  color: #6b7280;
+}
+.page-loading-email-validation .loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #e5e7eb;
+  border-top-color: #e9742b;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .container {
