@@ -107,26 +107,24 @@ export const createCheckoutSession = async (checkoutData) => {
 
     const data = await response.json()
     console.log('✅ Sessão criada com sucesso:', data)
-    
-    // Extrair session ID da resposta (pode estar em data.session_id ou data.data.id)
-    const sessionId = data.session_id || data.data?.id || data.id
-    
+
+    // Usar apenas session_id do Stripe (começa com cs_); nunca data.id (pode ser ID interno)
+    const sessionId = data.session_id && String(data.session_id).startsWith('cs_')
+      ? data.session_id
+      : null
+
     console.log('🔍 Session ID extraído:', sessionId)
-    console.log('🔍 Estrutura da resposta:', {
-      'data.session_id': data.session_id,
-      'data.data?.id': data.data?.id,
-      'data.id': data.id,
-      'sessionId final': sessionId
-    })
-    
+
     if (!sessionId) {
-      throw new Error('Session ID não encontrado na resposta da API')
+      throw new Error(
+        'Session ID do Stripe não encontrado na resposta. O backend deve retornar session_id (ex.: cs_xxx).'
+      )
     }
-    
+
     return {
       success: true,
       data: data.data || data,
-      sessionId: sessionId
+      sessionId
     }
   } catch (error) {
     console.error('❌ Erro ao criar sessão de checkout:', error)
