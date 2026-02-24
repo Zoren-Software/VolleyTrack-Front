@@ -10,9 +10,9 @@
         <span>E-mail válido - Pronto para pagamento</span>
       </div>
 
-      <!-- Mensagem de Erro Discreta (Canto Inferior Esquerdo) -->
+      <!-- Mensagem de Erro Discreta (Canto Inferior Esquerdo): só exibir após o plano ativo ter carregado, para evitar mostrar "inválido" quando o usuário acabou de logar e os dados ainda não carregaram -->
       <div
-        v-if="emailValidation.validated && !emailValidation.valid"
+        v-if="emailValidation.validated && !emailValidation.valid && !activePlanLoading"
         class="validation-error-discrete-fixed"
       >
         <div class="validation-icon-small">❌</div>
@@ -942,7 +942,9 @@ const validateCustomerEmailGraphQL = async () => {
   } catch (err) {
     console.error("❌ Erro na validação do email:", err);
     emailValidation.value.error = err.message;
-    emailValidation.value.validated = true;
+    // Só marcar como "validado" quando a API disser explicitamente que o usuário é inválido (exists: false).
+    // Falhas de token, 401, usuário não carregado etc. não são "validado + inválido" — assim evitamos mostrar a mensagem de erro no momento errado (ex.: logo após login).
+    emailValidation.value.validated = false;
     emailValidation.value.valid = false;
   } finally {
     emailValidation.value.loading = false;
@@ -1769,6 +1771,11 @@ const onActivePlanLoaded = (planData) => {
   }
 
   activePlanLoading.value = false;
+
+  // Se a validação de e-mail já rodou e falhou (ex.: token ainda não pronto ao abrir a página após login), revalidar agora que o plano/sessão está carregado
+  if (emailValidation.value.validated && !emailValidation.value.valid) {
+    validateCustomerEmailGraphQL();
+  }
 
   if (planData) {
     console.log("✅ Cliente possui plano ativo:", planData.product?.name);
