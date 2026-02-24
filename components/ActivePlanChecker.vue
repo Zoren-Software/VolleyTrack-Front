@@ -8,8 +8,12 @@
     <div v-else-if="error" class="error">
       <div class="error-icon">⚠️</div>
       <p>Erro ao verificar plano: {{ error }}</p>
-      <button @click="checkActivePlan" class="btn-retry">
-        Tentar Novamente
+      <button
+        @click="checkActivePlan"
+        class="btn-retry"
+        :disabled="retryAfterCountdown > 0"
+      >
+        {{ retryAfterCountdown > 0 ? `Tentar novamente em ${retryAfterCountdown}s` : 'Tentar Novamente' }}
       </button>
     </div>
 
@@ -406,6 +410,7 @@ const activePlans = ref([]); // lista de planos (ativos + cancelado-ainda-ativo)
 const loading = ref(true);
 const error = ref(null);
 const refreshTimer = ref(null);
+const retryAfterCountdown = ref(0); // segundos restantes antes de permitir novo retry (após 429)
 const trialInfo = ref(null);
 const deletionInfo = ref(null);
 const timeRemaining = ref(null); // Para contagem regressiva do trial
@@ -831,7 +836,13 @@ const checkActivePlan = async () => {
         );
       }
     } else {
-      throw new Error(response.error || "Erro ao consultar plano ativo");
+      // 429: usar mensagem amigável e tempo de espera
+      if (response.is429 && response.retryAfterSeconds) {
+        error.value = response.error || "Muitas requisições. Aguarde e tente novamente.";
+        startRetryAfterCountdown(response.retryAfterSeconds);
+      } else {
+        throw new Error(response.error || "Erro ao consultar plano ativo");
+      }
     }
   } catch (err) {
     console.error("❌ Erro ao verificar plano ativo:", err);
@@ -860,6 +871,19 @@ const clearRefreshTimer = () => {
     refreshTimer.value = null;
   }
 };
+
+let retryAfterInterval = null;
+function startRetryAfterCountdown(seconds) {
+  retryAfterCountdown.value = seconds;
+  if (retryAfterInterval) clearInterval(retryAfterInterval);
+  retryAfterInterval = setInterval(() => {
+    retryAfterCountdown.value = Math.max(0, retryAfterCountdown.value - 1);
+    if (retryAfterCountdown.value <= 0 && retryAfterInterval) {
+      clearInterval(retryAfterInterval);
+      retryAfterInterval = null;
+    }
+  }, 1000);
+}
 
 // Funções auxiliares
 const formatDate = (dateString) => {
