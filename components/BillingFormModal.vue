@@ -20,7 +20,7 @@
         <p class="cep-loader-text">Buscando endereço...</p>
       </div>
 
-      <form @submit.prevent="onSubmit" class="billing-form">
+      <VaForm ref="billingFormRef" tag="form" class="billing-form" @submit.prevent="onSubmit">
       <div class="form-row">
         <VaSelect
           v-model="form.tipo"
@@ -63,10 +63,11 @@
         />
         <VaInput
           v-model="form.number"
+          name="number"
           label="Número"
           placeholder="Nº"
           class="form-field number-field"
-          :rules="[validators.required]"
+          :rules="numberFieldRules"
         />
       </div>
 
@@ -112,13 +113,13 @@
           {{ saving ? 'Salvando...' : submitButtonText }}
         </VaButton>
       </div>
-    </form>
+    </VaForm>
     </div>
   </VaModal>
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, nextTick } from 'vue';
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -162,6 +163,10 @@ const form = ref({
 const cepLoading = ref(false);
 const saving = ref(false);
 const submitError = ref('');
+/** True após buscar CEP e preencher endereço (a API não retorna número, então o campo Número fica obrigatório) */
+const addressFetchedFromCep = ref(false);
+
+const billingFormRef = ref(null);
 
 const taxNumberRules = computed(() => {
   const len = form.value.tipo === 'pj' ? 14 : 11;
@@ -172,6 +177,12 @@ const taxNumberRules = computed(() => {
       return digits.length === len ? true : (form.value.tipo === 'pj' ? 'CNPJ deve ter 14 dígitos' : 'CPF deve ter 11 dígitos');
     },
   ];
+});
+
+/** Número é obrigatório sempre; quando o endereço veio da consulta CEP (API não retorna número), reforçamos a obrigatoriedade */
+const numberFieldRules = computed(() => {
+  const required = (v) => (v && String(v).trim() ? true : 'Campo obrigatório');
+  return [required];
 });
 
 function onTipoChange() {
@@ -201,6 +212,9 @@ async function fetchCep() {
     form.value.state = (data.uf || '').toUpperCase();
     form.value.cityCode = data.ibge || '';
     form.value.postal_code = cep.replace(/(\d{5})(\d{3})/, '$1-$2');
+    // ViaCEP não retorna número; marcar que o endereço veio da API para exigir preenchimento do Número
+    form.value.number = form.value.number || '';
+    addressFetchedFromCep.value = true;
   } catch (e) {
     submitError.value = 'Erro ao buscar CEP';
   } finally {
@@ -237,14 +251,13 @@ function buildPayload() {
 
 async function onSubmit() {
   submitError.value = '';
+  await nextTick();
+  const formValid = billingFormRef.value?.validate?.() ?? false;
+  if (!formValid) return;
   const digits = form.value.federal_tax_number.replace(/\D/g, '');
   const len = form.value.tipo === 'pj' ? 14 : 11;
   if (digits.length !== len) {
     submitError.value = form.value.tipo === 'pj' ? 'Informe um CNPJ válido (14 dígitos).' : 'Informe um CPF válido (11 dígitos).';
-    return;
-  }
-  if (!form.value.street?.trim() || !form.value.number?.trim() || !form.value.district?.trim() || !form.value.cityName?.trim() || !form.value.state?.trim()) {
-    submitError.value = 'Preencha todos os campos do endereço.';
     return;
   }
   saving.value = true;
@@ -257,6 +270,7 @@ async function onSubmit() {
 }
 
 function applyInitialData(data) {
+  addressFetchedFromCep.value = false;
   const tax = (data.federal_tax_number || '').replace(/\D/g, '');
   const addr = data.billing_address || {};
   const city = addr.city || {};
@@ -279,6 +293,7 @@ function applyInitialData(data) {
 
 watch(isOpen, (open) => {
   if (open) {
+    addressFetchedFromCep.value = false;
     if (props.initialData && (props.initialData.federal_tax_number || props.initialData.billing_address)) {
       applyInitialData(props.initialData);
     } else {

@@ -636,6 +636,48 @@ const refreshingPlans = ref(false);
 const lifetimeCounter = ref(null);
 
 const PLANS_CACHE_KEY = "subscription_plans_cache";
+
+// Cache da validação de e-mail para exibir mensagem assim que o usuário entra na página (ex.: após login)
+const EMAIL_VALIDATION_CACHE_KEY = "payment_email_validation";
+const EMAIL_VALIDATION_CACHE_TTL_MS = 30 * 60 * 1000; // 30 min
+
+function applyEmailValidationFromCache() {
+  if (typeof window === "undefined") return;
+  try {
+    const raw = localStorage.getItem(EMAIL_VALIDATION_CACHE_KEY);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    if (!data || typeof data.validated !== "boolean") return;
+    const tenant = getTenantId();
+    if (data.tenant_id !== tenant) return;
+    const age = Date.now() - (data.timestamp || 0);
+    if (age > EMAIL_VALIDATION_CACHE_TTL_MS) return;
+    emailValidation.value.loading = false;
+    emailValidation.value.validated = data.validated;
+    emailValidation.value.valid = data.valid === true;
+    emailValidation.value.customerData = data.customerData || null;
+    emailValidation.value.error = data.error || null;
+  } catch (_) {
+    /* ignore */
+  }
+}
+
+function saveEmailValidationToCache() {
+  if (typeof window === "undefined") return;
+  try {
+    const payload = {
+      tenant_id: getTenantId(),
+      validated: emailValidation.value.validated,
+      valid: emailValidation.value.valid,
+      customerData: emailValidation.value.customerData || null,
+      error: emailValidation.value.error || null,
+      timestamp: Date.now(),
+    };
+    localStorage.setItem(EMAIL_VALIDATION_CACHE_KEY, JSON.stringify(payload));
+  } catch (_) {
+    /* ignore */
+  }
+}
 const PLANS_CACHE_VERSION = "v2";
 const PLANS_CACHE_TTL_MS = 1000 * 60 * 60 * 4; // 4 horas
 const PLANS_REQUEST_TIMEOUT_MS = 15000; // 15 segundos
@@ -935,6 +977,7 @@ const validateCustomerEmailGraphQL = async () => {
       created_at: user.value.createdAt || new Date().toISOString(),
     };
 
+    saveEmailValidationToCache();
     console.log(
       "✅ Validação de email bem-sucedida (fallback local):",
       emailValidation.value
@@ -986,6 +1029,7 @@ const validateCustomerEmailAPI = async (userEmail) => {
       emailValidation.value.validated = true;
       emailValidation.value.valid = data.exists;
       emailValidation.value.customerData = data.data;
+      saveEmailValidationToCache();
       return; // Sucesso, sair da função
     } else {
       throw new Error(data.message || "Erro na validação do customer");
@@ -1772,10 +1816,7 @@ const onActivePlanLoaded = (planData) => {
 
   activePlanLoading.value = false;
 
-  // Se a validação de e-mail já rodou e falhou (ex.: token ainda não pronto ao abrir a página após login), revalidar agora que o plano/sessão está carregado
-  if (emailValidation.value.validated && !emailValidation.value.valid) {
-    validateCustomerEmailGraphQL();
-  }
+  // A validação de e-mail é disparada pelo watch(activePlanLoading) quando loading vira false, para funcionar no trial sem F5.
 
   if (planData) {
     console.log("✅ Cliente possui plano ativo:", planData.product?.name);
@@ -1808,13 +1849,23 @@ const onActivePlanError = (error) => {
   // Não bloquear a interface por erro de carregamento do plano ativo
 };
 
-const onUpgradeClicked = () => {
-  // Alternar para a etapa de seleção de planos
+// Quando o plano/trial termina de carregar (ou dá erro), rodar validação de e-mail se ainda não foi feita — garante trial sem F5.
+watch(activePlanLoading, async (loading, previous) => {
+  if (previous === true && loading === false && !emailValidation.value.validated) {
+    await getUserInfo();
+    await validateCustomerEmailGraphQL();
+  }
+});
+
+const onUpgradeClicked = async () => {
+  // No cenário trial, garantir validação do e-mail antes de ir para a seleção de planos, para não mostrar "Aguardando validação..." na tela de compra
+  if (!emailValidation.value.validated) {
+    await getUserInfo();
+    await validateCustomerEmailGraphQL();
+  }
+
   showPlansSelection.value = true;
-
-  // Scroll suave para o topo
   window.scrollTo({ top: 0, behavior: "smooth" });
-
   console.log("🚀 Upgrade clicado - mostrando seleção de planos");
 };
 
@@ -2632,6 +2683,11 @@ onMounted(async () => {
   try {
     console.log("🚀 Iniciando carregamento da página...");
 
+    // Aplicar cache da validação de e-mail imediatamente para exibir "E-mail válido - Pronto para pagamento" (ou erro) assim que o usuário entra, sem esperar a nova validação
+    if (process.client) {
+      applyEmailValidationFromCache();
+    }
+
     // Aviso quando redirecionado da tela "Trocar plano" por não ter assinatura ativa
     if (route.query.sem_plano_ativo === "1") {
       confirmSuccess("Você não tem um plano ativo. Escolha um plano abaixo para assinar.", () => {
@@ -2645,12 +2701,9 @@ onMounted(async () => {
       });
     }
 
-    // Carregar informações do usuário logado
+    // Carregar informações do usuário logado (a validação de e-mail roda em onActivePlanLoaded, após plano/trial carregar, para funcionar no trial sem F5)
     await getUserInfo();
     console.log("🔍 Info do usuário:", user.value);
-
-    // Validar email do customer (usando GraphQL)
-    await validateCustomerEmailGraphQL();
 
     // Carregar planos da API
     await loadPlans();
