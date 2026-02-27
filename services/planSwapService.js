@@ -3,24 +3,15 @@
  * Integração com endpoints do backend Laravel
  */
 
+import { getApiBaseUrl } from '~/utils/apiBaseUrl'
+
 class PlanSwapService {
   /**
-   * Obter URL base da API
+   * Obter URL base da API (baseado em API_ENDPOINT / NUXT_PUBLIC_API_ENDPOINT)
    * @returns {string} URL base da API
    */
   getApiBaseUrl() {
-    if (process.client) {
-      // Tentar obter do window.__NUXT__ (runtime config do Nuxt)
-      if (typeof window !== 'undefined' && window.__NUXT__?.config?.public?.apiEndpoint) {
-        return window.__NUXT__.config.public.apiEndpoint
-      }
-      // Tentar obter do process.env (se disponível)
-      if (process.env.API_ENDPOINT) {
-        return process.env.API_ENDPOINT
-      }
-    }
-    // Valor padrão como fallback
-    return 'http://api.volleytrack.local'
+    return getApiBaseUrl()
   }
   /**
    * Preview da troca de planos
