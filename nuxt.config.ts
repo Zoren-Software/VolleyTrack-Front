@@ -7,6 +7,10 @@ const env = dotenv.config({ quiet: true }).parsed || {}
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: '2025-11-21',
+  experimental: {
+    // Desabilita app manifest para evitar erro de resolução do #app-manifest
+    appManifest: false,
+  },
   modules: [
     '@vuestic/nuxt',
     '@nuxtjs/apollo',
@@ -60,7 +64,8 @@ export default defineNuxtConfig({
       tawkto: '', // can be overridden by NUXT_PUBLIC_TAWKTO environment variable
       nameApplication: '', // can be overridden by NUXT_PUBLIC_NAME_APPLICATION environment variable
       stripePublishableKey: '', // can be overridden by NUXT_PUBLIC_STRIPE_PUBLISHABLE_KEY environment variable
-      apiEndpoint: env.API_ENDPOINT || 'http://api.volleytrack.local',
+      // Prioridade: NUXT_PUBLIC_ (override em prod) > API_ENDPOINT > .env > fallback local
+      apiEndpoint: process.env.NUXT_PUBLIC_API_ENDPOINT || process.env.API_ENDPOINT || env.API_ENDPOINT || 'http://api.volleytrack.local',
     }
   },
   vuestic: {

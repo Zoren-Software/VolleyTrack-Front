@@ -3,24 +3,7 @@
  * Utiliza o novo endpoint do backend Laravel com email pré-preenchido
  */
 
-/**
- * Obter URL base da API
- * @returns {string} URL base da API
- */
-const getApiBaseUrl = () => {
-  if (process.client) {
-    // Tentar obter do window.__NUXT__ (runtime config do Nuxt)
-    if (typeof window !== 'undefined' && window.__NUXT__?.config?.public?.apiEndpoint) {
-      return window.__NUXT__.config.public.apiEndpoint
-    }
-    // Tentar obter do process.env (se disponível)
-    if (process.env.API_ENDPOINT) {
-      return process.env.API_ENDPOINT
-    }
-  }
-  // Valor padrão como fallback
-  return 'http://api.volleytrack.local'
-}
+import { getApiBaseUrl } from '~/utils/apiBaseUrl'
 
 /**
  * Criar sessão de checkout no Stripe
