@@ -619,6 +619,7 @@ import PaymentMethodCard from "~/components/PaymentMethodCard.vue";
 import PlanLimitErrorModal from "~/components/PlanLimitErrorModal.vue";
 import { usePlanLimitError } from "~/composables/usePlanLimitError.js";
 import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
+import { getApiBaseUrl } from "~/utils/apiBaseUrl";
 import { useQuery } from "@vue/apollo-composable";
 import gql from "graphql-tag";
 
@@ -782,8 +783,8 @@ const lifetimePurchaseLabel = computed(() => {
 
 // Removido: Estado do modal de troca de planos (agora redirecionamos para rota específica)
 
-// API URL
-const API_URL = `${runtimeConfig.public.apiEndpoint}/v1/products`;
+// API URL (baseada em API_ENDPOINT / NUXT_PUBLIC_API_ENDPOINT)
+const getProductsUrl = () => `${getApiBaseUrl()}/v1/products`;
 
 // URLs de redirecionamento
 const successURL = `${window.location.origin}/payment/success`;
@@ -966,9 +967,7 @@ const validateCustomerEmailAPI = async (userEmail) => {
     throw new Error("Token de autenticação não encontrado");
   }
 
-  const apiBase = (
-    runtimeConfig.public?.apiEndpoint || "http://api.volleytrack.local"
-  ).replace(/\/$/, "");
+  const apiBase = getApiBaseUrl();
   const url = `${apiBase}/v1/customers/check-email`;
   const requestBody = {
     email: userEmail,
@@ -1130,7 +1129,7 @@ const loadPlans = async ({ forceRefresh = false } = {}) => {
     let response;
 
     try {
-      response = await fetch(API_URL, {
+      response = await fetch(getProductsUrl(), {
         signal: controller.signal,
         headers: {
           Accept: "application/json",

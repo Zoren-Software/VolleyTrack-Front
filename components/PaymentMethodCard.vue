@@ -120,6 +120,7 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
+import { getApiBaseUrl } from "~/utils/apiBaseUrl";
 
 const props = defineProps({
   customerId: {
@@ -127,9 +128,6 @@ const props = defineProps({
     required: true,
   },
 });
-
-const config = useRuntimeConfig();
-const apiEndpoint = config.public.apiEndpoint;
 
 const paymentMethods = ref([]);
 const loading = ref(true);
@@ -157,7 +155,7 @@ const loadPaymentMethods = async () => {
     }
 
     const response = await fetch(
-      `${apiEndpoint}/v1/customers/payment-methods?customer_id=${props.customerId}`,
+      `${getApiBaseUrl()}/v1/customers/payment-methods?customer_id=${props.customerId}`,
       {
         method: "GET",
         headers: {
@@ -247,7 +245,7 @@ const handleChangeCard = async () => {
     console.log("🔍 Request body:", requestBody);
 
     const response = await fetch(
-      `${apiEndpoint}/v1/customers/payment-method-setup`,
+      `${getApiBaseUrl()}/v1/customers/payment-method-setup`,
       {
         method: "POST",
         headers: {
@@ -296,7 +294,7 @@ const setAsDefault = async (paymentMethodId) => {
     }
 
     const response = await fetch(
-      `${apiEndpoint}/v1/customers/payment-methods/default`,
+      `${getApiBaseUrl()}/v1/customers/payment-methods/default`,
       {
         method: "POST",
         headers: {
@@ -361,7 +359,7 @@ const removeCard = async (paymentMethodId) => {
     }
 
     const response = await fetch(
-      `${apiEndpoint}/v1/customers/payment-methods/${paymentMethodId}`,
+      `${getApiBaseUrl()}/v1/customers/payment-methods/${paymentMethodId}`,
       {
         method: "DELETE",
         headers: {
