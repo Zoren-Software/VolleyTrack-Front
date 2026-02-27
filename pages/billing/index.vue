@@ -377,8 +377,7 @@
 import { ref, onMounted, onUnmounted, computed } from "vue";
 import { useUser } from "~/composables/useUser";
 import Swal from "sweetalert2";
-
-const runtimeConfig = useRuntimeConfig();
+import { getApiBaseUrl } from "~/utils/apiBaseUrl";
 const { getUserEmail } = useUser();
 
 // Estado
@@ -455,7 +454,7 @@ const openNfsePdf = async (invoice) => {
     return;
   }
   if (!invoice.nfse_service_invoice_id) return;
-  const apiBaseUrl = runtimeConfig.public.apiEndpoint || "http://api.volleytrack.local";
+  const apiBaseUrl = getApiBaseUrl();
   const token = localStorage.getItem("userToken") || localStorage.getItem("apollo:default.token");
   if (!token) return;
   nfsePdfLoading.value = invoice.id;
@@ -494,7 +493,7 @@ const toggleNfseDropdown = (invoiceId) => {
 // Download do XML da NFSe (chamada ao backend que retorna attachment)
 const openNfseXml = async (invoice) => {
   if (!invoice.nfse_service_invoice_id) return;
-  const apiBaseUrl = runtimeConfig.public.apiEndpoint || "http://api.volleytrack.local";
+  const apiBaseUrl = getApiBaseUrl();
   const token = localStorage.getItem("userToken") || localStorage.getItem("apollo:default.token");
   if (!token) return;
   nfseXmlLoading.value = invoice.id;
@@ -563,8 +562,7 @@ const loadInvoices = async (lifetimePage = 1, subscriptionPage = 1) => {
     }
 
     const tenantId = getTenantId();
-    const apiBaseUrl =
-      runtimeConfig.public.apiEndpoint || "http://api.volleytrack.local";
+    const apiBaseUrl = getApiBaseUrl();
 
     // Chamar as duas rotas separadamente
     const [lifetimeResponse, subscriptionResponse] = await Promise.all([

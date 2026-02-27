@@ -2,24 +2,7 @@
  * Service para gerenciar informações do Plano Vitalício
  */
 
-const getApiBaseUrl = () => {
-  if (!process.client) return '';
-  
-  const protocol = window.location.protocol;
-  const hostname = window.location.hostname;
-  
-  // Se for localhost ou apenas hostname sem subdomínio, usar api.volleytrack.local
-  if (hostname === 'localhost' || !hostname.includes('.')) {
-    return `${protocol}//api.volleytrack.local`;
-  }
-  
-  // Substituir primeiro subdomínio por 'api' (ex: app.volleytrack.local -> api.volleytrack.local)
-  const parts = hostname.split('.');
-  parts[0] = 'api';
-  return `${protocol}//${parts.join('.')}`;
-};
-
-const API_BASE_URL = getApiBaseUrl();
+import { getApiBaseUrl } from '~/utils/apiBaseUrl'
 
 /**
  * Buscar contador de planos vitalícios vendidos
@@ -41,7 +24,7 @@ export const getLifetimePlansCount = async () => {
   try {
     console.log('📊 Buscando contador de planos vitalícios')
 
-    const url = `${API_BASE_URL}/v1/customers/lifetime-plans-count`
+    const url = `${getApiBaseUrl()}/v1/customers/lifetime-plans-count`
     console.log('🔍 URL da requisição:', url)
 
     const response = await fetch(url, {

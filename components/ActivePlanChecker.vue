@@ -372,9 +372,7 @@ import { ref, onMounted, onUnmounted, computed } from "vue";
 import { getActivePlan } from "~/services/stripeCheckoutService.js";
 import Swal from "sweetalert2";
 import { useUser } from "~/composables/useUser";
-
-const config = useRuntimeConfig();
-const apiEndpoint = config.public.apiEndpoint;
+import { getApiBaseUrl } from "~/utils/apiBaseUrl";
 
 // Props
 const props = defineProps({
@@ -956,7 +954,7 @@ const manageSubscription = async (plan = null) => {
 
     const tenantId = getTenantIdForValidation();
     const validateResponse = await fetch(
-      `${apiEndpoint}/v1/customers/check-email`,
+      `${getApiBaseUrl()}/v1/customers/check-email`,
       {
         method: "POST",
         headers: {
@@ -1082,7 +1080,7 @@ const manageSubscription = async (plan = null) => {
     if (targetPlan?.subscription?.id) payload.subscription_id = targetPlan.subscription.id;
     else if (targetPlan?.subscription?.stripe_id) payload.stripe_subscription_id = targetPlan.subscription.stripe_id;
 
-    const response = await fetch(`${apiEndpoint}/v1/subscriptions/cancel`, {
+    const response = await fetch(`${getApiBaseUrl()}/v1/subscriptions/cancel`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
