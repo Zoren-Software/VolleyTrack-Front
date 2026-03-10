@@ -18,10 +18,21 @@ export default defineNuxtConfig({
   ssr: false,
   vite: {
     server: {
-      allowedHosts: [
-        'localhost',
-        'local',
-      ],
+      // Dinâmico: lê de NUXT_ALLOWED_HOSTS (ex: "test.volleytrack.local,.volleytrack.com")
+      // Padrão: local + produção (subdomínios de .volleytrack.local e .volleytrack.com)
+      allowedHosts: (() => {
+        const fromEnv = process.env.NUXT_ALLOWED_HOSTS
+          ? process.env.NUXT_ALLOWED_HOSTS.split(',').map((h) => h.trim()).filter(Boolean)
+          : []
+        const defaultHosts = [
+          'localhost',
+          'local',
+          'test',
+          '.volleytrack.local', // subdomínios locais (test., api., etc.)
+          '.volleytrack.com',   // subdomínios produção (test., app., etc.)
+        ]
+        return [...new Set([...defaultHosts, ...fromEnv])]
+      })(),
       watch: {
         // Ignorar arquivos e pastas para reduzir file watchers
         ignored: [
