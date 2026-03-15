@@ -77,6 +77,8 @@ export default defineNuxtConfig({
       stripePublishableKey: '', // can be overridden by NUXT_PUBLIC_STRIPE_PUBLISHABLE_KEY environment variable
       // Prioridade: NUXT_PUBLIC_ (override em prod) > API_ENDPOINT > .env > fallback local
       apiEndpoint: process.env.NUXT_PUBLIC_API_ENDPOINT || process.env.API_ENDPOINT || env.API_ENDPOINT || 'http://api.volleytrack.local',
+      // APP_ENV: ex. "local" para ver coluna ID em datatables; use NUXT_PUBLIC_APP_ENV ou APP_ENV no .env
+      appEnv: process.env.NUXT_PUBLIC_APP_ENV || process.env.APP_ENV || '',
     }
   },
   vuestic: {
