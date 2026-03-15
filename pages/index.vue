@@ -216,28 +216,22 @@
                   Concluído
                 </span>
                 <template v-else-if="steps.registerTrainings.inProgress">
+                  <span class="status-badge status-in-progress">
+                    Em andamento
+                  </span>
                   <va-button
                     color="#1976D2"
                     size="small"
                     @click="navigateTo('/trainings')"
+                    style="margin-left: 8px"
                   >
                     Continuar
                   </va-button>
                 </template>
                 <template v-else>
-                  <span class="status-badge status-pending">
-                    <va-icon name="warning" size="small" />
-                    Pendente
-                  </span>
-                  <va-button
-                    color="#9E9E9E"
-                    size="small"
-                    disabled
-                    class="waiting-button"
-                    style="margin-left: 8px"
-                  >
+                  <span class="status-badge status-waiting">
                     Aguardando
-                  </va-button>
+                  </span>
                 </template>
               </div>
             </div>
@@ -1082,9 +1076,9 @@ useHead({
   color: #6c757d;
 }
 
-.waiting-button {
-  background-color: #9e9e9e !important;
-  color: white !important;
+.status-waiting {
+  background-color: #e9ecef;
+  color: #495057;
 }
 
 /* Motivational Card */
