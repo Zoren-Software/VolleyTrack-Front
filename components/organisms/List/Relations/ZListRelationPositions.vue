@@ -6,7 +6,6 @@
     <template #list>
       <div class="positions-list-wrapper">
         <ZDatatableGeneric
-          selectable
           includeActionsColumn
           includeActionDeleteList
           :items="items"
