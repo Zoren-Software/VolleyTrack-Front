@@ -319,7 +319,6 @@ export default defineComponent({
   },
 
   async created() {
-    await this.setDefaultRoleFilter();
     this.getPlayers();
     this.loadActivePlan();
   },
