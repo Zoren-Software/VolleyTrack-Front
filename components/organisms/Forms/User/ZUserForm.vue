@@ -144,51 +144,63 @@
       </va-card>
 
       <!-- Card: Permissão no Sistema -->
-      <va-card class="info-card">
+      <va-card
+        :class="['info-card', { 'info-card--error': errorFields.includes('roleId') }]"
+      >
         <h2 class="section-title">Permissão no Sistema</h2>
         <div v-if="rolesLoading" class="permissions-loading">
           <va-progress-circle indeterminate size="small" />
           <span>Carregando funções...</span>
         </div>
-        <div v-else class="permissions-grid">
-          <div
-            v-for="role in rolesOptions"
-            :key="role.id"
-            :class="[
-              'permission-card',
-              {
-                selected:
-                  Array.isArray(form.roles) && form.roles.includes(role.id),
-              },
-            ]"
-            @click="selectRole(role.id)"
-          >
-            <div class="permission-icon">
+        <div v-else class="permissions-wrapper">
+          <div class="permissions-grid">
+            <div
+              v-for="role in rolesOptions"
+              :key="role.id"
+              :class="[
+                'permission-card',
+                {
+                  selected:
+                    Array.isArray(form.roles) && form.roles.includes(role.id),
+                  'permission-card--error': errorFields.includes('roleId'),
+                },
+              ]"
+              @click="selectRole(role.id)"
+            >
+              <div class="permission-icon">
+                <div
+                  style="
+                    background-color: #fff4ec;
+                    border-radius: 50%;
+                    width: 40px;
+                    height: 40px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border: 1px solid #ffe3d1;
+                  "
+                >
+                  <va-icon :name="role.iconName" color="#E9742B" size="20px" />
+                </div>
+              </div>
+              <div class="permission-info">
+                <h4 class="permission-title">{{ role.title }}</h4>
+                <p class="permission-description">{{ role.description }}</p>
+              </div>
               <div
-                style="
-                  background-color: #fff4ec;
-                  border-radius: 50%;
-                  width: 40px;
-                  height: 40px;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                  border: 1px solid #ffe3d1;
-                "
+                v-if="Array.isArray(form.roles) && form.roles.includes(role.id)"
+                class="permission-check"
               >
-                <va-icon :name="role.iconName" color="#E9742B" size="20px" />
+                <i class="icon-check"></i>
               </div>
             </div>
-            <div class="permission-info">
-              <h4 class="permission-title">{{ role.title }}</h4>
-              <p class="permission-description">{{ role.description }}</p>
-            </div>
-            <div
-              v-if="Array.isArray(form.roles) && form.roles.includes(role.id)"
-              class="permission-check"
-            >
-              <i class="icon-check"></i>
-            </div>
+          </div>
+          <div
+            v-if="errorFields.includes('roleId') && errors.roleId && errors.roleId.length"
+            class="permission-error-message"
+          >
+            <va-icon name="error" size="small" color="danger" />
+            <span>{{ (errors.roleId || []).join(' ') }}</span>
           </div>
         </div>
       </va-card>
@@ -524,6 +536,11 @@ export default {
   border: 1px solid #e5e7eb;
 }
 
+.info-card.info-card--error {
+  border-color: #e53e3e;
+  box-shadow: 0 0 0 1px #e53e3e;
+}
+
 .section-title {
   font-size: 18px;
   font-weight: 600;
@@ -640,6 +657,31 @@ export default {
 .permission-card.selected {
   background-color: #e7f1ff;
   border-color: #7ab8ff;
+}
+
+.permission-card.permission-card--error {
+  border-color: #e53e3e;
+  background-color: #fef2f2;
+}
+
+.permission-card.permission-card--error.selected {
+  border-color: #e53e3e;
+  background-color: #fef2f2;
+}
+
+.permissions-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.permission-error-message {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #e53e3e;
+  margin-top: 4px;
 }
 
 .permission-icon {
