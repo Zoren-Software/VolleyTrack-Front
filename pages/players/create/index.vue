@@ -84,15 +84,17 @@ export default {
               roleId: Array.isArray(form.roles)
                 ? form.roles
                     .map((item) => (typeof item === "object" ? item.id : item))
-                    .filter((id) => id != null)
+                    .filter((id) => id != null && id !== "")
+                    .map((id) => Number(id))
                 : [],
               positionId: Array.isArray(form.positions)
                 ? form.positions
                     .map((item) => item.id)
                     .filter((id) => id != null)
+                    .map((id) => Number(id))
                 : [],
               teamId: Array.isArray(form.teams)
-                ? form.teams.map((item) => item.id).filter((id) => id != null)
+                ? form.teams.map((item) => item.id).filter((id) => id != null).map((id) => Number(id))
                 : [],
               sendEmailNotification,
             };
