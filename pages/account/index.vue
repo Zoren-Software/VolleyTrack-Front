@@ -101,13 +101,13 @@ export default {
           nickname: form.nickname || null,
           showNickname: form.showNickname ?? false,
           roleId: Array.isArray(form.roles)
-            ? form.roles.filter((id) => id != null)
+            ? form.roles.filter((id) => id != null && id !== "").map((id) => Number(id))
             : [],
           positionId: Array.isArray(form.positions)
-            ? form.positions.map((item) => item.id).filter((id) => id != null)
+            ? form.positions.map((item) => item.id).filter((id) => id != null).map((id) => Number(id))
             : [],
           teamId: Array.isArray(form.teams)
-            ? form.teams.map((item) => item.id).filter((id) => id != null)
+            ? form.teams.map((item) => item.id).filter((id) => id != null).map((id) => Number(id))
             : [],
         };
 
