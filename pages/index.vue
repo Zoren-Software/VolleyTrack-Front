@@ -21,15 +21,6 @@
           <va-icon name="send" class="button-icon" />
           <span>Começar Configuração</span>
         </va-button>
-        <va-button
-          v-else-if="!showConfigurationDetails"
-          preset="plain"
-          class="view-config-button"
-          @click="showConfigurationDetails = true"
-        >
-          <va-icon name="settings" class="button-icon" />
-          <span>Ver Configuração Inicial</span>
-        </va-button>
       </div>
 
       <!-- Completion Animation -->
