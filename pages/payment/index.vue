@@ -3115,8 +3115,9 @@ p {
 
 .validation-success-discrete-fixed {
   position: fixed;
-  bottom: 16px;
-  left: 16px;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
   background: rgba(255, 255, 255, 0.9);
   border: 1px solid rgba(16, 185, 129, 0.2);
   border-radius: 6px;
