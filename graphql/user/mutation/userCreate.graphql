@@ -1,6 +1,6 @@
 mutation userCreate(
-  $name: String!
-  $email: String!
+  $name: String
+  $email: String
   $cpf: String
   $rg: String
   $phone: String

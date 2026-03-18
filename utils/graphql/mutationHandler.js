@@ -76,18 +76,10 @@ function handleStandardGraphQLError(error, title) {
     error.graphQLErrors &&
     error.graphQLErrors[0]?.extensions?.validation
   ) {
-    const errors = error.graphQLErrors[0].extensions.validation
-
-    const errorMessages = Object.values(errors).map((item) => {
-      if (Array.isArray(item)) {
-        return item[0]
-      }
-      return item
-    })
-
-    const footer = errorMessages.join('<br>')
-    confirmError(title, footer)
-  } else if (error.graphQLErrors && error.graphQLErrors[0]?.message) {
+    // Erro de validação: não exibir modal; o componente exibe os erros inline no formulário
+    return
+  }
+  if (error.graphQLErrors && error.graphQLErrors[0]?.message) {
     confirmError(title, error.graphQLErrors[0].message)
   } else {
     confirmError(title, 'Ocorreu um erro desconhecido.')
