@@ -38,7 +38,9 @@ export default {
     errorsDefault() {
       return {
         name: [],
-        teamId: [],
+        teamCategory: [],
+        teamLevel: [],
+        playerId: [],
       };
     },
     async create(form) {
@@ -53,10 +55,10 @@ export default {
             `;
 
             const variables = {
-              name: form.name,
-              playerId: form.users.map((item) => item.id),
-              teamCategoryId: form.teamCategory.value,
-              teamLevelId: form.teamLevel.value,
+              name: form.name ?? "",
+              playerId: (form.users || []).map((item) => item.id).filter(Boolean),
+              teamCategoryId: form.teamCategory?.value ?? null,
+              teamLevelId: form.teamLevel?.value ?? null,
             };
 
             const { mutate } = await useMutation(query, { variables });
@@ -73,11 +75,18 @@ export default {
               this.error = true;
 
               if (
-                error.graphQLErrors &&
-                error.graphQLErrors[0]?.extensions?.validation
+                error?.graphQLErrors?.[0]?.extensions?.validation
               ) {
-                this.errors = error.graphQLErrors[0].extensions.validation;
-                this.errorFields = Object.keys(this.errors);
+                const v = error.graphQLErrors[0].extensions.validation;
+                const keyMap = { teamCategoryId: "teamCategory", team_level_id: "teamCategory", teamLevelId: "teamLevel", team_category_id: "teamLevel" };
+                // Mapear chaves da API (camel ou snake) para as esperadas pelo formulário
+                this.errors = {
+                  name: v.name || [],
+                  teamCategory: v.teamCategoryId || v.team_category_id || v.teamCategory || [],
+                  teamLevel: v.teamLevelId || v.team_level_id || v.teamLevel || [],
+                  playerId: v.playerId || v.player_id || [],
+                };
+                this.errorFields = [...new Set(Object.keys(v).map((k) => keyMap[k] || k))];
               }
             },
             errorTitle: "Ocorreu um erro ao salvar o time!",

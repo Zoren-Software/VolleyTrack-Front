@@ -1,5 +1,5 @@
 mutation teamCreate(
-  $name: String!
+  $name: String
   $playerId: [ID]!
   $teamCategoryId: ID
   $teamLevelId: ID

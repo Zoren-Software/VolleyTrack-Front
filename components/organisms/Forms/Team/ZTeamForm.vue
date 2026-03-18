@@ -11,6 +11,7 @@
           label="Nome do Time"
           placeholder="Ex: Águias de Ouro"
           class="mb-3"
+          :error="errorFields.includes('name')"
           :error-messages="errors.name || []"
         />
         <ZSelectTeamCategory
@@ -19,6 +20,7 @@
           label="Categoria"
           placeholder="Selecione a categoria"
           class="mb-3"
+          :error="errorFields.includes('teamCategory')"
           :error-messages="errors.teamCategory || []"
         />
         <ZSelectTeamLevel
@@ -27,6 +29,7 @@
           label="Nível"
           placeholder="Selecione o nível"
           class="mb-3"
+          :error="errorFields.includes('teamLevel')"
           :error-messages="errors.teamLevel || []"
         />
       </va-card>
@@ -153,8 +156,7 @@ export default {
       confirmSuccess("Jogador removido com sucesso!");
     },
 
-    async save() {
-      console.log(this.form);
+    save() {
       this.$emit("save", this.form);
     },
 
