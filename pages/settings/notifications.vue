@@ -56,10 +56,15 @@
                   </div>
                   <div class="event-details">
                     <p class="event-title">
-                      {{ item.notificationType?.description || "Evento" }}
+                      {{
+                        getEventTitle(
+                          item.notificationType?.key,
+                          item.notificationType?.description,
+                        )
+                      }}
                     </p>
                     <p class="event-description">
-                      {{ getEventDescription(item.notificationType?.key) }}
+                      {{ getEventDescription(item) }}
                     </p>
                   </div>
                 </div>
@@ -154,15 +159,46 @@ export default {
       };
       return colorMap[key] || "#6b7280";
     },
-    getEventDescription(key) {
+    getEventTitle(key, description) {
+      const titleMap = {
+        training_created: "Treino criado",
+        training_canceled: "Treino cancelado",
+        training_updated: "Treino alterado",
+        evaluation_available: "Nova avaliação disponível",
+        technical_comments: "Comentários técnicos",
+      };
+
+      if (key && titleMap[key]) {
+        return titleMap[key];
+      }
+
+      return description || "Evento";
+    },
+    getEventDescription(item) {
+      const key = item?.notificationType?.key;
       const descriptionMap = {
-        training_created: "Quando um novo treino for agendado",
+        training_created: "Quando um treino for agendado",
         training_canceled: "Quando um treino for cancelado",
         training_updated: "Quando houver alterações em um treino",
         evaluation_available: "Quando uma nova avaliação for agendada",
         technical_comments: "Quando houver novos comentários técnicos",
       };
-      return descriptionMap[key] || "Notificação do sistema";
+
+      if (key && descriptionMap[key]) {
+        return descriptionMap[key];
+      }
+
+      // Ajuste de usabilidade: evitar "Notificação do sistema" genérico
+      // para eventos claramente identificados como treino cancelado.
+      const backendDescription = item?.notificationType?.description || "";
+      if (
+        backendDescription === "Notificação do sistema" &&
+        /treino cancelado/i.test(item?.notificationType?.name || "") // name ou outro campo do backend
+      ) {
+        return "Quando um treino for cancelado";
+      }
+
+      return backendDescription || "Notificação do sistema";
     },
     getNotificationSettings() {
       const query = gql`
@@ -436,7 +472,6 @@ export default {
 
 .toggle-cell {
   padding: 20px 16px;
-  text-align: center;
   vertical-align: middle;
 }
 
@@ -479,8 +514,14 @@ export default {
   padding: 12px 24px;
   border-radius: 8px;
   font-weight: 500;
+  color: #ffffff !important;
   box-shadow: 0 2px 4px rgba(233, 116, 43, 0.2);
   transition: all 0.2s ease;
+}
+
+.save-button :deep(.va-button__content),
+.save-button :deep(.va-icon) {
+  color: #ffffff !important;
 }
 
 .save-button:hover {
