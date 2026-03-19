@@ -1,5 +1,8 @@
 <template>
-  <div class="individual-analysis-section">
+  <div
+    v-if="loading || players.length > 0"
+    class="individual-analysis-section"
+  >
     <div class="section-header">
       <div class="section-title-wrapper">
         <va-icon name="person" size="24px" color="#E9742B" />
@@ -28,11 +31,6 @@
     <div v-if="loading" class="loading-container">
       <va-progress-circle indeterminate size="small" />
       <span class="loading-text">Carregando análise...</span>
-    </div>
-
-    <div v-else-if="players.length === 0" class="empty-state">
-      <va-icon name="info" size="48px" color="#9E9E9E" />
-      <p class="empty-text">Nenhum jogador com análise disponível</p>
     </div>
 
     <div v-else class="players-grid">

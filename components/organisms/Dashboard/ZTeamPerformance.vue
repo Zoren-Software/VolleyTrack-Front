@@ -1,5 +1,5 @@
 <template>
-  <div class="team-performance-section">
+  <div v-if="loading || teams.length > 0" class="team-performance-section">
     <div class="section-header">
       <div class="section-title-wrapper">
         <va-icon name="groups" size="24px" color="#E9742B" />

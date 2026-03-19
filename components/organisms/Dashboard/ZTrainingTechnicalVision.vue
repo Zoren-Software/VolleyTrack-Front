@@ -1,5 +1,14 @@
 <template>
-  <div class="training-technical-vision-section">
+  <div
+    v-if="
+      loading ||
+      (data &&
+        ((data.trainingFocus?.length || 0) +
+          (data.trainingsPerMonth?.length || 0)) >
+          0)
+    "
+    class="training-technical-vision-section"
+  >
     <div class="section-header">
       <div class="section-title-wrapper">
         <va-icon name="swap_horiz" size="24px" color="#E9742B" />

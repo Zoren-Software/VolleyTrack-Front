@@ -1,5 +1,15 @@
 <template>
-  <div class="presence-analysis-section">
+  <div
+    v-if="
+      loading ||
+      (data &&
+        ((data.totalConfirmations || 0) > 0 ||
+          (data.totalPresences || 0) > 0 ||
+          (data.totalAbsences || 0) > 0 ||
+          (data.topTeamsByPresence?.length || 0) > 0))
+    "
+    class="presence-analysis-section"
+  >
     <div class="section-header">
       <div class="section-title-wrapper">
         <va-icon name="event_available" size="24px" color="#E9742B" />
@@ -13,7 +23,12 @@
     </div>
 
     <div
-      v-else-if="!data || (!data.generalPresenceRate && !data.topTeamsByPresence?.length)"
+      v-else-if="
+        !data ||
+        ((data.generalPresenceRate === null ||
+          data.generalPresenceRate === undefined) &&
+          !data.topTeamsByPresence?.length)
+      "
       class="empty-state"
     >
       <va-icon name="info" size="48px" color="#9E9E9E" />
