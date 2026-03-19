@@ -220,9 +220,7 @@
                   </va-button>
                 </template>
                 <template v-else>
-                  <span class="status-badge status-waiting">
-                    Aguardando
-                  </span>
+                  <span class="status-badge status-waiting"> Aguardando </span>
                 </template>
               </div>
             </div>
@@ -253,19 +251,19 @@
       </Transition>
 
       <!-- Individual Analysis Section -->
-      <ZIndividualAnalysis />
+      <ZIndividualAnalysis v-if="totalUsers > 0" />
 
       <!-- Team Performance Section -->
-      <ZTeamPerformance />
+      <ZTeamPerformance v-if="totalTeams > 0" />
 
       <!-- Training Technical Vision Section -->
-      <ZTrainingTechnicalVision />
+      <ZTrainingTechnicalVision v-if="totalTrainings > 0" />
 
       <!-- Presence Analysis Section -->
-      <ZPresenceAnalysis />
+      <ZPresenceAnalysis v-if="totalTrainings > 0" />
 
       <!-- Presence Ranking Section -->
-      <ZPresenceRanking />
+      <ZPresenceRanking v-if="totalTrainings > 0" />
 
       <!-- Totals Section -->
       <div class="totals-section">
@@ -443,7 +441,7 @@ export default {
       }
 
       const metadata = this.normalizeMetadata(
-        this.activePlanData.product.metadata
+        this.activePlanData.product.metadata,
       );
       const maxPlayers = parseInt(metadata.max_players || "0");
       const maxTeams = parseInt(metadata.max_teams || "0");
@@ -462,7 +460,7 @@ export default {
       }
 
       const metadata = this.normalizeMetadata(
-        this.activePlanData.product.metadata
+        this.activePlanData.product.metadata,
       );
 
       return {
@@ -566,11 +564,11 @@ export default {
       `;
 
       let positionsIdsValues = this.variablesGetPlayers.filter.positionsIds.map(
-        (position) => position.value
+        (position) => position.value,
       );
 
       let teamsIdsValues = this.variablesGetPlayers.filter.teamsIds.map(
-        (team) => team.value
+        (team) => team.value,
       );
 
       const consult = {
@@ -613,15 +611,15 @@ export default {
       `;
 
       let positionsIdsValues = this.variablesGetTeams.filter.positionsIds.map(
-        (position) => position.value
+        (position) => position.value,
       );
 
       let usersIdsValues = this.variablesGetTeams.filter.usersIds.map(
-        (user) => user.value
+        (user) => user.value,
       );
 
       let playersIdsValues = this.variablesGetTeams.filter.playersIds.map(
-        (player) => player.value
+        (player) => player.value,
       );
 
       const consult = {
@@ -664,15 +662,15 @@ export default {
       `;
 
       let teamsIdsValues = this.variablesGetTrainings.filter.teamsIds.map(
-        (team) => parseInt(team.value)
+        (team) => parseInt(team.value),
       );
 
       let usersIdsValues = this.variablesGetTrainings.filter.usersIds.map(
-        (user) => parseInt(user.value)
+        (user) => parseInt(user.value),
       );
 
       let playersIdsValues = this.variablesGetTrainings.filter.playersIds.map(
-        (player) => parseInt(player.value)
+        (player) => parseInt(player.value),
       );
 
       let dateEnd = this.variablesGetTrainings.filter.dateEnd;
@@ -1124,7 +1122,9 @@ useHead({
   display: flex;
   align-items: center;
   gap: 16px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
   position: relative;
 }
 
