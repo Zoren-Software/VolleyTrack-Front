@@ -29,6 +29,22 @@
               v-model="variablesGetTeams.filter.playersIds"
             />
           </div>
+          <div class="filter-item">
+            <label class="filter-label">Categoria</label>
+            <ZSelectTeamCategory
+              label=""
+              placeholder="Selecione uma categoria"
+              v-model="variablesGetTeams.filter.teamCategoryId"
+            />
+          </div>
+          <div class="filter-item">
+            <label class="filter-label">Nível Técnico</label>
+            <ZSelectTeamLevel
+              label=""
+              placeholder="Selecione o nível técnico"
+              v-model="variablesGetTeams.filter.teamLevelId"
+            />
+          </div>
         </div>
         <div class="filter-actions">
           <va-button
@@ -42,6 +58,17 @@
         </div>
       </div>
     </va-card>
+
+    <!-- Aviso quando a busca foi limitada (muitos times) -->
+    <va-alert
+      v-if="fetchTruncatedWarning"
+      color="warning"
+      class="truncated-warning"
+      closeable
+      @click:close="fetchTruncatedWarning = null"
+    >
+      {{ fetchTruncatedWarning }}
+    </va-alert>
 
     <!-- DataTable -->
     <ZDatatableGeneric
@@ -178,6 +205,8 @@ import ZDatatableGeneric from "~/components/molecules/Datatable/ZDatatableGeneri
 import ZSelectPosition from "~/components/molecules/Selects/ZSelectPosition";
 import ZSelectTeam from "~/components/molecules/Selects/ZSelectTeam";
 import ZSelectUser from "~/components/molecules/Selects/ZSelectUser";
+import ZSelectTeamCategory from "~/components/molecules/Selects/ZSelectTeamCategory";
+import ZSelectTeamLevel from "~/components/molecules/Selects/ZSelectTeamLevel";
 import ZDataTableInputSearch from "~/components/molecules/Datatable/ZDataTableInputSearch";
 import ZUser from "~/components/molecules/Datatable/Slots/ZUser";
 import ZDateTraining from "~/components/molecules/Datatable/Slots/ZDateTraining";
@@ -202,6 +231,8 @@ export default defineComponent({
     ZDataTableInputSearch,
     ZBadgeCustom,
     ZTeamStatsModal,
+    ZSelectTeamCategory,
+    ZSelectTeamLevel,
   },
 
   created() {
@@ -244,11 +275,17 @@ export default defineComponent({
           usersIds: [],
           playersIds: [],
           positionsIds: [],
+          teamCategoryId: null,
+          teamLevelId: null,
           search: "%%",
         },
         orderBy: "id",
         sortedBy: "desc",
       },
+      allTeamsUnfiltered: [],
+      allTeamsBaseSignature: null,
+      localPerPage: 10,
+      localFetchRequestId: 0,
       selectedItems: [],
       selectedItemsEmitted: [],
       selectMode: "multiple",
@@ -259,6 +296,7 @@ export default defineComponent({
       activePlanData: null,
       showTeamStatsModal: false,
       selectedTeamId: null,
+      fetchTruncatedWarning: null,
     };
   },
   computed: {
@@ -397,6 +435,8 @@ export default defineComponent({
     },
 
     handleSearch() {
+      // Ao alterar filtros, voltar para a primeira página evita exibir página vazia
+      this.variablesGetTeams.page = 1;
       // Atualizar o filtro de busca com o valor do campo de busca
       if (
         this.internalSearchValue !== undefined &&
@@ -415,42 +455,277 @@ export default defineComponent({
         usersIds: [],
         playersIds: [],
         positionsIds: [],
+        teamCategoryId: null,
+        teamLevelId: null,
       };
+      this.variablesGetTeams.page = 1;
+      this.fetchTruncatedWarning = null;
       // Recarregar dados após limpar filtros
       this.getTeams({ fetchPolicy: "network-only" });
     },
 
-    getTeams(fetchPolicyOptions = {}) {
-      this.loading = true;
-      this.items = [];
+    normalizeSelectionToId(selection) {
+      if (selection === undefined || selection === null || selection === "") {
+        return null;
+      }
+
+      if (typeof selection === "object") {
+        const raw = selection?.value ?? selection?.id;
+        const n = Number(raw);
+        return Number.isFinite(n) ? n : null;
+      }
+
+      const n = Number(selection);
+      return Number.isFinite(n) ? n : null;
+    },
+
+    getServerTeamsFilter() {
+      const positionsIdsValues =
+        this.variablesGetTeams.filter.positionsIds?.map(
+          (position) => position?.value || position
+        ) || [];
+
+      const usersIdsValues =
+        this.variablesGetTeams.filter.usersIds?.map(
+          (user) => user?.value || user
+        ) || [];
+
+      const playersIdsValues =
+        this.variablesGetTeams.filter.playersIds?.map(
+          (player) => player?.value || player
+        ) || [];
+
+      return {
+        search: this.variablesGetTeams.filter.search ?? "%%",
+        positionsIds: positionsIdsValues,
+        usersIds: usersIdsValues,
+        playersIds: playersIdsValues,
+      };
+    },
+
+    getBaseFilterSignature() {
+      const serverFilter = this.getServerTeamsFilter();
+
+      const normalizeAndSort = (arr) =>
+        (arr || [])
+          .map((v) => Number(v))
+          .filter((n) => Number.isFinite(n))
+          .sort((a, b) => a - b);
+
+      return JSON.stringify({
+        search: serverFilter.search,
+        positionsIds: normalizeAndSort(serverFilter.positionsIds),
+        usersIds: normalizeAndSort(serverFilter.usersIds),
+        playersIds: normalizeAndSort(serverFilter.playersIds),
+      });
+    },
+
+    shouldUseLocalCategoryLevelFilters() {
+      const categoryId = this.normalizeSelectionToId(
+        this.variablesGetTeams.filter.teamCategoryId
+      );
+      const levelId = this.normalizeSelectionToId(
+        this.variablesGetTeams.filter.teamLevelId
+      );
+
+      return categoryId !== null || levelId !== null;
+    },
+
+    applyLocalCategoryLevelFilters(teams) {
+      const categoryId = this.normalizeSelectionToId(
+        this.variablesGetTeams.filter.teamCategoryId
+      );
+      const levelId = this.normalizeSelectionToId(
+        this.variablesGetTeams.filter.teamLevelId
+      );
+
+      return (teams || []).filter((team) => {
+        const teamCategoryId =
+          team?.teamCategory?.id !== undefined &&
+          team?.teamCategory?.id !== null
+            ? Number(team.teamCategory.id)
+            : null;
+        const teamLevelId =
+          team?.teamLevel?.id !== undefined && team?.teamLevel?.id !== null
+            ? Number(team.teamLevel.id)
+            : null;
+
+        const matchesCategory =
+          categoryId === null || teamCategoryId === categoryId;
+        const matchesLevel = levelId === null || teamLevelId === levelId;
+
+        return matchesCategory && matchesLevel;
+      });
+    },
+
+    async fetchAllTeamsForBaseFilters(fetchPolicyOptions = {}) {
+      const nuxtApp = useNuxtApp();
+      const apolloClient = nuxtApp._apolloClients?.default;
+
+      if (!apolloClient) {
+        throw new Error("Apollo Client não encontrado");
+      }
 
       const query = gql`
         ${TEAMS}
       `;
 
-      let positionsIdsValues =
-        this.variablesGetTeams.filter.positionsIds?.map(
-          (position) => position?.value || position
-        ) || [];
+      let page = 1;
+      let lastPage = 1;
+      let perPage = this.localPerPage || 10;
+      let allTeams = [];
 
-      let usersIdsValues =
-        this.variablesGetTeams.filter.usersIds?.map(
-          (user) => user?.value || user
-        ) || [];
+      // Limites para evitar muitas requisições e uso excessivo de memória em cenários com muitos times
+      const MAX_PAGES = 50;
+      const MAX_TEAMS = 2000;
 
-      let playersIdsValues =
-        this.variablesGetTeams.filter.playersIds?.map(
-          (player) => player?.value || player
-        ) || [];
+      while (
+        page <= lastPage &&
+        page <= MAX_PAGES &&
+        allTeams.length < MAX_TEAMS
+      ) {
+        const consult = {
+          ...this.variablesGetTeams,
+          page,
+          filter: this.getServerTeamsFilter(),
+        };
+
+        const result = await apolloClient.query({
+          query,
+          variables: consult,
+          fetchPolicy: fetchPolicyOptions.fetchPolicy || "network-only",
+        });
+
+        const teamsPayload = result?.data?.teams;
+        const paginatorInfo = teamsPayload?.paginatorInfo;
+        const teamsData = teamsPayload?.data || [];
+
+        if (paginatorInfo?.perPage) {
+          perPage = paginatorInfo.perPage;
+        }
+        if (paginatorInfo?.lastPage !== undefined && paginatorInfo?.lastPage !== null) {
+          lastPage = paginatorInfo.lastPage;
+        }
+
+        // Se não vierem dados, não faz sentido continuar paginando
+        if (!teamsData.length) {
+          break;
+        }
+
+        allTeams = allTeams.concat(teamsData);
+        page += 1;
+
+        if (page > 1000) {
+          // Evita loop infinito: registra aviso e dispara erro para tratamento no UI
+          console.warn(
+            "[fetchAllTeamsForBaseFilters] Limite máximo de páginas excedido (page > 1000). " +
+              "Verifique a paginação do backend."
+          );
+          throw new Error(
+            "Não foi possível carregar todos os times: limite máximo de páginas excedido. " +
+              "Tente ajustar os filtros ou contate o suporte."
+          );
+        }
+      }
+
+      const truncatedByLimit =
+        page <= lastPage && (page > MAX_PAGES || allTeams.length >= MAX_TEAMS);
+      if (truncatedByLimit) {
+        console.warn(
+          "[fetchAllTeamsForBaseFilters] Resultados limitados:",
+          `carregados ${allTeams.length} times (máx. ${MAX_TEAMS}) em ${page - 1} páginas (máx. ${MAX_PAGES}). Refine os filtros para ver mais.`
+        );
+      }
+
+      return {
+        teams: allTeams.map((team) => ({
+          ...team,
+          teamCategory: team.teamCategory || { name: "Sem Categoria" },
+          teamLevel: team.teamLevel || { name: "Sem Nível Técnico" },
+          players: team.players || [],
+        })),
+        perPage,
+        truncatedByLimit,
+      };
+    },
+
+    async getTeams(fetchPolicyOptions = {}) {
+      this.loading = true;
+      // No modo de filtro local, mantém os itens atuais até a nova lista estar pronta
+      // para evitar flicker (tabela piscando vazia) durante o fetch de múltiplas páginas
+      if (!this.shouldUseLocalCategoryLevelFilters()) {
+        this.items = [];
+        this.fetchTruncatedWarning = null;
+      }
+
+      if (this.shouldUseLocalCategoryLevelFilters()) {
+        const requestId = ++this.localFetchRequestId;
+        const baseSignature = this.getBaseFilterSignature();
+
+        // Se o conjunto base (search/posições/jogadores) mudou, buscar todos os times para filtrar no front
+        if (
+          !this.allTeamsBaseSignature ||
+          this.allTeamsBaseSignature !== baseSignature
+        ) {
+          try {
+            const { teams, perPage, truncatedByLimit } =
+              await this.fetchAllTeamsForBaseFilters(fetchPolicyOptions);
+
+            if (requestId !== this.localFetchRequestId) return;
+
+            this.allTeamsUnfiltered = teams;
+            this.allTeamsBaseSignature = baseSignature;
+            this.localPerPage = perPage || this.localPerPage;
+            this.fetchTruncatedWarning = truncatedByLimit
+              ? "A lista foi limitada para evitar lentidão. Refine busca, categoria ou nível para ver resultados mais específicos."
+              : null;
+          } catch (error) {
+            // Se a busca falhar, não interromper a página inteira
+            console.error("Erro ao buscar times para filtragem local:", error);
+            this.allTeamsUnfiltered = [];
+            this.allTeamsBaseSignature = null;
+            this.fetchTruncatedWarning = null;
+          }
+        }
+
+        const filteredTeams = this.applyLocalCategoryLevelFilters(
+          this.allTeamsUnfiltered
+        );
+
+        const perPage = this.localPerPage || 10;
+        const total = filteredTeams.length;
+        const lastPage = total === 0 ? 1 : Math.max(1, Math.ceil(total / perPage));
+        const currentPage = Math.max(
+          1,
+          Math.min(this.variablesGetTeams.page || 1, lastPage)
+        );
+        const firstIndex = (currentPage - 1) * perPage;
+        const pageTeams = filteredTeams.slice(
+          firstIndex,
+          firstIndex + perPage
+        );
+
+        this.items = pageTeams;
+        this.paginatorInfo = {
+          currentPage,
+          lastPage,
+          total,
+          firstItem: total === 0 ? 0 : firstIndex + 1,
+          lastItem: total === 0 ? 0 : firstIndex + pageTeams.length,
+          perPage,
+        };
+
+        this.loading = false;
+        return;
+      }
+
+      const query = gql`
+        ${TEAMS}
+      `;
 
       const consult = {
         ...this.variablesGetTeams,
-        filter: {
-          ...this.variablesGetTeams.filter,
-          positionsIds: positionsIdsValues,
-          usersIds: usersIdsValues,
-          playersIds: playersIdsValues,
-        },
+        filter: this.getServerTeamsFilter(),
       };
 
       const {
@@ -562,6 +837,10 @@ export default defineComponent({
   display: flex;
   flex-direction: column;
   gap: 24px;
+}
+
+.truncated-warning {
+  margin-bottom: 0;
 }
 
 .filter-card {
