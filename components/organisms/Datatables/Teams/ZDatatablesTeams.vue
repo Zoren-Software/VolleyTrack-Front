@@ -59,6 +59,17 @@
       </div>
     </va-card>
 
+    <!-- Aviso quando a busca foi limitada (muitos times) -->
+    <va-alert
+      v-if="fetchTruncatedWarning"
+      color="warning"
+      class="truncated-warning"
+      closeable
+      @click:close="fetchTruncatedWarning = null"
+    >
+      {{ fetchTruncatedWarning }}
+    </va-alert>
+
     <!-- DataTable -->
     <ZDatatableGeneric
       :buttonActionAdd="false"
@@ -285,6 +296,7 @@ export default defineComponent({
       activePlanData: null,
       showTeamStatsModal: false,
       selectedTeamId: null,
+      fetchTruncatedWarning: null,
     };
   },
   computed: {
@@ -447,6 +459,7 @@ export default defineComponent({
         teamLevelId: null,
       };
       this.variablesGetTeams.page = 1;
+      this.fetchTruncatedWarning = null;
       // Recarregar dados após limpar filtros
       this.getTeams({ fetchPolicy: "network-only" });
     },
@@ -562,7 +575,15 @@ export default defineComponent({
       let perPage = this.localPerPage || 10;
       let allTeams = [];
 
-      while (page <= lastPage) {
+      // Limites para evitar muitas requisições e uso excessivo de memória em cenários com muitos times
+      const MAX_PAGES = 50;
+      const MAX_TEAMS = 2000;
+
+      while (
+        page <= lastPage &&
+        page <= MAX_PAGES &&
+        allTeams.length < MAX_TEAMS
+      ) {
         const consult = {
           ...this.variablesGetTeams,
           page,
@@ -586,11 +607,34 @@ export default defineComponent({
           lastPage = paginatorInfo.lastPage;
         }
 
+        // Se não vierem dados, não faz sentido continuar paginando
+        if (!teamsData.length) {
+          break;
+        }
+
         allTeams = allTeams.concat(teamsData);
         page += 1;
 
-        // Guardrail: evita loop infinito caso backend retorne dados inconsistentes
-        if (page > 1000) break;
+        if (page > 1000) {
+          // Evita loop infinito: registra aviso e dispara erro para tratamento no UI
+          console.warn(
+            "[fetchAllTeamsForBaseFilters] Limite máximo de páginas excedido (page > 1000). " +
+              "Verifique a paginação do backend."
+          );
+          throw new Error(
+            "Não foi possível carregar todos os times: limite máximo de páginas excedido. " +
+              "Tente ajustar os filtros ou contate o suporte."
+          );
+        }
+      }
+
+      const truncatedByLimit =
+        page <= lastPage && (page > MAX_PAGES || allTeams.length >= MAX_TEAMS);
+      if (truncatedByLimit) {
+        console.warn(
+          "[fetchAllTeamsForBaseFilters] Resultados limitados:",
+          `carregados ${allTeams.length} times (máx. ${MAX_TEAMS}) em ${page - 1} páginas (máx. ${MAX_PAGES}). Refine os filtros para ver mais.`
+        );
       }
 
       return {
@@ -601,12 +645,18 @@ export default defineComponent({
           players: team.players || [],
         })),
         perPage,
+        truncatedByLimit,
       };
     },
 
     async getTeams(fetchPolicyOptions = {}) {
       this.loading = true;
-      this.items = [];
+      // No modo de filtro local, mantém os itens atuais até a nova lista estar pronta
+      // para evitar flicker (tabela piscando vazia) durante o fetch de múltiplas páginas
+      if (!this.shouldUseLocalCategoryLevelFilters()) {
+        this.items = [];
+        this.fetchTruncatedWarning = null;
+      }
 
       if (this.shouldUseLocalCategoryLevelFilters()) {
         const requestId = ++this.localFetchRequestId;
@@ -618,7 +668,7 @@ export default defineComponent({
           this.allTeamsBaseSignature !== baseSignature
         ) {
           try {
-            const { teams, perPage } =
+            const { teams, perPage, truncatedByLimit } =
               await this.fetchAllTeamsForBaseFilters(fetchPolicyOptions);
 
             if (requestId !== this.localFetchRequestId) return;
@@ -626,11 +676,15 @@ export default defineComponent({
             this.allTeamsUnfiltered = teams;
             this.allTeamsBaseSignature = baseSignature;
             this.localPerPage = perPage || this.localPerPage;
+            this.fetchTruncatedWarning = truncatedByLimit
+              ? "A lista foi limitada para evitar lentidão. Refine busca, categoria ou nível para ver resultados mais específicos."
+              : null;
           } catch (error) {
             // Se a busca falhar, não interromper a página inteira
             console.error("Erro ao buscar times para filtragem local:", error);
             this.allTeamsUnfiltered = [];
             this.allTeamsBaseSignature = null;
+            this.fetchTruncatedWarning = null;
           }
         }
 
@@ -783,6 +837,10 @@ export default defineComponent({
   display: flex;
   flex-direction: column;
   gap: 24px;
+}
+
+.truncated-warning {
+  margin-bottom: 0;
 }
 
 .filter-card {
