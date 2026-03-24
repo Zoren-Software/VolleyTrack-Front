@@ -216,6 +216,7 @@ import ZTeamStatsModal from "~/components/molecules/Modal/ZTeamStatsModal.vue";
 import TEAMDELETE from "~/graphql/team/mutation/teamDelete.graphql";
 import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
 import { getActivePlan } from "~/services/stripeCheckoutService.js";
+import Swal from 'sweetalert2';
 
 //import { toRaw } from "vue"; // NOTE - Para debug
 
@@ -411,11 +412,43 @@ export default defineComponent({
     },
 
     async deleteTeam(id) {
-      await this.deleteItems([id]);
+      // Encontrar o nome do time para exibir na mensagem de confirmação
+      const team = this.items.find(item => item.id === id);
+      const teamName = team?.name || `time #${id}`;
+
+      const result = await Swal.fire({
+        title: 'Tem certeza?',
+        html: `Você tem certeza que deseja deletar o time <strong>${teamName}</strong>? Esta ação não pode ser desfeita.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sim, deletar',
+        cancelButtonText: 'Cancelar',
+        reverseButtons: true,
+      });
+
+      if (result.isConfirmed) {
+        await this.deleteItems([id]);
+      }
     },
 
     async deleteTeams(items) {
-      await this.deleteItems(items);
+      const result = await Swal.fire({
+        title: 'Tem certeza?',
+        html: `Você tem certeza que deseja deletar <strong>${items.length} time(s)</strong>? Esta ação não pode ser desfeita.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sim, deletar',
+        cancelButtonText: 'Cancelar',
+        reverseButtons: true,
+      });
+
+      if (result.isConfirmed) {
+        await this.deleteItems(items);
+      }
     },
 
     updateCurrentPageActive(page) {
