@@ -300,6 +300,7 @@ import USERDELETE from "~/graphql/user/mutation/userDelete.graphql";
 import ROLES from "~/graphql/role/query/roles.graphql";
 import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
 import { getActivePlan } from "~/services/stripeCheckoutService.js";
+import Swal from 'sweetalert2';
 
 //import { toRaw } from "vue"; // NOTE - Para debug
 
@@ -319,7 +320,6 @@ export default defineComponent({
   },
 
   async created() {
-    await this.setDefaultRoleFilter();
     this.getPlayers();
     this.loadActivePlan();
   },
@@ -495,11 +495,43 @@ export default defineComponent({
     },
 
     async deletePlayer(id) {
-      await this.deleteItems([id]);
+      // Encontrar o nome do jogador para exibir na mensagem de confirmação
+      const player = this.items.find(item => item.id === id);
+      const playerName = player?.displayName || player?.name || `jogador #${id}`;
+
+      const result = await Swal.fire({
+        title: 'Tem certeza?',
+        html: `Você tem certeza que deseja deletar o jogador <strong>${playerName}</strong>? Esta ação não pode ser desfeita.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sim, deletar',
+        cancelButtonText: 'Cancelar',
+        reverseButtons: true,
+      });
+
+      if (result.isConfirmed) {
+        await this.deleteItems([id]);
+      }
     },
 
     async deletePlayers(items) {
-      await this.deleteItems(items);
+      const result = await Swal.fire({
+        title: 'Tem certeza?',
+        html: `Você tem certeza que deseja deletar <strong>${items.length} jogador(es)</strong>? Esta ação não pode ser desfeita.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sim, deletar',
+        cancelButtonText: 'Cancelar',
+        reverseButtons: true,
+      });
+
+      if (result.isConfirmed) {
+        await this.deleteItems(items);
+      }
     },
 
     updateCurrentPageActive(page) {

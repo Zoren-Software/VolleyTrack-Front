@@ -1,0 +1,39 @@
+{
+    "title": [
+        {
+            "pattern": "^(build|chore|ci|docs|style|refactor|perf|test|feat|fix|revert)\\((.+)\\)(!?): (.+) - (VT|LP|VTD|VP)-(\\d+)",
+            "message": "Título não está no padrão correto (conventional commits), deve seguir o padrão 'tipo(módulo): descrição curta - PREFIXOJIRA-NUMERO'"
+        }
+    ],
+    "body": [
+        {
+            "pattern": ".+",
+            "flags": [
+                "img"
+            ],
+            "message": "A descrição da PR não pode estar em branco"
+        },
+        {
+            "pattern": "### Jira\\s+\\[[a-zA-Z]+-[0-9]+\\](?:\\(https:\\/\\/multiplierx.atlassian.net\\/browse\\/[a-zA-Z]+-[0-9]+\\))?",
+            "message": "A PR deve conter o trecho '### Jira' com o link do JIRA."
+        }
+    ],
+    "head.ref": [
+        {
+            "pattern": "^(((release|hotfix|support)\\/v[\\d]{2}\\.[\\d]{1,2}\\.[\\d]{1,3}\\.[\\d]{1,3})|((feature|bugfix|milestone|refactor)\\/[a-zA-Z0-9_]{3,}[a-zA-Z0-9_\\/-]+[a-zA-Z0-9_]{1,}))[0-9]*$",
+            "message": "O nome da branch é inválido, deve seguir o padrão do Git Flow, (prefixos permitidos: release|hotfix|support|feature|bugfix|milestone|refactor)"
+        }
+    ],
+    "assignee.login": [
+        {
+            "pattern": ".+",
+            "message": "A PR deve ter no mínimo 1 assignee"
+        }
+    ],
+    "labels.0.name": [
+        {
+            "pattern": ".+",
+            "message": "A PR deve possuir pelo menos uma label"
+        }
+    ]
+}

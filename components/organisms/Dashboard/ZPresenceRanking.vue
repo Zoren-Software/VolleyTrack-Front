@@ -1,5 +1,8 @@
 <template>
-  <div class="presence-ranking-section">
+  <div
+    v-if="loading || (data && data.topTeams && data.topTeams.length > 0)"
+    class="presence-ranking-section"
+  >
     <div class="section-header">
       <div class="section-title-wrapper">
         <va-icon name="emoji_events" size="24px" color="#E9742B" />

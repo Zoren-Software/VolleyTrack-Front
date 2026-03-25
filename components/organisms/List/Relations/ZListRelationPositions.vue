@@ -6,7 +6,6 @@
     <template #list>
       <div class="positions-list-wrapper">
         <ZDatatableGeneric
-          selectable
           includeActionsColumn
           includeActionDeleteList
           :items="items"
@@ -47,6 +46,10 @@ export default {
       default: () => [],
     },
   },
+  setup() {
+    const runtimeConfig = useRuntimeConfig();
+    return { appEnv: runtimeConfig.public.appEnv };
+  },
   computed: {
     hasSelection() {
       if (!this.selectedValue) {
@@ -71,17 +74,8 @@ export default {
       }
       return this.selectedValue != null && this.selectedValue !== "";
     },
-  },
-  data() {
-    return {
-      loading: false,
-      paginatorInfo: {
-        currentPage: 1,
-        firstItem: 0,
-        lastPage: 1,
-        total: 0,
-      },
-      columns: [
+    columns() {
+      const baseColumns = [
         {
           key: "id",
           name: "id",
@@ -95,7 +89,22 @@ export default {
           label: "Posição",
           sortable: true,
         },
-      ],
+      ];
+      if (this.appEnv === "local") {
+        return baseColumns;
+      }
+      return baseColumns.filter((col) => col.key !== "id");
+    },
+  },
+  data() {
+    return {
+      loading: false,
+      paginatorInfo: {
+        currentPage: 1,
+        firstItem: 0,
+        lastPage: 1,
+        total: 0,
+      },
     };
   },
   methods: {

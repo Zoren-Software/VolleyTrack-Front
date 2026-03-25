@@ -1,6 +1,6 @@
 mutation teamEdit(
   $id: ID!
-  $name: String!
+  $name: String
   $playerId: [ID]!
   $teamCategoryId: ID
   $teamLevelId: ID

@@ -30,7 +30,10 @@
             :error="errorFields.includes('name')"
             :error-messages="errors.name || []"
           />
-          <div class="nickname-section mb-3" :class="{ active: form.showNickname }">
+          <div
+            class="nickname-section mb-3"
+            :class="{ active: form.showNickname }"
+          >
             <div class="nickname-header">
               <div class="nickname-icon-wrapper">
                 <va-icon name="badge" size="20px" color="#E9742B" />
@@ -38,7 +41,11 @@
               <div class="nickname-title-group">
                 <label class="nickname-label">Apelido</label>
                 <p class="nickname-description">
-                  {{ form.showNickname ? 'Será exibido no lugar do nome completo' : 'Opcional - apenas para referência' }}
+                  {{
+                    form.showNickname
+                      ? "Será exibido no lugar do nome completo"
+                      : "Opcional - apenas para referência"
+                  }}
                 </p>
               </div>
             </div>
@@ -55,9 +62,9 @@
               />
               <div class="switch-container">
                 <div class="switch-label-group">
-                  <va-icon 
-                    :name="form.showNickname ? 'visibility' : 'visibility_off'" 
-                    size="16px" 
+                  <va-icon
+                    :name="form.showNickname ? 'visibility' : 'visibility_off'"
+                    size="16px"
                     :color="form.showNickname ? '#E9742B' : '#9CA3AF'"
                   />
                   <span class="switch-label-text">Exibir apelido</span>
@@ -137,47 +144,63 @@
       </va-card>
 
       <!-- Card: Permissão no Sistema -->
-      <va-card class="info-card">
+      <va-card
+        :class="['info-card', { 'info-card--error': errorFields.includes('roleId') }]"
+      >
         <h2 class="section-title">Permissão no Sistema</h2>
-        <div class="permissions-grid">
-          <div
-            v-for="role in rolesOptions"
-            :key="role.id"
-            :class="[
-              'permission-card',
-              {
-                selected:
-                  Array.isArray(form.roles) && form.roles.includes(role.id),
-              },
-            ]"
-            @click="selectRole(role.id)"
-          >
-            <div class="permission-icon">
+        <div v-if="rolesLoading" class="permissions-loading">
+          <va-progress-circle indeterminate size="small" />
+          <span>Carregando funções...</span>
+        </div>
+        <div v-else class="permissions-wrapper">
+          <div class="permissions-grid">
+            <div
+              v-for="role in rolesOptions"
+              :key="role.id"
+              :class="[
+                'permission-card',
+                {
+                  selected:
+                    Array.isArray(form.roles) && form.roles.includes(role.id),
+                  'permission-card--error': errorFields.includes('roleId'),
+                },
+              ]"
+              @click="selectRole(role.id)"
+            >
+              <div class="permission-icon">
+                <div
+                  style="
+                    background-color: #fff4ec;
+                    border-radius: 50%;
+                    width: 40px;
+                    height: 40px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border: 1px solid #ffe3d1;
+                  "
+                >
+                  <va-icon :name="role.iconName" color="#E9742B" size="20px" />
+                </div>
+              </div>
+              <div class="permission-info">
+                <h4 class="permission-title">{{ role.title }}</h4>
+                <p class="permission-description">{{ role.description }}</p>
+              </div>
               <div
-                style="
-                  background-color: #fff4ec;
-                  border-radius: 50%;
-                  width: 40px;
-                  height: 40px;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                  border: 1px solid #ffe3d1;
-                "
+                v-if="Array.isArray(form.roles) && form.roles.includes(role.id)"
+                class="permission-check"
               >
-                <va-icon :name="role.iconName" color="#E9742B" size="20px" />
+                <i class="icon-check"></i>
               </div>
             </div>
-            <div class="permission-info">
-              <h4 class="permission-title">{{ role.title }}</h4>
-              <p class="permission-description">{{ role.description }}</p>
-            </div>
-            <div
-              v-if="Array.isArray(form.roles) && form.roles.includes(role.id)"
-              class="permission-check"
-            >
-              <i class="icon-check"></i>
-            </div>
+          </div>
+          <div
+            v-if="errorFields.includes('roleId') && errors.roleId && errors.roleId.length"
+            class="permission-error-message"
+          >
+            <va-icon name="error" size="small" color="danger" />
+            <span>{{ (errors.roleId || []).join(' ') }}</span>
           </div>
         </div>
       </va-card>
@@ -204,7 +227,22 @@ import ZDate from "~/components/atoms/Inputs/ZDate";
 import ZSelectRole from "~/components/molecules/Selects/ZSelectRole";
 import ZListRelationPositions from "~/components/organisms/List/Relations/ZListRelationPositions";
 import ZSelectPosition from "~/components/molecules/Selects/ZSelectPosition";
+import ROLES from "~/graphql/role/query/roles.graphql";
+import { gql } from "@apollo/client/core";
+import { useNuxtApp } from "#app";
 import { confirmSuccess } from "~/utils/sweetAlert2/swalHelper";
+
+const ROLE_ICONS = {
+  Administrador: "shield",
+  Técnico: "layers",
+  Jogador: "person",
+};
+
+const ROLE_DESCRIPTIONS = {
+  Administrador: "Acesso completo",
+  Técnico: "Gerenciar treinos",
+  Jogador: "Acesso limitado",
+};
 
 export default {
   props: {
@@ -287,33 +325,13 @@ export default {
           : [],
       },
       positions: [],
-      rolesOptions: [
-        {
-          id: 1,
-          title: "Administrador",
-          description: "Acesso completo",
-          iconName: "shield",
-        },
-        {
-          id: 2,
-          title: "Técnico",
-          description: "Gerenciar treinos",
-          iconName: "layers",
-        },
-        {
-          id: 3,
-          title: "Jogador",
-          description: "Acesso limitado",
-          iconName: "person",
-        },
-        {
-          id: 4,
-          title: "Exemplo Vôlei",
-          description: "Permissão de exemplo",
-          iconName: "sports_volleyball",
-        },
-      ],
+      rolesOptions: [],
+      rolesLoading: false,
     };
+  },
+
+  async mounted() {
+    await this.fetchRoles();
   },
 
   computed: {
@@ -333,9 +351,11 @@ export default {
         val.nickname = val.information.nickname ?? "";
         val.showNickname = val.information.showNickname ?? false;
       }
-      // Garantir que roles, positions e teams sejam sempre arrays
+      // Garantir que roles, positions e teams sejam sempre arrays (ids de role como string para bater com a API)
       if (!Array.isArray(val.roles)) {
         val.roles = [];
+      } else {
+        val.roles = val.roles.map((id) => String(id));
       }
       if (!Array.isArray(val.positions)) {
         val.positions = [];
@@ -353,6 +373,36 @@ export default {
   },
 
   methods: {
+    async fetchRoles() {
+      this.rolesLoading = true;
+      try {
+        const nuxtApp = useNuxtApp();
+        const apolloClient = nuxtApp._apolloClients?.default;
+        if (!apolloClient) {
+          console.error("ZUserForm - Cliente Apollo não encontrado");
+          return;
+        }
+        const query = gql`
+          ${ROLES}
+        `;
+        const result = await apolloClient.query({
+          query,
+          variables: { filter: {}, first: 10, page: 1 },
+        });
+        const data = result?.data?.roles?.data ?? [];
+        this.rolesOptions = data.map((role) => ({
+          id: role.id,
+          title: role.name,
+          description:
+            ROLE_DESCRIPTIONS[role.name] ?? "",
+          iconName: ROLE_ICONS[role.name] ?? "badge",
+        }));
+      } catch (err) {
+        console.error("Erro ao carregar roles:", err);
+      } finally {
+        this.rolesLoading = false;
+      }
+    },
     async save() {
       this.$emit("save", this.form);
     },
@@ -395,7 +445,7 @@ export default {
 
       transformedPositions.forEach((newPosition) => {
         const isAlreadyAdded = this.form.positions.some(
-          (existingPosition) => existingPosition.id === newPosition.id
+          (existingPosition) => existingPosition.id === newPosition.id,
         );
 
         if (!isAlreadyAdded) {
@@ -410,7 +460,7 @@ export default {
         this.form.positions = [];
       }
       this.form.positions = this.form.positions.filter(
-        (p) => p.id !== position.id
+        (p) => p.id !== position.id,
       );
     },
     goBack() {
@@ -484,6 +534,11 @@ export default {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   margin-bottom: 24px;
   border: 1px solid #e5e7eb;
+}
+
+.info-card.info-card--error {
+  border-color: #e53e3e;
+  box-shadow: 0 0 0 1px #e53e3e;
 }
 
 .section-title {
@@ -572,6 +627,13 @@ export default {
   border-radius: 8px;
 }
 
+.permissions-loading {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 0;
+}
+
 .permissions-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -587,12 +649,39 @@ export default {
   align-items: center;
   gap: 16px;
   cursor: pointer;
-  transition: border-color 0.3s, background-color 0.3s;
+  transition:
+    border-color 0.3s,
+    background-color 0.3s;
 }
 
 .permission-card.selected {
   background-color: #e7f1ff;
   border-color: #7ab8ff;
+}
+
+.permission-card.permission-card--error {
+  border-color: #e53e3e;
+  background-color: #fef2f2;
+}
+
+.permission-card.permission-card--error.selected {
+  border-color: #e53e3e;
+  background-color: #fef2f2;
+}
+
+.permissions-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.permission-error-message {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #e53e3e;
+  margin-top: 4px;
 }
 
 .permission-icon {
@@ -625,16 +714,16 @@ export default {
 
 .nickname-section {
   grid-column: span 2;
-  background: linear-gradient(135deg, #FFF9F5 0%, #FFFFFF 100%);
-  border: 2px solid #FFE3D1;
+  background: linear-gradient(135deg, #fff9f5 0%, #ffffff 100%);
+  border: 2px solid #ffe3d1;
   border-radius: 12px;
   padding: 20px;
   transition: all 0.3s ease;
 }
 
 .nickname-section.active {
-  background: linear-gradient(135deg, #FFF4EC 0%, #FFFFFF 100%);
-  border-color: #E9742B;
+  background: linear-gradient(135deg, #fff4ec 0%, #ffffff 100%);
+  border-color: #e9742b;
   box-shadow: 0 4px 12px rgba(233, 116, 43, 0.1);
 }
 
@@ -648,8 +737,8 @@ export default {
 .nickname-icon-wrapper {
   width: 40px;
   height: 40px;
-  background: #FFF4EC;
-  border: 2px solid #FFE3D1;
+  background: #fff4ec;
+  border: 2px solid #ffe3d1;
   border-radius: 10px;
   display: flex;
   align-items: center;
@@ -659,8 +748,8 @@ export default {
 }
 
 .nickname-section.active .nickname-icon-wrapper {
-  background: #E9742B;
-  border-color: #E9742B;
+  background: #e9742b;
+  border-color: #e9742b;
 }
 
 .nickname-section.active .nickname-icon-wrapper :deep(.va-icon) {
@@ -681,14 +770,14 @@ export default {
 
 .nickname-description {
   font-size: 12px;
-  color: #6B7280;
+  color: #6b7280;
   margin: 0;
   line-height: 1.4;
   transition: color 0.3s ease;
 }
 
 .nickname-section.active .nickname-description {
-  color: #E9742B;
+  color: #e9742b;
   font-weight: 500;
 }
 
@@ -720,13 +809,13 @@ export default {
 .switch-label-text {
   font-size: 12px;
   font-weight: 500;
-  color: #6B7280;
+  color: #6b7280;
   white-space: nowrap;
   transition: color 0.3s ease;
 }
 
 .nickname-section.active .switch-label-text {
-  color: #E9742B;
+  color: #e9742b;
 }
 
 @media (max-width: 768px) {
@@ -742,7 +831,7 @@ export default {
     align-items: center;
     padding-bottom: 0;
     padding-top: 8px;
-    border-top: 1px solid #E5E7EB;
+    border-top: 1px solid #e5e7eb;
   }
 
   .switch-label-group {
