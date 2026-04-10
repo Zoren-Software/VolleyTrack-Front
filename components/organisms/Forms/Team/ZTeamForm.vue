@@ -76,6 +76,7 @@ import ZListRelationUsers from "~/components/organisms/List/Relations/ZListRelat
 import ZSelectTeamCategory from "~/components/molecules/Selects/ZSelectTeamCategory";
 import ZSelectTeamLevel from "~/components/molecules/Selects/ZSelectTeamLevel.vue";
 import { confirmSuccess } from "~/utils/sweetAlert2/swalHelper";
+import { resolveListRelationDeleteId } from "~/utils/resolveListRelationDeleteId";
 
 export default {
   props: {
@@ -151,8 +152,14 @@ export default {
       this.users = [];
     },
 
-    actionDeleteUser(id) {
-      this.form.users = this.form.users.filter((user) => user.id !== id);
+    actionDeleteUser(payload) {
+      const idNum = resolveListRelationDeleteId(payload);
+      if (idNum === null) {
+        return;
+      }
+      this.form.users = this.form.users.filter(
+        (user) => Number(user.id) !== idNum,
+      );
       confirmSuccess("Jogador removido com sucesso!");
     },
 

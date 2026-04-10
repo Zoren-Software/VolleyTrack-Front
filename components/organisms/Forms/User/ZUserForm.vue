@@ -231,6 +231,7 @@ import ROLES from "~/graphql/role/query/roles.graphql";
 import { gql } from "@apollo/client/core";
 import { useNuxtApp } from "#app";
 import { confirmSuccess } from "~/utils/sweetAlert2/swalHelper";
+import { resolveListRelationDeleteId } from "~/utils/resolveListRelationDeleteId";
 
 const ROLE_ICONS = {
   Administrador: "shield",
@@ -455,12 +456,16 @@ export default {
 
       this.positions = [];
     },
-    actionDeletePosition(position) {
+    actionDeletePosition(payload) {
+      const idNum = resolveListRelationDeleteId(payload);
+      if (idNum === null) {
+        return;
+      }
       if (!Array.isArray(this.form.positions)) {
         this.form.positions = [];
       }
       this.form.positions = this.form.positions.filter(
-        (p) => p.id !== position.id,
+        (p) => Number(p.id) !== idNum,
       );
     },
     goBack() {

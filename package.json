@@ -1,6 +1,6 @@
 {
   "private": true,
-  "version": "2.6.1",
+  "version": "2.7.0",
   "scripts": {
     "build": "nuxt build",
     "dev": "NODE_OPTIONS='--no-deprecation' nuxt dev",
