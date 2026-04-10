@@ -1,11 +1,17 @@
 <template>
-  <ZTeamForm
-    :data="data"
-    @save="edit"
-    :loading="loading"
-    :errorFields="errorFields"
-    :errors="errors"
-  />
+  <div class="edit-team-page">
+    <div class="page-header">
+      <h1 class="title">Editar Time</h1>
+      <p class="subtitle">Atualize as informações do time e dos jogadores relacionados</p>
+    </div>
+    <ZTeamForm
+      :data="data"
+      @save="edit"
+      :loading="loading"
+      :errorFields="errorFields"
+      :errors="errors"
+    />
+  </div>
 </template>
 
 <script>
@@ -86,7 +92,10 @@ export default {
         const variables = {
           id: form.id,
           name: form.name,
-          playerId: form.users.map((item) => item.id),
+          playerId: (Array.isArray(form.users) ? form.users : [])
+            .map((item) => item?.id)
+            .filter((id) => id != null && id !== "")
+            .map((id) => Number(id)),
           teamCategoryId: form.teamCategory?.value || form.teamCategory?.id,
           teamLevelId: form.teamLevel?.value || form.teamLevel?.id,
         };
@@ -137,3 +146,25 @@ useHead({
   titleTemplate: "Editar Time",
 });
 </script>
+
+<style scoped>
+.edit-team-page {
+  width: 100%;
+}
+
+.page-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.title {
+  font-size: 30px;
+  font-weight: bold;
+  color: #0b1e3a;
+}
+
+.subtitle {
+  font-size: 16px;
+  color: #6c757d;
+}
+</style>

@@ -364,6 +364,7 @@ import ZListRelationFundamentals from "~/components/organisms/List/Relations/ZLi
 import ZListRelationSpecificFundamentals from "~/components/organisms/List/Relations/ZListRelationSpecificFundamentals";
 import ZListRelationTeams from "~/components/organisms/List/Relations/ZListRelationTeams";
 import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
+import { resolveListRelationDeleteId } from "~/utils/resolveListRelationDeleteId";
 import Swal from "sweetalert2";
 import ZDateTimeRangePicker from "~/components/molecules/Inputs/ZDateTimeRangePicker.vue";
 import ZSelectFundamental from "~/components/molecules/Selects/ZSelectFundamental.vue";
@@ -1220,35 +1221,49 @@ export default {
       this.specificFundamentals = [];
     },
 
-    actionDeletePosition(id) {
-      this.form.positions = this.form.positions.filter((position) => {
-        return position.id !== id;
-      });
+    actionDeletePosition(payload) {
+      const idNum = resolveListRelationDeleteId(payload);
+      if (idNum === null) {
+        return;
+      }
+      this.form.positions = this.form.positions.filter(
+        (position) => Number(position.id) !== idNum,
+      );
 
       confirmSuccess("Posição removida com sucesso!");
     },
 
-    actionDeleteTeam(id) {
-      this.form.teams = this.form.teams.filter((team) => {
-        return team.id !== id;
-      });
+    actionDeleteTeam(payload) {
+      const idNum = resolveListRelationDeleteId(payload);
+      if (idNum === null) {
+        return;
+      }
+      this.form.teams = this.form.teams.filter(
+        (team) => Number(team.id) !== idNum,
+      );
 
       confirmSuccess("Time removido com sucesso!");
     },
 
-    actionDeleteFundamental(id) {
-      this.form.fundamentals = this.form.fundamentals.filter((fundamental) => {
-        return fundamental.id !== id;
-      });
+    actionDeleteFundamental(payload) {
+      const idNum = resolveListRelationDeleteId(payload);
+      if (idNum === null) {
+        return;
+      }
+      this.form.fundamentals = this.form.fundamentals.filter(
+        (fundamental) => Number(fundamental.id) !== idNum,
+      );
 
       confirmSuccess("Fundamento removido com sucesso!");
     },
 
-    actionDeleteSpecificFundamental(id) {
+    actionDeleteSpecificFundamental(payload) {
+      const idNum = resolveListRelationDeleteId(payload);
+      if (idNum === null) {
+        return;
+      }
       this.form.specificFundamentals = this.form.specificFundamentals.filter(
-        (specificFundamental) => {
-          return specificFundamental.id !== id;
-        }
+        (specificFundamental) => Number(specificFundamental.id) !== idNum,
       );
 
       confirmSuccess("Fundamento Específico removido com sucesso!");
@@ -1302,10 +1317,14 @@ export default {
       this.scouts = [];
     },
 
-    actionDeletePlayer(id) {
-      this.form.players = this.form.players.filter((player) => {
-        return player.id !== id;
-      });
+    actionDeletePlayer(payload) {
+      const idNum = resolveListRelationDeleteId(payload);
+      if (idNum === null) {
+        return;
+      }
+      this.form.players = this.form.players.filter(
+        (player) => Number(player.id) !== idNum,
+      );
 
       confirmSuccess("Jogador removido com sucesso!");
     },
@@ -1582,10 +1601,14 @@ export default {
       }
     },
 
-    actionDeleteScout(id) {
-      this.form.scouts = this.form.scouts.filter((scout) => {
-        return scout.id !== id;
-      });
+    actionDeleteScout(payload) {
+      const idNum = resolveListRelationDeleteId(payload);
+      if (idNum === null) {
+        return;
+      }
+      this.form.scouts = this.form.scouts.filter(
+        (scout) => Number(scout.id) !== idNum,
+      );
 
       confirmSuccess("Scout removido com sucesso!");
     },
