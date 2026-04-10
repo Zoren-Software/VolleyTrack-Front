@@ -150,6 +150,7 @@ import ZDatatableGeneric from "~/components/molecules/Datatable/ZDatatableGeneri
 import ZUser from "~/components/molecules/Datatable/Slots/ZUser";
 import ZButton from "~/components/atoms/Buttons/ZButton";
 import ME from "~/graphql/user/query/me.graphql";
+import { resolveListRelationDeleteId } from "~/utils/resolveListRelationDeleteId";
 
 export default {
   components: {
@@ -202,8 +203,12 @@ export default {
     add() {
       this.$emit("add");
     },
-    actionDelete(item) {
-      this.$emit("delete", item);
+    actionDelete(payload) {
+      const id = resolveListRelationDeleteId(payload);
+      if (id === null) {
+        return;
+      }
+      this.$emit("delete", id);
     },
     actionConfirm(id, playerId, trainingId) {
       this.$emit("actionConfirm", id, playerId, trainingId);
