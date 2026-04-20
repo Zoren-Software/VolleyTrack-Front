@@ -1,8 +1,10 @@
 <template>
   <div class="form-container">
-    <!-- Header com Foto do Usuário -->
-    <div class="user-profile-header">
-      <div class="profile-avatar-wrapper">
+    <!-- Header com Foto do Usuário (avatar só fora do wizard de cadastro) -->
+    <div
+      :class="['user-profile-header', { 'user-profile-header--wizard': useWizard }]"
+    >
+      <div v-if="!useWizard" class="profile-avatar-wrapper">
         <va-avatar class="profile-avatar" size="large" :color="avatarColor">
           <template v-if="form.name && firstLetter">
             {{ firstLetter }}
@@ -16,7 +18,16 @@
       </p>
     </div>
 
-    <va-form ref="myForm" class="flex flex-col gap-6 mb-2">
+    <va-form
+      ref="myForm"
+      :class="[
+        'flex',
+        'flex-col',
+        'mb-2',
+        'w-full',
+        useWizard ? 'user-form-gap--wizard' : 'gap-6',
+      ]"
+    >
       <template v-if="!useWizard">
       <!-- Card: Informações Essenciais -->
       <va-card class="info-card">
@@ -74,26 +85,28 @@
             :error="errorFields.includes('email')"
             :error-messages="errors.email || ''"
           />
-          <ZPasswordInput
-            v-model="form.password"
-            name="password"
-            password-label="Nova Senha"
-            id="password"
-            class="mb-3 password-field"
-            placeholder="Digite a nova senha"
-            :error="errorFields.includes('password')"
-            :error-messages="errors.password || []"
-          />
-          <ZPasswordInput
-            v-model="form.confirmPassword"
-            name="confirmPassword"
-            password-label="Confirmar Nova Senha"
-            id="confirmPassword"
-            class="mb-3 password-field"
-            placeholder="Digite novamente a senha"
-            :error="errorFields.includes('confirmPassword')"
-            :error-messages="errors.confirmPassword || []"
-          />
+          <template v-if="!hidePasswordFields">
+            <ZPasswordInput
+              v-model="form.password"
+              name="password"
+              password-label="Nova Senha"
+              id="password"
+              class="mb-3 password-field"
+              placeholder="Digite a nova senha"
+              :error="errorFields.includes('password')"
+              :error-messages="errors.password || []"
+            />
+            <ZPasswordInput
+              v-model="form.confirmPassword"
+              name="confirmPassword"
+              password-label="Confirmar Nova Senha"
+              id="confirmPassword"
+              class="mb-3 password-field"
+              placeholder="Digite novamente a senha"
+              :error="errorFields.includes('confirmPassword')"
+              :error-messages="errors.confirmPassword || []"
+            />
+          </template>
         </div>
       </va-card>
 
@@ -282,26 +295,28 @@
                     :error="errorFields.includes('email')"
                     :error-messages="errors.email || ''"
                   />
-                  <ZPasswordInput
-                    v-model="form.password"
-                    name="password"
-                    password-label="Nova Senha"
-                    id="password"
-                    class="mb-3 password-field"
-                    placeholder="Digite a nova senha"
-                    :error="errorFields.includes('password')"
-                    :error-messages="errors.password || []"
-                  />
-                  <ZPasswordInput
-                    v-model="form.confirmPassword"
-                    name="confirmPassword"
-                    password-label="Confirmar Nova Senha"
-                    id="confirmPassword"
-                    class="mb-3 password-field"
-                    placeholder="Digite novamente a senha"
-                    :error="errorFields.includes('confirmPassword')"
-                    :error-messages="errors.confirmPassword || []"
-                  />
+                  <template v-if="!hidePasswordFields">
+                    <ZPasswordInput
+                      v-model="form.password"
+                      name="password"
+                      password-label="Nova Senha"
+                      id="password"
+                      class="mb-3 password-field"
+                      placeholder="Digite a nova senha"
+                      :error="errorFields.includes('password')"
+                      :error-messages="errors.password || []"
+                    />
+                    <ZPasswordInput
+                      v-model="form.confirmPassword"
+                      name="confirmPassword"
+                      password-label="Confirmar Nova Senha"
+                      id="confirmPassword"
+                      class="mb-3 password-field"
+                      placeholder="Digite novamente a senha"
+                      :error="errorFields.includes('confirmPassword')"
+                      :error-messages="errors.confirmPassword || []"
+                    />
+                  </template>
                 </div>
               </va-card>
 
@@ -434,7 +449,7 @@
       </template>
 
       <!-- Botões -->
-      <div class="action-buttons">
+      <div :class="['action-buttons', { 'action-buttons--wizard': useWizard }]">
         <va-button
           v-if="useWizard && wizardStep > 0"
           color="secondary"
@@ -554,6 +569,10 @@ export default {
         "Mantenha seus dados atualizados para melhor experiência no sistema.",
     },
     useWizard: {
+      type: Boolean,
+      default: false,
+    },
+    hidePasswordFields: {
       type: Boolean,
       default: false,
     },
@@ -812,6 +831,24 @@ export default {
   max-width: 600px;
 }
 
+.user-profile-header--wizard {
+  margin-bottom: 0.75rem;
+  padding: 0.5rem 12px 0;
+  text-align: center;
+  align-items: center;
+}
+
+.user-profile-header--wizard .page-title {
+  font-size: 26px;
+  margin: 0 0 6px 0;
+}
+
+.user-profile-header--wizard .page-subtitle {
+  font-size: 15px;
+  line-height: 1.45;
+  max-width: none;
+}
+
 .info-card {
   width: 100%;
   padding: 30px;
@@ -914,16 +951,29 @@ export default {
   padding-top: 20px;
 }
 
+.action-buttons--wizard {
+  margin-top: 0;
+  padding-top: 0.5rem;
+}
+
 .action-buttons va-button {
   border-radius: 8px;
 }
 
+.user-form-gap--wizard {
+  gap: 0.5rem;
+}
+
 .user-form-stepper {
   width: 100%;
+  /* Alinha o card com a área dos botões (remove padding lateral do stepper) */
+  --va-stepper-step-content-wrapper-padding: 0;
+  --va-stepper-step-content-margin: 0.35rem 0 0;
 }
 
 .user-form-stepper :deep(.va-stepper__content) {
-  padding-top: 8px;
+  padding-top: 4px;
+  padding-bottom: 0;
 }
 
 .wizard-step-inner {

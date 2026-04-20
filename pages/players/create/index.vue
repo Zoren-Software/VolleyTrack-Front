@@ -1,6 +1,7 @@
 <template>
     <ZUserForm
       use-wizard
+      hide-password-fields
       @save="create"
       :loading="loading"
       :errorFields="errorFields"

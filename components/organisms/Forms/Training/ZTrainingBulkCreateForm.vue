@@ -1,5 +1,4 @@
 <template>
-  <!-- Modal de Loading -->
   <VaModal
     v-model="loading"
     :no-dismiss="true"
@@ -14,150 +13,125 @@
     </div>
   </VaModal>
 
-  <VaModal
-    :model-value="modelValue"
-    @update:modelValue="$emit('update:modelValue', $event)"
-    size="large"
-    close-button
-    :no-dismiss="false"
-    hide-default-actions
-    class="bulk-create-modal"
-  >
-    <template #header>
-      <h5 class="modal-title">Cadastrar Treinos Futuros</h5>
-    </template>
-
-    <div class="bulk-create-form">
-      <div class="form-content">
-        <!-- Seção: Informações Básicas -->
-        <div class="form-section">
-          <h2 class="section-title">Informações Básicas</h2>
-          <div class="form-grid">
-            <div class="form-field team-field">
-              <ZSelectTeam
-                v-model="form.team"
-                label="Time *"
-                placeholder="Selecione o time"
-                :error-messages="errors.teamId || []"
-              />
-            </div>
-
-            <div class="form-field">
-              <label class="field-label">Ano *</label>
-              <va-select
-                v-model="form.year"
-                :options="yearOptions"
-                placeholder="Selecione o ano"
-                :error="errors.year && errors.year.length > 0"
-                :error-messages="errors.year || []"
-                @update:model-value="onYearChange"
-              />
-            </div>
-          </div>
-        </div>
-
-        <!-- Seção: Período e Horários -->
-        <div class="form-section">
-          <h2 class="section-title">Período e Horários</h2>
-          <div class="form-grid">
-            <div class="form-field">
-              <VaDateInput
-                v-model="form.startDate"
-                name="startDate"
-                label="Data de Início *"
-                placeholder="Selecione a data de início"
-                style="width: 100%"
-                :error="errors.startDate && errors.startDate.length > 0"
-                :error-messages="errors.startDate || []"
-              />
-            </div>
-
-            <div class="form-field">
-              <VaDateInput
-                v-model="form.endDate"
-                name="endDate"
-                label="Data de Fim *"
-                placeholder="Selecione a data de fim"
-                style="width: 100%"
-                :error="errors.endDate && errors.endDate.length > 0"
-                :error-messages="errors.endDate || []"
-              />
-            </div>
-          </div>
-          <p class="field-hint">
-            Os treinos serão criados no período entre as datas selecionadas
-          </p>
-
-          <div class="form-grid" style="margin-top: 16px">
-            <div class="form-field">
-              <ZTimeInput
-                id="time-start-bulk"
-                v-model="form.timeStart"
-                label="Horário Início *"
-                :error-messages="errors.timeStart || []"
-              />
-            </div>
-
-            <div class="form-field">
-              <ZTimeInput
-                id="time-end-bulk"
-                v-model="form.timeEnd"
-                label="Horário Fim *"
-                :error-messages="errors.timeEnd || []"
-              />
-            </div>
-          </div>
-        </div>
-
-        <!-- Seção: Dias da Semana -->
-        <div class="form-section">
-          <h2 class="section-title">Dias da Semana</h2>
-          <div class="days-of-week">
-            <va-checkbox
-              v-for="day in daysOfWeekOptions"
-              :key="day.value"
-              :model-value="form.daysOfWeek.includes(day.value)"
-              :label="day.label"
-              @update:model-value="toggleDay(day.value, $event)"
-              class="day-checkbox"
+  <div class="bulk-create-form">
+    <div class="form-content">
+      <div class="form-section">
+        <h2 class="section-title">Informações Básicas</h2>
+        <div class="form-grid">
+          <div class="form-field team-field">
+            <ZSelectTeam
+              v-model="form.team"
+              label="Time *"
+              placeholder="Selecione o time"
+              :error-messages="errors.teamId || []"
             />
           </div>
-          <div v-if="errors.daysOfWeek" class="error-message">
-            {{ errors.daysOfWeek[0] }}
+
+          <div class="form-field">
+            <label class="field-label">Ano *</label>
+            <va-select
+              v-model="form.year"
+              :options="yearOptions"
+              placeholder="Selecione o ano"
+              :error="errors.year && errors.year.length > 0"
+              :error-messages="errors.year || []"
+              @update:model-value="onYearChange"
+            />
           </div>
         </div>
+      </div>
 
-        <!-- Info Box -->
-        <div class="info-box">
-          <p class="info-text">
-            <strong>Nota:</strong> Os treinos serão criados automaticamente com:
-          </p>
-          <ul class="info-list">
-            <li>
-              Nome: "Nome do treino #1", "Nome do treino #2", é o nome
-              provisório do treino, você poderá alterar depois
-            </li>
-            <li>
-              Descrição: "Descreva aqui a descrição detalhada de cada treino na
-              edição do treino"
-            </li>
-            <li>
-              Fundamentos: Os fundamentos devem ser definidos na edição de cada
-              treino
-            </li>
-          </ul>
+      <div class="form-section">
+        <h2 class="section-title">Período e Horários</h2>
+        <div class="form-grid">
+          <div class="form-field">
+            <VaDateInput
+              v-model="form.startDate"
+              name="startDate"
+              label="Data de Início *"
+              placeholder="Selecione a data de início"
+              style="width: 100%"
+              :error="errors.startDate && errors.startDate.length > 0"
+              :error-messages="errors.startDate || []"
+            />
+          </div>
+
+          <div class="form-field">
+            <VaDateInput
+              v-model="form.endDate"
+              name="endDate"
+              label="Data de Fim *"
+              placeholder="Selecione a data de fim"
+              style="width: 100%"
+              :error="errors.endDate && errors.endDate.length > 0"
+              :error-messages="errors.endDate || []"
+            />
+          </div>
+        </div>
+        <p class="field-hint">
+          Os treinos serão criados no período entre as datas selecionadas
+        </p>
+
+        <div class="form-grid form-grid--spaced">
+          <div class="form-field">
+            <ZTimeInput
+              id="time-start-bulk"
+              v-model="form.timeStart"
+              label="Horário Início *"
+              :error-messages="errors.timeStart || []"
+            />
+          </div>
+
+          <div class="form-field">
+            <ZTimeInput
+              id="time-end-bulk"
+              v-model="form.timeEnd"
+              label="Horário Fim *"
+              :error-messages="errors.timeEnd || []"
+            />
+          </div>
         </div>
       </div>
-    </div>
 
-    <template #footer>
-      <div class="modal-footer">
-        <va-button
-          preset="secondary"
-          @click="close"
-        >
-          Cancelar
-        </va-button>
+      <div class="form-section">
+        <h2 class="section-title">Dias da Semana</h2>
+        <div class="days-of-week">
+          <va-checkbox
+            v-for="day in daysOfWeekOptions"
+            :key="day.value"
+            :model-value="form.daysOfWeek.includes(day.value)"
+            :label="day.label"
+            class="day-checkbox"
+            @update:model-value="toggleDay(day.value, $event)"
+          />
+        </div>
+        <div v-if="errors.daysOfWeek" class="error-message">
+          {{ errors.daysOfWeek[0] }}
+        </div>
+      </div>
+
+      <div class="info-box">
+        <p class="info-text">
+          <strong>Nota:</strong> Os treinos serão criados automaticamente com:
+        </p>
+        <ul class="info-list">
+          <li>
+            Nome: "Nome do treino #1", "Nome do treino #2", é o nome
+            provisório do treino, você poderá alterar depois
+          </li>
+          <li>
+            Descrição: "Descreva aqui a descrição detalhada de cada treino na
+            edição do treino"
+          </li>
+          <li>
+            Fundamentos: Os fundamentos devem ser definidos na edição de cada
+            treino
+          </li>
+        </ul>
+      </div>
+
+      <div class="form-actions">
+        <va-button preset="secondary" @click="onCancel"> Cancelar </va-button>
         <va-button
           color="#FF4E1B"
           text-color="#FFFFFF"
@@ -167,8 +141,8 @@
           Cadastrar
         </va-button>
       </div>
-    </template>
-  </VaModal>
+    </div>
+  </div>
 </template>
 
 <script>
@@ -178,18 +152,12 @@ import TRAININGBULKCREATE from "~/graphql/training/mutation/trainingBulkCreate.g
 import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
 
 export default {
-  name: "ZTrainingBulkCreateModal",
+  name: "ZTrainingBulkCreateForm",
   components: {
     ZSelectTeam,
     ZTimeInput,
   },
-  props: {
-    modelValue: {
-      type: Boolean,
-      required: true,
-    },
-  },
-  emits: ["update:modelValue", "success"],
+  emits: ["cancel", "success"],
   data() {
     const currentYear = new Date().getFullYear();
     const years = [];
@@ -197,7 +165,6 @@ export default {
       years.push(i);
     }
 
-    // Criar datas de horário padrão (18:00 e 19:00)
     const defaultTimeStart = new Date();
     defaultTimeStart.setHours(18, 0, 0, 0);
     const defaultTimeEnd = new Date();
@@ -210,7 +177,7 @@ export default {
         team: null,
         year: currentYear,
         startDate: new Date(),
-        endDate: new Date(new Date().setFullYear(currentYear, 11, 31)), // 31 de dezembro do ano atual
+        endDate: new Date(new Date().setFullYear(currentYear, 11, 31)),
         daysOfWeek: [],
         timeStart: defaultTimeStart,
         timeEnd: defaultTimeEnd,
@@ -229,15 +196,12 @@ export default {
   },
   methods: {
     onYearChange(newYear) {
-      // Quando o ano mudar, atualizar a data de fim para 31 de dezembro do novo ano
       if (newYear && this.form.endDate) {
         const currentEndDateYear = new Date(this.form.endDate).getFullYear();
 
-        // Só atualizar se o ano da data de fim for diferente do novo ano
         if (currentEndDateYear !== newYear) {
-          // Usar setTimeout para evitar conflitos com a validação do form
           setTimeout(() => {
-            this.form.endDate = new Date(newYear, 11, 31); // 31 de dezembro
+            this.form.endDate = new Date(newYear, 11, 31);
           }, 0);
         }
       }
@@ -253,13 +217,12 @@ export default {
         );
       }
     },
-    close() {
-      this.$emit("update:modelValue", false);
+    onCancel() {
       this.resetForm();
+      this.$emit("cancel");
     },
     resetForm() {
       const currentYear = new Date().getFullYear();
-      // Criar datas de horário padrão (18:00 e 19:00)
       const defaultTimeStart = new Date();
       defaultTimeStart.setHours(18, 0, 0, 0);
       const defaultTimeEnd = new Date();
@@ -269,7 +232,7 @@ export default {
         team: null,
         year: currentYear,
         startDate: new Date(),
-        endDate: new Date(new Date().setFullYear(currentYear, 11, 31)), // 31 de dezembro do ano atual
+        endDate: new Date(new Date().setFullYear(currentYear, 11, 31)),
         daysOfWeek: [],
         timeStart: defaultTimeStart,
         timeEnd: defaultTimeEnd,
@@ -277,15 +240,12 @@ export default {
       this.errors = {};
     },
     async handleSubmit() {
-      // Se já está carregando, não fazer nada
       if (this.loading) {
         return;
       }
 
-      // Limpar erros anteriores
       this.errors = {};
 
-      // Obter ID do time (ZSelectTeam retorna array mesmo com single selection)
       let teamId;
       if (Array.isArray(this.form.team) && this.form.team.length > 0) {
         teamId = this.form.team[0]?.value || this.form.team[0];
@@ -293,16 +253,12 @@ export default {
         teamId = this.form.team?.value || this.form.team;
       }
 
-      // Formatar datas
       const startDate = this.formatDate(this.form.startDate);
       const endDate = this.formatDate(this.form.endDate);
 
-      // Formatar horários
       const timeStart = this.formatTime(this.form.timeStart);
       const timeEnd = this.formatTime(this.form.timeEnd);
 
-      // Validar campos obrigatórios antes de enviar para evitar erros GraphQL
-      // Se algum campo obrigatório estiver vazio, não enviar e deixar o backend validar
       if (
         !teamId ||
         !this.form.year ||
@@ -313,10 +269,6 @@ export default {
         !timeStart ||
         !timeEnd
       ) {
-        // Não enviar a mutation se algum campo obrigatório estiver vazio
-        // O backend validará quando enviarmos, mas precisamos garantir valores não-null
-        // Enviar valores padrão inválidos que o backend possa validar
-        // Mas isso não é ideal, então vamos apenas não enviar e mostrar erro
         const missingFields = [];
         if (!teamId) missingFields.push("Time");
         if (!this.form.year) missingFields.push("Ano");
@@ -360,7 +312,7 @@ export default {
         const count = data?.trainingBulkCreate?.length || 0;
 
         confirmSuccess(`${count} treino(s) criado(s) com sucesso!`, () => {
-          this.close();
+          this.resetForm();
           this.$emit("success");
         });
       } catch (error) {
@@ -379,7 +331,6 @@ export default {
             .flat()
             .filter((msg) => msg);
 
-          // Criar um título para essas validações que serão mostradas
           const footer = errorMessages.join("<br>");
 
           confirmError("Ocorreu um erro ao criar os treinos em massa!", footer);
@@ -404,12 +355,10 @@ export default {
     formatTime(time) {
       if (!time) return null;
       if (typeof time === "string") {
-        // Se já está no formato HH:mm, retornar
         if (time.match(/^\d{2}:\d{2}$/)) {
           return time;
         }
       }
-      // Se for um objeto Date ou similar, formatar
       const date = new Date(time);
       const hours = String(date.getHours()).padStart(2, "0");
       const minutes = String(date.getMinutes()).padStart(2, "0");
@@ -420,97 +369,16 @@ export default {
 </script>
 
 <style scoped>
-/* Modal simplificado */
-.bulk-create-modal :deep(.va-modal__container) {
-  border-radius: 16px;
-}
-
-.bulk-create-modal :deep(.va-modal__header) {
-  padding: 24px 24px 20px;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.modal-title {
-  font-size: 20px;
-  font-weight: 600;
-  color: #111827;
-  margin: 0;
-}
-
-.bulk-create-modal :deep(.va-modal__content) {
-  padding: 24px;
-  max-height: 70vh;
-  overflow-y: auto;
-}
-
-/* Footer do modal */
-.bulk-create-modal :deep(.va-modal__footer) {
-  padding: 20px 24px;
-  border-top: 1px solid #e5e7eb;
-  background: #f9fafb;
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-}
-
-.modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  width: 100%;
-}
-
-.modal-footer .va-button {
-  border-radius: 8px;
-  font-weight: 500;
-  padding: 10px 20px;
-  transition: all 0.2s ease;
-}
-
-.modal-footer .va-button--secondary {
-  background: white;
-  border: 1px solid #d1d5db;
-  color: #374151;
-}
-
-.modal-footer .va-button--secondary:hover {
-  background: #f9fafb;
-  border-color: #9ca3af;
-}
-
-.modal-footer .va-button[color="#FF4E1B"],
-.modal-footer .va-button[style*="background: #FF4E1B"] {
-  background: #FF4E1B !important;
-  border: none !important;
-  color: #ffffff !important;
-  box-shadow: 0 2px 4px rgba(255, 78, 27, 0.2);
-}
-
-.modal-footer .va-button[color="#FF4E1B"] :deep(.va-button__content),
-.modal-footer .va-button[style*="background: #FF4E1B"] :deep(.va-button__content) {
-  color: #ffffff !important;
-}
-
-.modal-footer .va-button[color="#FF4E1B"]:hover,
-.modal-footer .va-button[style*="background: #FF4E1B"]:hover {
-  background: #d8651f !important;
-  box-shadow: 0 4px 8px rgba(255, 78, 27, 0.3);
-  transform: translateY(-1px);
-}
-
-.modal-footer .va-button[color="#FF4E1B"]:hover :deep(.va-button__content),
-.modal-footer .va-button[style*="background: #FF4E1B"]:hover :deep(.va-button__content) {
-  color: #ffffff !important;
-}
-
-.modal-footer .va-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-/* Form */
 .bulk-create-form {
   position: relative;
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 24px rgba(11, 30, 58, 0.06);
+  padding: 28px 32px 32px;
 }
 
 .form-content {
@@ -537,7 +405,7 @@ export default {
   content: "";
   width: 4px;
   height: 24px;
-  background: #FF4E1B;
+  background: #ff4e1b;
   border-radius: 2px;
 }
 
@@ -545,6 +413,10 @@ export default {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 16px;
+}
+
+.form-grid--spaced {
+  margin-top: 16px;
 }
 
 .form-field {
@@ -620,7 +492,32 @@ export default {
   margin-bottom: 6px;
 }
 
-/* Loading Modal */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 8px;
+  margin-top: 8px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.form-actions .va-button {
+  border-radius: 8px;
+  font-weight: 500;
+  padding: 10px 20px;
+}
+
+.form-actions .va-button--secondary {
+  background: white;
+  border: 1px solid #d1d5db;
+  color: #374151;
+}
+
+.form-actions .va-button--secondary:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
 .loading-modal :deep(.va-modal__container) {
   max-width: 400px;
   border-radius: 16px;
@@ -650,6 +547,10 @@ export default {
 }
 
 @media (max-width: 768px) {
+  .bulk-create-form {
+    padding: 20px 16px 24px;
+  }
+
   .form-grid {
     grid-template-columns: 1fr;
   }
@@ -660,6 +561,14 @@ export default {
 
   .days-of-week {
     grid-template-columns: 1fr;
+  }
+
+  .form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .form-actions .va-button {
+    width: 100%;
   }
 }
 </style>

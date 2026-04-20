@@ -1,5 +1,5 @@
 <template>
-  <div class="create-team-page">
+  <div class="team-form-page">
     <div class="page-header">
       <h1 class="title">Cadastro de Time</h1>
       <p class="subtitle">Crie um novo time para sua equipe</p>
@@ -108,7 +108,7 @@ useHead({
 </script>
 
 <style scoped>
-.create-team-page {
+.team-form-page {
   width: 100%;
 }
 

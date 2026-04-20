@@ -48,8 +48,8 @@
         </div>
         <div class="filter-actions">
           <va-button
-            color="#FF4E1B"
             class="search-button"
+            :class="{ 'search-button--active': hasSearchFilterCriteria }"
             @click="handleSearch"
           >
             <va-icon name="search" class="button-icon" />
@@ -74,6 +74,7 @@
     <ZDatatableGeneric
       :buttonActionAdd="false"
       buttonActionDelete
+      bulk-delete-via-selection-badge
       includeActionsColumn
       includeActionEditList
       includeActionDeleteList
@@ -105,14 +106,41 @@
         />
       </template>
       <template #cell(level)="{ rowKey: { teamLevel } }">
-        <ZBadgeCustom
-          :text="teamLevel?.name || 'Sem Nível Técnico'"
-          backgroundColor="#F5F5F5"
-          textColor="#000000"
-        />
+        <div class="level-cell">
+          <span
+            v-if="teamLevel && (teamLevel.name || '').trim()"
+            class="level-tag"
+          >
+            <va-icon
+              :name="getTeamLevelIconName(teamLevel)"
+              size="14px"
+              color="#4a5568"
+              class="level-tag-icon"
+            />
+            {{ teamLevel.name }}
+          </span>
+          <span v-else class="no-data-text">-</span>
+        </div>
       </template>
-      <template #cell(players)="{ rowKey: { players } }">
-        <span>{{ players?.length || 0 }} Jogadores</span>
+      <template #cell(players)="{ rowKey }">
+        <div class="players-cell">
+          <button
+            type="button"
+            class="players-count-chip"
+            :title="'Ver jogadores de ' + (rowKey.name || 'time')"
+            @click="openTeamPlayersModal(rowKey)"
+          >
+            <va-icon name="person" size="14px" color="#FF4E1B" />
+            <span class="players-count-chip-text">
+              {{ normalizePlayers(rowKey.players).length }}
+              {{
+                normalizePlayers(rowKey.players).length === 1
+                  ? "jogador"
+                  : "jogadores"
+              }}
+            </span>
+          </button>
+        </div>
       </template>
       <!-- Botões de Ações na coluna de ações -->
       <template #cell(actions)="{ rowKey }">
@@ -152,48 +180,35 @@
       :team-id="selectedTeamId"
     />
 
-    <!-- Summary Cards -->
-    <div class="summary-cards">
-      <va-card class="summary-card">
-        <div class="summary-content">
-          <div class="summary-icon">
-            <va-icon name="groups" size="large" color="#FF4E1B" />
+    <VaModal
+      v-model="showTeamPlayersModal"
+      :title="teamPlayersListModalTitle"
+      size="small"
+      close-button
+      hide-default-actions
+      class="team-players-list-modal"
+    >
+      <div class="team-players-list">
+        <div
+          v-for="(player, index) in teamPlayersModalList"
+          :key="player?.id || index"
+          class="team-players-list-item"
+        >
+          <div class="team-players-list-name">
+            {{ player?.displayName || player?.name || "-" }}
           </div>
-          <div class="summary-number-wrapper">
-            <div class="summary-number">
-              {{ paginatorInfo.total || 0
-              }}<span
-                v-if="showPlanLimits && planLimits.maxTeams"
-                class="plan-limit"
-              >
-                / {{ planLimits.maxTeams }}</span
-              >
-            </div>
-            <va-popover
-              v-if="showPlanLimits && planLimits.maxTeams"
-              placement="top"
-              trigger="hover"
-              class="plan-popover-wrapper"
-            >
-              <va-icon
-                name="info"
-                size="16px"
-                color="#6c757d"
-                class="plan-info-icon"
-              />
-              <template #title>Limite do Plano</template>
-              <template #body>
-                <p class="plan-popover-text">
-                  Você pode cadastrar até {{ planLimits.maxTeams }} times no seu
-                  plano atual.
-                </p>
-              </template>
-            </va-popover>
+          <div v-if="player?.email" class="team-players-list-meta">
+            {{ player.email }}
           </div>
-          <div class="summary-label">Total de Times</div>
         </div>
-      </va-card>
-    </div>
+        <p
+          v-if="!teamPlayersModalList.length"
+          class="team-players-list-empty"
+        >
+          Nenhum jogador neste time.
+        </p>
+      </div>
+    </VaModal>
   </div>
 </template>
 
@@ -215,7 +230,6 @@ import ZBadgeCustom from "~/components/molecules/Badges/ZBadgeCustom";
 import ZTeamStatsModal from "~/components/molecules/Modal/ZTeamStatsModal.vue";
 import TEAMDELETE from "~/graphql/team/mutation/teamDelete.graphql";
 import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
-import { getActivePlan } from "~/services/stripeCheckoutService.js";
 
 //import { toRaw } from "vue"; // NOTE - Para debug
 
@@ -237,7 +251,6 @@ export default defineComponent({
 
   created() {
     this.getTeams();
-    this.loadActivePlan();
   },
 
   data() {
@@ -251,11 +264,11 @@ export default defineComponent({
         label: "Categoria",
         sortable: false,
       },
-      { key: "level", name: "level", label: "Nível Técnico", sortable: false },
+      { key: "level", name: "level", label: "NÍVEL TÉCNICO", sortable: false },
       {
         key: "players",
         name: "players",
-        label: "Total de Jogadores",
+        label: "JOGADORES",
         sortable: false,
       },
     ];
@@ -293,52 +306,37 @@ export default defineComponent({
       selectModeOptions: ["single", "multiple"],
       selectColorOptions: ["primary", "danger", "warning", "#EF467F"],
       internalSearchValue: "",
-      activePlanData: null,
       showTeamStatsModal: false,
       selectedTeamId: null,
       fetchTruncatedWarning: null,
+      showTeamPlayersModal: false,
+      teamPlayersModalList: [],
+      teamPlayersModalTeamLabel: "",
     };
   },
   computed: {
-    showPlanLimits() {
-      return (
-        this.activePlanData &&
-        this.activePlanData.has_active_plan &&
-        !this.isUnlimitedPlan
-      );
+    teamPlayersListModalTitle() {
+      const name = this.teamPlayersModalTeamLabel || "Time";
+      return `Jogadores — ${name}`;
     },
-    isUnlimitedPlan() {
-      if (!this.activePlanData || !this.activePlanData.product) {
+    hasSearchFilterCriteria() {
+      const f = this.variablesGetTeams.filter;
+      if ((this.internalSearchValue || "").trim().length > 0) {
         return true;
       }
-
-      const metadata = this.normalizeMetadata(
-        this.activePlanData.product.metadata
-      );
-      const maxPlayers = parseInt(metadata.max_players || "0");
-      const maxTeams = parseInt(metadata.max_teams || "0");
-      const maxTrainings = parseInt(metadata.max_trainings || "0");
-
-      return maxPlayers === 0 && maxTeams === 0 && maxTrainings === 0;
-    },
-    planLimits() {
-      if (!this.activePlanData || !this.activePlanData.product) {
-        return {
-          maxPlayers: null,
-          maxTeams: null,
-          maxTrainings: null,
-        };
+      if (Array.isArray(f.positionsIds) && f.positionsIds.length > 0) {
+        return true;
       }
-
-      const metadata = this.normalizeMetadata(
-        this.activePlanData.product.metadata
-      );
-
-      return {
-        maxPlayers: parseInt(metadata.max_players || "0") || null,
-        maxTeams: parseInt(metadata.max_teams || "0") || null,
-        maxTrainings: parseInt(metadata.max_trainings || "0") || null,
-      };
+      if (Array.isArray(f.playersIds) && f.playersIds.length > 0) {
+        return true;
+      }
+      if (f.teamCategoryId != null && f.teamCategoryId !== "") {
+        return true;
+      }
+      if (f.teamLevelId != null && f.teamLevelId !== "") {
+        return true;
+      }
+      return false;
     },
   },
   methods: {
@@ -356,6 +354,53 @@ export default defineComponent({
     openStatsModal(teamId) {
       this.selectedTeamId = teamId;
       this.showTeamStatsModal = true;
+    },
+    normalizePlayers(players) {
+      if (!players) return [];
+      return Array.isArray(players) ? players : [players].filter(Boolean);
+    },
+    openTeamPlayersModal(rowKey) {
+      this.teamPlayersModalList = this.normalizePlayers(rowKey?.players);
+      this.teamPlayersModalTeamLabel = rowKey?.name || "";
+      this.showTeamPlayersModal = true;
+    },
+    getTeamLevelIconName(teamLevel) {
+      const raw = (teamLevel?.name || "").trim();
+      if (!raw) {
+        return "help_outline";
+      }
+      const n = raw
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+      if (n.includes("sem nivel")) {
+        return "help_outline";
+      }
+      if (n.includes("ouro") || n.includes("gold")) {
+        return "workspace_premium";
+      }
+      if (n.includes("prata") || n.includes("silver")) {
+        return "grade";
+      }
+      if (n.includes("bronze")) {
+        return "shield";
+      }
+      if (n.includes("iniciante")) {
+        return "fitness_center";
+      }
+      if (n.includes("intermediario")) {
+        return "trending_flat";
+      }
+      if (n.includes("avancado") || n.includes("elite")) {
+        return "trending_up";
+      }
+      if (n.includes("juvenil")) {
+        return "child_care";
+      }
+      if (n.includes("adulto")) {
+        return "groups";
+      }
+      return "bar_chart";
     },
     async deleteItems(ids) {
       try {
@@ -789,45 +834,6 @@ export default defineComponent({
         this.items = [];
       }
     },
-    async loadActivePlan() {
-      try {
-        const token =
-          localStorage.getItem("userToken") ||
-          localStorage.getItem("apollo:default.token");
-        if (!token) {
-          console.log("⚠️ Token não encontrado para carregar plano ativo");
-          return;
-        }
-
-        const tenantId = localStorage.getItem("tenant_id") || "default";
-        console.log("🔍 Carregando plano ativo - tenantId:", tenantId);
-
-        const result = await getActivePlan(token, tenantId);
-        console.log("🔍 Resultado do getActivePlan:", result);
-
-        if (result.success && result.data) {
-          this.activePlanData = result.data;
-          console.log("✅ Plano ativo carregado:", result.data);
-        } else {
-          console.log("⚠️ Plano ativo não encontrado ou erro:", result);
-        }
-      } catch (error) {
-        console.error("❌ Erro ao carregar plano ativo:", error);
-      }
-    },
-    normalizeMetadata(metadata) {
-      if (!metadata) return {};
-
-      if (typeof metadata === "string") {
-        try {
-          return JSON.parse(metadata);
-        } catch (e) {
-          return {};
-        }
-      }
-
-      return metadata;
-    },
   },
 });
 </script>
@@ -908,9 +914,9 @@ export default defineComponent({
   padding: 12px 24px;
   font-weight: 500;
   white-space: nowrap;
-  background-color: #FF4E1B !important;
+  background-color: #6b7280 !important;
   color: #ffffff !important;
-  box-shadow: 0 2px 8px rgba(255, 78, 27, 0.3);
+  box-shadow: 0 2px 6px rgba(75, 85, 99, 0.25);
   border: none;
   display: inline-flex;
   align-items: center;
@@ -920,14 +926,28 @@ export default defineComponent({
   height: 40px;
 }
 
+.search-button.search-button--active {
+  background-color: #ff4e1b !important;
+  box-shadow: 0 2px 8px rgba(255, 78, 27, 0.3);
+}
+
 .search-button:hover {
+  background-color: #4b5563 !important;
+  box-shadow: 0 4px 10px rgba(75, 85, 99, 0.35);
+  transform: translateY(-1px);
+}
+
+.search-button.search-button--active:hover {
   background-color: #d6652a !important;
   box-shadow: 0 4px 12px rgba(255, 78, 27, 0.4);
-  transform: translateY(-1px);
 }
 
 .search-button:active {
   transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(75, 85, 99, 0.3);
+}
+
+.search-button.search-button--active:active {
   box-shadow: 0 2px 6px rgba(255, 78, 27, 0.3);
 }
 
@@ -942,79 +962,112 @@ export default defineComponent({
   color: #ffffff;
 }
 
-.summary-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
-  margin-top: 24px;
+.level-cell {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
 }
 
-.summary-card {
-  background: white;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  text-align: center;
+.level-tag {
+  padding: 4px 10px;
+  border-radius: 16px;
+  font-size: 11px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background-color: #f0f0f0;
+  color: #4a5568;
+  line-height: 1.3;
+  white-space: nowrap;
 }
 
-.summary-content {
+.level-tag-icon {
+  flex-shrink: 0;
+}
+
+.players-cell {
+  display: flex;
+  align-items: center;
+}
+
+.players-count-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1px solid rgba(255, 78, 27, 0.35);
+  border-radius: 999px;
+  background: rgba(255, 78, 27, 0.08);
+  color: #4a5568;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.players-count-chip:hover {
+  background: rgba(255, 78, 27, 0.14);
+  border-color: rgba(255, 78, 27, 0.55);
+}
+
+.players-count-chip:focus-visible {
+  outline: 2px solid #ff4e1b;
+  outline-offset: 2px;
+}
+
+.players-count-chip-text {
+  white-space: nowrap;
+}
+
+:deep(.team-players-list-modal .va-modal__title) {
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.team-players-list {
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: 12px;
+  max-height: min(60vh, 360px);
+  overflow-y: auto;
+  padding: 4px 0 8px;
 }
 
-.summary-icon {
-  margin-bottom: 8px;
+.team-players-list-item {
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
 }
 
-.summary-number-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
+.team-players-list-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
 }
 
-.summary-number {
-  font-size: 36px;
-  font-weight: 700;
-  color: #0b1e3a;
-}
-
-.plan-limit {
-  color: #9e9e9e;
-  font-weight: 500;
-  font-size: 30px;
-}
-
-.plan-popover-wrapper {
-  position: absolute;
-  top: -8px;
-  right: -8px;
-}
-
-.plan-info-icon {
-  cursor: pointer;
-  opacity: 0.6;
-  transition: opacity 0.2s ease;
-}
-
-.plan-info-icon:hover {
-  opacity: 1;
-}
-
-.plan-popover-text {
-  font-size: 13px;
-  color: #6c757d;
-  margin: 0;
-  line-height: 1.4;
-}
-
-.summary-label {
+.team-players-list-name {
+  font-weight: 600;
   font-size: 14px;
-  color: #6c757d;
-  font-weight: 500;
+  color: #1a202c;
+}
+
+.team-players-list-meta {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #718096;
+}
+
+.team-players-list-empty {
+  margin: 0;
+  font-size: 14px;
+  color: #718096;
+}
+
+.no-data-text {
+  color: #9e9e9e;
+  font-style: italic;
 }
 
 .action-buttons-wrapper {

@@ -161,24 +161,18 @@ export default {
 
         const { data } = await mutate();
 
-        // Verifica a etapa atual para decidir se redireciona
+        // Verifica a etapa atual para decidir a mensagem (evita recarregar em etapas iniciais)
         const currentStep = this.$refs.trainingForm
           ? this.$refs.trainingForm.controlledStep
           : 0;
 
-        // Se estiver na etapa 0 (Informações Essenciais), apenas mostra sucesso sem recarregar
-        if (currentStep === 0) {
-          confirmSuccess("Treino salvo com sucesso!");
-          this.errors = this.errorsDefault();
-          // Não recarrega os dados para preservar as presenças marcadas na etapa 2
-          // this.getTraining({ fetchPolicy: 'network-only' });
-        } else if (currentStep >= 2) {
-          // Se estiver salvando scouts (etapa 2), apenas mostra sucesso sem redirecionar
+        if (currentStep === 4) {
           confirmSuccess("Scouts salvos com sucesso!");
           this.errors = this.errorsDefault();
-          // IMPORTANTE: Não redireciona, mantém na página atual
+        } else if (currentStep <= 2) {
+          confirmSuccess("Treino salvo com sucesso!");
+          this.errors = this.errorsDefault();
         } else {
-          // Fallback para outras etapas
           confirmSuccess("Dados salvos com sucesso!");
           this.errors = this.errorsDefault();
         }
@@ -261,15 +255,9 @@ export default {
 
         const { data } = await mutate();
 
-        // Só avança para a etapa 4 se estiver nas etapas iniciais (0-3)
-        // E se não estiver salvando scouts (etapas 4-5)
-        if (this.$refs.trainingForm && this.$refs.trainingForm.step <= 3) {
-          this.$refs.trainingForm.step = 4; // Vai para a etapa 4 (Lista de Presença)
-        } else if (
-          this.$refs.trainingForm &&
-          this.$refs.trainingForm.step >= 4
-        ) {
-          // Não altera o step quando está salvando scouts
+        // Após salvar nas etapas iniciais (0–2), abre a Chamada do Treino (etapa 3)
+        if (this.$refs.trainingForm && this.$refs.trainingForm.controlledStep <= 2) {
+          this.$refs.trainingForm.controlledStep = 3;
         }
       } catch (error) {
         console.error(error);

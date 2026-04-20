@@ -1,18 +1,18 @@
 <template>
   <div
     class="form-container"
-    :class="{ 'form-container-full-width': controlledStep === 2 }"
+    :class="{ 'form-container-full-width': controlledStep === 4 }"
   >
     <va-card
       class="training-form-card"
-      :class="{ 'training-form-card-full-width': controlledStep === 2 }"
+      :class="{ 'training-form-card-full-width': controlledStep === 4 }"
     >
       <va-form ref="myForm" class="flex flex-col gap-6 mb-2">
         <va-stepper v-model="controlledStep" :steps="steps" controls-hidden>
-          <!-- Etapa 1: Informações Essenciais -->
+          <!-- Etapa 1: Informações Gerais -->
           <template #step-content-0>
             <div class="step-content">
-              <h2 class="section-title">Informações Essenciais</h2>
+              <h2 class="section-title">Informações Gerais</h2>
               <ZTextInput
                 id="name"
                 v-model="form.name"
@@ -20,6 +20,16 @@
                 label="Nome"
                 class="mb-3"
                 :error-messages="errors.name || []"
+              />
+              <VaTextarea
+                id="description"
+                v-model="form.description"
+                style="width: 100%"
+                name="description"
+                label="Descrição do Treino"
+                class="mb-3"
+                :error="errorFields.includes('description')"
+                :error-messages="errors.description || []"
               />
               <ZDateTimeRangePicker
                 id="dateTimeRange"
@@ -32,73 +42,180 @@
                 @update:time-start="form.timeStartValue = $event"
                 @update:time-end="form.timeEndValue = $event"
               />
-              <VaTextarea
-                id="description"
-                v-model="form.description"
-                style="width: 100%"
-                name="description"
-                label="Descrição do Treino"
-                class="mb-3"
-                :error="errorFields.includes('description')"
-                :error-messages="errors.description || []"
-              />
 
-              <VaSelect
-                id="status"
-                v-model="form.status"
-                label="Status do Treino"
-                :options="statusOptions"
-                text-by="label"
-                value-by="value"
-                class="mb-3"
-                :error="errorFields.includes('status')"
-                :error-messages="errors.status || []"
-              />
-
-              <h3 class="subsection-title">Fundamentos</h3>
-              <div class="mb-5">
-                <ZListRelationFundamentals
-                  :items="form.fundamentals || []"
-                  :selected-value="fundamentals"
-                  @add="addFundamentals"
-                  @delete="actionDeleteFundamental"
-                >
-                  <template #filter>
-                    <ZSelectFundamental
-                      v-model="fundamentals"
-                      class="mb-3"
-                      label="Fundamentos"
-                      :ignore-ids="form.fundamentals.map((item) => item.id)"
-                    />
-                  </template>
-                </ZListRelationFundamentals>
-              </div>
-              <div>
-                <ZListRelationSpecificFundamentals
-                  :items="form.specificFundamentals || []"
-                  :selected-value="specificFundamentals"
-                  @add="addSpecificFundamental"
-                  @delete="actionDeleteSpecificFundamental"
-                >
-                  <template #filter>
-                    <ZSelectSpecificFundamental
-                      v-model="specificFundamentals"
-                      class="mb-3"
-                      label="Fundamentos Específicos"
-                      :disabled="!form.fundamentals.length"
-                      :ignore-ids="
-                        form.specificFundamentals.map((item) => item.id)
+              <h3 class="subsection-title">Status do Treino</h3>
+              <div
+                class="training-status-wrapper"
+                :class="{
+                  'training-status-wrapper--error':
+                    errorFields.includes('status'),
+                }"
+              >
+                <div class="training-status-grid">
+                  <div
+                    v-for="opt in trainingStatusCards"
+                    :key="opt.value"
+                    role="button"
+                    tabindex="0"
+                    :class="[
+                      'training-status-card',
+                      {
+                        'training-status-card--selected':
+                          isTrainingStatusSelected(opt.value),
+                        'training-status-card--error':
+                          errorFields.includes('status'),
+                      },
+                    ]"
+                    @click="selectTrainingStatus(opt.value)"
+                    @keydown.enter.prevent="selectTrainingStatus(opt.value)"
+                    @keydown.space.prevent="selectTrainingStatus(opt.value)"
+                  >
+                    <va-icon
+                      class="training-status-card-icon"
+                      :name="opt.icon"
+                      :color="
+                        isTrainingStatusSelected(opt.value)
+                          ? '#FF4E1B'
+                          : '#9CA3AF'
                       "
-                      :fundamentals-ids="
-                        form.fundamentals.map((item) => item.id)
-                      "
-                      :messages="messageSpecificFundamental()"
+                      size="22px"
                     />
-                  </template>
-                </ZListRelationSpecificFundamentals>
+                    <div class="training-status-info">
+                      <h4 class="training-status-title">{{ opt.title }}</h4>
+                      <p class="training-status-description">
+                        {{ opt.description }}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  v-if="
+                    errorFields.includes('status') &&
+                    errors.status &&
+                    errors.status.length
+                  "
+                  class="training-status-error-message"
+                >
+                  <va-icon name="error" size="small" color="danger" />
+                  <span>{{ (errors.status || []).join(" ") }}</span>
+                </div>
+              </div>
+            </div>
+          </template>
+
+          <!-- Etapa 2: Fundamentos -->
+          <template #step-content-1>
+            <div class="step-content">
+              <h2 class="section-title">Fundamentos</h2>
+              <p class="subsection-description fundamental-section-hint">
+                Selecione um ou mais fundamentos gerais do treino.
+              </p>
+              <div
+                v-if="fundamentalsCatalogLoading"
+                class="fundamentals-loading"
+              >
+                <va-progress-circle indeterminate size="small" />
+                <span>Carregando fundamentos...</span>
+              </div>
+              <p
+                v-else-if="!fundamentalCatalog.length"
+                class="fundamental-empty-hint mb-5"
+              >
+                Nenhum fundamento geral disponível no sistema.
+              </p>
+              <div v-else class="fundamental-pick-grid mb-5">
+                <div
+                  v-for="item in fundamentalCatalog"
+                  :key="'f-' + item.id"
+                  role="button"
+                  tabindex="0"
+                  :class="[
+                    'fundamental-pick-card',
+                    {
+                      'fundamental-pick-card--selected':
+                        isFundamentalPicked(item.id),
+                    },
+                  ]"
+                  @click="toggleFundamentalPick(item)"
+                  @keydown.enter.prevent="toggleFundamentalPick(item)"
+                  @keydown.space.prevent="toggleFundamentalPick(item)"
+                >
+                  <va-icon
+                    class="fundamental-pick-card-icon"
+                    name="sports_volleyball"
+                    :color="
+                      isFundamentalPicked(item.id) ? '#FF4E1B' : '#9CA3AF'
+                    "
+                    size="22px"
+                  />
+                  <span class="fundamental-pick-card-title">{{
+                    item.name
+                  }}</span>
+                </div>
               </div>
 
-              <h3 class="subsection-title">Relacionar Time</h3>
+              <template v-if="form.fundamentals && form.fundamentals.length">
+                <h4 class="fundamental-specific-heading">
+                  Fundamentos específicos
+                </h4>
+                <p class="subsection-description fundamental-section-hint">
+                  Escolha uma ou mais opções ligadas aos fundamentos selecionados.
+                </p>
+                <div
+                  v-if="specificFundamentalsLoading"
+                  class="fundamentals-loading"
+                >
+                  <va-progress-circle indeterminate size="small" />
+                  <span>Carregando fundamentos específicos...</span>
+                </div>
+                <p
+                  v-else-if="!specificFundamentalCatalog.length"
+                  class="fundamental-empty-hint"
+                >
+                  Não há fundamentos específicos cadastrados para a combinação
+                  selecionada.
+                </p>
+                <div v-else class="fundamental-pick-grid mb-5">
+                  <div
+                    v-for="item in specificFundamentalCatalog"
+                    :key="'sf-' + item.id"
+                    role="button"
+                    tabindex="0"
+                    :class="[
+                      'fundamental-pick-card',
+                      'fundamental-pick-card--specific',
+                      {
+                        'fundamental-pick-card--selected':
+                          isSpecificFundamentalPicked(item.id),
+                      },
+                    ]"
+                    @click="toggleSpecificFundamentalPick(item)"
+                    @keydown.enter.prevent="toggleSpecificFundamentalPick(item)"
+                    @keydown.space.prevent="toggleSpecificFundamentalPick(item)"
+                  >
+                    <va-icon
+                      class="fundamental-pick-card-icon"
+                      name="tune"
+                      :color="
+                        isSpecificFundamentalPicked(item.id)
+                          ? '#FF4E1B'
+                          : '#9CA3AF'
+                      "
+                      size="22px"
+                    />
+                    <span class="fundamental-pick-card-title">{{
+                      item.name
+                    }}</span>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </template>
+
+          <!-- Etapa 3: Relacionar Times -->
+          <template #step-content-2>
+            <div class="step-content">
+              <h2 class="section-title">Relacionar Times</h2>
               <ZListRelationTeams
                 :items="form.teams || []"
                 :selected-value="teams"
@@ -223,8 +340,8 @@
             </div>
           </template>
 
-          <!-- Etapa 2: Chamada do Treino -->
-          <template #step-content-1>
+          <!-- Etapa 4: Chamada do Treino -->
+          <template #step-content-3>
             <div class="step-content">
               <h2 class="section-title">Chamada do Treino</h2>
 
@@ -265,8 +382,8 @@
             </div>
           </template>
 
-          <!-- Etapa 3: Marcação dos Scouts -->
-          <template #step-content-2>
+          <!-- Etapa 5: Marcação dos Scouts -->
+          <template #step-content-4>
             <div class="step-content step-content-full-width">
               <ZListRelationPlayersWithScouts
                 ref="listRelationPlayersWithScoutsRef"
@@ -304,14 +421,14 @@
       <va-button
         color="success"
         @click="saveAndContinue()"
-        v-if="!isTrainingSaved && controlledStep === 0"
+        v-if="!isTrainingSaved && controlledStep === 2"
         class="mr-1"
         >Salvar e Continuar</va-button
       >
       <va-button
         color="success"
         @click="saveScoutsOnly()"
-        v-if="isTrainingSaved && controlledStep === 2"
+        v-if="isTrainingSaved && controlledStep === 4"
         class="mr-1"
         >Salvar Scouts</va-button
       >
@@ -360,14 +477,14 @@
 <script>
 import ZTextInput from "~/components/molecules/Inputs/ZTextInput";
 import ZSelectTeam from "~/components/molecules/Selects/ZSelectTeam";
-import ZListRelationFundamentals from "~/components/organisms/List/Relations/ZListRelationFundamentals";
-import ZListRelationSpecificFundamentals from "~/components/organisms/List/Relations/ZListRelationSpecificFundamentals";
 import ZListRelationTeams from "~/components/organisms/List/Relations/ZListRelationTeams";
 import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
 import Swal from "sweetalert2";
 import ZDateTimeRangePicker from "~/components/molecules/Inputs/ZDateTimeRangePicker.vue";
-import ZSelectFundamental from "~/components/molecules/Selects/ZSelectFundamental.vue";
-import ZSelectSpecificFundamental from "~/components/molecules/Selects/ZSelectSpecificFundamental.vue";
+import { gql } from "@apollo/client/core";
+import { useNuxtApp } from "#app";
+import FUNDAMENTALS from "~/graphql/fundamental/query/fundamentals.graphql";
+import SPECIFICFUNDAMENTALS from "~/graphql/specificFundamental/query/specificFundamentals.graphql";
 import ZListRelationConfirmationTrainings from "~/components/organisms/List/Relations/ZListRelationConfirmationTrainings";
 import ZCardViewMetricsRealPresence from "~/components/molecules/Cards/ZCardViewMetricsRealPresence";
 import ZCardViewMetricsPresenceIntention from "~/components/molecules/Cards/ZCardViewMetricsPresenceIntention";
@@ -427,12 +544,8 @@ export default {
   components: {
     ZTextInput,
     ZSelectTeam,
-    ZListRelationFundamentals,
-    ZListRelationSpecificFundamentals,
     ZListRelationTeams,
     ZDateTimeRangePicker,
-    ZSelectFundamental,
-    ZSelectSpecificFundamental,
     ZListRelationConfirmationTrainings,
     ZCardViewMetricsPresenceIntention,
     ZCardViewMetricsRealPresence,
@@ -460,11 +573,6 @@ export default {
         { label: "Alterar apenas este treino", value: false },
         { label: "Alterar este treino e todos os futuros", value: true },
       ],
-      statusOptions: [
-        { label: "Agendado", value: "pending" },
-        { label: "Finalizado", value: "finished" },
-        { label: "Cancelado", value: "cancelled" },
-      ],
       user: localStorage.getItem("user")
         ? JSON.parse(localStorage.getItem("user"))
         : null,
@@ -484,8 +592,10 @@ export default {
           this.data.confirmationTrainingMetrics || {},
         standalonePlayerIds: [],
       },
-      fundamentals: [],
-      specificFundamentals: [],
+      fundamentalCatalog: [],
+      fundamentalsCatalogLoading: false,
+      specificFundamentalCatalog: [],
+      specificFundamentalsLoading: false,
       users: [],
       players: [],
       scouts: [],
@@ -495,6 +605,31 @@ export default {
   },
 
   computed: {
+    trainingStatusCards() {
+      return [
+        {
+          value: "pending",
+          title: "Agendado",
+          description:
+            "Treino na programação; confirmações de presença ficam disponíveis.",
+          icon: "event",
+        },
+        {
+          value: "finished",
+          title: "Finalizado",
+          description:
+            "Treino já realizado; use para encerrar chamada e consolidar registros.",
+          icon: "task_alt",
+        },
+        {
+          value: "cancelled",
+          title: "Cancelado",
+          description:
+            "Treino não ocorrerá; informe os envolvidos quando necessário.",
+          icon: "event_busy",
+        },
+      ];
+    },
     // Verifica se o treino está salvo (tem ID)
     isTrainingSaved() {
       return this.form.id && this.form.id > 0;
@@ -505,11 +640,11 @@ export default {
         return this.internalStep;
       },
       set(newStep) {
-        // Validar se pode acessar a etapa
-        if (newStep > 0 && !this.isTrainingSaved) {
+        // Chamada (3) e Scouts (4) só após salvar o treino
+        if (newStep > 2 && !this.isTrainingSaved) {
           confirmError(
-            "Ação não permitida!",
-            "Você precisa salvar as informações básicas do treino antes de acessar as etapas de Chamada e Scouts. Por favor, salve o treino primeiro."
+            "Salve o treino",
+            "Para acessar a Chamada e a Marcação dos Scouts, salve o treino após relacionar o time. Use «Salvar e Continuar» ou «Salvar»."
           );
           return;
         }
@@ -519,7 +654,9 @@ export default {
     // Steps dinâmicos com validação
     steps() {
       return [
-        { label: "Informações Essenciais" },
+        { label: "Informações Gerais" },
+        { label: "Fundamentos" },
+        { label: "Relacionar Times" },
         {
           label: "Chamada do Treino",
           disabled: !this.isTrainingSaved,
@@ -681,8 +818,16 @@ export default {
               ? existingSpecificFundamentals
               : [],
         };
+
+        this.$nextTick(() => {
+          this.refreshSpecificFundamentalsCatalog();
+          this.syncStepFromRouteQuery();
+        });
       },
       immediate: false,
+    },
+    "$route.query.step"() {
+      this.syncStepFromRouteQuery();
     },
     "data.team": function (newVal) {
       if (newVal && (!this.form.teams || this.form.teams.length === 0)) {
@@ -691,7 +836,150 @@ export default {
     },
   },
 
+  async mounted() {
+    await this.fetchAllFundamentalsCatalog();
+    await this.refreshSpecificFundamentalsCatalog();
+    this.syncStepFromRouteQuery();
+  },
+
   methods: {
+    async fetchGraphqlAllPages(query, dataKey, filter) {
+      const nuxtApp = useNuxtApp();
+      const apolloClient = nuxtApp._apolloClients?.default;
+      if (!apolloClient) {
+        return [];
+      }
+      const perPage = 50;
+      let page = 1;
+      let hasMore = true;
+      const all = [];
+      while (hasMore) {
+        const result = await apolloClient.query({
+          query,
+          variables: {
+            filter,
+            first: perPage,
+            page,
+          },
+          fetchPolicy: "network-only",
+        });
+        const payload = result?.data?.[dataKey];
+        const rows = payload?.data ?? [];
+        all.push(...rows);
+        hasMore = Boolean(payload?.paginatorInfo?.hasMorePages);
+        page += 1;
+      }
+      return all;
+    },
+    async fetchAllFundamentalsCatalog() {
+      this.fundamentalsCatalogLoading = true;
+      try {
+        const q = gql`
+          ${FUNDAMENTALS}
+        `;
+        const rows = await this.fetchGraphqlAllPages(q, "fundamentals", {
+          search: "%%",
+          ignoreIds: [],
+        });
+        this.fundamentalCatalog = rows
+          .map((r) => ({ id: Number(r.id), name: r.name }))
+          .sort((a, b) =>
+            a.name.localeCompare(b.name, "pt-BR", { sensitivity: "base" })
+          );
+      } catch (e) {
+        console.error("ZTrainingForm - fundamentos:", e);
+        this.fundamentalCatalog = [];
+      } finally {
+        this.fundamentalsCatalogLoading = false;
+      }
+    },
+    async refreshSpecificFundamentalsCatalog() {
+      const ids = (this.form.fundamentals || [])
+        .map((f) => Number(f.id))
+        .filter((id) => !Number.isNaN(id));
+      if (!ids.length) {
+        this.specificFundamentalCatalog = [];
+        this.form.specificFundamentals = [];
+        return;
+      }
+      this.specificFundamentalsLoading = true;
+      try {
+        const q = gql`
+          ${SPECIFICFUNDAMENTALS}
+        `;
+        const rows = await this.fetchGraphqlAllPages(
+          q,
+          "specificFundamentals",
+          {
+            search: "%%",
+            fundamentalsIds: ids,
+            ignoreIds: [],
+          }
+        );
+        this.specificFundamentalCatalog = rows
+          .map((r) => ({ id: Number(r.id), name: r.name }))
+          .sort((a, b) =>
+            a.name.localeCompare(b.name, "pt-BR", { sensitivity: "base" })
+          );
+        const allowed = new Set(
+          this.specificFundamentalCatalog.map((r) => r.id)
+        );
+        this.form.specificFundamentals = (
+          this.form.specificFundamentals || []
+        ).filter((s) => allowed.has(Number(s.id)));
+      } catch (e) {
+        console.error("ZTrainingForm - fundamentos específicos:", e);
+        this.specificFundamentalCatalog = [];
+      } finally {
+        this.specificFundamentalsLoading = false;
+      }
+    },
+    isFundamentalPicked(id) {
+      return (this.form.fundamentals || []).some(
+        (f) => Number(f.id) === Number(id)
+      );
+    },
+    isSpecificFundamentalPicked(id) {
+      return (this.form.specificFundamentals || []).some(
+        (s) => Number(s.id) === Number(id)
+      );
+    },
+    async toggleFundamentalPick(item) {
+      const id = Number(item.id);
+      const list = this.form.fundamentals || [];
+      const idx = list.findIndex((f) => Number(f.id) === id);
+      if (idx >= 0) {
+        list.splice(idx, 1);
+      } else {
+        list.push({
+          id,
+          fundamental: item.name,
+        });
+      }
+      await this.refreshSpecificFundamentalsCatalog();
+    },
+    toggleSpecificFundamentalPick(item) {
+      const id = Number(item.id);
+      const list = this.form.specificFundamentals || [];
+      const idx = list.findIndex((s) => Number(s.id) === id);
+      if (idx >= 0) {
+        list.splice(idx, 1);
+      } else {
+        list.push({
+          id,
+          specificFundamental: item.name,
+        });
+      }
+    },
+    isTrainingStatusSelected(value) {
+      const s = String(this.form.status ?? "")
+        .toLowerCase()
+        .trim();
+      return s === String(value).toLowerCase();
+    },
+    selectTrainingStatus(value) {
+      this.form.status = value;
+    },
     // Valida se os campos obrigatórios estão preenchidos
     validateRequiredFields() {
       const requiredFields = {
@@ -739,15 +1027,25 @@ export default {
     goBack() {
       this.$router.push("/trainings");
     },
-    handleNextStep() {
-      // Se está tentando ir para as etapas 2 ou 3, valida se o treino está salvo
-      if (this.controlledStep === 0 && !this.isTrainingSaved) {
-        confirmError(
-          "Ação não permitida!",
-          "Você precisa salvar as informações básicas do treino antes de acessar as etapas de Chamada e Scouts. Por favor, salve o treino primeiro."
-        );
+
+    /** Aplica `?step=` da rota ao stepper (Chamada/Scouts só após treino salvo). */
+    syncStepFromRouteQuery() {
+      const raw = this.$route?.query?.step;
+      if (raw === undefined || raw === null || raw === "") {
         return;
       }
+      const parsed = parseInt(String(raw), 10);
+      if (Number.isNaN(parsed)) {
+        return;
+      }
+      let step = Math.max(0, Math.min(4, parsed));
+      if (step > 2 && !this.isTrainingSaved) {
+        return;
+      }
+      this.internalStep = step;
+    },
+
+    handleNextStep() {
       if (this.controlledStep < this.steps.length - 1) {
         this.controlledStep = this.controlledStep + 1;
       }
@@ -1175,51 +1473,6 @@ export default {
       });
     },
 
-    addFundamentals() {
-      const transformedfundamentals = this.fundamentals.map((item) => {
-        return {
-          id: item.value,
-          fundamental: item.text,
-        };
-      });
-
-      transformedfundamentals.forEach((newFundamental) => {
-        const isAlreadyAdded = this.form.fundamentals.some(
-          (existingFundamental) => existingFundamental.id === newFundamental.id
-        );
-
-        if (!isAlreadyAdded) {
-          this.form.fundamentals.push(newFundamental);
-        }
-      });
-
-      this.fundamentals = [];
-    },
-
-    addSpecificFundamental() {
-      const transformedSpecificFundamentals = this.specificFundamentals.map(
-        (item) => {
-          return {
-            id: item.value,
-            specificFundamental: item.text,
-          };
-        }
-      );
-
-      transformedSpecificFundamentals.forEach((newSpecificFundamental) => {
-        const isAlreadyAdded = this.form.specificFundamentals.some(
-          (existingSpecificFundamental) =>
-            existingSpecificFundamental.id === newSpecificFundamental.id
-        );
-
-        if (!isAlreadyAdded) {
-          this.form.specificFundamentals.push(newSpecificFundamental);
-        }
-      });
-
-      this.specificFundamentals = [];
-    },
-
     actionDeletePosition(id) {
       this.form.positions = this.form.positions.filter((position) => {
         return position.id !== id;
@@ -1234,24 +1487,6 @@ export default {
       });
 
       confirmSuccess("Time removido com sucesso!");
-    },
-
-    actionDeleteFundamental(id) {
-      this.form.fundamentals = this.form.fundamentals.filter((fundamental) => {
-        return fundamental.id !== id;
-      });
-
-      confirmSuccess("Fundamento removido com sucesso!");
-    },
-
-    actionDeleteSpecificFundamental(id) {
-      this.form.specificFundamentals = this.form.specificFundamentals.filter(
-        (specificFundamental) => {
-          return specificFundamental.id !== id;
-        }
-      );
-
-      confirmSuccess("Fundamento Específico removido com sucesso!");
     },
 
     addPlayers() {
@@ -1590,14 +1825,6 @@ export default {
       confirmSuccess("Scout removido com sucesso!");
     },
 
-    messageSpecificFundamental() {
-      if (!this.form.fundamentals.length) {
-        return "Selecione um Fundamento para habilitar este campo";
-      }
-
-      return "";
-    },
-
     async save() {
       if (!this.validateRequiredFields()) {
         return;
@@ -1832,6 +2059,182 @@ export default {
   border-bottom: 1px solid #e9ecef;
 }
 
+.fundamental-section-hint {
+  margin-top: -6px;
+  margin-bottom: 12px;
+}
+
+.fundamentals-loading {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.25rem 0 1rem;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.fundamental-pick-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  align-items: stretch;
+}
+
+.fundamental-pick-card {
+  min-width: 0;
+  width: 100%;
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition:
+    border-color 0.2s,
+    background-color 0.2s,
+    box-shadow 0.2s;
+  outline: none;
+}
+
+.fundamental-pick-card:focus-visible {
+  outline: 2px solid #ff4e1b;
+  outline-offset: 2px;
+}
+
+.fundamental-pick-card--selected {
+  background-color: #fff4ec;
+  border-color: #ff4e1b;
+  box-shadow: 0 0 0 1px rgba(255, 78, 27, 0.2);
+}
+
+.fundamental-pick-card-icon {
+  flex-shrink: 0;
+}
+
+.fundamental-pick-card-title {
+  font-weight: 600;
+  font-size: 13px;
+  color: #4b5563;
+  line-height: 1.35;
+}
+
+.fundamental-pick-card--selected .fundamental-pick-card-title {
+  color: #111827;
+}
+
+.fundamental-specific-heading {
+  font-size: 15px;
+  font-weight: 600;
+  color: #0b1e3a;
+  margin: 8px 0 0 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.fundamental-empty-hint {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0 0 8px 0;
+  line-height: 1.45;
+}
+
+.training-status-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.training-status-wrapper--error .training-status-card {
+  border-color: #fecaca;
+}
+
+.training-status-grid {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.training-status-card {
+  flex: 1 1 160px;
+  min-width: 140px;
+  max-width: 260px;
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+  transition:
+    border-color 0.2s,
+    background-color 0.2s,
+    box-shadow 0.2s;
+  outline: none;
+}
+
+.training-status-card:focus-visible {
+  outline: 2px solid #ff4e1b;
+  outline-offset: 2px;
+}
+
+.training-status-card--selected {
+  background-color: #fff4ec;
+  border-color: #ff4e1b;
+  box-shadow: 0 0 0 1px rgba(255, 78, 27, 0.2);
+}
+
+.training-status-card.training-status-card--error:not(.training-status-card--selected) {
+  border-color: #e53e3e;
+  background-color: #fef2f2;
+}
+
+.training-status-card-icon {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.training-status-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.training-status-title {
+  font-weight: 600;
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0 0 2px 0;
+  line-height: 1.3;
+  transition: color 0.2s;
+}
+
+.training-status-card--selected .training-status-title {
+  color: #111827;
+}
+
+.training-status-description {
+  font-size: 11px;
+  color: #9ca3af;
+  margin: 0;
+  line-height: 1.35;
+}
+
+.training-status-error-message {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #e53e3e;
+  margin-top: 4px;
+}
+
 .subsection-description {
   font-size: 14px;
   color: #6c757d;
@@ -1887,7 +2290,7 @@ export default {
   padding: 20px 0;
 }
 
-/* Etapa 3 - Usar toda a largura disponível */
+/* Etapa Marcação dos Scouts - largura total */
 .step-content-full-width {
   padding: 0;
   width: 100%;
@@ -2021,6 +2424,10 @@ export default {
 }
 
 @media (max-width: 768px) {
+  .fundamental-pick-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .metrics-cards {
     grid-template-columns: 1fr;
     gap: 16px;
@@ -2035,6 +2442,12 @@ export default {
   .action-buttons va-button {
     width: 100%;
     min-width: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .fundamental-pick-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>

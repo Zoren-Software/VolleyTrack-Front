@@ -1,11 +1,18 @@
 <template>
-  <ZTeamForm
-    :data="data"
-    @save="edit"
-    :loading="loading"
-    :errorFields="errorFields"
-    :errors="errors"
-  />
+  <div class="team-form-page">
+    <div class="page-header">
+      <h1 class="title">Editar Time</h1>
+      <p class="subtitle">Atualize as informações do time</p>
+    </div>
+    <ZTeamForm
+      use-wizard
+      :data="data"
+      @save="edit"
+      :loading="loading"
+      :errorFields="errorFields"
+      :errors="errors"
+    />
+  </div>
 </template>
 
 <script>
@@ -137,3 +144,25 @@ useHead({
   titleTemplate: "Editar Time",
 });
 </script>
+
+<style scoped>
+.team-form-page {
+  width: 100%;
+}
+
+.page-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.title {
+  font-size: 30px;
+  font-weight: bold;
+  color: #0b1e3a;
+}
+
+.subtitle {
+  font-size: 16px;
+  color: #6c757d;
+}
+</style>

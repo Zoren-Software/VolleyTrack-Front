@@ -1,10 +1,17 @@
 <template>
-  <div v-if="buttonActionAdd || buttonActionDelete" class="row justify-start">
+  <div
+    v-if="
+      buttonActionAdd || (buttonActionDelete && !bulkDeleteViaSelectionBadge)
+    "
+    class="row justify-start"
+  >
     <div class="flex flex-col xs2">
       <div class="item">
         <ZDataTableActionButtons
           :buttonActionAdd="buttonActionAdd"
-          :buttonActionDelete="buttonActionDelete"
+          :buttonActionDelete="
+            buttonActionDelete && !bulkDeleteViaSelectionBadge
+          "
           :selectedItemsEmitted="selectedItemsEmitted"
           :textButtonDelete="textButtonDelete"
           @add="actionAdd"
@@ -82,23 +89,48 @@
           "
           class="pagination-cell"
         >
-          <div class="pagination-container">
-            <div class="pagination-info-section">
+          <div
+            class="pagination-container"
+            :class="{
+              'pagination-container--with-selection':
+                selectedItemsEmitted.length > 0,
+            }"
+          >
+            <div
+              v-if="selectedItemsEmitted.length > 0"
+              class="pagination-info-section"
+            >
+              <button
+                v-if="bulkDeleteViaSelectionBadge && buttonActionDelete"
+                type="button"
+                class="selected-badge selected-badge--clickable selected-badge--delete"
+                :title="`Remove permanentemente ${selectedItemsEmitted.length} registro(s) da lista`"
+                :aria-label="`Excluir ${selectedItemsEmitted.length} registro(s) selecionado(s)`"
+                @click="onBulkDeleteFromSelectionBadge"
+              >
+                <va-icon name="close" size="small" class="badge-delete-icon" />
+                <span class="badge-delete-text">
+                  Excluir
+                  <strong class="badge-delete-count">{{
+                    selectedItemsEmitted.length
+                  }}</strong>
+                  {{
+                    selectedItemsEmitted.length === 1
+                      ? "selecionado"
+                      : "selecionados"
+                  }}
+                </span>
+              </button>
               <div
+                v-else
                 class="selected-badge"
-                v-if="selectedItemsEmitted.length > 0"
+                role="status"
+                :aria-label="`${selectedItemsEmitted.length} itens selecionados`"
               >
                 <va-icon name="check_circle" size="small" />
                 <span class="badge-number">{{
                   selectedItemsEmitted.length
                 }}</span>
-              </div>
-              <div class="items-info">
-                <span class="items-text">
-                  Itens de <strong>{{ paginatorInfo.firstItem }}</strong> a
-                  <strong>{{ paginatorInfo.lastItem }}</strong> de
-                  <strong>{{ paginatorInfo.total }}</strong>
-                </span>
               </div>
             </div>
             <div class="pagination-controls">
@@ -108,7 +140,7 @@
                 :visible-pages="5"
                 buttons-preset="secondary"
                 size="small"
-                rounded
+                :rounded="false"
                 gapped
               />
             </div>
@@ -130,6 +162,8 @@ import ZDataTableInputSearch from "~/components/molecules/Datatable/ZDataTableIn
 import ZDataTable from "~/components/molecules/Datatable/ZDataTable";
 import ZFilter from "~/components/molecules/Filters/ZFilter";
 import ZButton from "~/components/atoms/Buttons/ZButton";
+import { confirmDeleteMultiple } from "~/utils/sweetAlert2/swalHelper";
+
 export default defineComponent({
   components: {
     ZDataTableActionButtons,
@@ -181,6 +215,11 @@ export default defineComponent({
       default: false,
     },
     buttonActionDelete: {
+      type: Boolean,
+      default: false,
+    },
+    /** Esconde o botão superior de exclusão em massa e usa o badge de seleção (rodapé) para confirmar e excluir. */
+    bulkDeleteViaSelectionBadge: {
       type: Boolean,
       default: false,
     },
@@ -242,6 +281,25 @@ export default defineComponent({
 
     actionDeletes(itemsDelete) {
       this.$emit("deletes", itemsDelete);
+    },
+
+    onBulkDeleteFromSelectionBadge() {
+      if (!this.bulkDeleteViaSelectionBadge || !this.buttonActionDelete) {
+        return;
+      }
+      const selected = this.selectedItemsEmitted;
+      if (!selected.length) {
+        return;
+      }
+      const itemsDelete = selected.map((item) => item.id);
+      const totalItems = selected.length;
+      confirmDeleteMultiple(
+        totalItems,
+        () => {
+          this.actionDeletes(itemsDelete);
+        },
+        () => {},
+      );
     },
 
     actionDelete(id) {
@@ -329,7 +387,7 @@ export default defineComponent({
 
 .pagination-container {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   padding: 16px 24px;
   background: linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%);
@@ -338,6 +396,10 @@ export default defineComponent({
   gap: 20px;
   flex-wrap: wrap;
   min-height: 64px;
+}
+
+.pagination-container--with-selection {
+  justify-content: space-between;
 }
 
 .pagination-info-section {
@@ -361,6 +423,62 @@ export default defineComponent({
   transition: all 0.2s ease;
   position: relative;
   overflow: hidden;
+}
+
+.selected-badge--clickable {
+  cursor: pointer;
+  border: none;
+  font: inherit;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.selected-badge--clickable:focus-visible {
+  outline: 2px solid #0b1e3a;
+  outline-offset: 2px;
+}
+
+.selected-badge--clickable:hover {
+  box-shadow: 0 4px 12px rgba(255, 78, 27, 0.45);
+  transform: translateY(-1px);
+}
+
+.selected-badge--clickable:active {
+  transform: translateY(0);
+}
+
+.selected-badge.selected-badge--delete {
+  background: #dc2626;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.35);
+  border-radius: 8px;
+  padding: 8px 14px;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+.selected-badge.selected-badge--delete.selected-badge--clickable:hover {
+  background: #b91c1c;
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.55);
+}
+
+.selected-badge.selected-badge--delete::before {
+  display: none;
+}
+
+.selected-badge--delete .badge-delete-icon {
+  font-size: 20px !important;
+  opacity: 0.95;
+}
+
+.selected-badge--delete .badge-delete-text {
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+}
+
+.selected-badge--delete .badge-delete-count {
+  font-weight: 800;
+  margin: 0 0.2em;
 }
 
 .selected-badge::before {
@@ -401,25 +519,6 @@ export default defineComponent({
   letter-spacing: 0.5px;
 }
 
-.items-info {
-  display: flex;
-  align-items: center;
-}
-
-.items-text {
-  color: #6c757d;
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 1.5;
-}
-
-.items-text strong {
-  color: #0b1e3a;
-  font-weight: 700;
-  margin: 0 3px;
-  font-size: 15px;
-}
-
 .pagination-controls {
   display: flex;
   align-items: center;
@@ -440,23 +539,23 @@ export default defineComponent({
 @media (max-width: 768px) {
   .pagination-container {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
+    align-items: stretch;
+    gap: 12px;
     padding: 16px;
+  }
+
+  .pagination-container--with-selection {
+    align-items: stretch;
   }
 
   .pagination-info-section {
     width: 100%;
-    justify-content: space-between;
+    justify-content: flex-start;
   }
 
   .pagination-controls {
     width: 100%;
-    justify-content: center;
-  }
-
-  .items-info {
-    padding: 6px 12px;
+    justify-content: flex-end;
   }
 }
 </style>

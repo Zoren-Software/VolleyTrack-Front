@@ -76,6 +76,29 @@
     </aside>
     <div class="main-area">
       <div class="top-bar">
+        <nav class="top-bar-breadcrumbs" aria-label="Navegação em trilha">
+          <ol class="breadcrumb-list">
+            <li
+              v-for="(crumb, idx) in breadcrumbs"
+              :key="`${idx}-${crumb.to}`"
+              class="breadcrumb-item"
+            >
+              <NuxtLink
+                v-if="idx < breadcrumbs.length - 1"
+                :to="crumb.to"
+                class="breadcrumb-link"
+              >
+                {{ crumb.label }}
+              </NuxtLink>
+              <span v-else class="breadcrumb-current">{{ crumb.label }}</span>
+              <span
+                v-if="idx < breadcrumbs.length - 1"
+                class="breadcrumb-sep"
+                aria-hidden="true"
+              >{{ ">" }}</span>
+            </li>
+          </ol>
+        </nav>
         <div class="top-bar-right">
           <div
             class="notification-wrapper"
@@ -314,6 +337,86 @@ export default {
     },
     isNotificationsPage() {
       return this.$route.path === "/notifications";
+    },
+    breadcrumbs() {
+      const path = this.$route?.path || "/";
+      const items = [{ label: "Home", to: "/" }];
+
+      if (path === "/" || path === "") {
+        return items;
+      }
+
+      const labelMap = {
+        players: "Jogadores",
+        teams: "Times",
+        trainings: "Treinos",
+        payment: "Pagamentos",
+        settings: "Configurações",
+        notifications: "Notificações",
+        billing: "Faturamentos",
+        account: "Conta",
+        scout: "Scout",
+        "active-plan": "Plano ativo",
+        "tenant-deleted": "Conta removida",
+        "payment-test": "Teste de pagamento",
+        login: "Entrar",
+        create: "Novo",
+        edit: "Editar",
+        success: "Sucesso",
+        cancel: "Cancelamento",
+        swap: "Troca de plano",
+        "set-password": "Definir senha",
+      };
+
+      const isIdSegment = (s) =>
+        /^\d+$/.test(s) || /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+          s,
+        );
+
+      const formatFallback = (s) =>
+        s.length
+          ? s.charAt(0).toUpperCase() + s.slice(1).replace(/-/g, " ")
+          : s;
+
+      const parts = path.split("/").filter(Boolean);
+      let i = 0;
+
+      while (i < parts.length) {
+        const seg = parts[i];
+
+        if (seg === "edit" && i + 1 < parts.length && isIdSegment(parts[i + 1])) {
+          items.push({
+            label: labelMap.edit,
+            to: path.split("?")[0],
+          });
+          i += 2;
+          continue;
+        }
+
+        if (seg === "create") {
+          const subpath = `/${parts.slice(0, i + 1).join("/")}`;
+          items.push({
+            label: labelMap.create,
+            to: subpath,
+          });
+          i += 1;
+          continue;
+        }
+
+        if (isIdSegment(seg)) {
+          i += 1;
+          continue;
+        }
+
+        const subpath = `/${parts.slice(0, i + 1).join("/")}`;
+        items.push({
+          label: labelMap[seg] || formatFallback(seg),
+          to: subpath,
+        });
+        i += 1;
+      }
+
+      return items;
     },
   },
   mounted() {
@@ -618,11 +721,13 @@ export default {
 
 .top-bar {
   background-color: #ffffff;
-  height: 60px;
+  min-height: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  padding: 12px 20px;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 6px 16px;
   border-bottom: 1px solid #e5e7eb;
   overflow: visible;
   position: relative;
@@ -630,6 +735,62 @@ export default {
   box-sizing: border-box;
   z-index: 999;
   flex-shrink: 0;
+}
+
+.top-bar-breadcrumbs {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+
+.breadcrumb-list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+  line-height: 1.3;
+  min-width: 0;
+}
+
+.breadcrumb-item {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+}
+
+.breadcrumb-link {
+  color: #6b7280;
+  text-decoration: none;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+.breadcrumb-link:hover {
+  color: #ff4e1b;
+}
+
+.breadcrumb-current {
+  color: #0b1e3a;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 280px;
+}
+
+.breadcrumb-sep {
+  color: #d1d5db;
+  margin: 0 8px;
+  font-weight: 500;
+  user-select: none;
 }
 
 .logo {
@@ -798,7 +959,8 @@ export default {
 .top-bar-right {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 10px;
+  flex-shrink: 0;
 }
 
 .notification-wrapper {
@@ -835,7 +997,7 @@ export default {
 }
 
 .notification-icon {
-  font-size: 24px !important;
+  font-size: 20px !important;
   color: #6b7280 !important;
   cursor: pointer;
   transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease,
@@ -852,7 +1014,7 @@ export default {
 
 .notification-wrapper.notification-active :deep(.notification-icon) {
   position: relative;
-  padding: 8px;
+  padding: 6px;
   border-radius: 50%;
   background: rgba(107, 114, 128, 0.1) !important;
   border: 2px solid #9ca3af !important;
@@ -901,7 +1063,7 @@ export default {
 .user-menu-trigger {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   min-width: 0;
   cursor: pointer;
   text-align: left;
@@ -918,7 +1080,7 @@ export default {
 
 .user-menu-name {
   font-weight: 600;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.25;
   color: #0b1e3a;
   overflow: hidden;
@@ -928,7 +1090,7 @@ export default {
 }
 
 .user-menu-role {
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1.3;
   color: #6b7280;
   overflow: hidden;
@@ -953,17 +1115,17 @@ export default {
 }
 
 .user-avatar {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border: 2px solid white !important;
   cursor: pointer;
   transition: all 0.2s ease;
   background: #FF4E1B !important;
   color: white !important;
   font-weight: 700;
-  font-size: 16px;
+  font-size: 14px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  --va-size-computed: 40px !important;
+  --va-size-computed: 32px !important;
 }
 
 .user-avatar :deep(.va-avatar) {
@@ -971,8 +1133,8 @@ export default {
   background: #FF4E1B !important;
   color: white !important;
   --va-size-computed: 40px !important;
-  width: 40px !important;
-  height: 40px !important;
+  width: 32px !important;
+  height: 32px !important;
 }
 
 .user-avatar:hover {
@@ -982,7 +1144,7 @@ export default {
 }
 
 .user-icon {
-  font-size: 40px;
+  font-size: 32px;
   color: #0b1e3a;
   cursor: pointer;
 }

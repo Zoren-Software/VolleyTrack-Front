@@ -1,6 +1,16 @@
 <template>
   <div class="form-container">
-    <va-form ref="myForm" class="team-form-inner flex flex-col gap-6 mb-2">
+    <va-form
+      ref="myForm"
+      :class="[
+        'team-form-inner',
+        'flex',
+        'flex-col',
+        'mb-2',
+        'w-full',
+        useWizard ? 'team-form-gap--wizard' : 'gap-6',
+      ]"
+    >
       <template v-if="!useWizard">
         <va-card class="info-card">
           <ZTeamFormEssentialFields
@@ -64,7 +74,7 @@
         </va-stepper>
       </template>
 
-      <div class="action-buttons">
+      <div :class="['action-buttons', { 'action-buttons--wizard': useWizard }]">
         <va-button
           v-if="useWizard && wizardStep > 0"
           color="secondary"
@@ -331,13 +341,20 @@ export default {
   min-width: 0;
 }
 
+.team-form-gap--wizard {
+  gap: 0.5rem;
+}
+
 .team-form-stepper {
   width: 100%;
   min-width: 0;
+  --va-stepper-step-content-wrapper-padding: 0;
+  --va-stepper-step-content-margin: 0.35rem 0 0;
 }
 
 .team-form-stepper :deep(.va-stepper__content) {
-  padding-top: 8px;
+  padding-top: 4px;
+  padding-bottom: 0;
   width: 100%;
 }
 
@@ -379,6 +396,11 @@ export default {
   margin-top: 8px;
   padding-top: 12px;
   box-sizing: border-box;
+}
+
+.action-buttons--wizard {
+  margin-top: 0;
+  padding-top: 0.5rem;
 }
 
 .action-buttons va-button {

@@ -41,8 +41,8 @@
         </div>
         <div class="filter-actions">
           <va-button
-            color="#FF4E1B"
             class="search-button"
+            :class="{ 'search-button--active': hasSearchFilterCriteria }"
             @click="handleSearch"
           >
             <va-icon name="search" class="button-icon" />
@@ -101,6 +101,7 @@
     <ZDatatableGeneric
       :buttonActionAdd="false"
       buttonActionDelete
+      bulk-delete-via-selection-badge
       includeActionsColumn
       includeActionEditList
       includeActionDeleteList
@@ -310,6 +311,28 @@ export default defineComponent({
     },
     hasBulkCreatedSelected() {
       return this.selectedBulkTrainings.length > 0;
+    },
+    hasSearchFilterCriteria() {
+      const f = this.variablesGetTrainings.filter;
+      if ((this.internalSearchValue || "").trim().length > 0) {
+        return true;
+      }
+      if (Array.isArray(f.teamsIds) && f.teamsIds.length > 0) {
+        return true;
+      }
+      if (Array.isArray(f.playersIds) && f.playersIds.length > 0) {
+        return true;
+      }
+      if (Array.isArray(f.usersIds) && f.usersIds.length > 0) {
+        return true;
+      }
+      if (f.dateStart) {
+        return true;
+      }
+      if (f.dateEnd) {
+        return true;
+      }
+      return false;
     },
   },
 
@@ -730,9 +753,9 @@ export default defineComponent({
   padding: 12px 24px;
   font-weight: 500;
   white-space: nowrap;
-  background-color: #FF4E1B !important;
+  background-color: #6b7280 !important;
   color: #ffffff !important;
-  box-shadow: 0 2px 8px rgba(255, 78, 27, 0.3);
+  box-shadow: 0 2px 6px rgba(75, 85, 99, 0.25);
   border: none;
   display: inline-flex;
   align-items: center;
@@ -742,14 +765,28 @@ export default defineComponent({
   height: 40px;
 }
 
+.search-button.search-button--active {
+  background-color: #ff4e1b !important;
+  box-shadow: 0 2px 8px rgba(255, 78, 27, 0.3);
+}
+
 .search-button:hover {
+  background-color: #4b5563 !important;
+  box-shadow: 0 4px 10px rgba(75, 85, 99, 0.35);
+  transform: translateY(-1px);
+}
+
+.search-button.search-button--active:hover {
   background-color: #d6652a !important;
   box-shadow: 0 4px 12px rgba(255, 78, 27, 0.4);
-  transform: translateY(-1px);
 }
 
 .search-button:active {
   transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(75, 85, 99, 0.3);
+}
+
+.search-button.search-button--active:active {
   box-shadow: 0 2px 6px rgba(255, 78, 27, 0.3);
 }
 

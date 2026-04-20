@@ -55,7 +55,7 @@ useHead({
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 20px;
+  gap: 12px;
 }
 
 .page-title {
@@ -75,7 +75,7 @@ useHead({
 
 .new-player-button {
   border-radius: 8px;
-  padding: 12px 24px;
+  padding: 8px 14px;
   font-weight: 500;
   white-space: nowrap;
   background-color: #FF4E1B !important;
@@ -85,7 +85,7 @@ useHead({
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 5px;
   transition: all 0.2s ease;
 }
 
@@ -101,12 +101,12 @@ useHead({
 }
 
 .button-icon {
-  font-size: 20px;
+  font-size: 18px;
   color: white;
 }
 
 .button-text {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   color: white;
   letter-spacing: 0.3px;
