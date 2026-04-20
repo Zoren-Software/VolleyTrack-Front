@@ -18,6 +18,16 @@
       <template #body>
         <div class="action-menu-panel" @click.stop>
           <button
+            v-if="includeActionStatsList"
+            type="button"
+            class="action-menu-item"
+            @click="emitStats(id)"
+          >
+            <va-icon name="visibility" size="16px" color="#6b7280" />
+            <span>Ver estatísticas</span>
+          </button>
+
+          <button
             v-if="includeActionDetailsList"
             type="button"
             class="action-menu-item"
@@ -111,6 +121,10 @@ export default {
       type: Number,
       required: true,
     },
+    includeActionStatsList: {
+      type: Boolean,
+      default: false,
+    },
     includeActionDetailsList: {
       type: Boolean,
       default: false,
@@ -145,6 +159,7 @@ export default {
     },
   },
   emits: [
+    "stats",
     "details",
     "edit",
     "delete",
@@ -155,6 +170,9 @@ export default {
     "technicalAnalysis",
   ],
   methods: {
+    emitStats(id) {
+      this.$emit("stats", id);
+    },
     emitAttendanceList(id) {
       this.$emit("attendanceList", id);
     },
@@ -227,7 +245,7 @@ export default {
 .action-menu-panel {
   display: flex;
   flex-direction: column;
-  min-width: 156px;
+  min-width: 200px;
   background: #ffffff;
   border: 1px solid #e5e7eb;
   border-radius: 10px;

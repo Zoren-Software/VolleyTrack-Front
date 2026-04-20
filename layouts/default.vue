@@ -984,14 +984,15 @@ export default {
 }
 
 .notification-wrapper :deep(.va-button-dropdown__content) {
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
   margin-top: 8px;
-  min-width: 350px;
-  max-width: 400px;
-  max-height: 500px;
-  overflow-y: auto;
+  min-width: 320px;
+  max-width: 420px;
+  max-height: none;
+  overflow: visible;
+  padding: 0;
   z-index: 10002 !important;
   position: relative;
 }

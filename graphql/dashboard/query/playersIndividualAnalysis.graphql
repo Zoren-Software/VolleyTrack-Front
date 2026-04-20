@@ -28,6 +28,9 @@ query playersIndividualAnalysis(
           id
           name
         }
+        teams {
+          id
+        }
       }
       presencePercentage
       trainingsCount

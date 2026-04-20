@@ -2,7 +2,7 @@
   <div class="players-listing">
     <!-- Filter Card -->
     <va-card class="filter-card">
-      <div class="filter-content">
+      <div class="filter-row filter-row--search">
         <div class="search-section">
           <label class="filter-label">Buscar</label>
           <ZDataTableInputSearch
@@ -11,6 +11,8 @@
             @actionSearch="handleSearch"
           />
         </div>
+      </div>
+      <div class="filter-row filter-row--filters">
         <div class="filters-section">
           <div class="filter-item">
             <label class="filter-label">Time</label>
@@ -48,13 +50,6 @@
         </div>
       </div>
     </va-card>
-
-    <!-- Modal de Estatísticas -->
-    <ZPlayerStatsModal
-      v-if="selectedPlayerId"
-      v-model="showStatsModal"
-      :player-id="selectedPlayerId"
-    />
 
     <VaModal
       v-model="showTeamsListModal"
@@ -96,6 +91,7 @@
       :buttonActionAdd="false"
       buttonActionDelete
       bulk-delete-via-selection-badge
+      disable-action-delete
       includeActionsColumn
       includeActionEditList
       includeActionDeleteList
@@ -175,32 +171,16 @@
           </div>
         </div>
       </template>
-      <!-- Botões de Ações na coluna de ações -->
       <template #cell(actions)="{ rowKey }">
-        <div class="action-buttons-wrapper">
-          <va-button
-            preset="plain"
-            icon="visibility"
-            size="small"
-            class="stats-btn action-btn"
-            :title="'Ver estatísticas de ' + (rowKey.displayName || rowKey.name)"
-            @click="openStatsModal(rowKey.id)"
-          />
-          <va-button
-            preset="plain"
-            icon="edit"
-            size="small"
-            class="edit-btn action-btn"
-            :title="'Editar ' + (rowKey.displayName || rowKey.name)"
-            @click="editPlayer(rowKey.id)"
-          />
-          <va-button
-            preset="plain"
-            icon="delete_outline"
-            size="small"
-            class="delete-btn action-btn"
-            :title="'Deletar ' + (rowKey.displayName || rowKey.name)"
-            @click="deletePlayer(rowKey.id)"
+        <div class="actions-cell">
+          <ZDataTableActions
+            :id="Number(rowKey.id)"
+            include-action-stats-list
+            include-action-edit-list
+            include-action-delete-list
+            @stats="openStatsModal"
+            @edit="editPlayer"
+            @delete="deletePlayer"
           />
         </div>
       </template>
@@ -289,10 +269,10 @@ import ZSelectPosition from "~/components/molecules/Selects/ZSelectPosition";
 import ZSelectTeam from "~/components/molecules/Selects/ZSelectTeam";
 import ZSelectRole from "~/components/molecules/Selects/ZSelectRole";
 import ZDataTableInputSearch from "~/components/molecules/Datatable/ZDataTableInputSearch";
+import ZDataTableActions from "~/components/molecules/Datatable/ZDataTableActions.vue";
 import ZUser from "~/components/molecules/Datatable/Slots/ZUser";
 import ZPosition from "~/components/molecules/Datatable/Slots/ZPosition";
 import ZCPF from "~/components/molecules/Datatable/Slots/ZCPF";
-import ZPlayerStatsModal from "~/components/molecules/Modal/ZPlayerStatsModal.vue";
 import USERDELETE from "~/graphql/user/mutation/userDelete.graphql";
 import ROLES from "~/graphql/role/query/roles.graphql";
 import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
@@ -309,7 +289,7 @@ export default defineComponent({
     ZSelectTeam,
     ZSelectRole,
     ZDataTableInputSearch,
-    ZPlayerStatsModal,
+    ZDataTableActions,
   },
 
   created() {
@@ -363,8 +343,6 @@ export default defineComponent({
       selectModeOptions: ["single", "multiple"],
       selectColorOptions: ["primary", "danger", "warning", "#EF467F"],
       internalSearch: "",
-      showStatsModal: false,
-      selectedPlayerId: null,
       showTeamsListModal: false,
       teamsModalList: [],
       teamsModalPlayerLabel: "",
@@ -450,8 +428,7 @@ export default defineComponent({
       this.$router.push(`/players/edit/${id}`);
     },
     openStatsModal(playerId) {
-      this.selectedPlayerId = playerId;
-      this.showStatsModal = true;
+      this.$router.push(`/players/stats/${playerId}`);
     },
     async deleteItems(ids) {
       try {
@@ -959,25 +936,38 @@ export default defineComponent({
   border-radius: 12px;
   padding: 20px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 }
 
-.filter-content {
+.filter-row {
+  width: 100%;
+}
+
+.filter-row--search .search-section {
+  width: 100%;
+  max-width: 100%;
+}
+
+.filter-row--filters {
   display: flex;
-  gap: 20px;
-  align-items: flex-end;
   flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 16px 20px;
   justify-content: space-between;
 }
 
 .search-section {
-  flex: 1;
-  min-width: 300px;
+  width: 100%;
 }
 
 .filters-section {
   display: flex;
   gap: 16px;
   flex-wrap: wrap;
+  flex: 1;
+  min-width: 0;
 }
 
 .filter-item {
@@ -1011,7 +1001,40 @@ export default defineComponent({
 .filter-actions {
   display: flex;
   align-items: flex-end;
-  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* Selects dos filtros: itens selecionados e foco em laranja */
+.filter-row--filters :deep(.va-select) {
+  --va-primary: #ff4e1b;
+}
+
+.filter-row--filters :deep(.va-input-wrapper) {
+  --va-primary: #ff4e1b;
+}
+
+.filter-row--filters :deep(.va-input-wrapper--focused) {
+  --va-input-color-border: #ff4e1b;
+}
+
+.filter-row--filters :deep(.va-tag) {
+  --va-tag-color: #ff4e1b;
+  background: rgba(255, 78, 27, 0.12) !important;
+  color: #c2410c !important;
+  border: 1px solid rgba(255, 78, 27, 0.35) !important;
+}
+
+.filter-row--filters :deep(.va-tag__close) {
+  color: #c2410c !important;
+}
+
+.filter-row--filters :deep(.va-select-content__input) {
+  color: #9a3412;
+}
+
+.filter-row--filters :deep(.va-select-dropdown__option--selected) {
+  color: #ff4e1b;
+  font-weight: 600;
 }
 
 .search-button {
@@ -1067,128 +1090,25 @@ export default defineComponent({
   color: #ffffff;
 }
 
-.action-buttons-wrapper {
-  display: flex;
-  gap: 8px;
+.actions-cell {
+  display: inline-flex;
   align-items: center;
-}
-
-.action-btn {
-  min-width: 36px;
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  padding: 0 !important;
-  border: none !important;
-  box-shadow: none !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
-}
-
-.action-btn :deep(.va-button__content) {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  width: 100% !important;
-  height: 100% !important;
-  min-height: 100% !important;
-  padding: 0 !important;
-  margin: 0 !important;
-}
-
-.action-btn :deep(.va-button__left-icon) {
-  margin: 0 !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-
-.action-btn :deep(.va-icon),
-.action-btn :deep(.material-icons) {
-  font-size: 20px !important;
-  width: 20px !important;
-  height: 20px !important;
-  line-height: 1 !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-
-/* VaButton usa ::before com --va-background-color; em preset plain o inline força transparent — precisa !important */
-.stats-btn.action-btn {
-  --va-background-color: #ffe8df !important;
-  --va-background-color-opacity: 1 !important;
-  --va-background-mask-opacity: 0 !important;
-  color: #c62d00 !important;
-}
-
-.stats-btn.action-btn :deep(.va-icon),
-.stats-btn.action-btn :deep(.material-icons) {
-  color: #c62d00 !important;
-}
-
-.stats-btn.action-btn:hover {
-  --va-background-color: #ffd4c2 !important;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(255, 78, 27, 0.18);
-}
-
-.stats-btn.action-btn:hover :deep(.va-icon),
-.stats-btn.action-btn:hover :deep(.material-icons) {
-  color: #a02600 !important;
-}
-
-.edit-btn.action-btn {
-  --va-background-color: #dbeafe !important;
-  --va-background-color-opacity: 1 !important;
-  --va-background-mask-opacity: 0 !important;
-  color: #1d4ed8 !important;
-}
-
-.edit-btn.action-btn :deep(.va-icon),
-.edit-btn.action-btn :deep(.material-icons) {
-  color: #1d4ed8 !important;
-}
-
-.edit-btn.action-btn:hover {
-  --va-background-color: #bfdbfe !important;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(29, 78, 216, 0.2);
-}
-
-.edit-btn.action-btn:hover :deep(.va-icon),
-.edit-btn.action-btn:hover :deep(.material-icons) {
-  color: #1e40af !important;
-}
-
-.delete-btn.action-btn {
-  --va-background-color: #fee2e2 !important;
-  --va-background-color-opacity: 1 !important;
-  --va-background-mask-opacity: 0 !important;
-  color: #b91c1c !important;
-}
-
-.delete-btn.action-btn :deep(.va-icon),
-.delete-btn.action-btn :deep(.material-icons) {
-  color: #b91c1c !important;
-}
-
-.delete-btn.action-btn:hover {
-  --va-background-color: #fecaca !important;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(185, 28, 28, 0.2);
-}
-
-.delete-btn.action-btn:hover :deep(.va-icon),
-.delete-btn.action-btn:hover :deep(.material-icons) {
-  color: #991b1b !important;
+  justify-content: center;
 }
 
 @media (max-width: 768px) {
-  .filter-content {
+  .filter-row--filters {
     flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-actions {
+    width: 100%;
+  }
+
+  .filter-actions .search-button {
+    width: 100%;
+    justify-content: center;
   }
 
   .search-section,

@@ -24,7 +24,6 @@
 import ZSettingsForm from "~/components/organisms/Forms/Settings/ZSettingsForm";
 import SETTING from "~/graphql/setting/query/setting.graphql";
 import SETTINGEDIT from "~/graphql/setting/mutation/settingEdit.graphql";
-import { transformTeamData } from "~/utils/forms/teamForm";
 import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
 
 export default {
