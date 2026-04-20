@@ -1,44 +1,22 @@
 <template>
   <div class="training-cell">
-    <div class="training-header">
-      <div class="training-id">Treino #{{ data.id }}</div>
-      <div class="training-status-badge" :class="statusClass">
-        {{ statusLabel }}
-      </div>
-    </div>
     <div class="training-name">{{ data.name }}</div>
-    <div v-if="isBeforeTrainingDate()" class="training-metrics">
-      <div class="metrics-header">
-        <span class="metrics-label">Confirmações de Treino</span>
-        <span class="metrics-percentage"
-          >{{ roundedConfirmationTraining }}%</span
-        >
+    <div class="training-meta">
+      <div class="training-date-line">
+        <va-icon name="event" size="14px" color="#6c757d" />
+        <span>{{ formattedDate }}</span>
       </div>
-      <div class="progress-bar-container">
-        <div
-          class="progress-bar-fill"
-          :style="{ width: metricsConfirmationTraining + '%' }"
-        ></div>
-      </div>
-    </div>
-    <div v-else class="training-metrics">
-      <div class="metrics-header">
-        <span class="metrics-label">Presença no Treino</span>
-        <span class="metrics-percentage success"
-          >{{ roundedConfirmationPresence }}%</span
-        >
-      </div>
-      <div class="progress-bar-container">
-        <div
-          class="progress-bar-fill success"
-          :style="{ width: metricsConfirmationPresence + '%' }"
-        ></div>
+      <div class="training-time-line">
+        <va-icon name="schedule" size="14px" color="#6c757d" />
+        <span>{{ formattedTimeRange }}</span>
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import moment from "moment";
+
 export default {
   props: {
     data: {
@@ -51,44 +29,18 @@ export default {
     },
   },
   computed: {
-    metricsConfirmationTraining() {
-      return this.metrics.confirmedPercentage + this.metrics.rejectedPercentage;
+    formattedDate() {
+      const start = this.data?.dateStart ? moment(this.data.dateStart) : null;
+      if (!start || !start.isValid()) return "-";
+      return start.format("DD/MM/YYYY");
     },
-    metricsConfirmationPresence() {
-      return this.metrics.presencePercentage;
-    },
-    roundedConfirmationTraining() {
-      return Math.round(this.metricsConfirmationTraining);
-    },
-    roundedConfirmationPresence() {
-      return Math.round(this.metricsConfirmationPresence);
-    },
-    status() {
-      // Usar displayStatus se disponível, caso contrário usar status
-      return this.data.displayStatus || this.data.status || "pending";
-    },
-    statusLabel() {
-      const statusMap = {
-        pending: "Agendado",
-        pending_action: "Pendente ação",
-        finished: "Finalizado",
-        cancelled: "Cancelado",
-      };
-      return statusMap[this.status.toLowerCase()] || "Agendado";
-    },
-    statusClass() {
-      const status = this.status.toLowerCase();
-      return {
-        "status-pending": status === "pending",
-        "status-pending-action": status === "pending_action",
-        "status-finished": status === "finished",
-        "status-cancelled": status === "cancelled",
-      };
-    },
-  },
-  methods: {
-    isBeforeTrainingDate() {
-      return new Date(this.data.dateStart) > new Date();
+    formattedTimeRange() {
+      const start = this.data?.dateStart ? moment(this.data.dateStart) : null;
+      const end = this.data?.dateEnd ? moment(this.data.dateEnd) : null;
+      if (!start || !start.isValid()) return "-";
+      const startTime = start.format("HH:mm");
+      const endTime = end && end.isValid() ? end.format("HH:mm") : "-";
+      return `${startTime} – ${endTime}`;
     },
   },
 };
@@ -98,53 +50,25 @@ export default {
 .training-cell {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   padding: 4px 0;
+  min-width: 0;
 }
 
-.training-header {
+.training-meta {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.training-date-line,
+.training-time-line {
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-}
-
-.training-id {
-  font-weight: 700;
-  font-size: 13px;
-  color: #FF4E1B;
-  line-height: 1.4;
-}
-
-.training-status-badge {
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  white-space: nowrap;
-}
-
-.status-pending {
-  background-color: #fef3c7;
-  color: #d97706;
-}
-
-.status-finished {
-  background-color: #d1fae5;
-  color: #059669;
-}
-
-.status-cancelled {
-  background-color: #fee2e2;
-  color: #dc2626;
-}
-
-.status-pending-action {
-  background-color: #fef3c7;
-  color: #d97706;
-  border: 1px solid #fbbf24;
+  gap: 6px;
+  font-size: 12px;
+  color: #6c757d;
+  font-weight: 500;
 }
 
 .training-name {
@@ -152,52 +76,6 @@ export default {
   font-size: 14px;
   color: #0b1e3a;
   line-height: 1.4;
-}
-
-.training-metrics {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.metrics-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.metrics-label {
-  font-size: 12px;
-  font-weight: 500;
-  color: #6c757d;
-}
-
-.metrics-percentage {
-  font-size: 14px;
-  font-weight: 700;
-  color: #FF4E1B;
-}
-
-.metrics-percentage.success {
-  color: #28a745;
-}
-
-.progress-bar-container {
-  height: 4px;
-  background: #f0f0f0;
-  border-radius: 2px;
-  overflow: hidden;
-  width: 100%;
-}
-
-.progress-bar-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #FF4E1B 0%, #f5a872 100%);
-  border-radius: 2px;
-  transition: width 0.3s ease;
-}
-
-.progress-bar-fill.success {
-  background: linear-gradient(90deg, #28a745 0%, #20c997 100%);
+  word-break: break-word;
 }
 </style>

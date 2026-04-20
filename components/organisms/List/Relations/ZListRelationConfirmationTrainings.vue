@@ -9,7 +9,7 @@
         <h3 class="players-list-title">Jogadores Relacionados</h3>
         <ZDatatableGeneric
           selectable
-          :includeActionsColumn="false"
+          :includeActionsColumn="true"
           includeActionDeleteList
           disableActionDelete
           :items="items"
@@ -20,122 +20,169 @@
         >
           <!-- FILTER -->
 
-          <!-- CELL -->
-          <template #cell(user)="{ rowKey: { player } }">
-            <ZUser :data="player" :showPosition="true" />
-          </template>
-          <template
-            #cell(presence)="{
-              rowKey: { id, player, presence, trainingId, status },
-            }"
-          >
-            <div class="presence-cell">
-              <!-- Mostra ícone de status atual -->
-              <div
-                v-if="presence === null || presence === undefined"
-                class="presence-status"
-              >
-                <VaIcon color="secondary" name="pending" :size="20" />
-                <span class="presence-text">Não marcado</span>
+          <!-- CELL: jogador — nome, posição, time -->
+          <template #cell(user)="{ rowKey }">
+            <div class="player-info-cell">
+              <div class="player-info-name">
+                {{ rowKey.player?.displayName || rowKey.player?.name || "—" }}
               </div>
-              <div v-else-if="presence" class="presence-status">
-                <VaIcon color="success" name="check" :size="20" />
-                <span class="presence-text">Presente</span>
+              <div class="player-info-meta">
+                <span class="player-meta-label">Posição</span>
+                <span class="player-meta-value">{{
+                  formatPositions(rowKey.player)
+                }}</span>
               </div>
-              <div v-else class="presence-status">
-                <VaIcon color="danger" name="close" :size="20" />
-                <span class="presence-text">Ausente</span>
-              </div>
-
-              <!-- Botões para técnico marcar presença real -->
-              <div v-if="hasAdminOrTechnicianRole()" class="presence-buttons">
-                <ZButton
-                  v-if="presence !== true"
-                  color="success"
-                  size="small"
-                  class="presence-button"
-                  @click="
-                    actionConfirmPresence(id, player.id, trainingId, true)
-                  "
-                >
-                  <VaIcon name="check" :size="14" />
-                  Marcar como Presente
-                </ZButton>
-                <ZButton
-                  v-if="presence !== false"
-                  color="danger"
-                  size="small"
-                  class="presence-button"
-                  @click="
-                    actionConfirmPresence(id, player.id, trainingId, false)
-                  "
-                >
-                  <VaIcon name="close" :size="14" />
-                  Marcar como Ausente
-                </ZButton>
+              <div class="player-info-meta">
+                <span class="player-meta-label">Time</span>
+                <span class="player-meta-value">{{
+                  playerTeamLabel(rowKey)
+                }}</span>
               </div>
             </div>
           </template>
+
+          <template
+            #cell(presence)="{
+              rowKey: { id, player, presence, trainingId },
+            }"
+          >
+            <div class="presence-cell">
+              <template v-if="presence === true">
+                <div
+                  class="pill pill-presence pill-presence--present"
+                >
+                  <va-icon name="how_to_reg" size="16px" />
+                  <span>Presente</span>
+                </div>
+              </template>
+              <template v-else-if="presence === false">
+                <div
+                  class="pill pill-presence pill-presence--absent"
+                >
+                  <va-icon name="person_off" size="16px" />
+                  <span>Ausente</span>
+                </div>
+              </template>
+              <template
+                v-else-if="hasAdminOrTechnicianRole() && !isEditingRow(id)"
+              >
+                <span class="presence-placeholder presence-placeholder--dash"
+                  >—</span
+                >
+              </template>
+              <div v-else-if="!hasAdminOrTechnicianRole()" class="presence-placeholder">
+                Aguardando o técnico marcar a presença.
+              </div>
+
+              <div
+                v-if="
+                  isEditingRow(id) &&
+                  hasAdminOrTechnicianRole()
+                "
+                class="squircle-actions"
+                role="group"
+                :aria-label="'Presença: ' + (player?.displayName || player?.name || '')"
+              >
+                <button
+                  type="button"
+                  class="squircle-btn squircle-btn--yes"
+                  title="Marcar presente"
+                  @click="
+                    onConfirmPresence(id, player.id, trainingId, true)
+                  "
+                >
+                  <va-icon name="check" size="20px" />
+                </button>
+                <button
+                  type="button"
+                  class="squircle-btn squircle-btn--no"
+                  title="Marcar ausente"
+                  @click="
+                    onConfirmPresence(id, player.id, trainingId, false)
+                  "
+                >
+                  <va-icon name="close" size="20px" />
+                </button>
+              </div>
+            </div>
+          </template>
+
           <template
             #cell(presenceIntention)="{
               rowKey: { id, player, status, trainingId },
             }"
           >
-            <div class="presence-intention-cell">
-              <!-- Status Badge -->
-              <div class="status-badge-wrapper">
-                <ZButton
-                  :color="defineColorStatus(status)"
-                  size="small"
-                  :disabled="true"
-                  class="status-badge"
-                >
-                  <VaIcon
-                    v-if="status == 'REJECTED'"
-                    name="close"
-                    :size="16"
-                    class="status-icon"
-                  />
-                  <VaIcon
-                    v-if="status == 'CONFIRMED'"
-                    name="checked"
-                    :size="16"
-                    class="status-icon"
-                  />
-                  <VaIcon
-                    v-if="status == 'PENDING'"
-                    name="pending"
-                    :size="16"
-                    class="status-icon"
-                  />
-                  {{ transformText(status) }}
-                </ZButton>
+            <div class="intention-cell">
+              <div
+                v-if="normalizeIntentionStatus(status) === 'CONFIRMED'"
+                class="pill pill-intention pill-intention--confirmed"
+              >
+                <va-icon name="check_circle" size="16px" />
+                <span>Confirmado</span>
+              </div>
+              <div
+                v-else-if="normalizeIntentionStatus(status) === 'REJECTED'"
+                class="pill pill-intention pill-intention--rejected"
+              >
+                <va-icon name="cancel" size="16px" />
+                <span>Rejeitado</span>
+              </div>
+              <div v-else class="pill pill-intention pill-intention--pending">
+                <va-icon name="schedule" size="16px" />
+                <span>Pendente</span>
               </div>
 
-              <!-- Action Buttons - Only show if user can interact -->
               <div
-                v-if="canInteractWithStatus(player)"
-                class="intention-buttons"
+                v-if="
+                  isEditingRow(id) &&
+                  canInteractWithStatus(player) &&
+                  normalizeIntentionStatus(status) === 'PENDING'
+                "
+                class="squircle-actions"
+                role="group"
+                :aria-label="'Intenção: ' + (player?.displayName || player?.name || '')"
               >
-                <ZButton
-                  color="success"
-                  size="small"
-                  class="intention-button"
-                  @click="actionConfirm(id, player.id, trainingId)"
+                <button
+                  type="button"
+                  class="squircle-btn squircle-btn--yes"
+                  title="Confirmar presença"
+                  @click="onConfirmIntention(id, player.id, trainingId)"
                 >
-                  <VaIcon name="check" :size="14" />
-                  Confirmar
-                </ZButton>
-                <ZButton
-                  color="danger"
-                  size="small"
-                  class="intention-button"
-                  @click="actionReject(id, player.id, trainingId)"
+                  <va-icon name="check" size="20px" />
+                </button>
+                <button
+                  type="button"
+                  class="squircle-btn squircle-btn--no"
+                  title="Rejeitar"
+                  @click="onRejectIntention(id, player.id, trainingId)"
                 >
-                  <VaIcon name="close" :size="14" />
-                  Rejeitar
-                </ZButton>
+                  <va-icon name="close" size="20px" />
+                </button>
               </div>
+            </div>
+          </template>
+
+          <template #cell(actions)="{ rowKey }">
+            <div class="row-actions">
+              <template v-if="editingRowId === rowKey.id">
+                <button
+                  type="button"
+                  class="link-action"
+                  @click="cancelEdit"
+                >
+                  Cancelar
+                </button>
+              </template>
+              <template v-else-if="canShowEditar(rowKey)">
+                <button
+                  type="button"
+                  class="link-action link-action--edit"
+                  @click="startEdit(rowKey.id)"
+                >
+                  Editar
+                </button>
+              </template>
+              <span v-else class="row-actions__none">—</span>
             </div>
           </template>
         </ZDatatableGeneric>
@@ -147,16 +194,12 @@
 <script>
 import ZListRelationGeneric from "~/components/molecules/List/ZListRelationGeneric";
 import ZDatatableGeneric from "~/components/molecules/Datatable/ZDatatableGeneric";
-import ZUser from "~/components/molecules/Datatable/Slots/ZUser";
-import ZButton from "~/components/atoms/Buttons/ZButton";
 import ME from "~/graphql/user/query/me.graphql";
 
 export default {
   components: {
     ZListRelationGeneric,
     ZDatatableGeneric,
-    ZUser,
-    ZButton,
   },
   emits: [
     "add",
@@ -189,6 +232,7 @@ export default {
   data() {
     return {
       loading: false,
+      editingRowId: null,
       paginatorInfo: {
         currentPage: 1,
         firstItem: 0,
@@ -199,6 +243,35 @@ export default {
     };
   },
   methods: {
+    isEditingRow(id) {
+      return this.editingRowId === id;
+    },
+    startEdit(id) {
+      this.editingRowId = id;
+    },
+    cancelEdit() {
+      this.editingRowId = null;
+    },
+    canShowEditar(rowKey) {
+      if (!rowKey) return false;
+      if (this.hasAdminOrTechnicianRole()) return true;
+      return (
+        this.canInteractWithStatus(rowKey.player) &&
+        this.normalizeIntentionStatus(rowKey.status) === "PENDING"
+      );
+    },
+    onConfirmIntention(id, playerId, trainingId) {
+      this.actionConfirm(id, playerId, trainingId);
+      this.editingRowId = null;
+    },
+    onRejectIntention(id, playerId, trainingId) {
+      this.actionReject(id, playerId, trainingId);
+      this.editingRowId = null;
+    },
+    onConfirmPresence(id, playerId, trainingId, presence) {
+      this.actionConfirmPresence(id, playerId, trainingId, presence);
+      this.editingRowId = null;
+    },
     add() {
       this.$emit("add");
     },
@@ -247,20 +320,32 @@ export default {
         this.user.roles.some((role) => role.name === "Jogador")
       );
     },
-    transformText(text) {
-      return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
+    normalizeIntentionStatus(status) {
+      const s = String(status ?? "PENDING").toUpperCase();
+      if (s === "CONFIRMED") return "CONFIRMED";
+      if (s === "REJECTED") return "REJECTED";
+      return "PENDING";
     },
-    defineColorStatus(status) {
-      switch (status) {
-        case "PENDING":
-          return "secondary";
-        case "REJECTED":
-          return "danger";
-        case "CONFIRMED":
-          return "success";
-        default:
-          return "primary";
+    formatPositions(player) {
+      const positions = player?.positions;
+      if (!Array.isArray(positions) || positions.length === 0) {
+        return "—";
       }
+      const names = positions.map((p) => p?.name).filter(Boolean);
+      return names.length ? names.join(", ") : "—";
+    },
+    playerTeamLabel(row) {
+      const player = row?.player;
+      const teamId = row?.teamId;
+      if (teamId == null || teamId === "") {
+        return "Avulso";
+      }
+      const teams = player?.teams;
+      if (Array.isArray(teams)) {
+        const match = teams.find((t) => String(t.id) === String(teamId));
+        if (match?.name) return match.name;
+      }
+      return "—";
     },
     canInteractWithStatus(player) {
       if (!player || !this.user) return false;
@@ -301,20 +386,19 @@ export default {
       const intentionColumn = {
         key: "presenceIntention",
         name: "presenceIntention",
-        label: "Intenção de Presença",
+        label: "INTENÇÃO",
         sortable: true,
-        width: 200,
+        width: 260,
       };
 
       baseColumns.push(intentionColumn);
 
-      // Coluna de Presença Real (sempre visível para técnico marcar)
       baseColumns.push({
         key: "presence",
         name: "presence",
-        label: "Presença Real",
+        label: "PRESENÇA REAL",
         sortable: true,
-        width: 200,
+        width: 260,
       });
 
       return baseColumns;
@@ -336,7 +420,6 @@ export default {
   min-width: 0;
 }
 
-/* Garantir que a tabela seja responsiva */
 :deep(.va-data-table__table) {
   table-layout: auto;
   width: 100%;
@@ -346,13 +429,11 @@ export default {
 .players-list-title {
   font-size: 16px;
   font-weight: 700;
-  color: #FF4E1B;
+  color: #ff4e1b;
   margin-bottom: 16px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
-
-/* Estilos para células da tabela já definidos acima */
 
 :deep(.va-data-table__table tbody tr) {
   height: auto;
@@ -360,288 +441,270 @@ export default {
 }
 
 :deep(.va-data-table__table tbody td) {
-  vertical-align: top;
+  vertical-align: middle;
   padding-top: 12px;
   padding-bottom: 12px;
 }
 
-/* Coluna de Jogador */
-:deep(.va-data-table__table td:nth-child(1)),
-:deep(.va-data-table__table th:nth-child(1)) {
-  width: auto;
-  min-width: 200px;
-  max-width: 400px;
-}
-
-:deep(.va-data-table__table td:nth-child(1)) {
-  padding: 12px 8px;
-  vertical-align: top;
-}
-
-/* Colunas de Ação - Responsivas */
+/* Com selectable: 1=checkbox; 2=jogador; 3=intenção; 4=presença; 5=ações */
 :deep(.va-data-table__table td:nth-child(2)),
-:deep(.va-data-table__table th:nth-child(2)),
-:deep(.va-data-table__table td:nth-child(3)),
-:deep(.va-data-table__table th:nth-child(3)) {
+:deep(.va-data-table__table th:nth-child(2)) {
   width: auto;
-  min-width: 160px;
-  max-width: 200px;
+  min-width: 220px;
+  max-width: 380px;
 }
 
+:deep(.va-data-table__table td:nth-child(3)),
+:deep(.va-data-table__table th:nth-child(3)),
+:deep(.va-data-table__table td:nth-child(4)),
+:deep(.va-data-table__table th:nth-child(4)) {
+  min-width: 200px;
+  max-width: 320px;
+}
+
+:deep(.va-data-table__table td:nth-child(5)),
+:deep(.va-data-table__table th:nth-child(5)) {
+  width: 100px;
+  min-width: 96px;
+  max-width: 120px;
+  text-align: center;
+}
+
+/* Jogador */
+.player-info-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+}
+
+.player-info-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0b1e3a;
+  line-height: 1.3;
+}
+
+.player-info-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.player-meta-label {
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+
+.player-meta-value {
+  font-weight: 600;
+  color: #374151;
+}
+
+/* Pills (intenção e presença) */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.pill :deep(.va-icon) {
+  flex-shrink: 0;
+}
+
+.pill-intention--confirmed {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.pill-intention--confirmed :deep(.va-icon) {
+  color: #15803d !important;
+}
+
+.pill-intention--pending {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.pill-intention--pending :deep(.va-icon) {
+  color: #d97706 !important;
+}
+
+.pill-intention--rejected {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.pill-intention--rejected :deep(.va-icon) {
+  color: #b91c1c !important;
+}
+
+.pill-presence--present {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.pill-presence--present :deep(.va-icon) {
+  color: #15803d !important;
+}
+
+.pill-presence--absent {
+  background: #ffe4e6;
+  color: #be123c;
+}
+
+.pill-presence--absent :deep(.va-icon) {
+  color: #be123c !important;
+}
+
+.intention-cell,
 .presence-cell {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  min-height: 40px;
-  width: 100%;
-  min-width: 0;
-}
-
-.presence-status {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  flex-wrap: wrap;
-}
-
-.presence-text {
-  font-size: 12px;
-  color: #0b1e3a;
-  font-weight: 500;
-  white-space: nowrap;
-}
-
-.presence-buttons {
-  display: flex;
-  gap: 4px;
-  flex-wrap: wrap;
-  width: 100%;
-  justify-content: center;
-  min-width: 0;
-}
-
-.presence-button {
-  font-size: 11px;
-  padding: 4px 8px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  border-radius: 6px;
-  font-weight: 500;
-  white-space: nowrap;
-  flex-shrink: 0;
-  min-width: fit-content;
-  max-width: 100%;
-}
-
-.presence-pending {
-  color: #9ca3af;
-  font-size: 14px;
-}
-
-.presence-intention-cell {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
   align-items: flex-start;
-  width: 100%;
-  min-width: 0;
-}
-
-.status-badge-wrapper {
-  width: 100%;
-  min-width: 0;
-}
-
-.status-badge {
-  font-size: 11px;
-  padding: 4px 10px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  width: 100%;
   justify-content: center;
-  border-radius: 6px;
-  font-weight: 500;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.status-icon {
-  flex-shrink: 0;
-}
-
-.intention-buttons {
-  display: flex;
-  gap: 4px;
-  flex-wrap: wrap;
+  gap: 10px;
+  min-height: 44px;
   width: 100%;
   min-width: 0;
 }
 
-.intention-button {
-  font-size: 11px;
-  padding: 4px 8px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  flex: 1 1 auto;
-  min-width: 70px;
-  max-width: 100%;
-  border-radius: 6px;
-  font-weight: 500;
-  white-space: nowrap;
-  flex-shrink: 1;
-  justify-content: center;
-}
-
-.actions-cell {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.action-button {
+.presence-placeholder {
   font-size: 12px;
-  padding: 4px 12px;
-  white-space: nowrap;
+  color: #6b7280;
+  font-weight: 600;
+  line-height: 1.4;
+  max-width: 220px;
+}
+
+.presence-placeholder--dash {
+  color: #9ca3af;
+  font-weight: 700;
+}
+
+.link-action {
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.link-action--muted {
+  color: #64748b;
+}
+
+.link-action--muted:hover {
+  color: #0f172a;
+}
+
+.link-action--edit {
+  color: #ff4e1b;
+  font-weight: 800;
+}
+
+.link-action--edit:hover {
+  color: #c53d16;
+}
+
+.row-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+}
+
+.row-actions__none {
+  color: #d1d5db;
+  font-weight: 700;
+}
+
+.squircle-actions {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.squircle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: transform 0.08s ease, filter 0.15s ease;
+}
+
+.squircle-btn:active {
+  transform: scale(0.96);
+}
+
+.squircle-btn :deep(.va-icon) {
   flex-shrink: 0;
 }
 
-/* Estilos para o componente ZUser dentro da célula */
-:deep(.va-data-table__table td:nth-child(1) .user-cell) {
-  max-width: 100%;
-  min-width: 0;
+.squircle-btn--yes {
+  background: #ecfdf5;
+  color: #15803d;
 }
 
-/* Responsividade para tablets */
+.squircle-btn--yes :deep(.va-icon) {
+  color: #15803d !important;
+}
+
+.squircle-btn--yes:hover {
+  filter: brightness(0.97);
+}
+
+.squircle-btn--no {
+  background: #fff1f2;
+  color: #be123c;
+}
+
+.squircle-btn--no :deep(.va-icon) {
+  color: #be123c !important;
+}
+
+.squircle-btn--no:hover {
+  filter: brightness(0.97);
+}
+
 @media (max-width: 1024px) {
   .players-list-wrapper :deep(.va-data-table) {
-    min-width: 600px;
-  }
-
-  :deep(.va-data-table__table td:nth-child(1)),
-  :deep(.va-data-table__table th:nth-child(1)) {
-    max-width: 350px;
-    min-width: 200px;
-  }
-
-  :deep(.va-data-table__table td:nth-child(2)),
-  :deep(.va-data-table__table th:nth-child(2)),
-  :deep(.va-data-table__table td:nth-child(3)),
-  :deep(.va-data-table__table th:nth-child(3)) {
-    min-width: 140px;
-    max-width: 180px;
-  }
-
-  .presence-button,
-  .intention-button {
-    font-size: 10px;
-    padding: 4px 6px;
-    min-width: 70px;
+    min-width: 640px;
   }
 }
 
-/* Responsividade para tablets pequenos */
-@media (max-width: 900px) {
-  .players-list-wrapper :deep(.va-data-table) {
-    min-width: 500px;
-  }
-
-  :deep(.va-data-table__table td:nth-child(1)),
-  :deep(.va-data-table__table th:nth-child(1)) {
-    max-width: 300px;
-    min-width: 180px;
-  }
-
-  :deep(.va-data-table__table td:nth-child(2)),
-  :deep(.va-data-table__table th:nth-child(2)),
-  :deep(.va-data-table__table td:nth-child(3)),
-  :deep(.va-data-table__table th:nth-child(3)) {
-    min-width: 120px;
-    max-width: 160px;
-  }
-}
-
-/* Responsividade para mobile */
 @media (max-width: 768px) {
   .players-list-title {
     font-size: 14px;
   }
 
-  /* Em mobile, fazer as colunas empilharem */
-  :deep(.va-data-table__table) {
-    display: block;
-  }
-
-  :deep(.va-data-table__table thead) {
-    display: none;
-  }
-
-  :deep(.va-data-table__table tbody) {
-    display: block;
-  }
-
-  :deep(.va-data-table__table tr) {
-    display: block;
-    margin-bottom: 16px;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    padding: 12px;
-    background: white;
-  }
-
-  :deep(.va-data-table__table td) {
-    display: block;
-    width: 100% !important;
-    max-width: 100% !important;
-    min-width: 0 !important;
-    border: none;
-    padding: 8px 0;
-    text-align: left;
-  }
-
-  :deep(.va-data-table__table td:before) {
-    content: attr(data-label);
-    font-weight: 700;
-    display: block;
-    margin-bottom: 4px;
-    color: #4a5568;
-    font-size: 12px;
-    text-transform: uppercase;
-  }
-
-  .intention-buttons {
-    flex-direction: column;
-    width: 100%;
-  }
-
-  .intention-button {
-    width: 100%;
-    min-width: 0;
-  }
-
-  .presence-buttons {
-    flex-direction: column;
-    width: 100%;
-  }
-
-  .presence-button {
-    width: 100%;
-    min-width: 0;
-  }
-
-  .actions-cell {
-    flex-direction: column;
-    width: 100%;
-  }
-
-  .action-button {
-    width: 100%;
+  .players-list-wrapper :deep(.va-data-table) {
+    min-width: 520px;
   }
 }
 </style>

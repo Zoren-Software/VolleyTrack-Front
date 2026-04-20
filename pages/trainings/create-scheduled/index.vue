@@ -5,7 +5,7 @@
         <h1 class="title">Treinos programados</h1>
         <va-popover
           placement="bottom"
-          trigger="click"
+          trigger="hover"
           class="scheduled-info-popover"
         >
           <button
@@ -15,25 +15,21 @@
           >
             <va-icon name="info_outline" size="28px" color="#FF4E1B" />
           </button>
-          <template #title>Geração automática</template>
           <template #body>
             <div class="scheduled-popover-body">
+              <h3 class="scheduled-popover-title">Geração automática</h3>
               <p class="scheduled-popover-lead">
-                Os treinos serão criados automaticamente com:
+                Ao cadastrar um período, o sistema cria um treino para cada dia
+                selecionado dentro do intervalo.
               </p>
               <ul class="scheduled-popover-list">
                 <li>
-                  <strong>Nome:</strong> &quot;Nome do treino #1&quot;,
-                  &quot;Nome do treino #2&quot; — nome provisório; você poderá
-                  alterar depois.
+                  <strong>Nome e descrição</strong> são preenchidos com um padrão
+                  inicial e podem ser ajustados depois na edição.
                 </li>
                 <li>
-                  <strong>Descrição:</strong> &quot;Descreva aqui a descrição
-                  detalhada de cada treino na edição do treino&quot;
-                </li>
-                <li>
-                  <strong>Fundamentos:</strong> devem ser definidos na edição de
-                  cada treino.
+                  <strong>Fundamentos</strong> são definidos na edição de cada
+                  treino, se necessário.
                 </li>
               </ul>
             </div>
@@ -126,6 +122,19 @@ useHead({
 .scheduled-popover-body {
   max-width: 320px;
   text-align: left;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 78, 27, 0.35);
+  background: #fff4ec;
+  box-shadow: 0 10px 24px rgba(17, 24, 39, 0.12);
+}
+
+.scheduled-popover-title {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #111827;
+  letter-spacing: 0.01em;
 }
 
 .scheduled-popover-lead {
@@ -134,6 +143,19 @@ useHead({
   font-weight: 600;
   color: #111827;
   line-height: 1.4;
+}
+
+/* Remove o "fundo preto" padrão do popover (conteúdo é teleported). */
+:global(.scheduled-info-popover),
+:global(.scheduled-info-popover .va-popover__content),
+:global(.scheduled-info-popover .va-popover__content-wrapper),
+:global(.scheduled-info-popover .va-popover__container),
+:global(.scheduled-info-popover .va-popover__popover),
+:global(.scheduled-info-popover .va-popover__inner) {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  padding: 0 !important;
 }
 
 .scheduled-popover-list {

@@ -1,205 +1,155 @@
 <template>
   <div
     class="form-container"
-    :class="{ 'form-container-full-width': controlledStep === 4 }"
+    :class="{ 'form-container-full-width': controlledStep === 3 }"
   >
-    <va-card
+    <div
       class="training-form-card"
-      :class="{ 'training-form-card-full-width': controlledStep === 4 }"
+      :class="{ 'training-form-card-full-width': controlledStep === 3 }"
     >
       <va-form ref="myForm" class="flex flex-col gap-6 mb-2">
         <va-stepper v-model="controlledStep" :steps="steps" controls-hidden>
           <!-- Etapa 1: Informações Gerais -->
           <template #step-content-0>
             <div class="step-content">
-              <h2 class="section-title">Informações Gerais</h2>
-              <ZTextInput
-                id="name"
-                v-model="form.name"
-                name="name"
-                label="Nome"
-                class="mb-3"
-                :error-messages="errors.name || []"
-              />
-              <VaTextarea
-                id="description"
-                v-model="form.description"
-                style="width: 100%"
-                name="description"
-                label="Descrição do Treino"
-                class="mb-3"
-                :error="errorFields.includes('description')"
-                :error-messages="errors.description || []"
-              />
-              <ZDateTimeRangePicker
-                id="dateTimeRange"
-                label="Data Inicio"
-                clearable
-                :date="form.dateValue"
-                :time-start="form.timeStartValue"
-                :time-end="form.timeEndValue"
-                @update:date="form.dateValue = $event"
-                @update:time-start="form.timeStartValue = $event"
-                @update:time-end="form.timeEndValue = $event"
-              />
+              <va-card class="training-step-card">
+                <h2 class="section-title">Informações gerais</h2>
+                <ZTextInput
+                  id="name"
+                  v-model="form.name"
+                  name="name"
+                  label="Nome"
+                  class="mb-3"
+                  :error-messages="errors.name || []"
+                />
+                <VaTextarea
+                  id="description"
+                  v-model="form.description"
+                  style="width: 100%"
+                  name="description"
+                  label="Descrição do treino"
+                  class="mb-3"
+                  :error="errorFields.includes('description')"
+                  :error-messages="errors.description || []"
+                />
+                <ZDateTimeRangePicker
+                  id="dateTimeRange"
+                  label="Data início"
+                  clearable
+                  :date="form.dateValue"
+                  :time-start="form.timeStartValue"
+                  :time-end="form.timeEndValue"
+                  @update:date="form.dateValue = $event"
+                  @update:time-start="form.timeStartValue = $event"
+                  @update:time-end="form.timeEndValue = $event"
+                />
+              </va-card>
 
-              <h3 class="subsection-title">Status do Treino</h3>
-              <div
-                class="training-status-wrapper"
-                :class="{
-                  'training-status-wrapper--error':
-                    errorFields.includes('status'),
-                }"
-              >
-                <div class="training-status-grid">
-                  <div
-                    v-for="opt in trainingStatusCards"
-                    :key="opt.value"
-                    role="button"
-                    tabindex="0"
-                    :class="[
-                      'training-status-card',
-                      {
-                        'training-status-card--selected':
-                          isTrainingStatusSelected(opt.value),
-                        'training-status-card--error':
-                          errorFields.includes('status'),
-                      },
-                    ]"
-                    @click="selectTrainingStatus(opt.value)"
-                    @keydown.enter.prevent="selectTrainingStatus(opt.value)"
-                    @keydown.space.prevent="selectTrainingStatus(opt.value)"
-                  >
-                    <va-icon
-                      class="training-status-card-icon"
-                      :name="opt.icon"
-                      :color="
-                        isTrainingStatusSelected(opt.value)
-                          ? '#FF4E1B'
-                          : '#9CA3AF'
-                      "
-                      size="22px"
-                    />
-                    <div class="training-status-info">
-                      <h4 class="training-status-title">{{ opt.title }}</h4>
-                      <p class="training-status-description">
-                        {{ opt.description }}
-                      </p>
+              <va-card class="training-step-card">
+                <h2 class="section-title">Status do treino</h2>
+                <div
+                  class="training-status-wrapper"
+                  :class="{
+                    'training-status-wrapper--error':
+                      errorFields.includes('status'),
+                  }"
+                >
+                  <div class="training-status-grid">
+                    <div
+                      v-for="opt in trainingStatusCards"
+                      :key="opt.value"
+                      role="button"
+                      tabindex="0"
+                      :class="[
+                        'training-status-card',
+                        {
+                          'training-status-card--selected':
+                            isTrainingStatusSelected(opt.value),
+                          'training-status-card--error':
+                            errorFields.includes('status'),
+                        },
+                      ]"
+                      @click="selectTrainingStatus(opt.value)"
+                      @keydown.enter.prevent="selectTrainingStatus(opt.value)"
+                      @keydown.space.prevent="selectTrainingStatus(opt.value)"
+                    >
+                      <va-icon
+                        class="training-status-card-icon"
+                        :name="opt.icon"
+                        :color="
+                          isTrainingStatusSelected(opt.value)
+                            ? '#FF4E1B'
+                            : '#9CA3AF'
+                        "
+                        size="22px"
+                      />
+                      <div class="training-status-info">
+                        <h4 class="training-status-title">{{ opt.title }}</h4>
+                        <p class="training-status-description">
+                          {{ opt.description }}
+                        </p>
+                      </div>
                     </div>
                   </div>
+                  <div
+                    v-if="
+                      errorFields.includes('status') &&
+                      errors.status &&
+                      errors.status.length
+                    "
+                    class="training-status-error-message"
+                  >
+                    <va-icon name="error" size="small" color="danger" />
+                    <span>{{ (errors.status || []).join(" ") }}</span>
+                  </div>
                 </div>
-                <div
-                  v-if="
-                    errorFields.includes('status') &&
-                    errors.status &&
-                    errors.status.length
-                  "
-                  class="training-status-error-message"
-                >
-                  <va-icon name="error" size="small" color="danger" />
-                  <span>{{ (errors.status || []).join(" ") }}</span>
-                </div>
-              </div>
+              </va-card>
             </div>
           </template>
 
           <!-- Etapa 2: Fundamentos -->
           <template #step-content-1>
             <div class="step-content">
-              <h2 class="section-title">Fundamentos</h2>
-              <p class="subsection-description fundamental-section-hint">
-                Selecione um ou mais fundamentos gerais do treino.
-              </p>
-              <div
-                v-if="fundamentalsCatalogLoading"
-                class="fundamentals-loading"
-              >
-                <va-progress-circle indeterminate size="small" />
-                <span>Carregando fundamentos...</span>
-              </div>
-              <p
-                v-else-if="!fundamentalCatalog.length"
-                class="fundamental-empty-hint mb-5"
-              >
-                Nenhum fundamento geral disponível no sistema.
-              </p>
-              <div v-else class="fundamental-pick-grid mb-5">
-                <div
-                  v-for="item in fundamentalCatalog"
-                  :key="'f-' + item.id"
-                  role="button"
-                  tabindex="0"
-                  :class="[
-                    'fundamental-pick-card',
-                    {
-                      'fundamental-pick-card--selected':
-                        isFundamentalPicked(item.id),
-                    },
-                  ]"
-                  @click="toggleFundamentalPick(item)"
-                  @keydown.enter.prevent="toggleFundamentalPick(item)"
-                  @keydown.space.prevent="toggleFundamentalPick(item)"
-                >
-                  <va-icon
-                    class="fundamental-pick-card-icon"
-                    name="sports_volleyball"
-                    :color="
-                      isFundamentalPicked(item.id) ? '#FF4E1B' : '#9CA3AF'
-                    "
-                    size="22px"
-                  />
-                  <span class="fundamental-pick-card-title">{{
-                    item.name
-                  }}</span>
-                </div>
-              </div>
-
-              <template v-if="form.fundamentals && form.fundamentals.length">
-                <h4 class="fundamental-specific-heading">
-                  Fundamentos específicos
-                </h4>
+              <va-card class="training-step-card">
+                <h2 class="section-title">Fundamentos</h2>
                 <p class="subsection-description fundamental-section-hint">
-                  Escolha uma ou mais opções ligadas aos fundamentos selecionados.
+                  Selecione um ou mais fundamentos gerais do treino.
                 </p>
                 <div
-                  v-if="specificFundamentalsLoading"
+                  v-if="fundamentalsCatalogLoading"
                   class="fundamentals-loading"
                 >
                   <va-progress-circle indeterminate size="small" />
-                  <span>Carregando fundamentos específicos...</span>
+                  <span>Carregando fundamentos...</span>
                 </div>
                 <p
-                  v-else-if="!specificFundamentalCatalog.length"
-                  class="fundamental-empty-hint"
+                  v-else-if="!fundamentalCatalog.length"
+                  class="fundamental-empty-hint mb-5"
                 >
-                  Não há fundamentos específicos cadastrados para a combinação
-                  selecionada.
+                  Nenhum fundamento geral disponível no sistema.
                 </p>
                 <div v-else class="fundamental-pick-grid mb-5">
                   <div
-                    v-for="item in specificFundamentalCatalog"
-                    :key="'sf-' + item.id"
+                    v-for="item in fundamentalCatalog"
+                    :key="'f-' + item.id"
                     role="button"
                     tabindex="0"
                     :class="[
                       'fundamental-pick-card',
-                      'fundamental-pick-card--specific',
                       {
                         'fundamental-pick-card--selected':
-                          isSpecificFundamentalPicked(item.id),
+                          isFundamentalPicked(item.id),
                       },
                     ]"
-                    @click="toggleSpecificFundamentalPick(item)"
-                    @keydown.enter.prevent="toggleSpecificFundamentalPick(item)"
-                    @keydown.space.prevent="toggleSpecificFundamentalPick(item)"
+                    @click="toggleFundamentalPick(item)"
+                    @keydown.enter.prevent="toggleFundamentalPick(item)"
+                    @keydown.space.prevent="toggleFundamentalPick(item)"
                   >
                     <va-icon
                       class="fundamental-pick-card-icon"
-                      name="tune"
+                      name="sports_volleyball"
                       :color="
-                        isSpecificFundamentalPicked(item.id)
-                          ? '#FF4E1B'
-                          : '#9CA3AF'
+                        isFundamentalPicked(item.id) ? '#FF4E1B' : '#9CA3AF'
                       "
                       size="22px"
                     />
@@ -208,108 +158,112 @@
                     }}</span>
                   </div>
                 </div>
-              </template>
+
+                <template v-if="form.fundamentals && form.fundamentals.length">
+                  <h4 class="fundamental-specific-heading">
+                    Fundamentos específicos
+                  </h4>
+                  <p class="subsection-description fundamental-section-hint">
+                    Escolha uma ou mais opções ligadas aos fundamentos
+                    selecionados.
+                  </p>
+                  <div
+                    v-if="specificFundamentalsLoading"
+                    class="fundamentals-loading"
+                  >
+                    <va-progress-circle indeterminate size="small" />
+                    <span>Carregando fundamentos específicos...</span>
+                  </div>
+                  <p
+                    v-else-if="!specificFundamentalCatalog.length"
+                    class="fundamental-empty-hint"
+                  >
+                    Não há fundamentos específicos cadastrados para a combinação
+                    selecionada.
+                  </p>
+                  <div v-else class="fundamental-pick-grid mb-5">
+                    <div
+                      v-for="item in specificFundamentalCatalog"
+                      :key="'sf-' + item.id"
+                      role="button"
+                      tabindex="0"
+                      :class="[
+                        'fundamental-pick-card',
+                        'fundamental-pick-card--specific',
+                        {
+                          'fundamental-pick-card--selected':
+                            isSpecificFundamentalPicked(item.id),
+                        },
+                      ]"
+                      @click="toggleSpecificFundamentalPick(item)"
+                      @keydown.enter.prevent="
+                        toggleSpecificFundamentalPick(item)
+                      "
+                      @keydown.space.prevent="
+                        toggleSpecificFundamentalPick(item)
+                      "
+                    >
+                      <va-icon
+                        class="fundamental-pick-card-icon"
+                        name="tune"
+                        :color="
+                          isSpecificFundamentalPicked(item.id)
+                            ? '#FF4E1B'
+                            : '#9CA3AF'
+                        "
+                        size="22px"
+                      />
+                      <span class="fundamental-pick-card-title">{{
+                        item.name
+                      }}</span>
+                    </div>
+                  </div>
+                </template>
+              </va-card>
             </div>
           </template>
 
           <!-- Etapa 3: Relacionar Times -->
           <template #step-content-2>
             <div class="step-content">
-              <h2 class="section-title">Relacionar Times</h2>
-              <ZListRelationTeams
-                :items="form.teams || []"
-                :selected-value="teams"
-                @add="addTeams"
-                @delete="actionDeleteTeam"
-              >
-                <template #filter>
-                  <ZSelectTeam
-                    ref="selectTeamRef"
-                    v-model="teams"
-                    class="mb-3"
-                    label="Times"
-                    :disabled="form.teams.length >= 1"
-                    :ignore-ids="form.teams.map((item) => parseInt(item.id))"
-                    :messages="
-                      form.teams.length >= 1 ? 'Você já selecionou um time' : ''
-                    "
-                  />
-                </template>
-              </ZListRelationTeams>
+              <va-card class="training-step-card">
+                <h2 class="section-title">Relacionar times</h2>
+                <ZListRelationTeams
+                  :items="form.teams || []"
+                  :selected-value="teams"
+                  @add="addTeams"
+                  @delete="actionDeleteTeam"
+                >
+                  <template #filter>
+                    <ZSelectTeam
+                      ref="selectTeamRef"
+                      v-model="teams"
+                      class="mb-3"
+                      label="Times"
+                      :disabled="form.teams.length >= 1"
+                      :ignore-ids="form.teams.map((item) => parseInt(item.id))"
+                      :messages="
+                        form.teams.length >= 1
+                          ? 'Você já selecionou um time'
+                          : ''
+                      "
+                    />
+                  </template>
+                </ZListRelationTeams>
 
-              <!-- Mostrar jogadores do time após relacionar (apenas visualização) -->
-              <div
-                v-if="
-                  form.teams &&
-                  form.teams.length > 0 &&
-                  getTeamPlayers().length > 0
-                "
-                class="mt-5"
-              >
-                <h3 class="subsection-title">Jogadores Relacionados</h3>
-                <div class="players-list-simple">
-                  <div
-                    v-for="confirmation in getTeamPlayers()"
-                    :key="confirmation.player?.id || confirmation.playerId"
-                    class="player-item-simple"
-                  >
-                    <ZUser :data="confirmation.player" />
-                    <div class="player-positions">
-                      <span
-                        v-for="(position, index) in confirmation.player
-                          ?.positions || []"
-                        :key="position?.id || index"
-                        class="position-tag"
-                      >
-                        {{ position?.name }}
-                      </span>
-                      <span
-                        v-if="
-                          !confirmation.player?.positions ||
-                          confirmation.player?.positions.length === 0
-                        "
-                        class="no-positions"
-                      >
-                        Sem posições
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Adicionar jogadores avulsos (apenas na tela de edição) -->
-              <div v-if="isTrainingSaved" class="mt-5">
-                <h3 class="subsection-title">Jogadores Avulsos</h3>
-                <p class="subsection-description mb-3">
-                  Adicione jogadores que não fazem parte do time relacionado
-                </p>
-                <div class="standalone-players-section">
-                  <ZSelectUser
-                    v-model="standalonePlayers"
-                    :ignoreIds="getAllPlayerIds()"
-                    :rolesIds="[3]"
-                    class="mb-3"
-                    label="Buscar e selecionar jogadores avulsos"
-                    placeholder="Digite o nome do jogador"
-                  />
-                  <va-button
-                    color="primary"
-                    icon="add"
-                    @click="addStandalonePlayers"
-                    class="mb-3"
-                  >
-                    Adicionar Jogador Avulso
-                  </va-button>
-                </div>
-
-                <!-- Mostrar jogadores avulsos adicionados (apenas visualização) -->
-                <div v-if="getStandalonePlayers().length > 0" class="mt-4">
-                  <h4 class="subsection-subtitle mb-3">
-                    Jogadores Avulsos Adicionados
-                  </h4>
+                <!-- Mostrar jogadores do time após relacionar (apenas visualização) -->
+                <div
+                  v-if="
+                    form.teams &&
+                    form.teams.length > 0 &&
+                    getTeamPlayers().length > 0
+                  "
+                  class="mt-5"
+                >
+                  <h3 class="subsection-title">Jogadores Relacionados</h3>
                   <div class="players-list-simple">
                     <div
-                      v-for="confirmation in getStandalonePlayers()"
+                      v-for="confirmation in getTeamPlayers()"
                       :key="confirmation.player?.id || confirmation.playerId"
                       class="player-item-simple"
                     >
@@ -336,54 +290,73 @@
                     </div>
                   </div>
                 </div>
-              </div>
+
+                <!-- Adicionar jogadores avulsos (apenas na tela de edição) -->
+                <div v-if="isTrainingSaved" class="mt-5">
+                  <h3 class="subsection-title">Jogadores Avulsos</h3>
+                  <p class="subsection-description mb-3">
+                    Adicione jogadores que não fazem parte do time relacionado
+                  </p>
+                  <div class="standalone-players-section">
+                    <ZSelectUser
+                      v-model="standalonePlayers"
+                      :ignoreIds="getAllPlayerIds()"
+                      :rolesIds="[3]"
+                      class="mb-3"
+                      label="Buscar e selecionar jogadores avulsos"
+                      placeholder="Digite o nome do jogador"
+                    />
+                    <va-button
+                      color="primary"
+                      icon="add"
+                      @click="addStandalonePlayers"
+                      class="mb-3"
+                    >
+                      Adicionar Jogador Avulso
+                    </va-button>
+                  </div>
+
+                  <!-- Mostrar jogadores avulsos adicionados (apenas visualização) -->
+                  <div v-if="getStandalonePlayers().length > 0" class="mt-4">
+                    <h4 class="subsection-subtitle mb-3">
+                      Jogadores Avulsos Adicionados
+                    </h4>
+                    <div class="players-list-simple">
+                      <div
+                        v-for="confirmation in getStandalonePlayers()"
+                        :key="confirmation.player?.id || confirmation.playerId"
+                        class="player-item-simple"
+                      >
+                        <ZUser :data="confirmation.player" />
+                        <div class="player-positions">
+                          <span
+                            v-for="(position, index) in confirmation.player
+                              ?.positions || []"
+                            :key="position?.id || index"
+                            class="position-tag"
+                          >
+                            {{ position?.name }}
+                          </span>
+                          <span
+                            v-if="
+                              !confirmation.player?.positions ||
+                              confirmation.player?.positions.length === 0
+                            "
+                            class="no-positions"
+                          >
+                            Sem posições
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </va-card>
             </div>
           </template>
 
-          <!-- Etapa 4: Chamada do Treino -->
+          <!-- Etapa 4: Marcação dos Scouts -->
           <template #step-content-3>
-            <div class="step-content">
-              <h2 class="section-title">Chamada do Treino</h2>
-
-              <!-- Métricas Cards -->
-              <div class="metrics-section">
-                <div class="metrics-cards">
-                  <ZCardViewMetricsPresenceIntention
-                    title="Métricas do treino, intenção de presença"
-                    :strip="false"
-                    :data="confirmationTrainingMetrics"
-                  />
-                  <ZCardViewMetricsRealPresence
-                    title="Métricas do treino, presença real"
-                    :strip="false"
-                    :data="confirmationTrainingMetrics"
-                  />
-                </div>
-
-                <!-- Progress Bars -->
-                <div class="progress-bars-section">
-                  <ZProgressBarMetricsTraining
-                    :metrics="confirmationTrainingMetrics"
-                    :data="form"
-                  />
-                </div>
-              </div>
-
-              <!-- Lista de Jogadores -->
-              <div class="players-list-section">
-                <ZListRelationConfirmationTrainings
-                  :items="form.confirmationsTraining"
-                  :training-date="form.dateValue"
-                  @action-confirm="actionConfirm"
-                  @action-reject="actionReject"
-                  @action-confirm-presence="actionConfirmPresence"
-                />
-              </div>
-            </div>
-          </template>
-
-          <!-- Etapa 5: Marcação dos Scouts -->
-          <template #step-content-4>
             <div class="step-content step-content-full-width">
               <ZListRelationPlayersWithScouts
                 ref="listRelationPlayersWithScoutsRef"
@@ -397,79 +370,37 @@
           </template>
         </va-stepper>
       </va-form>
-    </va-card>
+    </div>
 
     <!-- Botões de Ação (Fora do Card) -->
     <div class="action-buttons">
-      <va-button color="secondary" @click="goBack" class="mr-1"
+      <va-button
+        v-if="controlledStep === 0"
+        color="secondary"
+        class="mr-1"
+        @click="goBack"
         >Voltar</va-button
       >
       <va-button
         v-if="controlledStep > 0"
         color="secondary"
-        @click="handlePrevStep()"
         class="mr-1"
+        @click="handlePrevStep()"
         >Anterior</va-button
       >
       <va-button
-        v-if="controlledStep < steps.length - 1"
+        v-if="controlledStep < lastStepIndex"
         color="primary"
-        @click="handleNextStep()"
         class="mr-1"
+        @click="handleNextStep()"
         >Próximo</va-button
       >
       <va-button
-        color="success"
-        @click="saveAndContinue()"
-        v-if="!isTrainingSaved && controlledStep === 2"
-        class="mr-1"
-        >Salvar e Continuar</va-button
+        v-if="controlledStep === lastStepIndex"
+        color="primary"
+        @click="handleSaveClick"
+        >Salvar</va-button
       >
-      <va-button
-        color="success"
-        @click="saveScoutsOnly()"
-        v-if="isTrainingSaved && controlledStep === 4"
-        class="mr-1"
-        >Salvar Scouts</va-button
-      >
-      <va-button
-        color="#059669"
-        @click="finishTraining()"
-        v-if="form.status === 'PENDING' || form.status === 'pending'"
-        class="mr-1"
-      >
-        <va-icon name="check_circle" class="mr-2" />
-        Finalizar Treino
-      </va-button>
-      <va-button
-        color="#d97706"
-        @click="unfinishTraining()"
-        v-if="form.status === 'FINISHED' || form.status === 'finished'"
-        class="mr-1"
-      >
-        <va-icon name="cancel" class="mr-2" />
-        Cancelar Finalização
-      </va-button>
-      <va-button
-        color="#dc2626"
-        @click="cancelTraining()"
-        v-if="form.status === 'PENDING' || form.status === 'pending'"
-        class="mr-1"
-      >
-        <va-icon name="block" class="mr-2" />
-        Cancelar Treino
-      </va-button>
-      <va-button
-        color="#059669"
-        @click="uncancelTraining()"
-        v-if="form.status === 'CANCELLED' || form.status === 'cancelled'"
-        class="mr-1"
-      >
-        <va-icon name="check_circle" class="mr-2" />
-        Reativar Treino
-      </va-button>
-
-      <va-button color="primary" @click="save()">Salvar</va-button>
     </div>
   </div>
 </template>
@@ -485,12 +416,6 @@ import { gql } from "@apollo/client/core";
 import { useNuxtApp } from "#app";
 import FUNDAMENTALS from "~/graphql/fundamental/query/fundamentals.graphql";
 import SPECIFICFUNDAMENTALS from "~/graphql/specificFundamental/query/specificFundamentals.graphql";
-import ZListRelationConfirmationTrainings from "~/components/organisms/List/Relations/ZListRelationConfirmationTrainings";
-import ZCardViewMetricsRealPresence from "~/components/molecules/Cards/ZCardViewMetricsRealPresence";
-import ZCardViewMetricsPresenceIntention from "~/components/molecules/Cards/ZCardViewMetricsPresenceIntention";
-import ZProgressBarMetricsTraining from "~/components/molecules/ProgressBar/ZProgressBarMetricsTraining";
-import CONFIRMTRAINING from "~/graphql/training/mutation/confirmTraining.graphql";
-import CONFIRMPRESENCE from "~/graphql/training/mutation/confirmPresence.graphql";
 import ZListRelationPlayersWithScouts from "~/components/molecules/Datatable/ZListRelationPlayersWithScouts";
 import ZSelectUser from "~/components/molecules/Selects/ZSelectUser";
 import TEAM from "~/graphql/team/query/team.graphql";
@@ -546,10 +471,6 @@ export default {
     ZSelectTeam,
     ZListRelationTeams,
     ZDateTimeRangePicker,
-    ZListRelationConfirmationTrainings,
-    ZCardViewMetricsPresenceIntention,
-    ZCardViewMetricsRealPresence,
-    ZProgressBarMetricsTraining,
     ZListRelationPlayersWithScouts,
     ZSelectUser,
     ZUser,
@@ -588,8 +509,6 @@ export default {
         fundamentals: this.data.fundamentals || [],
         specificFundamentals: this.data.specificFundamentals || [],
         confirmationsTraining: this.data.confirmationsTraining || [],
-        confirmationTrainingMetrics:
-          this.data.confirmationTrainingMetrics || {},
         standalonePlayerIds: [],
       },
       fundamentalCatalog: [],
@@ -640,11 +559,11 @@ export default {
         return this.internalStep;
       },
       set(newStep) {
-        // Chamada (3) e Scouts (4) só após salvar o treino
+        // Marcação dos Scouts só após salvar o treino
         if (newStep > 2 && !this.isTrainingSaved) {
           confirmError(
             "Salve o treino",
-            "Para acessar a Chamada e a Marcação dos Scouts, salve o treino após relacionar o time. Use «Salvar e Continuar» ou «Salvar»."
+            "Para acessar a Marcação dos Scouts, conclua o cadastro na etapa «Relacionar times» usando o botão Salvar."
           );
           return;
         }
@@ -658,46 +577,15 @@ export default {
         { label: "Fundamentos" },
         { label: "Relacionar Times" },
         {
-          label: "Chamada do Treino",
-          disabled: !this.isTrainingSaved,
-        },
-        {
           label: "Marcação dos Scouts",
           disabled: !this.isTrainingSaved,
         },
       ];
     },
-    // Recalcular métricas baseado nos dados locais de confirmationsTraining
-    confirmationTrainingMetrics() {
-      const confirmations = this.form.confirmationsTraining || [];
-
-      const confirmed = confirmations.filter(
-        (c) => c.status === "CONFIRMED" || c.status === "confirmed"
-      ).length;
-      const pending = confirmations.filter(
-        (c) => c.status === "PENDING" || c.status === "pending"
-      ).length;
-      const rejected = confirmations.filter(
-        (c) => c.status === "REJECTED" || c.status === "rejected"
-      ).length;
-      const presence = confirmations.filter((c) => c.presence === true).length;
-      const absence = confirmations.filter((c) => c.presence === false).length;
-
-      const total = confirmed + pending + rejected;
-
-      return {
-        confirmed,
-        pending,
-        rejected,
-        total,
-        confirmedPercentage: total > 0 ? (confirmed / total) * 100 : 0,
-        pendingPercentage: total > 0 ? (pending / total) * 100 : 0,
-        rejectedPercentage: total > 0 ? (rejected / total) * 100 : 0,
-        presence,
-        absence,
-        presencePercentage: total > 0 ? (presence / total) * 100 : 0,
-        absencePercentage: total > 0 ? (absence / total) * 100 : 0,
-      };
+    /** Última etapa acessível: cadastro novo para na etapa 2; edição vai até scouts (índice 3). */
+    lastStepIndex() {
+      if (!this.isTrainingSaved) return 2;
+      return this.steps.length - 1;
     },
   },
 
@@ -1028,7 +916,7 @@ export default {
       this.$router.push("/trainings");
     },
 
-    /** Aplica `?step=` da rota ao stepper (Chamada/Scouts só após treino salvo). */
+    /** Aplica `?step=` da rota ao stepper (Scouts só após treino salvo). Índices 0–3. */
     syncStepFromRouteQuery() {
       const raw = this.$route?.query?.step;
       if (raw === undefined || raw === null || raw === "") {
@@ -1038,7 +926,7 @@ export default {
       if (Number.isNaN(parsed)) {
         return;
       }
-      let step = Math.max(0, Math.min(4, parsed));
+      let step = Math.max(0, Math.min(3, parsed));
       if (step > 2 && !this.isTrainingSaved) {
         return;
       }
@@ -1046,9 +934,19 @@ export default {
     },
 
     handleNextStep() {
-      if (this.controlledStep < this.steps.length - 1) {
+      if (this.controlledStep < this.lastStepIndex) {
         this.controlledStep = this.controlledStep + 1;
       }
+    },
+    async handleSaveClick() {
+      if (!this.validateRequiredFields()) {
+        return;
+      }
+      if (!this.isTrainingSaved) {
+        this.$emit("saveAndContinue", this.form);
+        return;
+      }
+      await this.saveScoutsOnly();
     },
     handlePrevStep() {
       if (this.controlledStep > 0) {
@@ -1092,243 +990,6 @@ export default {
         players: [],
         scouts: [],
       };
-    },
-    async actionReject(id, playerId, trainingId) {
-      try {
-        const query = gql`
-          ${CONFIRMTRAINING}
-        `;
-
-        const variables = {
-          id: parseInt(id),
-          playerId: parseInt(playerId),
-          trainingId: parseInt(trainingId),
-          status: "REJECTED",
-        };
-
-        const { mutate } = await useMutation(query, { variables });
-
-        const { data } = await mutate();
-
-        // Atualizar o form.confirmationsTraining localmente
-        if (
-          this.form.confirmationsTraining &&
-          Array.isArray(this.form.confirmationsTraining)
-        ) {
-          const confirmationIndex = this.form.confirmationsTraining.findIndex(
-            (confirmation) =>
-              (confirmation.id && confirmation.id === parseInt(id)) ||
-              (confirmation.playerId &&
-                confirmation.playerId === parseInt(playerId)) ||
-              (confirmation.player?.id &&
-                confirmation.player?.id === parseInt(playerId))
-          );
-
-          if (confirmationIndex !== -1) {
-            // Criar novo array para garantir reatividade no Vue 3
-            this.form.confirmationsTraining = [
-              ...this.form.confirmationsTraining.slice(0, confirmationIndex),
-              {
-                ...this.form.confirmationsTraining[confirmationIndex],
-                status: "REJECTED",
-              },
-              ...this.form.confirmationsTraining.slice(confirmationIndex + 1),
-            ];
-          }
-        }
-
-        confirmSuccess("Negando intenção de presença com sucesso!", () => {
-          this.items = [];
-        });
-
-        // Não emitir refresh para evitar recarregar e perder os dados
-        // this.$emit("refresh");
-      } catch (error) {
-        console.error(error);
-        this.error = true;
-
-        if (
-          error.graphQLErrors &&
-          error.graphQLErrors[0] &&
-          error.graphQLErrors[0].extensions &&
-          error.graphQLErrors[0].extensions.validation
-        ) {
-          const validationErrors = error.graphQLErrors[0].extensions.validation;
-          this.$emit("update:errors", validationErrors);
-
-          const errorMessages = Object.values(validationErrors).map((item) => {
-            return item[0];
-          });
-
-          this.$emit("update:errorFields", Object.keys(validationErrors));
-
-          const footer = errorMessages.join("<br>");
-
-          confirmError(
-            "Ocorreu um erro ao negar a intenção de presença!",
-            footer
-          );
-        } else {
-          confirmError("Ocorreu um erro ao negar a intenção de presença!");
-        }
-      }
-    },
-    async actionConfirmPresence(id, playerId, trainingId, presence) {
-      try {
-        const query = gql`
-          ${CONFIRMPRESENCE}
-        `;
-
-        const variables = {
-          id: parseInt(id),
-          playerId: parseInt(playerId),
-          trainingId: parseInt(trainingId),
-          presence,
-        };
-
-        const { mutate } = await useMutation(query, { variables });
-
-        const { data } = await mutate();
-
-        // Atualizar o form.confirmationsTraining localmente para preservar o valor
-        if (
-          this.form.confirmationsTraining &&
-          Array.isArray(this.form.confirmationsTraining)
-        ) {
-          const confirmationIndex = this.form.confirmationsTraining.findIndex(
-            (confirmation) =>
-              (confirmation.id && confirmation.id === parseInt(id)) ||
-              (confirmation.playerId &&
-                confirmation.playerId === parseInt(playerId)) ||
-              (confirmation.player?.id &&
-                confirmation.player?.id === parseInt(playerId))
-          );
-
-          if (confirmationIndex !== -1) {
-            // Criar novo array para garantir reatividade no Vue 3
-            this.form.confirmationsTraining = [
-              ...this.form.confirmationsTraining.slice(0, confirmationIndex),
-              {
-                ...this.form.confirmationsTraining[confirmationIndex],
-                presence: presence,
-              },
-              ...this.form.confirmationsTraining.slice(confirmationIndex + 1),
-            ];
-          }
-        }
-
-        confirmSuccess("Presença confirmada com sucesso!", () => {
-          this.items = [];
-        });
-
-        // Não emitir refresh para evitar recarregar e perder os dados
-        // this.$emit("refresh");
-      } catch (error) {
-        console.error(error);
-        this.error = true;
-
-        if (
-          error.graphQLErrors &&
-          error.graphQLErrors[0] &&
-          error.graphQLErrors[0].extensions &&
-          error.graphQLErrors[0].extensions.validation
-        ) {
-          const validationErrors = error.graphQLErrors[0].extensions.validation;
-          this.$emit("update:errors", validationErrors);
-
-          const errorMessages = Object.values(validationErrors).map((item) => {
-            return item[0];
-          });
-
-          this.$emit("update:errorFields", Object.keys(validationErrors));
-
-          const footer = errorMessages.join("<br>");
-
-          confirmError("Ocorreu um erro ao confirmar a presença!", footer);
-        } else {
-          confirmError("Ocorreu um erro ao confirmar a presença!");
-        }
-      }
-    },
-    async actionConfirm(id, playerId, trainingId) {
-      try {
-        const query = gql`
-          ${CONFIRMTRAINING}
-        `;
-
-        const variables = {
-          id: parseInt(id),
-          playerId: parseInt(playerId),
-          trainingId: parseInt(trainingId),
-          status: "CONFIRMED",
-        };
-
-        const { mutate } = await useMutation(query, { variables });
-
-        const { data } = await mutate();
-
-        // Atualizar o form.confirmationsTraining localmente
-        if (
-          this.form.confirmationsTraining &&
-          Array.isArray(this.form.confirmationsTraining)
-        ) {
-          const confirmationIndex = this.form.confirmationsTraining.findIndex(
-            (confirmation) =>
-              (confirmation.id && confirmation.id === parseInt(id)) ||
-              (confirmation.playerId &&
-                confirmation.playerId === parseInt(playerId)) ||
-              (confirmation.player?.id &&
-                confirmation.player?.id === parseInt(playerId))
-          );
-
-          if (confirmationIndex !== -1) {
-            // Criar novo array para garantir reatividade no Vue 3
-            this.form.confirmationsTraining = [
-              ...this.form.confirmationsTraining.slice(0, confirmationIndex),
-              {
-                ...this.form.confirmationsTraining[confirmationIndex],
-                status: "CONFIRMED",
-              },
-              ...this.form.confirmationsTraining.slice(confirmationIndex + 1),
-            ];
-          }
-        }
-
-        confirmSuccess("Intenção de presença confirmada com sucesso!", () => {
-          this.items = [];
-        });
-
-        // Não emitir refresh para evitar recarregar e perder os dados
-        // this.$emit("refresh");
-      } catch (error) {
-        console.error(error);
-        this.error = true;
-
-        if (
-          error.graphQLErrors &&
-          error.graphQLErrors[0] &&
-          error.graphQLErrors[0].extensions &&
-          error.graphQLErrors[0].extensions.validation
-        ) {
-          const validationErrors = error.graphQLErrors[0].extensions.validation;
-          this.$emit("update:errors", validationErrors);
-
-          const errorMessages = Object.values(validationErrors).map((item) => {
-            return item[0];
-          });
-
-          this.$emit("update:errorFields", Object.keys(validationErrors));
-
-          const footer = errorMessages.join("<br>");
-
-          confirmError(
-            "Ocorreu um erro ao confirmar a intenção de presença!",
-            footer
-          );
-        } else {
-          confirmError("Ocorreu um erro ao confirmar a intenção de presença!");
-        }
-      }
     },
 
     addTeams() {
@@ -2026,10 +1687,11 @@ export default {
 .training-form-card {
   width: 100%;
   max-width: 800px;
-  padding: 20px;
-  background-color: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 0;
+  background-color: transparent;
+  border-radius: 12px;
+  box-shadow: none;
+  border: none;
 }
 
 /* Quando estiver na etapa 3 (scouts), expandir para usar toda a largura */
@@ -2042,11 +1704,68 @@ export default {
   border: none !important;
 }
 
+.training-step-card {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 32px 28px;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e5e7eb;
+}
+
+.training-step-card + .training-step-card {
+  margin-top: 20px;
+}
+
+.training-form-card :deep(.va-input-wrapper__label) {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  color: #6b7280 !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
+}
+
+.training-form-card :deep(.va-input-wrapper__label *) {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  font-size: inherit !important;
+  font-weight: inherit !important;
+  letter-spacing: inherit !important;
+  text-transform: inherit !important;
+  color: inherit !important;
+}
+
+.training-form-card :deep(.va-input-wrapper input),
+.training-form-card :deep(.va-input-wrapper textarea) {
+  font-size: 14px !important;
+  font-weight: 500 !important;
+}
+
 .section-title {
   font-size: 18px;
-  font-weight: bold;
-  color: #0b1e3a;
+  font-weight: 600;
+  color: #111827;
   margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.section-title::before {
+  content: "";
+  width: 4px;
+  height: 24px;
+  background: #ff4e1b;
+  border-radius: 2px;
 }
 
 .subsection-title {
@@ -2287,7 +2006,7 @@ export default {
 }
 
 .step-content {
-  padding: 20px 0;
+  padding: 12px 0;
 }
 
 /* Etapa Marcação dos Scouts - largura total */
@@ -2298,7 +2017,7 @@ export default {
   margin: 0;
 }
 
-/* Ajustar o stepper quando estiver na etapa 3 */
+/* Ajustar o stepper na etapa de Marcação dos Scouts (última) */
 .training-form-card-full-width .va-stepper {
   padding: 0 20px;
   margin-bottom: 0;
@@ -2306,25 +2025,6 @@ export default {
 
 .training-form-card-full-width .va-stepper__content {
   padding: 0;
-}
-
-.metrics-section {
-  margin-bottom: 32px;
-}
-
-.metrics-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 20px;
-  margin-bottom: 24px;
-}
-
-.progress-bars-section {
-  margin-top: 24px;
-}
-
-.players-list-section {
-  margin-top: 32px;
 }
 
 .action-buttons {
@@ -2426,11 +2126,6 @@ export default {
 @media (max-width: 768px) {
   .fundamental-pick-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .metrics-cards {
-    grid-template-columns: 1fr;
-    gap: 16px;
   }
 
   .action-buttons {

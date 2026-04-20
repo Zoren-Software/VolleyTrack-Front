@@ -166,7 +166,7 @@ export default {
           ? this.$refs.trainingForm.controlledStep
           : 0;
 
-        if (currentStep === 4) {
+        if (currentStep === 3) {
           confirmSuccess("Scouts salvos com sucesso!");
           this.errors = this.errorsDefault();
         } else if (currentStep <= 2) {
@@ -255,9 +255,9 @@ export default {
 
         const { data } = await mutate();
 
-        // Após salvar nas etapas iniciais (0–2), abre a Chamada do Treino (etapa 3)
+        // Após salvar nas etapas iniciais (0–2), abre a Lista de Presença
         if (this.$refs.trainingForm && this.$refs.trainingForm.controlledStep <= 2) {
-          this.$refs.trainingForm.controlledStep = 3;
+          this.$router.push(`/trainings/attendance/${variables.id}`);
         }
       } catch (error) {
         console.error(error);

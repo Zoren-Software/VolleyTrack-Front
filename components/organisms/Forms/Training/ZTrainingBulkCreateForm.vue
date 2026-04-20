@@ -13,134 +13,164 @@
     </div>
   </VaModal>
 
-  <div class="bulk-create-form">
-    <div class="form-content">
-      <div class="form-section">
-        <h2 class="section-title">Informações Básicas</h2>
-        <div class="form-grid">
-          <div class="form-field team-field">
-            <ZSelectTeam
-              v-model="form.team"
-              label="Time *"
-              placeholder="Selecione o time"
-              :error-messages="errors.teamId || []"
-            />
-          </div>
+  <div class="form-container">
+    <va-stepper
+      v-model="step"
+      :steps="steps"
+      controls-hidden
+      class="bulk-create-stepper"
+    >
+      <template #step-content-0>
+        <div class="wizard-step-inner">
+          <va-card class="info-card">
+            <h2 class="section-title">Informações Básicas</h2>
+            <div class="form-grid">
+              <div class="form-field team-field">
+                <ZSelectTeam
+                  v-model="form.team"
+                  label="Time *"
+                  placeholder="Selecione o time"
+                  :error-messages="errors.teamId || []"
+                />
+              </div>
 
-          <div class="form-field">
-            <label class="field-label">Ano *</label>
-            <va-select
-              v-model="form.year"
-              :options="yearOptions"
-              placeholder="Selecione o ano"
-              :error="errors.year && errors.year.length > 0"
-              :error-messages="errors.year || []"
-              @update:model-value="onYearChange"
-            />
-          </div>
+              <div class="form-field">
+                <label class="field-label">Ano *</label>
+                <va-select
+                  v-model="form.year"
+                  :options="yearOptions"
+                  placeholder="Selecione o ano"
+                  :error="errors.year && errors.year.length > 0"
+                  :error-messages="errors.year || []"
+                  @update:model-value="onYearChange"
+                />
+              </div>
+            </div>
+          </va-card>
         </div>
-      </div>
+      </template>
 
-      <div class="form-section">
-        <h2 class="section-title">Período e Horários</h2>
-        <div class="form-grid">
-          <div class="form-field">
-            <VaDateInput
-              v-model="form.startDate"
-              name="startDate"
-              label="Data de Início *"
-              placeholder="Selecione a data de início"
-              style="width: 100%"
-              :error="errors.startDate && errors.startDate.length > 0"
-              :error-messages="errors.startDate || []"
-            />
-          </div>
+      <template #step-content-1>
+        <div class="wizard-step-inner">
+          <va-card class="info-card">
+            <h2 class="section-title">Período e Horários</h2>
+            <div class="form-grid">
+              <div class="form-field">
+                <VaDateInput
+                  v-model="form.startDate"
+                  name="startDate"
+                  label="Data de Início *"
+                  placeholder="Selecione a data de início"
+                  style="width: 100%"
+                  :error="errors.startDate && errors.startDate.length > 0"
+                  :error-messages="errors.startDate || []"
+                />
+              </div>
 
-          <div class="form-field">
-            <VaDateInput
-              v-model="form.endDate"
-              name="endDate"
-              label="Data de Fim *"
-              placeholder="Selecione a data de fim"
-              style="width: 100%"
-              :error="errors.endDate && errors.endDate.length > 0"
-              :error-messages="errors.endDate || []"
-            />
-          </div>
+              <div class="form-field">
+                <VaDateInput
+                  v-model="form.endDate"
+                  name="endDate"
+                  label="Data de Fim *"
+                  placeholder="Selecione a data de fim"
+                  style="width: 100%"
+                  :error="errors.endDate && errors.endDate.length > 0"
+                  :error-messages="errors.endDate || []"
+                />
+              </div>
+            </div>
+            <p class="field-hint">
+              Os treinos serão criados no período entre as datas selecionadas.
+            </p>
+
+            <div class="form-grid form-grid--spaced">
+              <div class="form-field">
+                <ZTimeInput
+                  id="time-start-bulk"
+                  v-model="form.timeStart"
+                  label="Horário Início *"
+                  :error-messages="errors.timeStart || []"
+                />
+              </div>
+
+              <div class="form-field">
+                <ZTimeInput
+                  id="time-end-bulk"
+                  v-model="form.timeEnd"
+                  label="Horário Fim *"
+                  :error-messages="errors.timeEnd || []"
+                />
+              </div>
+            </div>
+          </va-card>
+
+          <va-card class="info-card">
+            <div class="days-section">
+              <h2 class="section-title">Dias da semana</h2>
+              <div
+                class="days-checkbox-list"
+                role="group"
+                aria-label="Dias da semana"
+              >
+                <label
+                  v-for="day in daysOfWeekOptions"
+                  :key="day.value"
+                  :class="[
+                    'day-checkbox-card',
+                    {
+                      'day-checkbox-card--selected':
+                        form.daysOfWeek.includes(day.value),
+                    },
+                  ]"
+                >
+                  <input
+                    type="checkbox"
+                    class="day-checkbox-input"
+                    :checked="form.daysOfWeek.includes(day.value)"
+                    @change="toggleDay(day.value, $event.target.checked)"
+                  />
+                  <span class="day-checkbox-label">{{ day.label }}</span>
+                </label>
+              </div>
+              <div v-if="errors.daysOfWeek" class="error-message">
+                {{ errors.daysOfWeek[0] }}
+              </div>
+            </div>
+          </va-card>
         </div>
-        <p class="field-hint">
-          Os treinos serão criados no período entre as datas selecionadas
-        </p>
+      </template>
+    </va-stepper>
 
-        <div class="form-grid form-grid--spaced">
-          <div class="form-field">
-            <ZTimeInput
-              id="time-start-bulk"
-              v-model="form.timeStart"
-              label="Horário Início *"
-              :error-messages="errors.timeStart || []"
-            />
-          </div>
+    <div class="action-buttons">
+      <va-button
+        v-if="step === 0"
+        color="secondary"
+        class="mr-1"
+        @click="onCancel"
+      >
+        Voltar
+      </va-button>
+      <va-button
+        v-else
+        color="secondary"
+        class="mr-1"
+        @click="step = Math.max(0, step - 1)"
+      >
+        Anterior
+      </va-button>
 
-          <div class="form-field">
-            <ZTimeInput
-              id="time-end-bulk"
-              v-model="form.timeEnd"
-              label="Horário Fim *"
-              :error-messages="errors.timeEnd || []"
-            />
-          </div>
-        </div>
-      </div>
-
-      <div class="form-section">
-        <h2 class="section-title">Dias da Semana</h2>
-        <div class="days-of-week">
-          <va-checkbox
-            v-for="day in daysOfWeekOptions"
-            :key="day.value"
-            :model-value="form.daysOfWeek.includes(day.value)"
-            :label="day.label"
-            class="day-checkbox"
-            @update:model-value="toggleDay(day.value, $event)"
-          />
-        </div>
-        <div v-if="errors.daysOfWeek" class="error-message">
-          {{ errors.daysOfWeek[0] }}
-        </div>
-      </div>
-
-      <div class="info-box">
-        <p class="info-text">
-          <strong>Nota:</strong> Os treinos serão criados automaticamente com:
-        </p>
-        <ul class="info-list">
-          <li>
-            Nome: "Nome do treino #1", "Nome do treino #2", é o nome
-            provisório do treino, você poderá alterar depois
-          </li>
-          <li>
-            Descrição: "Descreva aqui a descrição detalhada de cada treino na
-            edição do treino"
-          </li>
-          <li>
-            Fundamentos: Os fundamentos devem ser definidos na edição de cada
-            treino
-          </li>
-        </ul>
-      </div>
-
-      <div class="form-actions">
-        <va-button preset="secondary" @click="onCancel"> Cancelar </va-button>
-        <va-button
-          color="#FF4E1B"
-          text-color="#FFFFFF"
-          :disabled="loading"
-          @click="handleSubmit"
-        >
-          Cadastrar
-        </va-button>
-      </div>
+      <va-button v-if="step === 0" color="primary" :disabled="loading" @click="step = 1">
+        Próximo
+      </va-button>
+      <va-button
+        v-else
+        color="primary"
+        :disabled="loading"
+        :loading="loading"
+        @click="handleSubmit"
+      >
+        Salvar
+      </va-button>
     </div>
   </div>
 </template>
@@ -172,6 +202,7 @@ export default {
 
     return {
       loading: false,
+      step: 0,
       errors: {},
       form: {
         team: null,
@@ -193,6 +224,11 @@ export default {
         { label: "Sábado", value: 6 },
       ],
     };
+  },
+  computed: {
+    steps() {
+      return [{ label: "Informações básicas" }, { label: "Período e horários" }];
+    },
   },
   methods: {
     onYearChange(newYear) {
@@ -237,6 +273,7 @@ export default {
         timeStart: defaultTimeStart,
         timeEnd: defaultTimeEnd,
       };
+      this.step = 0;
       this.errors = {};
     },
     async handleSubmit() {
@@ -369,22 +406,50 @@ export default {
 </script>
 
 <style scoped>
-.bulk-create-form {
-  position: relative;
-  width: 100%;
-  max-width: 900px;
-  margin: 0 auto;
-  background: #fff;
-  border-radius: 16px;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 4px 24px rgba(11, 30, 58, 0.06);
-  padding: 28px 32px 32px;
-}
-
-.form-content {
+.form-container {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  max-width: 900px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.bulk-create-stepper {
+  width: 100%;
+  min-width: 0;
+  --va-stepper-step-content-wrapper-padding: 0;
+  --va-stepper-step-content-margin: 0.5rem 0 0;
+}
+
+.bulk-create-stepper :deep(.va-stepper__content) {
+  padding: 0;
+  width: 100%;
+}
+
+.wizard-step-inner {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.info-card {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 30px;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  margin-bottom: 24px;
+  border: 1px solid #e5e7eb;
+}
+
+.wizard-step-inner .info-card:last-child {
+  margin-bottom: 0;
 }
 
 .form-section {
@@ -444,18 +509,63 @@ export default {
   line-height: 1.5;
 }
 
-.days-of-week {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-  padding: 16px;
-  background: #f9fafb;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
+.days-section {
+  width: 100%;
 }
 
-.day-checkbox {
-  margin: 0;
+.days-checkbox-list {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.day-checkbox-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+  transition:
+    border-color 0.2s,
+    background-color 0.2s,
+    box-shadow 0.2s;
+  background: #fff;
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.day-checkbox-card:hover {
+  border-color: #ffe3d1;
+  background: #fffdfb;
+}
+
+.day-checkbox-card--selected {
+  border-color: #ff4e1b;
+  background: #fff4ec;
+  box-shadow: 0 0 0 1px rgba(255, 78, 27, 0.2);
+}
+
+.day-checkbox-input {
+  width: 18px;
+  height: 18px;
+  accent-color: #ff4e1b;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.day-checkbox-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #6b7280;
+  white-space: nowrap;
+}
+
+.day-checkbox-card--selected .day-checkbox-label {
+  color: #111827;
 }
 
 .error-message {
@@ -464,58 +574,18 @@ export default {
   margin-top: 4px;
 }
 
-.info-box {
-  background: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 100%);
-  border: 1px solid #bfdbfe;
-  border-radius: 12px;
-  padding: 20px;
-  margin-top: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.info-text {
-  font-size: 14px;
-  color: #1e40af;
-  margin-bottom: 12px;
-  font-weight: 500;
-}
-
-.info-list {
-  margin: 0;
-  padding-left: 20px;
-  color: #1e40af;
-  font-size: 13px;
-  line-height: 1.6;
-}
-
-.info-list li {
-  margin-bottom: 6px;
-}
-
-.form-actions {
+.action-buttons {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   gap: 12px;
-  padding-top: 8px;
+  width: 100%;
   margin-top: 8px;
-  border-top: 1px solid #e5e7eb;
+  padding-top: 0;
+  box-sizing: border-box;
 }
 
-.form-actions .va-button {
+.action-buttons .va-button {
   border-radius: 8px;
-  font-weight: 500;
-  padding: 10px 20px;
-}
-
-.form-actions .va-button--secondary {
-  background: white;
-  border: 1px solid #d1d5db;
-  color: #374151;
-}
-
-.form-actions .va-button--secondary:hover {
-  background: #f9fafb;
-  border-color: #9ca3af;
 }
 
 .loading-modal :deep(.va-modal__container) {
@@ -547,10 +617,6 @@ export default {
 }
 
 @media (max-width: 768px) {
-  .bulk-create-form {
-    padding: 20px 16px 24px;
-  }
-
   .form-grid {
     grid-template-columns: 1fr;
   }
@@ -559,15 +625,15 @@ export default {
     grid-column: span 1;
   }
 
-  .days-of-week {
-    grid-template-columns: 1fr;
+  .days-checkbox-list {
+    gap: 12px;
   }
 
-  .form-actions {
-    flex-direction: column-reverse;
+  .action-buttons {
+    flex-direction: column;
   }
 
-  .form-actions .va-button {
+  .action-buttons .va-button {
     width: 100%;
   }
 }

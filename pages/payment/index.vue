@@ -2733,7 +2733,7 @@ onMounted(async () => {
 
 <style scoped>
 .subscription-plans-page {
-  background: #f9fafb;
+  width: 100%;
 }
 
 .page-loading-email-validation {
@@ -2763,8 +2763,7 @@ onMounted(async () => {
   max-width: 1400px;
   margin: 0 auto;
   width: 100%;
-  padding-left: 24px;
-  padding-right: 24px;
+  padding: 0 16px 40px;
   box-sizing: border-box;
 }
 
@@ -2814,17 +2813,18 @@ onMounted(async () => {
 }
 
 .page-header-modern .main-title {
-  font-size: 2rem;
+  font-size: 32px;
   font-weight: 700;
-  color: #FF4E1B;
-  margin-bottom: 8px;
-  margin-top: 0;
+  color: #0b1e3a;
+  margin: 0 0 8px 0;
+  line-height: 1.2;
 }
 
 .page-header-modern .main-subtitle {
-  font-size: 1rem;
+  font-size: 16px;
   color: #6b7280;
   margin: 0;
+  line-height: 1.5;
 }
 
 /* Botão Ver Faturamentos + Editar dados de faturamento (dentro de .header-with-actions ou sozinho) */
@@ -2845,12 +2845,12 @@ onMounted(async () => {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  padding: 14px 24px;
+  padding: 12px 20px;
   background: white;
   color: #374151;
   border-radius: 10px;
   font-weight: 600;
-  font-size: 1rem;
+  font-size: 14px;
   transition: all 0.3s ease;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   border: 2px solid #e5e7eb;
@@ -2891,7 +2891,7 @@ onMounted(async () => {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  padding: 14px 24px;
+  padding: 10px 16px;
   background: white;
   color: #374151;
   text-decoration: none;
