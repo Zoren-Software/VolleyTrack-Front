@@ -2,7 +2,9 @@
   <div class="edit-team-page">
     <div class="page-header">
       <h1 class="title">Editar Time</h1>
-      <p class="subtitle">Atualize as informações do time e dos jogadores relacionados</p>
+      <p class="subtitle">
+        Atualize as informações do time e dos jogadores relacionados
+      </p>
     </div>
     <ZTeamForm
       :data="data"
@@ -132,7 +134,8 @@ export default {
 
           confirmError("Ocorreu um erro ao salvar o time!", footer);
         } else {
-          confirmError("Ocorreu um erro ao salvar o time!");
+          const message = error.graphQLErrors?.[0]?.message || null;
+          confirmError("Ocorreu um erro ao salvar o time!", message);
         }
       }
       this.loading = false;

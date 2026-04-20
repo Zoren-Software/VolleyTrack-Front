@@ -141,7 +141,8 @@ export default {
 
           confirmError("Ocorreu um erro ao salvar as configurações!", footer);
         } else {
-          confirmError("Ocorreu um erro ao salvar as configurações!");
+          const message = error.graphQLErrors?.[0]?.message || null;
+          confirmError("Ocorreu um erro ao salvar as configurações!", message);
         }
       }
       this.loading = false;

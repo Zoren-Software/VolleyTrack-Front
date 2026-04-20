@@ -277,7 +277,8 @@ export default {
 
           confirmError("Erro ao salvar configurações!", footer);
         } else {
-          confirmError("Erro ao salvar configurações!");
+          const message = error.graphQLErrors?.[0]?.message || null;
+          confirmError("Erro ao salvar configurações!", message);
         }
       } finally {
         this.loading = false;

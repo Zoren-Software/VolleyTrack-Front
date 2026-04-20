@@ -106,13 +106,21 @@ export default {
           nickname: form.nickname || null,
           showNickname: form.showNickname ?? false,
           roleId: Array.isArray(form.roles)
-            ? form.roles.filter((id) => id != null && id !== "").map((id) => Number(id))
+            ? form.roles
+                .filter((id) => id != null && id !== "")
+                .map((id) => Number(id))
             : [],
           positionId: Array.isArray(form.positions)
-            ? form.positions.map((item) => item.id).filter((id) => id != null).map((id) => Number(id))
+            ? form.positions
+                .map((item) => item.id)
+                .filter((id) => id != null)
+                .map((id) => Number(id))
             : [],
           teamId: Array.isArray(form.teams)
-            ? form.teams.map((item) => item.id).filter((id) => id != null).map((id) => Number(id))
+            ? form.teams
+                .map((item) => item.id)
+                .filter((id) => id != null)
+                .map((id) => Number(id))
             : [],
         };
 
@@ -148,7 +156,8 @@ export default {
 
           confirmError("Ocorreu um erro ao salvar o usuário!", footer);
         } else {
-          confirmError("Ocorreu um erro ao salvar o usuário!");
+          const message = error.graphQLErrors?.[0]?.message || null;
+          confirmError("Ocorreu um erro ao salvar o usuário!", message);
         }
       }
       this.loading = false;
@@ -158,8 +167,8 @@ export default {
 </script>
 <script setup>
 definePageMeta({
-  middleware: ['player-permission'],
-})
+  middleware: ["player-permission"],
+});
 useHead({
   titleTemplate: "Editar Jogador",
 });
