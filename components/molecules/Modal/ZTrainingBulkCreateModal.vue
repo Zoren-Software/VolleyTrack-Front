@@ -159,7 +159,7 @@
           Cancelar
         </va-button>
         <va-button
-          color="#E9742B"
+          color="#FF4E1B"
           text-color="#FFFFFF"
           :disabled="loading"
           @click="handleSubmit"
@@ -478,28 +478,28 @@ export default {
   border-color: #9ca3af;
 }
 
-.modal-footer .va-button[color="#E9742B"],
-.modal-footer .va-button[style*="background: #E9742B"] {
-  background: #e9742b !important;
+.modal-footer .va-button[color="#FF4E1B"],
+.modal-footer .va-button[style*="background: #FF4E1B"] {
+  background: #FF4E1B !important;
   border: none !important;
   color: #ffffff !important;
-  box-shadow: 0 2px 4px rgba(233, 116, 43, 0.2);
+  box-shadow: 0 2px 4px rgba(255, 78, 27, 0.2);
 }
 
-.modal-footer .va-button[color="#E9742B"] :deep(.va-button__content),
-.modal-footer .va-button[style*="background: #E9742B"] :deep(.va-button__content) {
+.modal-footer .va-button[color="#FF4E1B"] :deep(.va-button__content),
+.modal-footer .va-button[style*="background: #FF4E1B"] :deep(.va-button__content) {
   color: #ffffff !important;
 }
 
-.modal-footer .va-button[color="#E9742B"]:hover,
-.modal-footer .va-button[style*="background: #E9742B"]:hover {
+.modal-footer .va-button[color="#FF4E1B"]:hover,
+.modal-footer .va-button[style*="background: #FF4E1B"]:hover {
   background: #d8651f !important;
-  box-shadow: 0 4px 8px rgba(233, 116, 43, 0.3);
+  box-shadow: 0 4px 8px rgba(255, 78, 27, 0.3);
   transform: translateY(-1px);
 }
 
-.modal-footer .va-button[color="#E9742B"]:hover :deep(.va-button__content),
-.modal-footer .va-button[style*="background: #E9742B"]:hover :deep(.va-button__content) {
+.modal-footer .va-button[color="#FF4E1B"]:hover :deep(.va-button__content),
+.modal-footer .va-button[style*="background: #FF4E1B"]:hover :deep(.va-button__content) {
   color: #ffffff !important;
 }
 
@@ -537,7 +537,7 @@ export default {
   content: "";
   width: 4px;
   height: 24px;
-  background: #e9742b;
+  background: #FF4E1B;
   border-radius: 2px;
 }
 

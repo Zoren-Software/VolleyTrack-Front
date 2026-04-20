@@ -113,15 +113,15 @@ export default {
 }
 
 :deep(.z-modal .va-button--primary) {
-  background: #e9742b;
+  background: #FF4E1B;
   border: none;
   color: white;
-  box-shadow: 0 2px 4px rgba(233, 116, 43, 0.2);
+  box-shadow: 0 2px 4px rgba(255, 78, 27, 0.2);
 }
 
 :deep(.z-modal .va-button--primary:hover) {
   background: #d8651f;
-  box-shadow: 0 4px 8px rgba(233, 116, 43, 0.3);
+  box-shadow: 0 4px 8px rgba(255, 78, 27, 0.3);
   transform: translateY(-1px);
 }
 </style>

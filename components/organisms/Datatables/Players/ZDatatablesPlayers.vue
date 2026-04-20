@@ -38,7 +38,7 @@
         </div>
         <div class="filter-actions">
           <va-button
-            color="#E9742B"
+            color="#FF4E1B"
             class="search-button"
             @click="handleSearch"
           >
@@ -92,54 +92,50 @@
             <div class="player-name">
               {{ rowKey.displayName || rowKey.name || "-" }}
             </div>
-            <div class="player-id">
-              ID: #{{ rowKey.id ? String(rowKey.id).padStart(3, "0") : "---" }}
-            </div>
-          </div>
-        </div>
-      </template>
-      <template #cell(contact)="{ rowKey }">
-        <div class="contact-cell">
-          <div v-if="rowKey.email" class="contact-item">
-            <va-icon name="email" size="medium" class="contact-icon" />
-            <span>{{ rowKey.email }}</span>
-            <va-popover
-              v-if="rowKey.emailVerifiedAt"
-              placement="top"
-              trigger="hover"
-              class="email-verified-popover"
-            >
-              <va-icon
-                name="verified"
-                size="small"
-                class="email-verified-icon"
-              />
-              <template #body>
-                <div class="email-verified-tooltip">Email verificado</div>
-              </template>
-            </va-popover>
-          </div>
-          <div v-if="rowKey.information?.phone" class="contact-item">
-            <a
-              :href="getWhatsAppLink(rowKey.information.phone)"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="phone-link"
-              :title="'Abrir conversa no WhatsApp'"
-            >
-              <svg
-                class="whatsapp-icon"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-                width="15"
-                height="15"
+            <div v-if="rowKey.email" class="contact-item player-info-meta">
+              <va-icon name="email" size="small" class="contact-icon" />
+              <span class="player-meta-text">{{ rowKey.email }}</span>
+              <va-popover
+                v-if="rowKey.emailVerifiedAt"
+                placement="top"
+                trigger="hover"
+                class="email-verified-popover"
               >
-                <path
-                  d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.372a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"
+                <va-icon
+                  name="verified"
+                  size="small"
+                  class="email-verified-icon"
                 />
-              </svg>
-              {{ formatPhone(rowKey.information.phone) }}
-            </a>
+                <template #body>
+                  <div class="email-verified-tooltip">Email verificado</div>
+                </template>
+              </va-popover>
+            </div>
+            <div
+              v-if="rowKey.information?.phone"
+              class="contact-item player-info-meta"
+            >
+              <a
+                :href="getWhatsAppLink(rowKey.information.phone)"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="phone-link"
+                :title="'Abrir conversa no WhatsApp'"
+              >
+                <svg
+                  class="whatsapp-icon"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  width="15"
+                  height="15"
+                >
+                  <path
+                    d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.372a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"
+                  />
+                </svg>
+                {{ formatPhone(rowKey.information.phone) }}
+              </a>
+            </div>
           </div>
         </div>
       </template>
@@ -148,7 +144,7 @@
         <div class="action-buttons-wrapper">
           <va-button
             icon="bar_chart"
-            color="#e9742b"
+            color="#FF4E1B"
             size="small"
             class="stats-btn action-btn"
             :title="'Ver estatísticas de ' + (rowKey.displayName || rowKey.name)"
@@ -242,7 +238,7 @@
       <va-card class="summary-card">
         <div class="summary-content">
           <div class="summary-icon">
-            <va-icon name="person" size="large" color="#E9742B" />
+            <va-icon name="person" size="large" color="#FF4E1B" />
           </div>
           <div class="summary-number-wrapper">
             <div class="summary-number">
@@ -328,7 +324,6 @@ export default defineComponent({
 
     const columns = [
       { key: "player", name: "player", label: "NOME", sortable: true },
-      { key: "contact", name: "contact", label: "CONTATO", sortable: false },
       { key: "team", name: "team", label: "TIMES", sortable: false },
       {
         key: "positions",
@@ -734,8 +729,8 @@ export default defineComponent({
 <style scoped>
 .player-cell {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  align-items: flex-start;
+  gap: 10px;
 }
 
 .player-avatar {
@@ -755,7 +750,7 @@ export default defineComponent({
   --va-size-computed: 48px !important;
   font-size: 20px !important;
   line-height: 48px !important;
-  background: #e9742b !important;
+  background: #FF4E1B !important;
   color: white !important;
   border: 2px solid white !important;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
@@ -763,7 +758,7 @@ export default defineComponent({
 
 .player-avatar :deep(.va-avatar) {
   border: 2px solid white !important;
-  background: #e9742b !important;
+  background: #FF4E1B !important;
   color: white !important;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 1.3), 0 1px 3px rgba(0, 0, 0, 0.08) !important;
 }
@@ -781,7 +776,7 @@ export default defineComponent({
 .player-info {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
   flex: 1;
   min-width: 0;
 }
@@ -793,16 +788,15 @@ export default defineComponent({
   line-height: 1.3;
 }
 
-.player-id {
-  font-size: 11px;
-  color: #6c757d;
-  line-height: 1.2;
+.player-info-meta {
+  min-width: 0;
 }
 
-.contact-cell {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+.player-meta-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
 }
 
 .contact-item {
@@ -1019,9 +1013,9 @@ export default defineComponent({
   padding: 12px 24px;
   font-weight: 500;
   white-space: nowrap;
-  background-color: #e9742b !important;
+  background-color: #FF4E1B !important;
   color: #ffffff !important;
-  box-shadow: 0 2px 8px rgba(233, 116, 43, 0.3);
+  box-shadow: 0 2px 8px rgba(255, 78, 27, 0.3);
   border: none;
   display: inline-flex;
   align-items: center;
@@ -1033,13 +1027,13 @@ export default defineComponent({
 
 .search-button:hover {
   background-color: #d6652a !important;
-  box-shadow: 0 4px 12px rgba(233, 116, 43, 0.4);
+  box-shadow: 0 4px 12px rgba(255, 78, 27, 0.4);
   transform: translateY(-1px);
 }
 
 .search-button:active {
   transform: translateY(0);
-  box-shadow: 0 2px 6px rgba(233, 116, 43, 0.3);
+  box-shadow: 0 2px 6px rgba(255, 78, 27, 0.3);
 }
 
 .search-button .button-icon {
@@ -1144,7 +1138,7 @@ export default defineComponent({
 }
 
 .stats-btn.action-btn {
-  background-color: #e9742b !important;
+  background-color: #FF4E1B !important;
   color: white !important;
 }
 
@@ -1156,7 +1150,7 @@ export default defineComponent({
 .stats-btn.action-btn:hover {
   background-color: #d6652a !important;
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(233, 116, 43, 0.4);
+  box-shadow: 0 2px 8px rgba(255, 78, 27, 0.4);
 }
 
 .stats-btn.action-btn:hover :deep(.va-icon),
@@ -1212,7 +1206,7 @@ export default defineComponent({
   max-width: 48px !important;
   max-height: 48px !important;
   font-size: 20px !important;
-  background: #e9742b !important;
+  background: #FF4E1B !important;
   color: white !important;
   border: 2px solid white !important;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;

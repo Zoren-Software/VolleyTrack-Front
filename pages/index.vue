@@ -4,7 +4,7 @@
       <!-- Welcome Section -->
       <div class="welcome-section">
         <div class="volleyball-icon">
-          <va-icon name="sports_volleyball" size="80px" color="#E9742B" />
+          <va-icon name="sports_volleyball" size="80px" color="#FF4E1B" />
         </div>
         <h1 class="welcome-title">
           Bem-vindo ao <span class="highlight">VolleyTrack</span>!
@@ -14,7 +14,7 @@
         </p>
         <va-button
           v-if="!isConfigurationComplete"
-          color="#E9742B"
+          color="#FF4E1B"
           class="start-button"
           @click="startConfiguration"
         >
@@ -105,7 +105,7 @@
                 </span>
                 <va-button
                   v-else
-                  color="#E9742B"
+                  color="#FF4E1B"
                   size="small"
                   @click="navigateTo('/players')"
                 >
@@ -236,7 +236,7 @@
         >
           <div class="motivational-content">
             <div class="trophy-icon">
-              <va-icon name="emoji_events" size="36px" color="#E9742B" />
+              <va-icon name="emoji_events" size="36px" color="#FF4E1B" />
             </div>
             <p class="motivational-text">
               Quanto mais você configurar, mais completo será o acompanhamento
@@ -269,7 +269,7 @@
       <div class="totals-section">
         <div class="total-card players-card">
           <div class="total-icon">
-            <va-icon name="people" size="32px" color="#E9742B" />
+            <va-icon name="people" size="32px" color="#FF4E1B" />
           </div>
           <div class="total-info">
             <div class="total-number">
@@ -857,7 +857,7 @@ useHead({
 }
 
 .highlight {
-  color: #e9742b;
+  color: #FF4E1B;
 }
 
 .welcome-subtitle {
@@ -868,7 +868,7 @@ useHead({
 }
 
 .start-button {
-  background-color: #e9742b !important;
+  background-color: #FF4E1B !important;
   color: white !important;
   border-radius: 8px;
   padding: 10px 24px;
@@ -877,13 +877,13 @@ useHead({
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  box-shadow: 0 2px 8px rgba(233, 116, 43, 0.3);
+  box-shadow: 0 2px 8px rgba(255, 78, 27, 0.3);
   transition: all 0.2s ease;
 }
 
 .start-button:hover {
   background-color: #d6652a !important;
-  box-shadow: 0 4px 12px rgba(233, 116, 43, 0.4);
+  box-shadow: 0 4px 12px rgba(255, 78, 27, 0.4);
   transform: translateY(-2px);
 }
 
@@ -906,9 +906,9 @@ useHead({
 }
 
 .view-config-button:hover {
-  color: #e9742b !important;
+  color: #FF4E1B !important;
   opacity: 1;
-  background: rgba(233, 116, 43, 0.05) !important;
+  background: rgba(255, 78, 27, 0.05) !important;
 }
 
 .view-config-button :deep(.va-button__content) {
@@ -950,8 +950,8 @@ useHead({
 }
 
 .close-config-button:hover {
-  color: #e9742b !important;
-  background: rgba(233, 116, 43, 0.1) !important;
+  color: #FF4E1B !important;
+  background: rgba(255, 78, 27, 0.1) !important;
 }
 
 .progress-bar-container {
@@ -963,7 +963,7 @@ useHead({
 }
 
 .progress-bar-fill {
-  background-color: #e9742b;
+  background-color: #FF4E1B;
   height: 100%;
   border-radius: 8px;
   transition: width 0.3s ease;

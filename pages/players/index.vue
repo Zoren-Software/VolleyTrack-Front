@@ -7,7 +7,7 @@
           <h1 class="page-title">Jogadores</h1>
           <p class="page-subtitle">Gerencie todos os atletas do seu sistema</p>
         </div>
-        <va-button color="#E9742B" class="new-player-button" @click="addPlayer">
+        <va-button color="#FF4E1B" class="new-player-button" @click="addPlayer">
           <va-icon name="add" class="button-icon" />
           <span class="button-text">Novo Jogador</span>
         </va-button>
@@ -78,9 +78,9 @@ useHead({
   padding: 12px 24px;
   font-weight: 500;
   white-space: nowrap;
-  background-color: #e9742b !important;
+  background-color: #FF4E1B !important;
   color: white !important;
-  box-shadow: 0 2px 8px rgba(233, 116, 43, 0.3);
+  box-shadow: 0 2px 8px rgba(255, 78, 27, 0.3);
   border: none;
   display: inline-flex;
   align-items: center;
@@ -91,13 +91,13 @@ useHead({
 
 .new-player-button:hover {
   background-color: #d6652a !important;
-  box-shadow: 0 4px 12px rgba(233, 116, 43, 0.4);
+  box-shadow: 0 4px 12px rgba(255, 78, 27, 0.4);
   transform: translateY(-1px);
 }
 
 .new-player-button:active {
   transform: translateY(0);
-  box-shadow: 0 2px 6px rgba(233, 116, 43, 0.3);
+  box-shadow: 0 2px 6px rgba(255, 78, 27, 0.3);
 }
 
 .button-icon {

@@ -142,13 +142,13 @@ export default {
   width: 40px;
   border: 2px solid white !important;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
-  background: #e9742b !important;
+  background: #FF4E1B !important;
   color: white !important;
 }
 
 .user-avatar :deep(.va-avatar) {
   border: 2px solid white !important;
-  background: #e9742b !important;
+  background: #FF4E1B !important;
   color: white !important;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
 }

@@ -1,7 +1,7 @@
 <template>
   <ZNavBarItem class="logo">
     <div class="icon-container">
-      <va-icon name="sports_volleyball" color="#E9742B" size="20px" />
+      <va-icon name="sports_volleyball" color="#FF4E1B" size="20px" />
     </div>
     <span class="ml-2">{{ applicationName }} | {{ items.nameTenant }}</span>
   </ZNavBarItem>

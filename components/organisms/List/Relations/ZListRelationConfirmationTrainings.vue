@@ -346,7 +346,7 @@ export default {
 .players-list-title {
   font-size: 16px;
   font-weight: 700;
-  color: #e9742b;
+  color: #FF4E1B;
   margin-bottom: 16px;
   text-transform: uppercase;
   letter-spacing: 0.5px;

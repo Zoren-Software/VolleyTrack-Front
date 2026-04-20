@@ -5,6 +5,7 @@
       <p class="subtitle">Crie um novo time para sua equipe</p>
     </div>
     <ZTeamForm
+      use-wizard
       @save="create"
       :loading="loading"
       :errorFields="errorFields"

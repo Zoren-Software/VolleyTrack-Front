@@ -47,7 +47,10 @@ export default {
     },
 
     isSelected(action) {
-      if (this.$route.path === "/account") {
+      if (
+        this.$route.path === "/account" ||
+        this.$route.path.startsWith("/account/")
+      ) {
         return action === "account";
       }
     },

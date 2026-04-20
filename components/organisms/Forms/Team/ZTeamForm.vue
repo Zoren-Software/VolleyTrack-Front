@@ -1,83 +1,123 @@
 <template>
   <div class="form-container">
-    <va-form ref="myForm" class="flex flex-col gap-6 mb-2">
-      <!-- Informações Essenciais -->
-      <va-card class="info-card">
-        <h2 class="section-title">Informações Essenciais</h2>
-        <ZTextInput
-          id="name"
-          v-model="form.name"
-          name="name"
-          label="Nome do Time"
-          placeholder="Ex: Águias de Ouro"
-          class="mb-3"
-          :error="errorFields.includes('name')"
-          :error-messages="errors.name || []"
-        />
-        <ZSelectTeamCategory
-          v-model="form.teamCategory"
-          name="teamCategoryId"
-          label="Categoria"
-          placeholder="Selecione a categoria"
-          class="mb-3"
-          :error="errorFields.includes('teamCategory')"
-          :error-messages="errors.teamCategory || []"
-        />
-        <ZSelectTeamLevel
-          v-model="form.teamLevel"
-          name="teamLevelId"
-          label="Nível"
-          placeholder="Selecione o nível"
-          class="mb-3"
-          :error="errorFields.includes('teamLevel')"
-          :error-messages="errors.teamLevel || []"
-        />
-      </va-card>
-
-      <!-- Jogadores -->
-      <va-card class="players-card">
-        <h2 class="section-title">Jogadores</h2>
-        <div class="players-input-container">
-          <ZSelectUser
-            v-model="users"
-            :ignoreIds="form.users.map((item) => item.id)"
-            :rolesIds="[3]"
-            class="mb-3"
-            label="Buscar e selecionar jogadores"
-            placeholder="Digite o nome do jogador"
+    <va-form ref="myForm" class="team-form-inner flex flex-col gap-6 mb-2">
+      <template v-if="!useWizard">
+        <va-card class="info-card">
+          <ZTeamFormEssentialFields
+            :form="form"
+            :category-options="categoryOptions"
+            :sorted-levels="sortedLevels"
+            :categories-loading="categoriesLoading"
+            :levels-loading="levelsLoading"
+            :error-fields="errorFields"
+            :errors="errors"
+            @select-category="selectCategory"
+            @select-level="selectLevel"
           />
-          <va-button
-            class="custom-button"
-            color="primary"
-            icon="add"
-            @click="addUsers"
-          >
-            Relacionar
-          </va-button>
-        </div>
-        <ZListRelationUsers :items="form.users" @delete="actionDeleteUser" />
-      </va-card>
+        </va-card>
+        <va-card class="players-card">
+          <ZTeamFormPlayersFields
+            v-model:users="users"
+            :form="form"
+            @add-users="addUsers"
+            @delete-user="actionDeleteUser"
+          />
+        </va-card>
+      </template>
 
-      <!-- Botões -->
-      <div class="action-buttons">
-        <va-button color="secondary" @click="goBack" class="mr-1"
-          >Voltar</va-button
+      <template v-else>
+        <va-stepper
+          v-model="wizardStep"
+          :steps="wizardSteps"
+          controls-hidden
+          class="team-form-stepper"
         >
-        <va-button color="primary" @click="save">Salvar</va-button>
+          <template #step-content-0>
+            <div class="wizard-step-inner">
+              <va-card class="info-card">
+                <ZTeamFormEssentialFields
+                  :form="form"
+                  :category-options="categoryOptions"
+                  :sorted-levels="sortedLevels"
+                  :categories-loading="categoriesLoading"
+                  :levels-loading="levelsLoading"
+                  :error-fields="errorFields"
+                  :errors="errors"
+                  @select-category="selectCategory"
+                  @select-level="selectLevel"
+                />
+              </va-card>
+            </div>
+          </template>
+          <template #step-content-1>
+            <div class="wizard-step-inner">
+              <va-card class="players-card">
+                <ZTeamFormPlayersFields
+                  v-model:users="users"
+                  :form="form"
+                  @add-users="addUsers"
+                  @delete-user="actionDeleteUser"
+                />
+              </va-card>
+            </div>
+          </template>
+        </va-stepper>
+      </template>
+
+      <div class="action-buttons">
+        <va-button
+          v-if="useWizard && wizardStep > 0"
+          color="secondary"
+          class="mr-1"
+          @click="wizardStep--"
+        >
+          Anterior
+        </va-button>
+        <va-button
+          v-else
+          color="secondary"
+          class="mr-1"
+          @click="goBack"
+        >
+          Voltar
+        </va-button>
+        <va-button
+          v-if="useWizard && wizardStep < 1"
+          color="primary"
+          @click="wizardStep++"
+        >
+          Próximo
+        </va-button>
+        <va-button
+          v-else
+          color="primary"
+          :loading="loading"
+          @click="save"
+        >
+          Salvar
+        </va-button>
       </div>
     </va-form>
   </div>
 </template>
 
 <script>
-import ZTextInput from "~/components/molecules/Inputs/ZTextInput";
-import ZSelectUser from "~/components/molecules/Selects/ZSelectUser";
-import ZListRelationUsers from "~/components/organisms/List/Relations/ZListRelationUsers";
-import ZSelectTeamCategory from "~/components/molecules/Selects/ZSelectTeamCategory";
-import ZSelectTeamLevel from "~/components/molecules/Selects/ZSelectTeamLevel.vue";
+import ZTeamFormEssentialFields from "~/components/organisms/Forms/Team/ZTeamFormEssentialFields.vue";
+import ZTeamFormPlayersFields from "~/components/organisms/Forms/Team/ZTeamFormPlayersFields.vue";
+import TEAM_CATEGORIES from "~/graphql/teamCategories/query/teamCategories.graphql";
+import TEAM_LEVELS from "~/graphql/teamLevel/query/teamLevel.graphql";
+import { gql } from "@apollo/client/core";
+import { useNuxtApp } from "#app";
 import { confirmSuccess } from "~/utils/sweetAlert2/swalHelper";
 
+const LEVEL_SORT_ORDER = ["bronze", "prata", "ouro", "outro", "elite"];
+
 export default {
+  components: {
+    ZTeamFormEssentialFields,
+    ZTeamFormPlayersFields,
+  },
+
   props: {
     data: {
       type: Object,
@@ -101,13 +141,10 @@ export default {
         users: [],
       }),
     },
-  },
-  components: {
-    ZTextInput,
-    ZSelectUser,
-    ZListRelationUsers,
-    ZSelectTeamCategory,
-    ZSelectTeamLevel,
+    useWizard: {
+      type: Boolean,
+      default: false,
+    },
   },
 
   data() {
@@ -118,7 +155,40 @@ export default {
         teamCategory: this.data.teamCategory || null,
         teamLevel: this.data.teamLevel || null,
       },
+      categoryOptions: [],
+      levelOptions: [],
+      categoriesLoading: false,
+      levelsLoading: false,
+      wizardStep: 0,
     };
+  },
+
+  computed: {
+    wizardSteps() {
+      return [
+        { label: "Informações essenciais" },
+        { label: "Jogadores" },
+      ];
+    },
+    sortedLevels() {
+      const norm = (s) =>
+        String(s || "")
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "");
+      return [...this.levelOptions].sort((a, b) => {
+        const na = norm(a.name);
+        const nb = norm(b.name);
+        let ia = LEVEL_SORT_ORDER.length;
+        let ib = LEVEL_SORT_ORDER.length;
+        LEVEL_SORT_ORDER.forEach((token, idx) => {
+          if (na.includes(token) && ia === LEVEL_SORT_ORDER.length) ia = idx;
+          if (nb.includes(token) && ib === LEVEL_SORT_ORDER.length) ib = idx;
+        });
+        if (ia !== ib) return ia - ib;
+        return a.name.localeCompare(b.name, "pt-BR");
+      });
+    },
   },
 
   watch: {
@@ -131,7 +201,83 @@ export default {
     },
   },
 
+  async mounted() {
+    await Promise.all([this.fetchCategories(), this.fetchLevels()]);
+  },
+
   methods: {
+    async fetchCategories() {
+      this.categoriesLoading = true;
+      try {
+        const q = gql`
+          ${TEAM_CATEGORIES}
+        `;
+        const rows = await this.fetchAllPages(q, "teamCategories");
+        this.categoryOptions = rows.map((item) => ({
+          id: Number(item.id),
+          name: item.name,
+        }));
+      } catch (e) {
+        console.error("ZTeamForm - categorias:", e);
+      } finally {
+        this.categoriesLoading = false;
+      }
+    },
+    async fetchLevels() {
+      this.levelsLoading = true;
+      try {
+        const q = gql`
+          ${TEAM_LEVELS}
+        `;
+        const rows = await this.fetchAllPages(q, "teamLevels");
+        this.levelOptions = rows.map((item) => ({
+          id: Number(item.id),
+          name: item.name,
+        }));
+      } catch (e) {
+        console.error("ZTeamForm - níveis:", e);
+      } finally {
+        this.levelsLoading = false;
+      }
+    },
+    async fetchAllPages(query, dataKey) {
+      const nuxtApp = useNuxtApp();
+      const apolloClient = nuxtApp._apolloClients?.default;
+      if (!apolloClient) return [];
+      const perPage = 50;
+      let page = 1;
+      let hasMore = true;
+      const all = [];
+      while (hasMore) {
+        const result = await apolloClient.query({
+          query,
+          variables: {
+            filter: { search: "%%" },
+            first: perPage,
+            page,
+          },
+          fetchPolicy: "network-only",
+        });
+        const payload = result?.data?.[dataKey];
+        const rows = payload?.data ?? [];
+        all.push(...rows);
+        hasMore = Boolean(payload?.paginatorInfo?.hasMorePages);
+        page += 1;
+      }
+      return all;
+    },
+    selectCategory(cat) {
+      this.form.teamCategory = {
+        value: cat.id,
+        text: cat.name,
+      };
+    },
+    selectLevel(level) {
+      this.form.teamLevel = {
+        value: level.id,
+        text: level.name,
+      };
+    },
     addUsers() {
       const transformedUser = this.users.map((item) => ({
         id: item.value,
@@ -171,57 +317,68 @@ export default {
 .form-container {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
-  padding: 20px;
+  padding: 24px;
+  max-width: 960px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.team-form-inner {
+  width: 100%;
+  min-width: 0;
+}
+
+.team-form-stepper {
+  width: 100%;
+  min-width: 0;
+}
+
+.team-form-stepper :deep(.va-stepper__content) {
+  padding-top: 8px;
+  width: 100%;
+}
+
+.team-form-stepper :deep([class*="step-content"]) {
+  width: 100%;
+}
+
+.wizard-step-inner {
+  width: 100%;
+  max-width: 920px;
+  margin-left: auto;
+  margin-right: auto;
+  box-sizing: border-box;
 }
 
 .info-card,
 .players-card {
+  box-sizing: border-box;
   width: 100%;
-  max-width: 600px;
-  padding: 20px;
+  max-width: 920px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 32px 28px;
   background-color: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   margin-bottom: 20px;
-}
-
-.players-input-container {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 20px;
-}
-
-.section-title {
-  font-size: 18px;
-  font-weight: bold;
-  color: #0b1e3a;
-  margin-bottom: 10px;
-}
-
-.save-button-container {
-  text-align: center;
-  margin-top: 20px;
-}
-
-/* Aplicar estilo ao placeholder de inputs e textareas */
-input::placeholder,
-textarea::placeholder {
-  font-size: 13px; /* Diminuir o tamanho da fonte do placeholder */
-}
-
-.custom-button {
-  padding: 0 1rem; /* Espaçamento apenas nas laterais */
-  font-size: 14px; /* Ajuste do tamanho da fonte */
-  border-radius: 8px; /* Bordas arredondadas */
+  border: 1px solid #e5e7eb;
 }
 
 .action-buttons {
   display: flex;
-  justify-content: flex-end; /* Alinha os botões no lado direito */
+  justify-content: space-between;
   gap: 12px;
+  width: 100%;
+  max-width: 920px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 8px;
+  padding-top: 12px;
+  box-sizing: border-box;
 }
 
 .action-buttons va-button {

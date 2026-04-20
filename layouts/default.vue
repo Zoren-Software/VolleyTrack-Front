@@ -1,13 +1,12 @@
 <template>
   <div class="layout-container">
-    <div class="top-bar">
-      <div class="top-bar-left">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
         <div class="logo">
           <div class="logo-circle">
             <span class="logo-icon">🏐</span>
           </div>
           <span class="system-name">VolleyTrack</span>
-          <!-- Ícone do Plano Ativo -->
           <div v-if="activePlanIcon" class="plan-icon-logo">
             <div class="plan-icon-wrapper">
               <va-icon
@@ -32,80 +31,98 @@
           </div>
         </div>
       </div>
-      <div class="top-bar-center">
-        <nav class="nav-links">
-          <NuxtLink
-            v-for="item in navItems"
-            :key="item.title"
-            :to="item.link"
-            :class="['nav-link', { active: isRouteActive(item.link) }]"
-          >
-            {{ item.title }}
-          </NuxtLink>
-          <div class="dropdown" ref="dropdownRef" @click.stop="toggleDropdown">
-            <span
-              class="nav-link dropdown-toggle"
-              :class="{ active: isSettingsRouteActive() }"
-            >
-              Configurações
-            </span>
-            <div v-if="dropdownOpen" class="dropdown-menu" @click.stop>
-              <NuxtLink
-                to="/settings"
-                class="dropdown-item"
-                @click="closeDropdown"
-                >Configuração de Conta</NuxtLink
-              >
-              <a
-                href="#"
-                class="dropdown-item"
-                @click.prevent="openNotificationSettings"
-                >Configuração de Notificações</a
-              >
-            </div>
-          </div>
-        </nav>
-      </div>
-      <div class="top-bar-right">
-        <div
-          class="notification-wrapper"
-          :class="{ 'notification-active': isNotificationsPage }"
+      <nav class="sidebar-nav">
+        <NuxtLink
+          v-for="item in navItems"
+          :key="item.title"
+          :to="item.link"
+          :class="['sidebar-link', { active: isRouteActive(item.link) }]"
         >
-          <va-button-dropdown color="background-primary" hide-icon>
-            <template #label>
-              <va-badge
-                v-if="totalNotifications > 0"
-                overlap
-                color="danger"
-                :text="
-                  totalNotifications > 99 ? '99+' : String(totalNotifications)
-                "
-              >
-                <va-icon name="notifications" class="notification-icon" />
-              </va-badge>
-              <va-icon v-else name="notifications" class="notification-icon" />
-            </template>
-            <ZListItemsNotification
-              @updateTotalNotifications="totalNotificationsChange"
-              @oneLessNotification="oneLessNotification"
-            />
-          </va-button-dropdown>
+          <va-icon
+            :name="item.icon"
+            size="20px"
+            class="sidebar-link-icon"
+          />
+          <span class="sidebar-link-text">{{ item.title }}</span>
+        </NuxtLink>
+        <div class="dropdown sidebar-dropdown" ref="dropdownRef" @click.stop="toggleDropdown">
+          <span
+            class="sidebar-link dropdown-toggle"
+            :class="{ active: isSettingsRouteActive() }"
+          >
+            <va-icon name="settings" size="20px" class="sidebar-link-icon" />
+            <span class="sidebar-link-text">Configurações</span>
+          </span>
+          <div v-if="dropdownOpen" class="dropdown-menu" @click.stop>
+            <NuxtLink
+              to="/settings"
+              class="dropdown-item"
+              @click="closeDropdown"
+            >
+              <va-icon name="manage_accounts" size="18px" class="dropdown-item-icon" />
+              <span>Configuração de Conta</span>
+            </NuxtLink>
+            <a
+              href="#"
+              class="dropdown-item"
+              @click.prevent="openNotificationSettings"
+            >
+              <va-icon name="notifications_active" size="18px" class="dropdown-item-icon" />
+              <span>Configuração de Notificações</span>
+            </a>
+          </div>
         </div>
-        <div class="user-menu-wrapper">
-          <va-button-dropdown color="background-primary" hide-icon>
-            <template #label>
-              <va-avatar v-if="user.id" class="user-avatar">
-                {{ firstLatter }}
-              </va-avatar>
-              <va-icon v-else name="account_circle" class="user-icon" />
-            </template>
-            <ZListItemsUser />
-          </va-button-dropdown>
+      </nav>
+    </aside>
+    <div class="main-area">
+      <div class="top-bar">
+        <div class="top-bar-right">
+          <div
+            class="notification-wrapper"
+            :class="{ 'notification-active': isNotificationsPage }"
+          >
+            <va-button-dropdown color="background-primary" hide-icon>
+              <template #label>
+                <va-badge
+                  v-if="totalNotifications > 0"
+                  overlap
+                  color="danger"
+                  :text="
+                    totalNotifications > 99 ? '99+' : String(totalNotifications)
+                  "
+                >
+                  <va-icon name="notifications_none" class="notification-icon" />
+                </va-badge>
+                <va-icon v-else name="notifications_none" class="notification-icon" />
+              </template>
+              <ZListItemsNotification
+                @updateTotalNotifications="totalNotificationsChange"
+                @oneLessNotification="oneLessNotification"
+              />
+            </va-button-dropdown>
+          </div>
+          <div class="user-menu-wrapper">
+            <va-button-dropdown color="background-primary" hide-icon>
+              <template #label>
+                <div class="user-menu-trigger">
+                  <va-avatar v-if="user.id" class="user-avatar">
+                    {{ firstLatter }}
+                  </va-avatar>
+                  <va-icon v-else name="account_circle" class="user-icon" />
+                  <div class="user-menu-text">
+                    <span class="user-menu-name">{{ userDisplayName }}</span>
+                    <span class="user-menu-role">{{ userRolesLabel }}</span>
+                  </div>
+                </div>
+              </template>
+              <ZListItemsUser />
+            </va-button-dropdown>
+          </div>
         </div>
       </div>
-    </div>
-    <div class="content-wrapper">
-      <NuxtPage />
+      <div class="content-wrapper">
+        <NuxtPage />
+      </div>
     </div>
   </div>
 </template>
@@ -125,11 +142,11 @@ export default {
   data() {
     return {
       navItems: [
-        { title: "Início", link: "/" },
-        { title: "Jogadores", link: "/players" },
-        { title: "Times", link: "/teams" },
-        { title: "Treinos", link: "/trainings" },
-        { title: "Pagamentos", link: "/payment" },
+        { title: "Início", link: "/", icon: "home" },
+        { title: "Jogadores", link: "/players", icon: "people" },
+        { title: "Times", link: "/teams", icon: "groups" },
+        { title: "Treinos", link: "/trainings", icon: "fitness_center" },
+        { title: "Pagamentos", link: "/payment", icon: "payments" },
       ],
       dropdownOpen: false,
       totalNotifications: 0,
@@ -137,6 +154,7 @@ export default {
       user: {
         id: null,
         name: "Usuário",
+        roles: [],
       },
       activePlanData: null,
     };
@@ -144,6 +162,18 @@ export default {
   computed: {
     firstLatter() {
       return this.user.name?.charAt(0)?.toUpperCase() || "U";
+    },
+    userDisplayName() {
+      const n = this.user?.name?.trim();
+      return n || "Usuário";
+    },
+    userRolesLabel() {
+      const roles = this.user?.roles;
+      if (!Array.isArray(roles) || roles.length === 0) {
+        return "Sem função definida";
+      }
+      const names = roles.map((r) => r?.name).filter(Boolean);
+      return names.length ? names.join(" • ") : "Sem função definida";
     },
     activePlanIcon() {
       if (!this.activePlanData) {
@@ -264,7 +294,7 @@ export default {
           : metadata.plan_type;
 
       // Determinar cor baseado no tipo de plano
-      if (planType === "trial") return "#e9742b";
+      if (planType === "trial") return "#FF4E1B";
       if (planType === "pro") return "#3b82f6";
       if (planType === "clubes") return "#10b981";
       if (
@@ -411,19 +441,46 @@ export default {
       }
     },
     async getUser() {
-      if (localStorage.getItem("user")) {
-        this.user = await JSON.parse(localStorage.getItem("user"));
-      } else {
-        const query = gql`
-          ${ME}
-        `;
-        const {
-          data: { value },
-        } = await useAsyncQuery(query, {});
+      const token =
+        localStorage.getItem("userToken") ||
+        localStorage.getItem("apollo:default.token");
 
-        if (value?.me) {
-          this.user = value.me;
-          localStorage.setItem("user", JSON.stringify(this.user));
+      if (token) {
+        try {
+          const query = gql`
+            ${ME}
+          `;
+          const {
+            data: { value },
+          } = await useAsyncQuery(query, {});
+
+          if (value?.me) {
+            this.user = {
+              ...this.user,
+              ...value.me,
+              roles: value.me.roles || [],
+            };
+            localStorage.setItem("user", JSON.stringify(this.user));
+            return;
+          }
+        } catch (e) {
+          console.warn("Layout getUser: erro ao carregar me", e);
+        }
+      }
+
+      const cached = localStorage.getItem("user");
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached);
+          this.user = {
+            id: null,
+            name: "Usuário",
+            roles: [],
+            ...parsed,
+            roles: Array.isArray(parsed?.roles) ? parsed.roles : [],
+          };
+        } catch {
+          /* ignore */
         }
       }
     },
@@ -461,34 +518,118 @@ export default {
 <style scoped>
 .layout-container {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: stretch;
   min-height: 100vh;
+  width: 100%;
 }
 
-.top-bar {
-  background-color: #0b1e3a;
-  height: 60px;
+.sidebar {
+  width: 260px;
+  flex-shrink: 0;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid #c0c0c0;
-  overflow: visible;
-  position: relative;
-  width: 100%;
+  flex-direction: column;
+  background-color: #0b1e3a;
+  border-right: 1px solid #1e3a5f;
+  padding: 20px 16px;
   box-sizing: border-box;
   z-index: 1000;
 }
 
-.top-bar-center {
-  position: relative;
-  z-index: 1001;
-  overflow: visible;
+.sidebar-brand {
+  flex-shrink: 0;
 }
 
-.top-bar-left {
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 28px;
+  flex: 1;
+  min-height: 0;
+}
+
+.sidebar-link {
   display: flex;
   align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  color: #e8eef7;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 15px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  min-width: 0;
+}
+
+.sidebar-link-text {
+  min-width: 0;
+}
+
+.sidebar-link-icon {
+  flex-shrink: 0;
+  color: rgba(232, 238, 247, 0.88) !important;
+  transition: color 0.15s ease;
+}
+
+.sidebar-link:hover {
+  background-color: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+}
+
+.sidebar-link:hover .sidebar-link-icon {
+  color: #ffffff !important;
+}
+
+.sidebar-link.active {
+  background-color: rgba(255, 78, 27, 0.18);
+  color: #ff8c42;
+}
+
+.sidebar-link.active .sidebar-link-icon {
+  color: #ff8c42 !important;
+}
+
+.sidebar-link.dropdown-toggle {
+  cursor: pointer;
+  user-select: none;
+}
+
+.sidebar-dropdown {
+  position: relative;
+  width: 100%;
+}
+
+.sidebar-dropdown .dropdown-menu {
+  left: 0;
+  right: 0;
+  width: 100%;
+  min-width: unset;
+}
+
+.main-area {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background-color: #f3f4f6;
+}
+
+.top-bar {
+  background-color: #ffffff;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 12px 20px;
+  border-bottom: 1px solid #e5e7eb;
+  overflow: visible;
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+  z-index: 999;
+  flex-shrink: 0;
 }
 
 .logo {
@@ -499,7 +640,7 @@ export default {
 }
 
 .logo-circle {
-  background-color: #e9742b;
+  background-color: #FF4E1B;
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -518,6 +659,10 @@ export default {
   font-weight: bold;
   font-size: 1.2rem;
   margin-left: 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .plan-icon-logo {
@@ -607,46 +752,8 @@ export default {
   font-weight: 500;
 }
 
-.top-bar-center {
-  display: flex;
-  justify-content: center;
-  position: relative;
-  z-index: 1001;
-  overflow: visible;
-}
-
-.nav-links {
-  display: flex;
-  gap: 16px;
-  position: relative;
-  overflow: visible;
-  z-index: 1001;
-}
-
-.nav-link {
-  color: #ffffff;
-  text-decoration: none;
-  font-weight: 500;
-  cursor: pointer;
-}
-
-.nav-link.active {
-  color: #e9742b; /* Cor laranja para a rota ativa */
-}
-
-.nav-link:hover {
-  color: #b0c4de;
-}
-
-.nav-link.dropdown-toggle {
-  position: relative;
-  cursor: pointer;
-  user-select: none;
-}
-
 .dropdown {
   position: relative;
-  display: inline-block;
   z-index: 10001;
 }
 
@@ -659,22 +766,33 @@ export default {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   padding: 8px 0;
   z-index: 10002 !important;
-  white-space: nowrap;
   min-width: 200px;
   pointer-events: auto;
 }
 
 .dropdown-item {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   padding: 10px 12px;
   color: #333333;
   text-decoration: none;
   font-size: 14px;
 }
 
+.dropdown-item-icon {
+  flex-shrink: 0;
+  color: #6b7280 !important;
+  transition: color 0.15s ease;
+}
+
 .dropdown-item:hover {
   background-color: #f6f7f9;
-  color: #e9742b;
+  color: #ff4e1b;
+}
+
+.dropdown-item:hover .dropdown-item-icon {
+  color: #ff4e1b !important;
 }
 
 .top-bar-right {
@@ -718,15 +836,16 @@ export default {
 
 .notification-icon {
   font-size: 24px !important;
-  color: #e9742b !important;
+  color: #6b7280 !important;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease,
+    box-shadow 0.2s ease;
   --va-background-color: transparent !important;
   background: transparent !important;
 }
 
 .notification-icon:hover {
-  color: #ff8c42 !important;
+  color: #4b5563 !important;
   --va-background-color: transparent !important;
   background: transparent !important;
 }
@@ -735,18 +854,19 @@ export default {
   position: relative;
   padding: 8px;
   border-radius: 50%;
-  background: rgba(233, 116, 43, 0.1) !important;
-  border: 2px solid #e9742b !important;
-  box-shadow: 0 0 0 2px rgba(233, 116, 43, 0.2),
-    0 4px 12px rgba(233, 116, 43, 0.3) !important;
+  background: rgba(107, 114, 128, 0.1) !important;
+  border: 2px solid #9ca3af !important;
+  box-shadow: 0 0 0 2px rgba(156, 163, 175, 0.25),
+    0 2px 8px rgba(107, 114, 128, 0.15) !important;
+  color: #6b7280 !important;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .notification-wrapper.notification-active :deep(.notification-icon):hover {
-  background: rgba(233, 116, 43, 0.15) !important;
-  border-color: #ff8c42 !important;
-  box-shadow: 0 0 0 3px rgba(233, 116, 43, 0.3),
-    0 6px 16px rgba(233, 116, 43, 0.4) !important;
+  background: rgba(107, 114, 128, 0.14) !important;
+  border-color: #6b7280 !important;
+  box-shadow: 0 0 0 3px rgba(156, 163, 175, 0.3),
+    0 4px 12px rgba(107, 114, 128, 0.2) !important;
   transform: scale(1.05);
 }
 
@@ -770,6 +890,57 @@ export default {
   z-index: 1001;
 }
 
+.user-menu-wrapper :deep(.va-button-dropdown__label) {
+  display: flex !important;
+  align-items: center;
+  min-width: 0;
+  --va-background-color: transparent !important;
+  background: transparent !important;
+}
+
+.user-menu-trigger {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  cursor: pointer;
+  text-align: left;
+}
+
+.user-menu-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  min-width: 0;
+  max-width: min(220px, 28vw);
+}
+
+.user-menu-name {
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.25;
+  color: #0b1e3a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.user-menu-role {
+  font-size: 12px;
+  line-height: 1.3;
+  color: #6b7280;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  width: 100%;
+  word-break: break-word;
+}
+
 .user-menu-wrapper :deep(.va-button-dropdown__content) {
   background: white;
   border-radius: 8px;
@@ -787,7 +958,7 @@ export default {
   border: 2px solid white !important;
   cursor: pointer;
   transition: all 0.2s ease;
-  background: #e9742b !important;
+  background: #FF4E1B !important;
   color: white !important;
   font-weight: 700;
   font-size: 16px;
@@ -797,7 +968,7 @@ export default {
 
 .user-avatar :deep(.va-avatar) {
   border: 2px solid white !important;
-  background: #e9742b !important;
+  background: #FF4E1B !important;
   color: white !important;
   --va-size-computed: 40px !important;
   width: 40px !important;
@@ -807,21 +978,58 @@ export default {
 .user-avatar:hover {
   border-color: white !important;
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(233, 116, 43, 0.3);
+  box-shadow: 0 2px 8px rgba(255, 78, 27, 0.3);
 }
 
 .user-icon {
   font-size: 40px;
-  color: #ffffff;
+  color: #0b1e3a;
   cursor: pointer;
 }
 .content-wrapper {
+  flex: 1;
   padding: 20px;
   overflow-x: hidden;
   width: 100%;
   box-sizing: border-box;
   position: relative;
   z-index: 0;
+  min-height: 0;
+}
+
+@media (max-width: 900px) {
+  .layout-container {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #1e3a5f;
+    padding: 14px 16px;
+  }
+
+  .sidebar-nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-top: 16px;
+    gap: 6px 8px;
+  }
+
+  .sidebar-link {
+    padding: 8px 10px;
+    font-size: 14px;
+  }
+
+  .sidebar-dropdown {
+    width: auto;
+    min-width: min(100%, 200px);
+  }
+
+  .sidebar-dropdown .dropdown-menu {
+    width: max-content;
+    min-width: 200px;
+  }
 }
 </style>
 

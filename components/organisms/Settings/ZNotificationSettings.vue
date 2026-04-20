@@ -168,7 +168,7 @@ export default {
 }
 
 .icon-orange {
-  color: #E9742B;
+  color: #FF4E1B;
 }
 
 .events-table {
@@ -226,7 +226,7 @@ export default {
 }
 
 .save-button {
-  background-color: #E9742B;
+  background-color: #FF4E1B;
   color: #FFFFFF;
 }
 </style>

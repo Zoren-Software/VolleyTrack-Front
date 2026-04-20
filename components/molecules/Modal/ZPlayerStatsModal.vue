@@ -43,7 +43,7 @@
 
         <div class="stat-card trainings-card">
           <div class="stat-icon">
-            <va-icon name="fitness_center" size="32px" color="#e9742b" />
+            <va-icon name="fitness_center" size="32px" color="#FF4E1B" />
           </div>
           <div class="stat-content">
             <div class="stat-value trainings-value">
@@ -207,7 +207,7 @@
       <div v-if="playerData.teamRankings && playerData.teamRankings.length > 0" class="team-rankings-section">
         <div class="section-title-wrapper">
           <h4 class="section-title">Ranking de Presença nos Times</h4>
-          <va-icon name="emoji_events" size="20px" color="#E9742B" />
+          <va-icon name="emoji_events" size="20px" color="#FF4E1B" />
         </div>
         <div class="team-rankings-list">
           <div
@@ -372,7 +372,7 @@ export default {
             backgroundColor: "rgba(0, 0, 0, 0.8)",
             titleColor: "#fff",
             bodyColor: "#fff",
-            borderColor: "rgba(233, 116, 43, 1)",
+            borderColor: "rgba(255, 78, 27, 1)",
             borderWidth: 1,
           },
         },
@@ -522,13 +522,13 @@ export default {
           {
             label: "Performance",
             data,
-            backgroundColor: "rgba(233, 116, 43, 0.2)",
-            borderColor: "rgba(233, 116, 43, 1)",
+            backgroundColor: "rgba(255, 78, 27, 0.2)",
+            borderColor: "rgba(255, 78, 27, 1)",
             borderWidth: 2,
-            pointBackgroundColor: "rgba(233, 116, 43, 1)",
+            pointBackgroundColor: "rgba(255, 78, 27, 1)",
             pointBorderColor: "#fff",
             pointHoverBackgroundColor: "#fff",
-            pointHoverBorderColor: "rgba(233, 116, 43, 1)",
+            pointHoverBorderColor: "rgba(255, 78, 27, 1)",
             pointRadius: 4,
             pointHoverRadius: 6,
           },
@@ -617,7 +617,7 @@ export default {
 }
 
 .trainings-value {
-  color: #e9742b;
+  color: #FF4E1B;
 }
 
 .stat-label {
@@ -642,7 +642,7 @@ export default {
 }
 
 .info-icon:hover {
-  color: #e9742b;
+  color: #FF4E1B;
 }
 
 .info-popover-text {
@@ -672,8 +672,8 @@ export default {
 }
 
 .toggle-view-btn:hover {
-  color: #e9742b !important;
-  background: rgba(233, 116, 43, 0.1) !important;
+  color: #FF4E1B !important;
+  background: rgba(255, 78, 27, 0.1) !important;
 }
 
 .radar-chart-container {
@@ -833,8 +833,8 @@ export default {
   font-size: 13px;
   font-weight: 500;
   background-color: #fff4ec;
-  border: 1px solid #e9742b;
-  color: #e9742b;
+  border: 1px solid #FF4E1B;
+  color: #FF4E1B;
 }
 
 .position-tag.empty {
@@ -854,7 +854,7 @@ export default {
   display: inline-flex;
   align-items: center;
   padding: 4px 8px;
-  background: #e9742b;
+  background: #FF4E1B;
   color: white;
   border-radius: 12px;
   font-size: 10px;
@@ -913,7 +913,7 @@ export default {
 }
 
 .border-orange {
-  background: #e9742b;
+  background: #FF4E1B;
 }
 
 .border-blue {
@@ -962,8 +962,8 @@ export default {
 }
 
 .badge-orange {
-  background: rgba(233, 116, 43, 0.1);
-  color: #e9742b;
+  background: rgba(255, 78, 27, 0.1);
+  color: #FF4E1B;
 }
 
 .badge-blue {
@@ -1007,7 +1007,7 @@ export default {
 }
 
 .rank-orange {
-  background: #e9742b;
+  background: #FF4E1B;
 }
 
 .rank-blue {

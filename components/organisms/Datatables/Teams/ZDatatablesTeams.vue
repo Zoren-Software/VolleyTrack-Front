@@ -48,7 +48,7 @@
         </div>
         <div class="filter-actions">
           <va-button
-            color="#E9742B"
+            color="#FF4E1B"
             class="search-button"
             @click="handleSearch"
           >
@@ -119,7 +119,7 @@
         <div class="action-buttons-wrapper">
           <va-button
             icon="bar_chart"
-            color="#e9742b"
+            color="#FF4E1B"
             size="small"
             class="stats-btn action-btn"
             :title="'Ver estatísticas de ' + (rowKey.name || 'Time')"
@@ -157,7 +157,7 @@
       <va-card class="summary-card">
         <div class="summary-content">
           <div class="summary-icon">
-            <va-icon name="groups" size="large" color="#E9742B" />
+            <va-icon name="groups" size="large" color="#FF4E1B" />
           </div>
           <div class="summary-number-wrapper">
             <div class="summary-number">
@@ -908,9 +908,9 @@ export default defineComponent({
   padding: 12px 24px;
   font-weight: 500;
   white-space: nowrap;
-  background-color: #e9742b !important;
+  background-color: #FF4E1B !important;
   color: #ffffff !important;
-  box-shadow: 0 2px 8px rgba(233, 116, 43, 0.3);
+  box-shadow: 0 2px 8px rgba(255, 78, 27, 0.3);
   border: none;
   display: inline-flex;
   align-items: center;
@@ -922,13 +922,13 @@ export default defineComponent({
 
 .search-button:hover {
   background-color: #d6652a !important;
-  box-shadow: 0 4px 12px rgba(233, 116, 43, 0.4);
+  box-shadow: 0 4px 12px rgba(255, 78, 27, 0.4);
   transform: translateY(-1px);
 }
 
 .search-button:active {
   transform: translateY(0);
-  box-shadow: 0 2px 6px rgba(233, 116, 43, 0.3);
+  box-shadow: 0 2px 6px rgba(255, 78, 27, 0.3);
 }
 
 .search-button .button-icon {
@@ -1038,7 +1038,7 @@ export default defineComponent({
 }
 
 .stats-btn {
-  background-color: #e9742b !important;
+  background-color: #FF4E1B !important;
   color: white !important;
 }
 

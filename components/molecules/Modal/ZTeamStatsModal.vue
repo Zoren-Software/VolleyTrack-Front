@@ -58,7 +58,7 @@
 
         <div class="stat-card trainings-card">
           <div class="stat-icon">
-            <va-icon name="fitness_center" size="32px" color="#e9742b" />
+            <va-icon name="fitness_center" size="32px" color="#FF4E1B" />
           </div>
           <div class="stat-content">
             <div class="stat-value trainings-value">
@@ -361,7 +361,7 @@ export default {
             backgroundColor: "rgba(0, 0, 0, 0.8)",
             titleColor: "#fff",
             bodyColor: "#fff",
-            borderColor: "rgba(233, 116, 43, 1)",
+            borderColor: "rgba(255, 78, 27, 1)",
             borderWidth: 1,
           },
         },
@@ -525,13 +525,13 @@ export default {
           {
             label: "Performance",
             data,
-            backgroundColor: "rgba(233, 116, 43, 0.2)",
-            borderColor: "rgba(233, 116, 43, 1)",
+            backgroundColor: "rgba(255, 78, 27, 0.2)",
+            borderColor: "rgba(255, 78, 27, 1)",
             borderWidth: 2,
-            pointBackgroundColor: "rgba(233, 116, 43, 1)",
+            pointBackgroundColor: "rgba(255, 78, 27, 1)",
             pointBorderColor: "#fff",
             pointHoverBackgroundColor: "#fff",
-            pointHoverBorderColor: "rgba(233, 116, 43, 1)",
+            pointHoverBorderColor: "rgba(255, 78, 27, 1)",
             pointRadius: 4,
             pointHoverRadius: 6,
           },
@@ -628,7 +628,7 @@ export default {
 }
 
 .trainings-value {
-  color: #e9742b;
+  color: #FF4E1B;
 }
 
 .stat-label {
@@ -653,7 +653,7 @@ export default {
 }
 
 .info-icon:hover {
-  color: #e9742b;
+  color: #FF4E1B;
 }
 
 .info-popover-text {
@@ -724,7 +724,7 @@ export default {
 }
 
 .border-orange {
-  background: #e9742b;
+  background: #FF4E1B;
 }
 
 .border-blue {
@@ -822,7 +822,7 @@ export default {
 }
 
 .rank-orange {
-  background: #e9742b;
+  background: #FF4E1B;
 }
 
 .rank-blue {
@@ -873,7 +873,7 @@ export default {
 }
 
 .percentage-orange {
-  color: #e9742b;
+  color: #FF4E1B;
 }
 
 .percentage-blue {
@@ -964,8 +964,8 @@ export default {
 }
 
 .toggle-view-btn:hover {
-  color: #e9742b !important;
-  background: rgba(233, 116, 43, 0.1) !important;
+  color: #FF4E1B !important;
+  background: rgba(255, 78, 27, 0.1) !important;
 }
 
 .radar-chart-container {

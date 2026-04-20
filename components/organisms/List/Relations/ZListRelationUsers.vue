@@ -14,9 +14,26 @@
               </div>
               <div class="user-details">
                 <p class="user-name">{{ item.user.name }}</p>
-                <p class="user-position">
-                  {{ item.user.positions[0]?.name || "Sem posição" }}
-                </p>
+                <div v-if="item.user.email" class="user-detail">
+                  <va-icon
+                    name="email"
+                    size="small"
+                    color="#6b7280"
+                    class="detail-icon"
+                  />
+                  <span class="detail-text">{{ item.user.email }}</span>
+                </div>
+                <div class="user-detail user-detail--positions">
+                  <va-icon
+                    name="trip_origin"
+                    size="small"
+                    color="#6b7280"
+                    class="detail-icon"
+                  />
+                  <span class="detail-text detail-text--positions">{{
+                    positionsLabel(item.user)
+                  }}</span>
+                </div>
               </div>
             </div>
             <va-icon
@@ -66,6 +83,14 @@ export default {
     };
   },
   methods: {
+    positionsLabel(user) {
+      const list = user?.positions;
+      if (!Array.isArray(list) || list.length === 0) {
+        return "Sem posição";
+      }
+      const names = list.map((p) => p?.name).filter(Boolean);
+      return names.length ? names.join(" • ") : "Sem posição";
+    },
     add() {
       this.$emit("add");
     },
@@ -103,7 +128,7 @@ export default {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background-color: #e9742b;
+  background-color: #FF4E1B;
   color: #ffffff;
   display: flex;
   align-items: center;
@@ -117,17 +142,43 @@ export default {
 .user-details {
   display: flex;
   flex-direction: column;
+  gap: 4px;
   font-size: 14px;
+  min-width: 0;
 }
 
 .user-name {
   font-weight: bold;
   color: #0b1e3a;
+  margin: 0;
+  line-height: 1.35;
 }
 
-.user-position {
-  font-size: 14px;
-  color: #6c757d;
+.user-detail {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #6b7280;
+  line-height: 1.35;
+  min-width: 0;
+}
+
+.detail-icon {
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+
+.detail-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.user-detail--positions .detail-text--positions {
+  white-space: normal;
+  word-break: break-word;
 }
 
 .delete-icon {
@@ -140,9 +191,13 @@ export default {
   color: #c82333;
 }
 
-.va-list-label {
-  text-align: left; /* Alinha o texto à esquerda */
-  font-weight: bold; /* Opcional: mantém o texto em destaque */
-  margin-bottom: 8px; /* Opcional: adiciona espaçamento abaixo */
+:deep(.va-list-label) {
+  text-align: left;
+  margin-bottom: 10px;
+  color: #6b7280 !important;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 </style>

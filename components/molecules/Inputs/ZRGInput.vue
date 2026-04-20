@@ -2,10 +2,11 @@
   <ZInput
     v-model="displayedValue"
     name="rg"
-    label="RG"
+    :label="label"
     id="rg"
     class="mb-3"
     maxlength="14"
+    :placeholder="placeholder"
   />
 </template>
 
@@ -20,6 +21,14 @@ export default {
     modelValue: {
       type: String,
       default: "",
+    },
+    label: {
+      type: String,
+      default: "RG",
+    },
+    placeholder: {
+      type: String,
+      default: "00.000.000-0",
     },
   },
   computed: {

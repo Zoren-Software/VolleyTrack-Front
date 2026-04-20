@@ -5,7 +5,7 @@
   >
     <div class="section-header">
       <div class="section-title-wrapper">
-        <va-icon name="person" size="24px" color="#E9742B" />
+        <va-icon name="person" size="24px" color="#FF4E1B" />
         <h2 class="section-title">Análise Individual</h2>
         <ZTop3Badge />
       </div>
@@ -294,7 +294,7 @@
               v-if="getSummaryStats(playerData).bestFundamental"
             >
               <div class="best-fundamental-card">
-                <va-icon name="emoji_events" color="#e9742b" size="small" />
+                <va-icon name="emoji_events" color="#FF4E1B" size="small" />
                 <div class="best-fundamental-content">
                   <div class="best-fundamental-label">Melhor Fundamental</div>
                   <div class="best-fundamental-value">
@@ -712,13 +712,13 @@ export default {
           {
             label: "Performance",
             data,
-            backgroundColor: "rgba(233, 116, 43, 0.2)",
-            borderColor: "rgba(233, 116, 43, 1)",
+            backgroundColor: "rgba(255, 78, 27, 0.2)",
+            borderColor: "rgba(255, 78, 27, 1)",
             borderWidth: 2,
-            pointBackgroundColor: "rgba(233, 116, 43, 1)",
+            pointBackgroundColor: "rgba(255, 78, 27, 1)",
             pointBorderColor: "#fff",
             pointHoverBackgroundColor: "#fff",
-            pointHoverBorderColor: "rgba(233, 116, 43, 1)",
+            pointHoverBorderColor: "rgba(255, 78, 27, 1)",
           },
         ],
       };
@@ -761,7 +761,7 @@ export default {
 }
 
 .expand-all-btn {
-  color: #e9742b !important;
+  color: #FF4E1B !important;
   font-size: 12px !important;
   font-weight: 500 !important;
   padding: 6px 12px !important;
@@ -770,7 +770,7 @@ export default {
 }
 
 .expand-all-btn:hover {
-  background: rgba(233, 116, 43, 0.1) !important;
+  background: rgba(255, 78, 27, 0.1) !important;
   color: #d6652a !important;
 }
 
@@ -847,7 +847,7 @@ export default {
 }
 
 .border-orange {
-  background-color: #e9742b;
+  background-color: #FF4E1B;
 }
 
 .border-blue {
@@ -960,8 +960,8 @@ export default {
 }
 
 .toggle-view-btn:hover:not(.toggle-view-btn-disabled) {
-  color: #e9742b !important;
-  background: rgba(233, 116, 43, 0.1) !important;
+  color: #FF4E1B !important;
+  background: rgba(255, 78, 27, 0.1) !important;
 }
 
 .toggle-view-btn-disabled {
@@ -998,7 +998,7 @@ export default {
 }
 
 .value-orange {
-  color: #e9742b;
+  color: #FF4E1B;
 }
 
 .value-blue {
@@ -1024,7 +1024,7 @@ export default {
 }
 
 .info-icon:hover {
-  color: #e9742b;
+  color: #FF4E1B;
 }
 
 .info-popover-text {
@@ -1067,7 +1067,7 @@ export default {
 }
 
 .fundamental-stat-item:hover {
-  border-color: #e9742b;
+  border-color: #FF4E1B;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
@@ -1200,7 +1200,7 @@ export default {
   display: inline-flex;
   align-items: center;
   padding: 2px 6px;
-  background: #e9742b;
+  background: #FF4E1B;
   color: white;
   border-radius: 10px;
   font-size: 8px;
@@ -1229,8 +1229,8 @@ export default {
 
 .fundamental-tag.orange {
   background-color: #fff4ec;
-  border-color: #e9742b;
-  color: #e9742b;
+  border-color: #FF4E1B;
+  color: #FF4E1B;
 }
 
 .fundamental-tag.dark {
@@ -1336,7 +1336,7 @@ export default {
   padding: 10px;
   background: linear-gradient(135deg, #fff4ec 0%, #ffe8d6 100%);
   border-radius: 8px;
-  border: 1px solid rgba(233, 116, 43, 0.2);
+  border: 1px solid rgba(255, 78, 27, 0.2);
 }
 
 .best-fundamental-content {
@@ -1356,7 +1356,7 @@ export default {
 .best-fundamental-value {
   font-size: 13px;
   font-weight: 700;
-  color: #e9742b;
+  color: #FF4E1B;
   line-height: 1.2;
 }
 

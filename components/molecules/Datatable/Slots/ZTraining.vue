@@ -112,7 +112,7 @@ export default {
 .training-id {
   font-weight: 700;
   font-size: 13px;
-  color: #e9742b;
+  color: #FF4E1B;
   line-height: 1.4;
 }
 
@@ -175,7 +175,7 @@ export default {
 .metrics-percentage {
   font-size: 14px;
   font-weight: 700;
-  color: #e9742b;
+  color: #FF4E1B;
 }
 
 .metrics-percentage.success {
@@ -192,7 +192,7 @@ export default {
 
 .progress-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, #e9742b 0%, #f5a872 100%);
+  background: linear-gradient(90deg, #FF4E1B 0%, #f5a872 100%);
   border-radius: 2px;
   transition: width 0.3s ease;
 }

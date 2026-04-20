@@ -1872,7 +1872,7 @@ export default {
   font-size: 11px;
   font-weight: 500;
   display: inline-block;
-  background-color: #e9742b;
+  background-color: #FF4E1B;
   color: white;
   line-height: 1.3;
 }
@@ -1957,7 +1957,7 @@ export default {
   content: "";
   width: 4px;
   height: 20px;
-  background: #e9742b;
+  background: #FF4E1B;
   border-radius: 2px;
 }
 
@@ -1990,7 +1990,7 @@ export default {
   width: 20px;
   height: 20px;
   cursor: pointer;
-  accent-color: #e9742b;
+  accent-color: #FF4E1B;
   flex-shrink: 0;
 }
 

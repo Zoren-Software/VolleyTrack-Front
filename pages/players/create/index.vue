@@ -1,12 +1,13 @@
 <template>
-  <ZUserForm
-    @save="create"
-    :loading="loading"
-    :errorFields="errorFields"
-    :errors="errors"
-    header-title="Cadastro de Jogador"
-    header-subtitle="Crie um novo jogador para sua equipe"
-  />
+    <ZUserForm
+      use-wizard
+      @save="create"
+      :loading="loading"
+      :errorFields="errorFields"
+      :errors="errors"
+      header-title="Cadastro de Jogador"
+      header-subtitle="Crie um novo jogador para sua equipe"
+    />
 </template>
 
 <script>

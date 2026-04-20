@@ -108,7 +108,7 @@ export default {
 }
 
 .metrics-card-header {
-  background: linear-gradient(135deg, #e9742b 0%, #ff6b35 100%);
+  background: linear-gradient(135deg, #FF4E1B 0%, #ff6b35 100%);
   padding: 16px 20px;
 }
 
@@ -160,7 +160,7 @@ export default {
 .metrics-percentage {
   font-size: 14px;
   font-weight: 600;
-  color: #e9742b;
+  color: #FF4E1B;
   min-width: 50px;
   text-align: right;
 }
@@ -184,7 +184,7 @@ export default {
 .total-value {
   font-size: 18px;
   font-weight: 700;
-  color: #e9742b;
+  color: #FF4E1B;
 }
 
 @media (max-width: 768px) {

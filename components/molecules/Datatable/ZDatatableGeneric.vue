@@ -351,13 +351,13 @@ export default defineComponent({
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: linear-gradient(135deg, #e9742b 0%, #ff6b35 100%);
+  background: linear-gradient(135deg, #FF4E1B 0%, #ff6b35 100%);
   color: white;
   padding: 10px 18px;
   border-radius: 24px;
   font-weight: 600;
   font-size: 13px;
-  box-shadow: 0 2px 8px rgba(233, 116, 43, 0.3);
+  box-shadow: 0 2px 8px rgba(255, 78, 27, 0.3);
   transition: all 0.2s ease;
   position: relative;
   overflow: hidden;
@@ -384,7 +384,7 @@ export default defineComponent({
 }
 
 .selected-badge:hover {
-  box-shadow: 0 4px 12px rgba(233, 116, 43, 0.4);
+  box-shadow: 0 4px 12px rgba(255, 78, 27, 0.4);
   transform: translateY(-2px);
 }
 
