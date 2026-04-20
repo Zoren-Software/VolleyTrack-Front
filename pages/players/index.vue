@@ -7,7 +7,12 @@
           <h1 class="page-title">Jogadores</h1>
           <p class="page-subtitle">Gerencie todos os atletas do seu sistema</p>
         </div>
-        <va-button color="#E9742B" class="new-player-button" @click="addPlayer">
+        <va-button
+          v-if="canEditPlayer()"
+          color="#E9742B"
+          class="new-player-button"
+          @click="addPlayer"
+        >
           <va-icon name="add" class="button-icon" />
           <span class="button-text">Novo Jogador</span>
         </va-button>
@@ -15,7 +20,10 @@
     </div>
 
     <!-- Datatable Component -->
-  <ZDatatablesPlayers />
+  <ZDatatablesPlayers
+    :includeActionEditList="canEditPlayer()"
+    :includeActionDeleteList="canEditPlayer()"
+  />
   </div>
 </template>
 
@@ -35,6 +43,8 @@ export default {
 </script>
 
 <script setup>
+const { canEditPlayer } = usePermission()
+
 useHead({
   titleTemplate: "Jogadores",
 });

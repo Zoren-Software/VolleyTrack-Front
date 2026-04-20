@@ -129,6 +129,9 @@ export default {
 </script>
 
 <script setup>
+definePageMeta({
+  middleware: ['player-permission'],
+})
 useHead({
   titleTemplate: "Criar Jogador",
 });

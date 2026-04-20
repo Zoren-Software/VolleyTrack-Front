@@ -61,8 +61,8 @@
       :buttonActionAdd="false"
       buttonActionDelete
       includeActionsColumn
-      includeActionEditList
-      includeActionDeleteList
+      :includeActionEditList="includeActionEditList"
+      :includeActionDeleteList="includeActionDeleteList"
       selectable
       :items="items"
       :columns="columns"
@@ -317,6 +317,17 @@ export default defineComponent({
     ZSelectRole,
     ZDataTableInputSearch,
     ZPlayerStatsModal,
+  },
+
+  props: {
+    includeActionEditList: {
+      type: Boolean,
+      default: true,
+    },
+    includeActionDeleteList: {
+      type: Boolean,
+      default: true,
+    },
   },
 
   async created() {
