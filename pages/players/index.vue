@@ -15,7 +15,10 @@
     </div>
 
     <!-- Datatable Component -->
-  <ZDatatablesPlayers />
+  <ZDatatablesPlayers
+    :includeActionEditList="canEditPlayer()"
+    :includeActionDeleteList="canEditPlayer()"
+  />
   </div>
 </template>
 
@@ -35,6 +38,8 @@ export default {
 </script>
 
 <script setup>
+const { canEditPlayer } = usePermission()
+
 useHead({
   titleTemplate: "Jogadores",
 });

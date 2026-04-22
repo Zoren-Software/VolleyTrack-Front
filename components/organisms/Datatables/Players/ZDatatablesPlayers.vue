@@ -93,8 +93,8 @@
       bulk-delete-via-selection-badge
       disable-action-delete
       includeActionsColumn
-      includeActionEditList
-      includeActionDeleteList
+      :includeActionEditList="includeActionEditList"
+      :includeActionDeleteList="includeActionDeleteList"
       selectable
       :items="items"
       :columns="columns"
@@ -480,11 +480,43 @@ export default defineComponent({
     },
 
     async deletePlayer(id) {
-      await this.deleteItems([id]);
+      // Encontrar o nome do jogador para exibir na mensagem de confirmação
+      const player = this.items.find(item => item.id === id);
+      const playerName = player?.displayName || player?.name || `jogador #${id}`;
+
+      const result = await Swal.fire({
+        title: 'Tem certeza?',
+        html: `Você tem certeza que deseja deletar o jogador <strong>${playerName}</strong>? Esta ação não pode ser desfeita.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sim, deletar',
+        cancelButtonText: 'Cancelar',
+        reverseButtons: true,
+      });
+
+      if (result.isConfirmed) {
+        await this.deleteItems([id]);
+      }
     },
 
     async deletePlayers(items) {
-      await this.deleteItems(items);
+      const result = await Swal.fire({
+        title: 'Tem certeza?',
+        html: `Você tem certeza que deseja deletar <strong>${items.length} jogador(es)</strong>? Esta ação não pode ser desfeita.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sim, deletar',
+        cancelButtonText: 'Cancelar',
+        reverseButtons: true,
+      });
+
+      if (result.isConfirmed) {
+        await this.deleteItems(items);
+      }
     },
 
     updateCurrentPageActive(page) {

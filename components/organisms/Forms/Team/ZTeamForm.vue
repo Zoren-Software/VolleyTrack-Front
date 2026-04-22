@@ -119,6 +119,7 @@ import TEAM_LEVELS from "~/graphql/teamLevel/query/teamLevel.graphql";
 import { gql } from "@apollo/client/core";
 import { useNuxtApp } from "#app";
 import { confirmSuccess } from "~/utils/sweetAlert2/swalHelper";
+import { resolveListRelationDeleteId } from "~/utils/resolveListRelationDeleteId";
 
 const LEVEL_SORT_ORDER = ["bronze", "prata", "ouro", "outro", "elite"];
 
@@ -307,8 +308,14 @@ export default {
       this.users = [];
     },
 
-    actionDeleteUser(id) {
-      this.form.users = this.form.users.filter((user) => user.id !== id);
+    actionDeleteUser(payload) {
+      const idNum = resolveListRelationDeleteId(payload);
+      if (idNum === null) {
+        return;
+      }
+      this.form.users = this.form.users.filter(
+        (user) => Number(user.id) !== idNum,
+      );
       confirmSuccess("Jogador removido com sucesso!");
     },
 

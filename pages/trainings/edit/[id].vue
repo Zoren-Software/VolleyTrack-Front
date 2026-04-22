@@ -199,7 +199,8 @@ export default {
 
           confirmError("Ocorreu um erro ao salvar o treino!", footer);
         } else {
-          confirmError("Ocorreu um erro ao salvar o treino!");
+          const message = error.graphQLErrors?.[0]?.message || null;
+          confirmError("Ocorreu um erro ao salvar o treino!", message);
         }
       }
       this.loading = false;
@@ -281,7 +282,8 @@ export default {
 
           confirmError("Ocorreu um erro ao salvar o treino!", footer);
         } else {
-          confirmError("Ocorreu um erro ao salvar o treino!");
+          const message = error.graphQLErrors?.[0]?.message || null;
+          confirmError("Ocorreu um erro ao salvar o treino!", message);
         }
       }
       this.loading = false;
@@ -528,7 +530,7 @@ export default {
 
           confirmError(
             "Ocorreu um erro ao cancelar a finalização do treino!",
-            footer
+            footer,
           );
         } else {
           const errorMessage =

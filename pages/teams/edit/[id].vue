@@ -93,7 +93,10 @@ export default {
         const variables = {
           id: form.id,
           name: form.name,
-          playerId: form.users.map((item) => item.id),
+          playerId: (Array.isArray(form.users) ? form.users : [])
+            .map((item) => item?.id)
+            .filter((id) => id != null && id !== "")
+            .map((id) => Number(id)),
           teamCategoryId: form.teamCategory?.value || form.teamCategory?.id,
           teamLevelId: form.teamLevel?.value || form.teamLevel?.id,
         };
@@ -130,7 +133,8 @@ export default {
 
           confirmError("Ocorreu um erro ao salvar o time!", footer);
         } else {
-          confirmError("Ocorreu um erro ao salvar o time!");
+          const message = error.graphQLErrors?.[0]?.message || null;
+          confirmError("Ocorreu um erro ao salvar o time!", message);
         }
       }
       this.loading = false;

@@ -1,10 +1,4 @@
 <template>
-  <div class="header-section">
-    <h1 class="main-title">Configurações Gerais</h1>
-    <p class="main-subtitle">
-      Atualize as informações do tenant e a linguagem padrão do sistema.
-    </p>
-  </div>
   <div class="card-container">
     <va-card class="my-3">
       <va-form ref="myForm" class="flex flex-col gap-6 mb-2 px-4 py-4">
@@ -128,22 +122,6 @@ export default {
 </script>
 
 <style scoped>
-.header-section {
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-.main-title {
-  font-size: 24px;
-  font-weight: bold;
-  color: #0b1e3a;
-}
-
-.main-subtitle {
-  font-size: 16px;
-  color: #6c757d;
-}
-
 .card-container {
   display: flex;
   justify-content: center;

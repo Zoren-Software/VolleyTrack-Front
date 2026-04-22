@@ -160,7 +160,11 @@
           @click="deleteBulkCreatedTrainings"
         >
           <va-icon name="delete" class="button-icon" />
-          <span class="button-text">Deletar Treinos em Massa Selecionados ({{ selectedBulkTrainings.length }})</span>
+          <span class="button-text"
+            >Deletar Treinos em Massa Selecionados ({{
+              selectedBulkTrainings.length
+            }})</span
+          >
         </va-button>
       </template>
       <!-- CELL -->
@@ -327,7 +331,7 @@ export default defineComponent({
         page: 1,
         first: 50,
         filter: {
-          status: "PENDING", // Padrão: treinos agendados
+          status: null,
           teamsIds: [],
           playersIds: [],
           search: "%%",
@@ -338,7 +342,6 @@ export default defineComponent({
         sortedBy: "desc",
       },
       statusOptions: [
-        { label: "Todos", value: null },
         { label: "Agendado", value: "PENDING" },
         { label: "Finalizado", value: "FINISHED" },
         { label: "Cancelado", value: "CANCELLED" },
@@ -365,7 +368,11 @@ export default defineComponent({
       // Filtrar apenas treinos criados em massa que estão selecionados
       // Verificar tanto isBulkCreated === true quanto isBulkCreated === 1 (caso venha como número do banco)
       return this.selectedItemsEmitted.filter((item) => {
-        return item.isBulkCreated === true || item.isBulkCreated === 1 || item.isBulkCreated === '1';
+        return (
+          item.isBulkCreated === true ||
+          item.isBulkCreated === 1 ||
+          item.isBulkCreated === "1"
+        );
       });
     },
     hasBulkCreatedSelected() {
@@ -394,7 +401,7 @@ export default defineComponent({
 
   watch: {
     // Observar mudanças no status e executar busca automaticamente
-    'variablesGetTrainings.filter.status'(newStatus, oldStatus) {
+    "variablesGetTrainings.filter.status"(newStatus, oldStatus) {
       // Evitar busca na inicialização (quando oldStatus é undefined)
       if (oldStatus !== undefined && newStatus !== oldStatus) {
         // Resetar para primeira página quando mudar o filtro
@@ -633,7 +640,7 @@ export default defineComponent({
     async deleteBulkCreatedTraining(id) {
       // Encontrar o treino para obter informações
       const training = this.items.find((item) => item.id === id);
-      
+
       if (!training) {
         confirmError("Treino não encontrado");
         return;
@@ -642,11 +649,11 @@ export default defineComponent({
       // Formatar a data do treino para exibir na confirmação
       const trainingDate = moment(training.dateStart).format("DD/MM/YYYY");
       const trainingTime = moment(training.dateStart).format("HH:mm");
-      
+
       try {
         // Buscar a contagem exata de treinos que serão deletados
         this.loading = true;
-        
+
         const countQuery = gql`
           ${TRAININGBULKDELETECOUNT}
         `;
@@ -659,7 +666,7 @@ export default defineComponent({
           onResult((result) => {
             const countToDelete = result?.data?.trainingBulkDeleteCount || 0;
             this.loading = false;
-            
+
             // Mostrar confirmação antes de deletar com informações sobre a data e quantidade
             this.showBulkDeleteConfirmation(
               trainingDate,
@@ -686,7 +693,7 @@ export default defineComponent({
                     `${deletedCount} treino(s) deletado(s) com sucesso!`,
                     () => {
                       this.getTrainings({ fetchPolicy: "network-only" });
-                    }
+                    },
                   );
                 } catch (error) {
                   console.error(error);
@@ -698,19 +705,26 @@ export default defineComponent({
                     error.graphQLErrors[0].extensions &&
                     error.graphQLErrors[0].extensions.validation
                   ) {
-                    const errorMessages = Object.values(error.graphQLErrors[0].extensions.validation)
+                    const errorMessages = Object.values(
+                      error.graphQLErrors[0].extensions.validation,
+                    )
                       .flat()
                       .filter((msg) => msg);
 
-                    confirmError("Erro ao deletar treinos em massa!", errorMessages);
+                    confirmError(
+                      "Erro ao deletar treinos em massa!",
+                      errorMessages,
+                    );
                   } else {
-                    const errorMessage = error.graphQLErrors?.[0]?.message || "Erro ao deletar treinos em massa!";
+                    const errorMessage =
+                      error.graphQLErrors?.[0]?.message ||
+                      "Erro ao deletar treinos em massa!";
                     confirmError(errorMessage);
                   }
                 } finally {
                   this.loading = false;
                 }
-              }
+              },
             );
             resolve();
           });
@@ -760,7 +774,7 @@ export default defineComponent({
     },
     unselectItem(item) {
       this.selectedItems = this.selectedItems.filter(
-        (selectedItem) => selectedItem !== item
+        (selectedItem) => selectedItem !== item,
       );
     },
     addTraining() {
@@ -857,7 +871,7 @@ export default defineComponent({
     clearSearch() {
       this.internalSearchValue = "";
       this.variablesGetTrainings.filter = {
-        status: "PENDING", // Padrão: treinos agendados
+        status: null,
         teamsIds: [],
         playersIds: [],
         search: "%%",
@@ -878,12 +892,12 @@ export default defineComponent({
 
       let teamsIdsValues =
         this.variablesGetTrainings.filter.teamsIds?.map((team) =>
-          parseInt(team?.value || team)
+          parseInt(team?.value || team),
         ) || [];
 
       let playersIdsValues =
         this.variablesGetTrainings.filter.playersIds?.map((player) =>
-          parseInt(player?.value || player)
+          parseInt(player?.value || player),
         ) || [];
 
       let dateEnd = this.variablesGetTrainings.filter.dateEnd;

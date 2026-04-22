@@ -34,6 +34,10 @@ export const useUser = () => {
               createdAt
               updatedAt
             }
+            permissions {
+              id
+              name
+            }
             emailVerifiedAt
           }
         }
@@ -74,6 +78,12 @@ export const useUser = () => {
   const isLoggedIn = computed(() => {
     return !!user.value && !!user.value.id
   })
+
+  // Verificar se o usuário tem uma permissão específica
+  const hasPermission = (permissionName) => {
+    if (!user.value?.permissions) return false
+    return user.value.permissions.some(p => p.name === permissionName)
+  }
 
   // Verificar se o usuário tem um role específico
   const hasRole = (roleName) => {
@@ -127,6 +137,7 @@ export const useUser = () => {
     // Métodos
     getUserInfo,
     clearUser,
+    hasPermission,
     hasRole,
     hasAnyRole,
     hasAllRoles,

@@ -51,6 +51,7 @@
 
 <script>
 import ZListRelationGeneric from "~/components/molecules/List/ZListRelationGeneric";
+import { confirmDeleteSingle } from "~/utils/sweetAlert2/swalHelper";
 
 export default {
   components: {
@@ -95,7 +96,9 @@ export default {
       this.$emit("add");
     },
     actionDelete(id) {
-      this.$emit("delete", id);
+      confirmDeleteSingle(() => {
+        this.$emit("delete", id);
+      });
     },
   },
 };

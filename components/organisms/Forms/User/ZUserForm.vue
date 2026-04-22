@@ -500,6 +500,7 @@ import POSITIONS from "~/graphql/position/query/positions.graphql";
 import { gql } from "@apollo/client/core";
 import { useNuxtApp } from "#app";
 import { confirmSuccess } from "~/utils/sweetAlert2/swalHelper";
+import { resolveListRelationDeleteId } from "~/utils/resolveListRelationDeleteId";
 
 const ROLE_ICONS = {
   Administrador: "shield",
