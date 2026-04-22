@@ -3,6 +3,7 @@
     :id="id"
     v-model="internalValue"
     :label="label"
+    :placeholder="placeholder"
     :rules="rules"
     :success="emailValid"
     type="email"
@@ -30,6 +31,10 @@ export default {
     id: {
       type: String,
       required: true,
+    },
+    placeholder: {
+      type: String,
+      default: "",
     },
     errorMessages: {
       type: [Array, String],

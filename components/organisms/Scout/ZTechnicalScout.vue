@@ -134,7 +134,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from "vue";
+import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import ZButton from "~/components/atoms/Buttons/ZButton.vue";
 import ZFundamentalCard from "~/components/molecules/Cards/ZFundamentalCard.vue";
 import ZEvaluationSummary from "~/components/molecules/Cards/ZEvaluationSummary.vue";
@@ -328,6 +328,15 @@ onMounted(() => {
   // Adicionar listener para salvar dados quando o usuário sair da página
   window.addEventListener("beforeunload", handleBeforeUnload);
 });
+
+watch(
+  () => props.trainingId,
+  (newId, oldId) => {
+    if (!newId || newId === oldId) return;
+    selectedPlayer.value = null;
+    getTraining({ fetchPolicy: "network-only" });
+  }
+);
 
 // Handler para salvar dados antes de sair da página
 const handleBeforeUnload = async (event) => {

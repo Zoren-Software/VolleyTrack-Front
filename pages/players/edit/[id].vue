@@ -1,5 +1,7 @@
 <template>
   <ZUserForm
+    use-wizard
+    hide-password-fields
     :data="data"
     @save="edit"
     :loading="loading"
@@ -98,7 +100,7 @@ export default {
           id: form.id,
           name: form.name,
           email: form.email,
-          password: form.password,
+          password: form.password === "" ? undefined : form.password,
           cpf: form.cpf,
           rg: form.rg,
           phone: form.phone,

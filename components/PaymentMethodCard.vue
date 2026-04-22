@@ -1,44 +1,47 @@
 <template>
   <div class="payment-method-card">
-    <div class="card-header">
-      <h3>
-        Método de Pagamento
-        <va-popover placement="right" trigger="click">
-          <va-icon
-            name="info_outline"
-            size="small"
-            color="secondary"
-            class="info-icon"
-          />
-
+    <header class="pm-header">
+      <div class="pm-header-title">
+        <h2 class="pm-title">Métodos de pagamento</h2>
+        <va-popover placement="bottom" trigger="click">
+          <button type="button" class="pm-info-trigger" aria-label="Sobre segurança">
+            <va-icon name="info_outline" size="small" color="secondary" />
+          </button>
           <template #title>
-            <i>Segurança dos Dados</i>
+            <span class="pm-popover-title">Segurança dos dados</span>
           </template>
-
           <template #body>
-            <p>
+            <p class="pm-popover-text">
               Seus dados de cartão são armazenados com segurança
               <strong>exclusivamente pela Stripe</strong>.
             </p>
-            <p>
-              Não armazenamos informações sensíveis do cartão em nossos
-              servidores.
+            <p class="pm-popover-text">
+              Não armazenamos informações sensíveis do cartão em nossos servidores.
             </p>
           </template>
         </va-popover>
-      </h3>
-    </div>
+      </div>
+      <button
+        v-if="paymentMethods.length > 0 && !loading && !error"
+        type="button"
+        class="pm-edit-link"
+        :disabled="changingCard"
+        @click="handleChangeCard"
+      >
+        Editar
+      </button>
+    </header>
 
     <div v-if="loading" class="loading-state">
-      <div class="loading-spinner"></div>
+      <div class="loading-spinner" />
       <p>Carregando...</p>
     </div>
 
     <div v-else-if="error" class="error-state">
-      <div class="error-icon">⚠️</div>
+      <div class="error-icon" aria-hidden="true">⚠️</div>
       <p>{{ error }}</p>
-      <button @click="loadPaymentMethods" class="retry-button">
-        Tentar Novamente
+      <button type="button" class="retry-button" @click="loadPaymentMethods">
+        Tentar novamente
       </button>
     </div>
 
@@ -50,43 +53,44 @@
         :class="{ 'is-default': method.is_default }"
       >
         <div class="payment-method-content">
-          <div class="method-icon">
-            <span class="card-brand-icon">{{
-              getCardBrandIcon(method.card.brand)
-            }}</span>
+          <div
+            class="pm-thumb"
+            :class="`pm-thumb--${cardBrandKey(method.card?.brand)}`"
+            aria-hidden="true"
+          >
+            <span class="pm-thumb__brand">{{ cardBrandShort(method.card?.brand) }}</span>
           </div>
 
           <div class="method-details">
-            <div class="card-brand">
-              {{ formatCardBrand(method.card.brand) }}
-            </div>
-            <div class="card-number">
-              •••• •••• •••• {{ method.card.last4 }}
-            </div>
-            <div class="card-expiry">
-              Válido até
-              {{ formatExpDate(method.card.exp_month, method.card.exp_year) }}
-            </div>
+            <p class="pm-line-primary">
+              <span class="pm-line-brand">{{ formatCardBrand(method.card.brand) }}</span>:
+              <strong class="pm-line-last4">{{ method.card.last4 }}</strong>
+            </p>
+            <p class="pm-line-expiry">
+              Validade:
+              <strong>{{ formatExpDateShort(method.card.exp_month, method.card.exp_year) }}</strong>
+            </p>
           </div>
 
-          <div v-if="method.is_default" class="badge default-badge">PADRÃO</div>
+          <span v-if="method.is_default" class="badge default-badge">Padrão</span>
         </div>
 
-        <!-- Ações do cartão -->
-        <div class="method-actions" v-if="paymentMethods.length > 1">
+        <div v-if="paymentMethods.length > 1" class="method-actions">
           <button
             v-if="!method.is_default"
-            @click="setAsDefault(method.id)"
+            type="button"
             class="set-default-button"
             :disabled="changingCard"
+            @click="setAsDefault(method.id)"
           >
-            Definir Padrão
+            Definir padrão
           </button>
           <button
             v-if="!method.is_default"
-            @click="removeCard(method.id)"
+            type="button"
             class="remove-card-button"
             :disabled="changingCard"
+            @click="removeCard(method.id)"
           >
             Remover
           </button>
@@ -95,23 +99,23 @@
     </div>
 
     <div v-else class="no-payment-methods">
-      <div class="no-methods-icon">💳</div>
+      <div class="no-methods-icon" aria-hidden="true">💳</div>
       <p>Nenhum método de pagamento cadastrado</p>
     </div>
 
-    <!-- Botão para trocar/adicionar cartão -->
     <div class="card-actions">
       <button
-        @click="handleChangeCard"
-        :disabled="changingCard"
+        type="button"
         class="change-card-button"
+        :disabled="changingCard"
+        @click="handleChangeCard"
       >
         {{
           changingCard
             ? "Processando..."
             : paymentMethods.length > 0
-            ? "Trocar Cartão"
-            : "Adicionar Cartão"
+              ? "Atualizar método de pagamento"
+              : "Adicionar método de pagamento"
         }}
       </button>
     </div>
@@ -134,7 +138,6 @@ const loading = ref(true);
 const error = ref(null);
 const changingCard = ref(false);
 
-// Carregar métodos de pagamento
 const loadPaymentMethods = async () => {
   if (!props.customerId) {
     error.value = "ID do customer não fornecido";
@@ -178,50 +181,54 @@ const loadPaymentMethods = async () => {
     if (data.success) {
       const methods = data.data.payment_methods || [];
 
-      // Ordenar: cartão padrão primeiro
       paymentMethods.value = methods.sort((a, b) => {
         if (a.is_default) return -1;
         if (b.is_default) return 1;
         return 0;
       });
-
-      console.log("✅ Métodos de pagamento carregados:", paymentMethods.value);
     } else {
       throw new Error(data.message || "Erro ao carregar métodos de pagamento");
     }
   } catch (err) {
-    console.error("❌ Erro ao carregar métodos de pagamento:", err);
+    console.error("Erro ao carregar métodos de pagamento:", err);
     error.value = err.message;
   } finally {
     loading.value = false;
   }
 };
 
-// Formatar marca do cartão
 const formatCardBrand = (brand) => {
+  if (!brand) return "Cartão";
+  const b = brand.toLowerCase();
+  if (b === "amex") return "American Express";
   return brand.charAt(0).toUpperCase() + brand.slice(1);
 };
 
-// Obter ícone da marca
-const getCardBrandIcon = (brand) => {
-  const icons = {
-    visa: "💳",
-    mastercard: "💳",
-    amex: "💳",
-    discover: "💳",
-    diners: "💳",
-    jcb: "💳",
-  };
-  return icons[brand] || "💳";
+const cardBrandKey = (brand) => {
+  const b = (brand || "").toLowerCase();
+  if (b.includes("visa")) return "visa";
+  if (b.includes("master")) return "mastercard";
+  if (b.includes("amex")) return "amex";
+  if (b.includes("elo")) return "elo";
+  return "generic";
 };
 
-// Formatar data de expiração
-const formatExpDate = (month, year) => {
-  const monthStr = month.toString().padStart(2, "0");
-  return `${monthStr}/${year}`;
+const cardBrandShort = (brand) => {
+  const k = cardBrandKey(brand);
+  if (k === "visa") return "VISA";
+  if (k === "mastercard") return "MC";
+  if (k === "amex") return "AMEX";
+  if (k === "elo") return "ELO";
+  return "CARD";
 };
 
-// Trocar cartão de crédito
+const formatExpDateShort = (month, year) => {
+  const monthStr = String(month).padStart(2, "0");
+  const y = String(year);
+  const yy = y.length >= 2 ? y.slice(-2) : y;
+  return `${monthStr}/${yy}`;
+};
+
 const handleChangeCard = async () => {
   changingCard.value = true;
 
@@ -242,8 +249,6 @@ const handleChangeCard = async () => {
       payment_method_types: ["card"],
     };
 
-    console.log("🔍 Request body:", requestBody);
-
     const response = await fetch(
       `${getApiBaseUrl()}/v1/customers/payment-method-setup`,
       {
@@ -257,8 +262,6 @@ const handleChangeCard = async () => {
       }
     );
 
-    console.log("🔍 Response status:", response.status);
-
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.message || "Erro ao criar sessão de setup");
@@ -267,20 +270,18 @@ const handleChangeCard = async () => {
     const data = await response.json();
 
     if (data.success && data.data.url) {
-      console.log("✅ Redirecionando para Stripe Checkout:", data.data.url);
       window.location.href = data.data.url;
     } else {
       throw new Error("URL de setup não retornada");
     }
   } catch (err) {
-    console.error("❌ Erro ao trocar cartão:", err);
+    console.error("Erro ao trocar cartão:", err);
     alert(`Erro ao trocar cartão: ${err.message}`);
   } finally {
     changingCard.value = false;
   }
 };
 
-// Definir cartão como padrão
 const setAsDefault = async (paymentMethodId) => {
   changingCard.value = true;
 
@@ -317,12 +318,8 @@ const setAsDefault = async (paymentMethodId) => {
     const data = await response.json();
 
     if (data.success) {
-      console.log("✅ Cartão definido como padrão:", data);
-
-      // Recarregar lista de cartões
       await loadPaymentMethods();
 
-      // Mostrar mensagem de sucesso
       if (window.Swal) {
         window.Swal.fire({
           icon: "success",
@@ -334,14 +331,13 @@ const setAsDefault = async (paymentMethodId) => {
       }
     }
   } catch (err) {
-    console.error("❌ Erro ao definir cartão padrão:", err);
+    console.error("Erro ao definir cartão padrão:", err);
     alert(`Erro: ${err.message}`);
   } finally {
     changingCard.value = false;
   }
 };
 
-// Remover cartão
 const removeCard = async (paymentMethodId) => {
   if (!confirm("Tem certeza que deseja remover este cartão?")) {
     return;
@@ -381,12 +377,8 @@ const removeCard = async (paymentMethodId) => {
     const data = await response.json();
 
     if (data.success) {
-      console.log("✅ Cartão removido:", data);
-
-      // Recarregar lista de cartões
       await loadPaymentMethods();
 
-      // Mostrar mensagem de sucesso
       if (window.Swal) {
         window.Swal.fire({
           icon: "success",
@@ -398,7 +390,7 @@ const removeCard = async (paymentMethodId) => {
       }
     }
   } catch (err) {
-    console.error("❌ Erro ao remover cartão:", err);
+    console.error("Erro ao remover cartão:", err);
     alert(`Erro: ${err.message}`);
   } finally {
     changingCard.value = false;
@@ -408,12 +400,8 @@ const removeCard = async (paymentMethodId) => {
 onMounted(() => {
   loadPaymentMethods();
 
-  // Recarregar métodos de pagamento se veio da tela de sucesso do Stripe
   const params = new URLSearchParams(window.location.search);
   if (params.get("success") === "true") {
-    console.log("✅ Retornando do Stripe Checkout - Recarregando cartões...");
-
-    // Mostrar mensagem de sucesso
     if (window.Swal) {
       window.Swal.fire({
         icon: "success",
@@ -424,10 +412,8 @@ onMounted(() => {
       });
     }
 
-    // Remover o parâmetro da URL
     window.history.replaceState({}, "", window.location.pathname);
 
-    // Recarregar cartões após 1 segundo
     setTimeout(() => {
       loadPaymentMethods();
     }, 1000);
@@ -437,119 +423,204 @@ onMounted(() => {
 
 <style scoped>
 .payment-method-card {
-  background: white;
+  background: #fff;
   border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e5e7eb;
+  padding: 22px 24px 24px;
+  box-shadow: 0 4px 24px rgba(15, 23, 42, 0.08);
+  border: 1px solid #e8eaed;
   display: flex;
   flex-direction: column;
-  height: 100%;
   min-height: 0;
   justify-content: space-between;
 }
 
-.card-header {
-  margin-bottom: 20px;
-  text-align: center;
-}
-
-.card-header h3 {
-  margin: 0;
-  font-size: 1.3rem;
-  font-weight: 600;
-  color: #333;
+.pm-header {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 4px;
+}
+
+.pm-header-title {
+  display: flex;
+  align-items: center;
   gap: 8px;
+  min-width: 0;
 }
 
-.info-icon {
+.pm-title {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+}
+
+.pm-info-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  margin: 0;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  vertical-align: middle;
+  color: #64748b;
+  transition: background 0.15s ease;
 }
 
-.info-icon:hover {
-  color: #667eea !important;
-  transform: scale(1.1);
+.pm-info-trigger:hover {
+  background: #f1f5f9;
+}
+
+.pm-popover-title {
+  font-style: normal;
+  font-weight: 600;
+}
+
+.pm-popover-text {
+  margin: 0 0 8px 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #334155;
+}
+
+.pm-popover-text:last-child {
+  margin-bottom: 0;
+}
+
+.pm-edit-link {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 6px 4px;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: #2563eb;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.pm-edit-link:hover:not(:disabled) {
+  text-decoration: underline;
+}
+
+.pm-edit-link:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .loading-state,
 .error-state {
   text-align: center;
-  padding: 40px 20px;
+  padding: 36px 16px;
 }
 
 .loading-spinner {
   width: 40px;
   height: 40px;
-  border: 4px solid #f3f4f6;
-  border-top-color: #667eea;
+  border: 3px solid #f1f5f9;
+  border-top-color: #ff4e1b;
   border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin: 0 auto 16px;
+  animation: pm-spin 0.85s linear infinite;
+  margin: 0 auto 14px;
 }
 
-@keyframes spin {
+@keyframes pm-spin {
   to {
     transform: rotate(360deg);
   }
 }
 
 .error-icon {
-  font-size: 48px;
-  margin-bottom: 16px;
+  font-size: 40px;
+  margin-bottom: 12px;
 }
 
 .retry-button {
-  background: #667eea;
-  color: white;
+  background: #ff4e1b;
+  color: #fff;
   border: none;
   padding: 10px 20px;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
   font-weight: 600;
-  margin-top: 16px;
+  margin-top: 14px;
 }
 
 .payment-methods-list {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
   flex: 1;
 }
 
 .payment-method-item {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 20px;
-  border: 2px solid #e5e7eb;
+  gap: 0;
+  padding: 14px 16px;
+  background: #f3f4f6;
   border-radius: 12px;
-  transition: all 0.3s ease;
-  position: relative;
+  border: 1px solid #e5e7eb;
+  transition: box-shadow 0.2s ease;
 }
 
 .payment-method-item.is-default {
-  border-color: #10b981;
-  background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);
+  border-color: #bbf7d0;
+  background: linear-gradient(180deg, #ecfdf5 0%, #f3f4f6 100%);
+  box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.2);
 }
 
 .payment-method-content {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
 }
 
-.method-icon {
-  font-size: 32px;
+.pm-thumb {
   flex-shrink: 0;
+  width: 56px;
+  height: 36px;
+  border-radius: 6px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 4px 6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
 }
 
-.card-brand-icon {
-  display: block;
+.pm-thumb__brand {
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.95);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.25);
+}
+
+.pm-thumb--visa {
+  background: linear-gradient(135deg, #1a56db 0%, #1d4ed8 100%);
+}
+
+.pm-thumb--mastercard {
+  background: linear-gradient(135deg, #1f2937 0%, #0f172a 100%);
+}
+
+.pm-thumb--amex {
+  background: linear-gradient(135deg, #0ea5e9 0%, #0369a1 100%);
+}
+
+.pm-thumb--elo {
+  background: linear-gradient(135deg, #0f766e 0%, #115e59 100%);
+}
+
+.pm-thumb--generic {
+  background: linear-gradient(135deg, #64748b 0%, #475569 100%);
 }
 
 .method-details {
@@ -557,145 +628,148 @@ onMounted(() => {
   min-width: 0;
 }
 
-.card-brand {
-  font-weight: 600;
-  color: #1f2937;
-  font-size: 1rem;
-  margin-bottom: 4px;
+.pm-line-primary {
+  margin: 0 0 4px 0;
+  font-size: 14px;
+  color: #334155;
+  line-height: 1.35;
 }
 
-.card-number {
-  font-size: 1.1rem;
+.pm-line-brand {
+  font-weight: 500;
+}
+
+.pm-line-last4 {
   font-weight: 700;
-  color: #374151;
-  letter-spacing: 1px;
-  margin: 8px 0;
-  font-family: "Courier New", monospace;
-  word-break: keep-all;
-  white-space: nowrap;
+  color: #0f172a;
 }
 
-.card-expiry {
-  font-size: 0.9rem;
-  color: #6b7280;
+.pm-line-expiry {
+  margin: 0;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.pm-line-expiry strong {
+  color: #374151;
+  font-weight: 700;
 }
 
 .default-badge {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  color: white;
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 0.75rem;
+  flex-shrink: 0;
+  align-self: center;
+  background: #10b981;
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
-  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
-  flex-shrink: 0;
-  align-self: flex-start;
-  margin-top: 8px;
+  letter-spacing: 0.04em;
 }
 
 .no-payment-methods {
   text-align: center;
-  padding: 40px 20px;
+  padding: 32px 16px;
 }
 
 .no-methods-icon {
-  font-size: 48px;
-  margin-bottom: 16px;
+  font-size: 40px;
+  margin-bottom: 10px;
 }
 
 .no-payment-methods p {
-  color: #6b7280;
-  font-size: 0.95rem;
+  margin: 0;
+  color: #64748b;
+  font-size: 14px;
 }
 
-/* Botão para trocar/adicionar cartão */
 .card-actions {
-  margin-top: auto;
-  padding-top: 20px;
-  border-top: 2px solid #f3f4f6;
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid #e5e7eb;
 }
 
 .change-card-button {
   width: 100%;
-  padding: 12px 24px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  padding: 14px 20px;
+  background: #ff4e1b;
+  color: #fff;
   border: none;
-  border-radius: 12px;
-  font-size: 1rem;
+  border-radius: 10px;
+  font-size: 15px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 2px 10px rgba(255, 78, 27, 0.3);
 }
 
 .change-card-button:hover:not(:disabled) {
-  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-  transform: translateY(-2px);
+  background: #e03d0f;
+  box-shadow: 0 4px 16px rgba(255, 78, 27, 0.38);
 }
 
 .change-card-button:disabled {
-  opacity: 0.6;
+  opacity: 0.65;
   cursor: not-allowed;
 }
 
-/* Ações dos cartões */
 .method-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
-  margin-top: auto;
-  flex-direction: row;
   justify-content: flex-end;
   padding-top: 12px;
-  border-top: 1px solid #f3f4f6;
+  margin-top: 12px;
+  border-top: 1px solid #e5e7eb;
 }
 
 .set-default-button,
 .remove-card-button {
-  padding: 8px 16px;
+  padding: 8px 14px;
   border-radius: 8px;
-  font-size: 0.875rem;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background 0.15s ease;
   border: none;
 }
 
 .set-default-button {
-  background: #f3f4f6;
+  background: #fff;
   color: #374151;
+  border: 1px solid #d1d5db;
 }
 
 .set-default-button:hover:not(:disabled) {
-  background: #e5e7eb;
+  background: #f9fafb;
 }
 
 .remove-card-button {
-  background: #fee2e2;
+  background: #fef2f2;
   color: #dc2626;
+  border: 1px solid #fecaca;
 }
 
 .remove-card-button:hover:not(:disabled) {
-  background: #fecaca;
+  background: #fee2e2;
 }
 
 .set-default-button:disabled,
 .remove-card-button:disabled {
-  opacity: 0.4;
+  opacity: 0.45;
   cursor: not-allowed;
 }
 
-/* Responsividade */
 @media (max-width: 768px) {
-  .payment-method-item {
-    flex-direction: column;
-    align-items: flex-start;
+  .payment-method-content {
+    flex-wrap: wrap;
   }
 
-  .method-icon {
-    align-self: center;
+  .default-badge {
+    width: 100%;
+    text-align: center;
+    margin-top: 4px;
   }
 }
 </style>

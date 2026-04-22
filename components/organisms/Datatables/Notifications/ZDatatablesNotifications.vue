@@ -18,8 +18,8 @@
         </div>
         <div class="actions-section">
           <va-button
-            color="#E9742B"
             class="search-button"
+            :class="{ 'search-button--active': hasSearchFilterCriteria }"
             @click="getNotifications({ fetchPolicy: 'network-only' })"
           >
             <va-icon name="search" class="button-icon" />
@@ -88,7 +88,7 @@
       <va-card class="summary-card">
         <div class="summary-content">
           <div class="summary-icon">
-            <va-icon name="notifications" size="large" color="#E9742B" />
+            <va-icon name="notifications" size="large" color="#FF4E1B" />
           </div>
           <div class="summary-number">{{ paginatorInfo.total || 0 }}</div>
           <div class="summary-label">Total de Notificações</div>
@@ -174,6 +174,12 @@ export default defineComponent({
       selectModeOptions: ["single", "multiple"],
       selectColorOptions: ["primary", "danger", "warning", "#EF467F"],
     };
+  },
+
+  computed: {
+    hasSearchFilterCriteria() {
+      return this.read === true;
+    },
   },
 
   methods: {
@@ -479,9 +485,9 @@ export default defineComponent({
   padding: 12px 24px;
   font-weight: 500;
   white-space: nowrap;
-  background-color: #e9742b !important;
+  background-color: #6b7280 !important;
   color: #ffffff !important;
-  box-shadow: 0 2px 8px rgba(233, 116, 43, 0.3);
+  box-shadow: 0 2px 6px rgba(75, 85, 99, 0.25);
   border: none;
   display: inline-flex;
   align-items: center;
@@ -491,15 +497,29 @@ export default defineComponent({
   height: 40px;
 }
 
+.search-button.search-button--active {
+  background-color: #ff4e1b !important;
+  box-shadow: 0 2px 8px rgba(255, 78, 27, 0.3);
+}
+
 .search-button:hover {
-  background-color: #d6652a !important;
-  box-shadow: 0 4px 12px rgba(233, 116, 43, 0.4);
+  background-color: #4b5563 !important;
+  box-shadow: 0 4px 10px rgba(75, 85, 99, 0.35);
   transform: translateY(-1px);
+}
+
+.search-button.search-button--active:hover {
+  background-color: #d6652a !important;
+  box-shadow: 0 4px 12px rgba(255, 78, 27, 0.4);
 }
 
 .search-button:active {
   transform: translateY(0);
-  box-shadow: 0 2px 6px rgba(233, 116, 43, 0.3);
+  box-shadow: 0 2px 6px rgba(75, 85, 99, 0.3);
+}
+
+.search-button.search-button--active:active {
+  box-shadow: 0 2px 6px rgba(255, 78, 27, 0.3);
 }
 
 .search-button .button-icon {

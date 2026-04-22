@@ -11,7 +11,7 @@
   >
     <div class="section-header">
       <div class="section-title-wrapper">
-        <va-icon name="swap_horiz" size="24px" color="#E9742B" />
+        <va-icon name="swap_horiz" size="24px" color="#FF4E1B" />
         <h2 class="section-title">Visão Técnica dos Treinos</h2>
       </div>
     </div>
@@ -205,7 +205,7 @@ export default {
       // Paleta de cores harmoniosa e distinta
       // Cores escolhidas para melhor contraste visual e proximidade harmoniosa
       const colorPalette = [
-        "#e9742b", // Laranja vibrante - Ataque
+        "#FF4E1B", // Laranja vibrante - Ataque
         "#1976d2", // Azul médio - Recepção
         "#0b1e3a", // Azul escuro - Saque
         "#ff9800", // Laranja claro - Levantamento
@@ -243,7 +243,7 @@ export default {
         };
       }
 
-      const colors = ["#e9742b", "#1976d2", "#0b1e3a", "#e9742b"];
+      const colors = ["#FF4E1B", "#1976d2", "#0b1e3a", "#FF4E1B"];
       const backgroundColors = this.data.trainingsPerMonth.map(
         (_, index) => colors[index % colors.length]
       );
@@ -498,7 +498,7 @@ export default {
 }
 
 .focus-title {
-  color: #e9742b;
+  color: #FF4E1B;
 }
 
 .monthly-title {

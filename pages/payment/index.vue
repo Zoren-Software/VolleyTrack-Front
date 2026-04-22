@@ -279,17 +279,15 @@
                 'plan-lifetime': plan.metadata?.plan_type === 'lifetime',
                 'plan-active': isPlanActive(plan),
                 'plan-disabled': isPlanDisabled(plan),
+                'featured-pricing': isFeaturedPricingPlan(plan),
               }"
               @click="!isPlanActive(plan) && selectPlan(plan)"
             >
-              <!-- Badges -->
+              <!-- Badges (topo: ativo à esquerda, tag à direita) -->
               <div class="plan-badges-container">
-                <!-- Badge Plano Ativo (esquerda) -->
                 <div v-if="isPlanActive(plan)" class="plan-badge-left">
                   <span class="badge badge-active"> Plano Ativo </span>
                 </div>
-
-                <!-- Badges do tipo de plano (direita) -->
                 <div class="plan-badge-top">
                   <span
                     v-if="plan.metadata?.plan_type === 'trial'"
@@ -318,92 +316,150 @@
                 </div>
               </div>
 
-              <!-- Ícone do Plano -->
-              <div class="plan-icon">
-                <va-icon
+              <!-- Preço → título → CTA → benefícios (layout tipo pricing) -->
+              <div class="plan-card-hero">
+                <div class="plan-price-modern">
+                  <div class="plan-price-line">
+                    <span class="price-amount"
+                      >R$ {{ getPlanPrice(plan) }}</span
+                    >
+                    <template v-if="getPlanPeriod(plan)">
+                      <span class="price-sep" aria-hidden="true">|</span>
+                      <span class="price-period-label">{{
+                        formatPlanPeriodLabel(plan)
+                      }}</span>
+                    </template>
+                  </div>
+                  <span
+                    v-if="plan.metadata?.plan_type === 'lifetime'"
+                    class="price-lifetime"
+                  >
+                    Pagamento único
+                  </span>
+                  <span
+                    v-else-if="
+                      plan.metadata?.type === 'monthly' && getYearlyDiscount(plan)
+                    "
+                    class="price-yearly"
+                  >
+                    ou R$ {{ getYearlyPrice(plan) }}/ano
+                  </span>
+                </div>
+
+                <div class="plan-title-row">
+                  <div class="plan-icon plan-icon--compact">
+                    <va-icon
+                      v-if="plan.metadata?.plan_type === 'trial'"
+                      name="card_giftcard"
+                      size="36px"
+                      :color="getPlanFeatureIconColor(plan)"
+                    />
+                    <va-icon
+                      v-else-if="plan.metadata?.plan_type === 'pro'"
+                      name="star"
+                      size="36px"
+                      :color="getPlanFeatureIconColor(plan)"
+                    />
+                    <va-icon
+                      v-else-if="plan.metadata?.plan_type === 'clubes'"
+                      name="emoji_events"
+                      size="36px"
+                      :color="getPlanFeatureIconColor(plan)"
+                    />
+                    <va-icon
+                      v-else-if="plan.metadata?.plan_type === 'lifetime'"
+                      name="all_inclusive"
+                      size="36px"
+                      :color="getPlanFeatureIconColor(plan)"
+                    />
+                    <va-icon
+                      v-else
+                      name="workspace_premium"
+                      size="36px"
+                      :color="getPlanFeatureIconColor(plan)"
+                    />
+                  </div>
+                  <h3 class="plan-name">{{ plan.name }}</h3>
+                </div>
+
+                <div v-if="getPlanDescription(plan)" class="plan-description">
+                  {{ getPlanDescription(plan) }}
+                </div>
+
+                <div
                   v-if="plan.metadata?.plan_type === 'trial'"
-                  name="card_giftcard"
-                  size="48px"
-                  :color="getPlanColor(plan)"
-                />
-                <va-icon
-                  v-else-if="plan.metadata?.plan_type === 'pro'"
-                  name="star"
-                  size="48px"
-                  :color="getPlanColor(plan)"
-                />
-                <va-icon
-                  v-else-if="plan.metadata?.plan_type === 'clubes'"
-                  name="emoji_events"
-                  size="48px"
-                  :color="getPlanColor(plan)"
-                />
-                <va-icon
-                  v-else-if="plan.metadata?.plan_type === 'lifetime'"
-                  name="all_inclusive"
-                  size="48px"
-                  :color="getPlanColor(plan)"
-                />
-                <va-icon
-                  v-else
-                  name="workspace_premium"
-                  size="48px"
-                  :color="getPlanColor(plan)"
-                />
-              </div>
-
-              <!-- Nome do Plano -->
-              <h3 class="plan-name">{{ plan.name }}</h3>
-
-              <!-- Descrição do Plano (se disponível) -->
-              <div v-if="getPlanDescription(plan)" class="plan-description">
-                {{ getPlanDescription(plan) }}
-              </div>
-
-              <!-- Preço -->
-              <div class="plan-price-modern">
-                <span class="price-amount">R$ {{ getPlanPrice(plan) }}</span>
-                <span v-if="getPlanPeriod(plan)" class="price-period">{{
-                  getPlanPeriod(plan)
-                }}</span>
-                <span
-                  v-if="plan.metadata?.plan_type === 'lifetime'"
-                  class="price-lifetime"
+                  class="plan-duration"
                 >
-                  Pagamento único
-                </span>
-                <!-- Mostrar opção anual apenas para planos mensais -->
-                <span
-                  v-else-if="
-                    plan.metadata?.type === 'monthly' && getYearlyDiscount(plan)
-                  "
-                  class="price-yearly"
-                >
-                  ou R$ {{ getYearlyPrice(plan) }}/ano
-                </span>
-              </div>
+                  Duração: 15 dias
+                </div>
 
-              <!-- Duração (para trial) -->
-              <div
-                v-if="plan.metadata?.plan_type === 'trial'"
-                class="plan-duration"
-              >
-                Duração: 15 dias
+                <!-- Botão de Ação -->
+                <button
+                  class="plan-button-modern"
+                  :class="{
+                    'button-trial': plan.metadata?.plan_type === 'trial',
+                    'button-pro': plan.metadata?.plan_type === 'pro',
+                    'button-clubers': plan.metadata?.plan_type === 'clubes',
+                    'button-lifetime': plan.metadata?.plan_type === 'lifetime',
+                    'button-active': isPlanActive(plan),
+                    disabled: isPlanDisabled(plan),
+                  }"
+                  :disabled="isPlanDisabled(plan)"
+                  @click.stop="handlePlanClick(plan)"
+                >
+                  <va-icon
+                    v-if="isPlanActive(plan)"
+                    name="check_circle"
+                    size="18px"
+                    color="#059669"
+                  />
+                  <va-icon
+                    v-else-if="plan.metadata?.plan_type === 'pro'"
+                    name="bolt"
+                    size="18px"
+                    :color="getPlanButtonIconColor(plan)"
+                  />
+                  <va-icon
+                    v-else-if="plan.metadata?.plan_type === 'clubes'"
+                    name="groups"
+                    size="18px"
+                    :color="getPlanButtonIconColor(plan)"
+                  />
+                  <va-icon
+                    v-else-if="plan.metadata?.plan_type === 'lifetime'"
+                    name="diamond"
+                    size="18px"
+                    :color="getPlanButtonIconColor(plan)"
+                  />
+                  <span v-if="isPlanActive(plan)">Plano Ativo</span>
+                  <span v-else-if="plan.metadata?.plan_type === 'pro'"
+                    >Escolher Pro</span
+                  >
+                  <span v-else-if="plan.metadata?.plan_type === 'clubes'"
+                    >Escolher Clubers</span
+                  >
+                  <span v-else-if="plan.metadata?.plan_type === 'lifetime'"
+                    >Escolher Vitalícia</span
+                  >
+                  <span v-else>Escolher Plano</span>
+                </button>
               </div>
 
               <!-- Features -->
               <div class="plan-features-modern">
-                <div
-                  v-for="feature in getMainPlanFeatures(plan)"
-                  :key="feature"
-                  class="feature-item"
-                >
-                  <va-icon
-                    name="check_circle"
-                    size="20px"
-                    :color="getPlanColor(plan)"
-                  />
-                  <span>{{ feature }}</span>
+                <div class="plan-features-inner">
+                  <div
+                    v-for="feature in getMainPlanFeatures(plan)"
+                    :key="feature"
+                    class="feature-item"
+                  >
+                    <va-icon
+                      name="check_circle"
+                      size="20px"
+                      :color="getPlanFeatureIconColor(plan)"
+                    />
+                    <span>{{ feature }}</span>
+                  </div>
                 </div>
               </div>
 
@@ -417,7 +473,7 @@
                   <va-icon
                     :name="note.icon"
                     size="16px"
-                    :color="getPlanColor(plan)"
+                    :color="getPlanFeatureIconColor(plan)"
                   />
                   <span>{{ note.text }}</span>
                 </div>
@@ -451,53 +507,6 @@
                   <span>Só para as primeiras {{ lifetimeCounter.limit }}</span>
                 </div>
               </div>
-
-              <!-- Botão de Ação -->
-              <button
-                class="plan-button-modern"
-                :class="{
-                  'button-trial': plan.metadata?.plan_type === 'trial',
-                  'button-pro': plan.metadata?.plan_type === 'pro',
-                  'button-clubers': plan.metadata?.plan_type === 'clubes',
-                  'button-lifetime': plan.metadata?.plan_type === 'lifetime',
-                  'button-active': isPlanActive(plan),
-                  disabled: isPlanDisabled(plan),
-                }"
-                :disabled="isPlanDisabled(plan)"
-                @click.stop="handlePlanClick(plan)"
-              >
-                <va-icon
-                  v-if="isPlanActive(plan)"
-                  name="check_circle"
-                  size="18px"
-                />
-                <va-icon
-                  v-else-if="plan.metadata?.plan_type === 'pro'"
-                  name="bolt"
-                  size="18px"
-                />
-                <va-icon
-                  v-else-if="plan.metadata?.plan_type === 'clubes'"
-                  name="groups"
-                  size="18px"
-                />
-                <va-icon
-                  v-else-if="plan.metadata?.plan_type === 'lifetime'"
-                  name="diamond"
-                  size="18px"
-                />
-                <span v-if="isPlanActive(plan)">Plano Ativo</span>
-                <span v-else-if="plan.metadata?.plan_type === 'pro'"
-                  >Escolher Pro</span
-                >
-                <span v-else-if="plan.metadata?.plan_type === 'clubes'"
-                  >Escolher Clubers</span
-                >
-                <span v-else-if="plan.metadata?.plan_type === 'lifetime'"
-                  >Escolher Vitalícia</span
-                >
-                <span v-else>Escolher Plano</span>
-              </button>
             </div>
           </div>
         </div>
@@ -1263,11 +1272,36 @@ const getPlanPeriod = (plan) => {
 
 // Obter cor do plano baseado no tipo
 const getPlanColor = (plan) => {
-  if (plan.metadata?.plan_type === "trial") return "#e9742b"; // Laranja
-  if (plan.metadata?.plan_type === "pro") return "#3b82f6"; // Azul
+  if (plan.metadata?.plan_type === "trial") return "#FF4E1B"; // Laranja
+  if (plan.metadata?.plan_type === "pro") return "#FF4E1B"; // Laranja (identidade)
   if (plan.metadata?.plan_type === "clubes") return "#10b981"; // Verde
   if (plan.metadata?.plan_type === "lifetime") return "#2563eb"; // Azul vibrante (vôlei)
   return "#6b7280"; // Cinza padrão
+};
+
+/** Plano Pro em destaque (card sólido) quando ainda não é o plano ativo */
+const isFeaturedPricingPlan = (plan) =>
+  Boolean(plan?.metadata?.plan_type === "pro" && !isPlanActive(plan));
+
+const formatPlanPeriodLabel = (plan) => {
+  const p = getPlanPeriod(plan);
+  if (!p) return "";
+  return p.replace(/^\s*\//, "").trim();
+};
+
+const getPlanFeatureIconColor = (plan) => {
+  if (isPlanDisabled(plan)) return "#9ca3af";
+  if (isFeaturedPricingPlan(plan)) return "#ffffff";
+  return getPlanColor(plan);
+};
+
+const getPlanButtonIconColor = (plan) => {
+  if (isPlanActive(plan)) return "#059669";
+  if (isFeaturedPricingPlan(plan)) return "#FF4E1B";
+  if (plan.metadata?.plan_type === "clubes") return "#ffffff";
+  if (plan.metadata?.plan_type === "lifetime") return "#ffffff";
+  if (plan.metadata?.plan_type === "trial") return "#ffffff";
+  return "#ffffff";
 };
 
 // Obter features principais do plano
@@ -2730,7 +2764,7 @@ onMounted(async () => {
 
 <style scoped>
 .subscription-plans-page {
-  background: #f9fafb;
+  width: 100%;
 }
 
 .page-loading-email-validation {
@@ -2746,7 +2780,7 @@ onMounted(async () => {
   width: 40px;
   height: 40px;
   border: 3px solid #e5e7eb;
-  border-top-color: #e9742b;
+  border-top-color: #FF4E1B;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -2760,8 +2794,7 @@ onMounted(async () => {
   max-width: 1400px;
   margin: 0 auto;
   width: 100%;
-  padding-left: 24px;
-  padding-right: 24px;
+  padding: 0 16px 40px;
   box-sizing: border-box;
 }
 
@@ -2811,17 +2844,18 @@ onMounted(async () => {
 }
 
 .page-header-modern .main-title {
-  font-size: 2rem;
+  font-size: 32px;
   font-weight: 700;
-  color: #e9742b;
-  margin-bottom: 8px;
-  margin-top: 0;
+  color: #0b1e3a;
+  margin: 0 0 8px 0;
+  line-height: 1.2;
 }
 
 .page-header-modern .main-subtitle {
-  font-size: 1rem;
+  font-size: 16px;
   color: #6b7280;
   margin: 0;
+  line-height: 1.5;
 }
 
 /* Botão Ver Faturamentos + Editar dados de faturamento (dentro de .header-with-actions ou sozinho) */
@@ -2842,12 +2876,12 @@ onMounted(async () => {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  padding: 14px 24px;
+  padding: 12px 20px;
   background: white;
   color: #374151;
   border-radius: 10px;
   font-weight: 600;
-  font-size: 1rem;
+  font-size: 14px;
   transition: all 0.3s ease;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   border: 2px solid #e5e7eb;
@@ -2888,7 +2922,7 @@ onMounted(async () => {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  padding: 14px 24px;
+  padding: 10px 16px;
   background: white;
   color: #374151;
   text-decoration: none;
@@ -3517,11 +3551,11 @@ p {
   padding-right: 0;
 }
 
-/* Grid Horizontal de Planos */
+/* Grid Horizontal de Planos (referência: 3 colunas em desktop) */
 .plans-grid-modern {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
   margin-bottom: 32px;
   align-items: stretch;
   max-width: 100%;
@@ -3530,9 +3564,9 @@ p {
 /* Card de Plano Moderno */
 .plan-card-modern {
   background: white;
-  border-radius: 12px;
-  padding: 24px 30px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-radius: 14px;
+  padding: 22px 24px 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
   transition: all 0.3s ease;
   cursor: pointer;
   position: relative;
@@ -3544,8 +3578,8 @@ p {
 }
 
 .plan-card-modern:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
 }
 
 .plan-card-modern.selected {
@@ -3554,19 +3588,19 @@ p {
 }
 
 .plan-card-modern.plan-trial {
-  border-color: #e9742b;
+  border-color: #FF4E1B;
 }
 
 .plan-card-modern.plan-trial.selected {
-  box-shadow: 0 8px 24px rgba(233, 116, 43, 0.25);
+  box-shadow: 0 8px 24px rgba(255, 78, 27, 0.25);
 }
 
 .plan-card-modern.plan-pro {
-  border-color: #3b82f6;
+  border-color: #f97316;
 }
 
-.plan-card-modern.plan-pro.selected {
-  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.25);
+.plan-card-modern.plan-pro.selected:not(.featured-pricing) {
+  box-shadow: 0 8px 24px rgba(255, 78, 27, 0.28);
 }
 
 .plan-card-modern.plan-clubers {
@@ -3603,6 +3637,74 @@ p {
   cursor: not-allowed;
 }
 
+/* Pro em destaque: fundo laranja, texto claro, CTA invertido */
+.plan-card-modern.featured-pricing {
+  background: linear-gradient(
+    165deg,
+    #ff6a3d 0%,
+    #ff4e1b 42%,
+    #e63f0f 100%
+  );
+  border-color: #ff4e1b;
+  box-shadow: 0 12px 32px rgba(255, 78, 27, 0.35);
+}
+
+.plan-card-modern.featured-pricing:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 38px rgba(255, 78, 27, 0.42);
+}
+
+.plan-card-modern.featured-pricing.selected {
+  border-color: rgba(255, 255, 255, 0.95);
+  box-shadow:
+    0 16px 40px rgba(255, 78, 27, 0.45),
+    0 0 0 2px rgba(255, 255, 255, 0.9);
+}
+
+.plan-card-modern.featured-pricing .plan-name,
+.plan-card-modern.featured-pricing .price-amount {
+  color: #ffffff;
+}
+
+.plan-card-modern.featured-pricing .price-sep {
+  color: rgba(255, 255, 255, 0.55);
+  font-weight: 500;
+}
+
+.plan-card-modern.featured-pricing .price-period-label {
+  color: rgba(255, 255, 255, 0.92);
+  font-weight: 500;
+}
+
+.plan-card-modern.featured-pricing .price-lifetime,
+.plan-card-modern.featured-pricing .price-yearly,
+.plan-card-modern.featured-pricing .plan-duration,
+.plan-card-modern.featured-pricing .plan-description {
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.plan-card-modern.featured-pricing .plan-features-modern {
+  border-top-color: rgba(255, 255, 255, 0.28);
+}
+
+.plan-card-modern.featured-pricing .feature-item {
+  color: rgba(255, 255, 255, 0.96);
+}
+
+.plan-card-modern.featured-pricing .plan-special-notes {
+  border-top-color: rgba(255, 255, 255, 0.22);
+}
+
+.plan-card-modern.featured-pricing .special-note {
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.plan-card-modern.featured-pricing .badge-pro {
+  background: rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+  backdrop-filter: blur(6px);
+}
+
 /* Badge no topo direito */
 .plan-badges-container {
   position: relative;
@@ -3613,8 +3715,8 @@ p {
 
 .plan-badge-left {
   position: absolute;
-  top: 16px;
-  left: 16px;
+  top: 14px;
+  left: 14px;
   z-index: 10;
 }
 
@@ -3629,8 +3731,8 @@ p {
 
 .plan-badge-top {
   position: absolute;
-  top: 16px;
-  right: 16px;
+  top: 14px;
+  right: 14px;
   z-index: 10;
 }
 
@@ -3644,11 +3746,11 @@ p {
 }
 
 .plan-badge-top .badge-trial {
-  background: #e9742b;
+  background: #FF4E1B;
 }
 
 .plan-badge-top .badge-pro {
-  background: #3b82f6;
+  background: #ff4e1b;
 }
 
 .plan-badge-top .badge-clubers {
@@ -3667,49 +3769,110 @@ p {
   box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
 }
 
+/* Cabeçalho do card: preço → título+ícone → texto → CTA */
+.plan-card-hero {
+  width: 100%;
+  text-align: left;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.plan-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+  margin-bottom: 4px;
+}
+
+.plan-title-row .plan-name {
+  margin-bottom: 0;
+  flex: 1;
+  text-align: left;
+}
+
 /* Ícone do Plano */
 .plan-icon {
   display: flex;
   justify-content: center;
-  margin: 16px 0 12px;
+  align-items: center;
+  margin: 8px 0 10px;
+}
+
+.plan-icon--compact {
+  margin: 0;
+  flex-shrink: 0;
 }
 
 /* Nome do Plano */
 .plan-name {
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   font-weight: 700;
   color: #1f2937;
-  text-align: center;
-  margin: 0 0 12px;
+  text-align: left;
+  margin: 0 0 8px;
+  line-height: 1.3;
 }
 
-.plan-description {
-  font-size: 0.9rem;
+.plan-card-modern.plan-trial .plan-name {
+  color: #ea580c;
+}
+
+.plan-card-modern.plan-clubers .plan-name {
+  color: #0f766e;
+}
+
+/* Escopo do card: evita conflito com seletores legados no fim desta folha. */
+.plan-card-modern .plan-description {
+  font-size: 0.875rem;
   color: #6b7280;
-  text-align: center;
-  margin: 0 0 16px;
+  text-align: left;
+  margin: 0 0 14px;
   line-height: 1.5;
   font-style: italic;
+  max-width: 100%;
 }
 
-/* Preço Moderno */
+/* Preço (linha tipo R$ X | mês) */
 .plan-price-modern {
-  text-align: center;
-  margin-bottom: 12px;
+  text-align: left;
+  margin-bottom: 0;
+}
+
+.plan-price-line {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 6px 10px;
 }
 
 .plan-price-modern .price-amount {
   font-size: 2rem;
   font-weight: 700;
   color: #1f2937;
-  display: block;
-  margin-bottom: 4px;
+  line-height: 1.1;
+}
+
+.plan-price-modern .price-sep {
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: #9ca3af;
+  line-height: 1;
+}
+
+.plan-price-modern .price-period-label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #4b5563;
 }
 
 .plan-price-modern .price-period {
   font-size: 1rem;
+  font-weight: 500;
   color: #6b7280;
-  display: block;
 }
 
 .plan-price-modern .price-lifetime,
@@ -3717,30 +3880,47 @@ p {
   font-size: 0.875rem;
   color: #6b7280;
   display: block;
-  margin-top: 4px;
+  margin-top: 8px;
 }
 
 /* Duração */
 .plan-duration {
-  text-align: center;
+  text-align: left;
   font-size: 0.875rem;
   color: #6b7280;
-  margin-bottom: 24px;
+  margin-top: 0;
+  margin-bottom: 0;
 }
 
-/* Features Modernas */
+/* Lista de benefícios abaixo do CTA */
 .plan-features-modern {
   flex-grow: 1;
+  margin-top: 20px;
   margin-bottom: 16px;
+  padding-top: 20px;
+  border-top: 1px solid #f3f4f6;
+  width: 100%;
+}
+
+.plan-features-inner {
+  max-width: 100%;
+  margin: 0;
+  text-align: left;
 }
 
 .plan-features-modern .feature-item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
-  padding: 6px 0;
+  padding: 5px 0;
   font-size: 0.875rem;
   color: #374151;
+  line-height: 1.35;
+}
+
+.plan-features-modern .feature-item .va-icon {
+  flex-shrink: 0;
+  margin-top: 1px;
 }
 
 /* Notas Especiais */
@@ -3766,7 +3946,9 @@ p {
 /* Disponibilidade Vitalícia */
 .lifetime-availability-modern {
   margin-bottom: 16px;
-  padding-top: 12px;
+  margin-top: 4px;
+  padding-top: 16px;
+  border-top: 1px solid #f3f4f6;
 }
 
 .lifetime-availability-modern .availability-progress {
@@ -3806,11 +3988,11 @@ p {
   color: #6b7280;
 }
 
-/* Botão Moderno */
+/* Botão tipo pill abaixo do título/descrição */
 .plan-button-modern {
   width: 100%;
-  padding: 10px 20px;
-  border-radius: 8px;
+  padding: 12px 22px;
+  border-radius: 9999px;
   font-size: 0.875rem;
   font-weight: 600;
   border: none;
@@ -3820,29 +4002,31 @@ p {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  margin-top: auto;
+  margin-top: 18px;
 }
 
 .plan-button-modern.button-trial {
-  background: #e9742b;
+  background: #FF4E1B;
   color: white;
 }
 
 .plan-button-modern.button-trial:hover {
   background: #d4631f;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(233, 116, 43, 0.3);
+  box-shadow: 0 4px 12px rgba(255, 78, 27, 0.3);
 }
 
 .plan-button-modern.button-pro {
-  background: #3b82f6;
-  color: white;
+  background: #ffffff;
+  color: #ff4e1b;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .plan-button-modern.button-pro:hover {
-  background: #2563eb;
+  background: #fff7f4;
+  color: #d63a12;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
 }
 
 .plan-button-modern.button-clubers {
@@ -3868,8 +4052,9 @@ p {
 }
 
 .plan-button-modern.button-active {
-  background: #10b981;
-  color: white;
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
   cursor: default;
 }
 
@@ -3889,9 +4074,10 @@ p {
 
 .plan-button-modern.button-active.disabled,
 .plan-button-modern.button-active:disabled {
-  background: #d1fae5 !important;
-  color: #065f46 !important;
-  border: 2px solid #10b981;
+  background: #f0fdf4 !important;
+  color: #059669 !important;
+  border: 1px solid #86efac !important;
+  opacity: 1;
 }
 
 .plan-button-modern.disabled:hover {
@@ -4095,20 +4281,6 @@ p {
   color: #10b981;
   font-weight: 600;
   font-size: 0.9rem;
-}
-
-.plan-description {
-  text-align: center;
-  margin-bottom: 20px;
-  color: #666 !important;
-  font-size: 0.95rem;
-  line-height: 1.4;
-  flex-shrink: 0;
-}
-
-.plan-description p {
-  color: #666 !important;
-  margin: 0;
 }
 
 .plan-limits {
@@ -4469,12 +4641,6 @@ p {
   font-size: 1.5rem;
 }
 
-.plan-description {
-  color: #666;
-  margin-bottom: 15px;
-  font-size: 1.1rem;
-}
-
 .plan-billing-info {
   color: #667eea;
   margin-bottom: 25px;
@@ -4778,6 +4944,11 @@ p {
     grid-template-columns: repeat(2, 1fr);
     gap: 20px;
   }
+
+  .plans-grid-modern {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+  }
 }
 
 @media (max-width: 768px) {
@@ -4970,12 +5141,16 @@ p {
     font-size: 2rem;
   }
 
-  .plan-icon {
+  .plan-icon:not(.plan-icon--compact) {
     margin: 16px 0 12px;
   }
 
-  .plan-icon va-icon {
+  .plan-icon:not(.plan-icon--compact) va-icon {
     font-size: 36px !important;
+  }
+
+  .plan-title-row .plan-icon--compact va-icon {
+    font-size: 32px !important;
   }
 
   .plan-name {

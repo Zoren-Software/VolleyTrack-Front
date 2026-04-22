@@ -33,7 +33,7 @@
             color="#28A745"
             v-if="steps.registerPlayers.completed"
           />
-          <va-icon name="person-add" color="#E9742B" v-else />
+          <va-icon name="person-add" color="#FF4E1B" v-else />
         </div>
         <div class="step-content">
           <h3 class="step-title">Registrar Jogadores</h3>
@@ -60,7 +60,7 @@
             color="#28A745"
             v-if="steps.registerTeams.completed"
           />
-          <va-icon name="group" color="#E9742B" v-else />
+          <va-icon name="group" color="#FF4E1B" v-else />
         </div>
         <div class="step-content">
           <h3 class="step-title">Registrar Times</h3>
@@ -154,7 +154,7 @@ export default {
 }
 
 .highlight {
-  color: #e9742b;
+  color: #FF4E1B;
 }
 
 .welcome-subtitle {
@@ -184,7 +184,7 @@ export default {
 }
 
 .progress-bar-fill {
-  background-color: #e9742b;
+  background-color: #FF4E1B;
   height: 100%;
   border-radius: 8px;
 }

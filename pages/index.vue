@@ -1,27 +1,169 @@
 <template>
   <div class="welcome-page">
     <div class="welcome-container">
-      <!-- Welcome Section -->
-      <div class="welcome-section">
-        <div class="volleyball-icon">
-          <va-icon name="sports_volleyball" size="80px" color="#E9742B" />
+      <div class="dashboard-layout">
+        <div class="dashboard-layout__primary">
+          <!-- Banner -->
+          <section class="dashboard-hero" aria-label="Boas-vindas">
+            <div class="dashboard-hero__pattern" aria-hidden="true" />
+            <div class="dashboard-hero__inner">
+              <div class="dashboard-hero__left">
+            <div class="dashboard-hero__datetime-pill">
+              <va-icon name="calendar_today" size="16px" />
+              <span>{{ heroDateTimeLabel }}</span>
+            </div>
+            <h1 class="dashboard-hero__title">{{ heroHeadline }}</h1>
+            <p class="dashboard-hero__subtitle">{{ heroNiceDayMessage }}</p>
+            <p class="dashboard-hero__tagline">
+              VolleyTrack — gestão de equipes de vôlei.
+            </p>
+                <va-button
+                  v-if="!isConfigurationComplete"
+                  class="dashboard-hero__cta"
+                  @click="startConfiguration"
+                >
+                  <va-icon name="send" class="dashboard-hero__cta-icon" />
+                  <span>Começar Configuração</span>
+                </va-button>
+              </div>
+              <div class="dashboard-hero__visual" aria-hidden="true">
+                <div class="hero-decoration hero-decoration--1">
+                  <va-icon name="sports_volleyball" size="24px" />
+                </div>
+                <div class="hero-decoration hero-decoration--2">
+                  <va-icon name="fitness_center" size="22px" />
+                </div>
+                <div class="hero-decoration hero-decoration--3">
+                  <va-icon name="emoji_events" size="22px" />
+                </div>
+                <div class="hero-decoration hero-decoration--4">
+                  <va-icon name="groups" size="22px" />
+                </div>
+                <div class="hero-main-ball">
+                  <va-icon name="sports_volleyball" size="72px" />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Totais do clube (layout dashboard) -->
+      <div class="totals-section">
+        <div class="total-card total-card--trainings">
+          <div class="total-icon">
+            <va-icon name="event" size="26px" color="#FF4E1B" />
+          </div>
+          <div class="total-info">
+            <div class="total-label">Total de treinos</div>
+            <div class="total-number">
+              {{ totalTrainings || 0
+              }}<span
+                v-if="showPlanLimits && planLimits.maxTrainings"
+                class="plan-limit"
+              >
+                / {{ planLimits.maxTrainings }}</span
+              >
+            </div>
+          </div>
+          <va-popover
+            v-if="showPlanLimits && planLimits.maxTrainings"
+            placement="top"
+            trigger="hover"
+            class="plan-popover-wrapper"
+          >
+            <va-icon
+              name="info"
+              size="16px"
+              color="#6c757d"
+              class="plan-info-icon"
+            />
+            <template #title>Limite do Plano</template>
+            <template #body>
+              <p class="plan-popover-text">
+                Você pode cadastrar até {{ planLimits.maxTrainings }} treinos no
+                seu plano atual.
+              </p>
+            </template>
+          </va-popover>
         </div>
-        <h1 class="welcome-title">
-          Bem-vindo ao <span class="highlight">VolleyTrack</span>!
-        </h1>
-        <p class="welcome-subtitle">
-          Comece a gerenciar suas equipes de vôlei em minutos.
-        </p>
-        <va-button
-          v-if="!isConfigurationComplete"
-          color="#E9742B"
-          class="start-button"
-          @click="startConfiguration"
-        >
-          <va-icon name="send" class="button-icon" />
-          <span>Começar Configuração</span>
-        </va-button>
+
+        <div class="total-card total-card--teams">
+          <div class="total-icon">
+            <va-icon name="groups" size="26px" color="#FF6B35" />
+          </div>
+          <div class="total-info">
+            <div class="total-label">Total de times</div>
+            <div class="total-number">
+              {{ totalTeams || 0
+              }}<span
+                v-if="showPlanLimits && planLimits.maxTeams"
+                class="plan-limit"
+              >
+                / {{ planLimits.maxTeams }}</span
+              >
+            </div>
+          </div>
+          <va-popover
+            v-if="showPlanLimits && planLimits.maxTeams"
+            placement="top"
+            trigger="hover"
+            class="plan-popover-wrapper"
+          >
+            <va-icon
+              name="info"
+              size="16px"
+              color="#6c757d"
+              class="plan-info-icon"
+            />
+            <template #title>Limite do Plano</template>
+            <template #body>
+              <p class="plan-popover-text">
+                Você pode cadastrar até {{ planLimits.maxTeams }} times no seu
+                plano atual.
+              </p>
+            </template>
+          </va-popover>
+        </div>
+
+        <div class="total-card total-card--players">
+          <div class="total-icon">
+            <va-icon name="people" size="26px" color="#E65100" />
+          </div>
+          <div class="total-info">
+            <div class="total-label">Total de jogadores</div>
+            <div class="total-number">
+              {{ totalUsers || 0
+              }}<span
+                v-if="showPlanLimits && planLimits.maxPlayers"
+                class="plan-limit"
+              >
+                / {{ planLimits.maxPlayers }}</span
+              >
+            </div>
+          </div>
+          <va-popover
+            v-if="showPlanLimits && planLimits.maxPlayers"
+            placement="top"
+            trigger="hover"
+            class="plan-popover-wrapper"
+          >
+            <va-icon
+              name="info"
+              size="16px"
+              color="#6c757d"
+              class="plan-info-icon"
+            />
+            <template #title>Limite do Plano</template>
+            <template #body>
+              <p class="plan-popover-text">
+                Você pode cadastrar até {{ planLimits.maxPlayers }} jogadores no
+                seu plano atual.
+              </p>
+            </template>
+          </va-popover>
+        </div>
       </div>
+
+      <ZHomeTrainingsYearChart />
 
       <!-- Completion Animation -->
       <Transition name="completion">
@@ -105,7 +247,7 @@
                 </span>
                 <va-button
                   v-else
-                  color="#E9742B"
+                  color="#FF4E1B"
                   size="small"
                   @click="navigateTo('/players')"
                 >
@@ -236,7 +378,7 @@
         >
           <div class="motivational-content">
             <div class="trophy-icon">
-              <va-icon name="emoji_events" size="36px" color="#E9742B" />
+              <va-icon name="emoji_events" size="36px" color="#FF4E1B" />
             </div>
             <p class="motivational-text">
               Quanto mais você configurar, mais completo será o acompanhamento
@@ -265,124 +407,20 @@
       <!-- Presence Ranking Section -->
       <ZPresenceRanking v-if="totalTrainings > 0" />
 
-      <!-- Totals Section -->
-      <div class="totals-section">
-        <div class="total-card players-card">
-          <div class="total-icon">
-            <va-icon name="people" size="32px" color="#E9742B" />
-          </div>
-          <div class="total-info">
-            <div class="total-number">
-              {{ totalUsers || 0
-              }}<span
-                v-if="showPlanLimits && planLimits.maxPlayers"
-                class="plan-limit"
-              >
-                / {{ planLimits.maxPlayers }}</span
-              >
-            </div>
-            <div class="total-label">Jogadores</div>
-            <div class="total-description">Cadastrados no sistema</div>
-          </div>
-          <va-popover
-            v-if="showPlanLimits && planLimits.maxPlayers"
-            placement="top"
-            trigger="hover"
-            class="plan-popover-wrapper"
-          >
-            <va-icon
-              name="info"
-              size="16px"
-              color="#6c757d"
-              class="plan-info-icon"
-            />
-            <template #title>Limite do Plano</template>
-            <template #body>
-              <p class="plan-popover-text">
-                Você pode cadastrar até {{ planLimits.maxPlayers }} jogadores no
-                seu plano atual.
-              </p>
-            </template>
-          </va-popover>
+      <!-- Perfil do jogador (usuário logado) -->
+      <ZHomePlayerProfileCard
+        v-if="user && user.id"
+        :setup-progress="progressPercentage"
+      />
         </div>
 
-        <div class="total-card teams-card">
-          <div class="total-icon">
-            <va-icon name="shield" size="32px" color="#1976D2" />
-          </div>
-          <div class="total-info">
-            <div class="total-number">
-              {{ totalTeams || 0
-              }}<span
-                v-if="showPlanLimits && planLimits.maxTeams"
-                class="plan-limit"
-              >
-                / {{ planLimits.maxTeams }}</span
-              >
-            </div>
-            <div class="total-label">Times</div>
-            <div class="total-description">Cadastrados no sistema</div>
-          </div>
-          <va-popover
-            v-if="showPlanLimits && planLimits.maxTeams"
-            placement="top"
-            trigger="hover"
-            class="plan-popover-wrapper"
-          >
-            <va-icon
-              name="info"
-              size="16px"
-              color="#6c757d"
-              class="plan-info-icon"
-            />
-            <template #title>Limite do Plano</template>
-            <template #body>
-              <p class="plan-popover-text">
-                Você pode cadastrar até {{ planLimits.maxTeams }} times no seu
-                plano atual.
-              </p>
-            </template>
-          </va-popover>
-        </div>
-
-        <div class="total-card trainings-card">
-          <div class="total-icon">
-            <va-icon name="event" size="32px" color="#9E9E9E" />
-          </div>
-          <div class="total-info">
-            <div class="total-number">
-              {{ totalTrainings || 0
-              }}<span
-                v-if="showPlanLimits && planLimits.maxTrainings"
-                class="plan-limit"
-              >
-                / {{ planLimits.maxTrainings }}</span
-              >
-            </div>
-            <div class="total-label">Treinos</div>
-            <div class="total-description">Cadastrados no sistema</div>
-          </div>
-          <va-popover
-            v-if="showPlanLimits && planLimits.maxTrainings"
-            placement="top"
-            trigger="hover"
-            class="plan-popover-wrapper"
-          >
-            <va-icon
-              name="info"
-              size="16px"
-              color="#6c757d"
-              class="plan-info-icon"
-            />
-            <template #title>Limite do Plano</template>
-            <template #body>
-              <p class="plan-popover-text">
-                Você pode cadastrar até {{ planLimits.maxTrainings }} treinos no
-                seu plano atual.
-              </p>
-            </template>
-          </va-popover>
-        </div>
+        <aside
+          class="dashboard-layout__sidebar"
+          aria-label="Próximos treinos e últimos feedbacks"
+        >
+          <ZHomeUpcomingTrainings />
+          <ZHomeRecentFeedbacks />
+        </aside>
       </div>
     </div>
   </div>
@@ -399,6 +437,10 @@ import ZTeamPerformance from "~/components/organisms/Dashboard/ZTeamPerformance.
 import ZTrainingTechnicalVision from "~/components/organisms/Dashboard/ZTrainingTechnicalVision.vue";
 import ZPresenceAnalysis from "~/components/organisms/Dashboard/ZPresenceAnalysis.vue";
 import ZPresenceRanking from "~/components/organisms/Dashboard/ZPresenceRanking.vue";
+import ZHomePlayerProfileCard from "~/components/organisms/Dashboard/ZHomePlayerProfileCard.vue";
+import ZHomeUpcomingTrainings from "~/components/organisms/Dashboard/ZHomeUpcomingTrainings.vue";
+import ZHomeRecentFeedbacks from "~/components/organisms/Dashboard/ZHomeRecentFeedbacks.vue";
+import ZHomeTrainingsYearChart from "~/components/organisms/Dashboard/ZHomeTrainingsYearChart.vue";
 
 export default {
   components: {
@@ -407,11 +449,20 @@ export default {
     ZTrainingTechnicalVision,
     ZPresenceAnalysis,
     ZPresenceRanking,
+    ZHomePlayerProfileCard,
+    ZHomeUpcomingTrainings,
+    ZHomeRecentFeedbacks,
+    ZHomeTrainingsYearChart,
   },
   mounted() {
     this.getInformations();
     this.token = localStorage.getItem("userToken") ?? "sem token";
-    this.user = JSON.parse(localStorage.getItem("user"));
+    try {
+      const raw = localStorage.getItem("user");
+      this.user = raw ? JSON.parse(raw) : {};
+    } catch {
+      this.user = {};
+    }
     this.checkConfigurationStatus();
     this.loadActivePlan();
   },
@@ -491,6 +542,51 @@ export default {
           inProgress: this.totalTeams > 0 && this.totalTrainings === 0,
         },
       };
+    },
+    greetingDisplayName() {
+      const n = (this.user?.displayName || this.user?.name || "").trim();
+      if (!n) return "Atleta";
+      const first = n.split(/\s+/)[0];
+      return (
+        first.charAt(0).toUpperCase() + first.slice(1).toLowerCase()
+      );
+    },
+    heroHeadline() {
+      const h = new Date().getHours();
+      let prefix = "Boa noite";
+      if (h >= 5 && h < 12) prefix = "Bom dia";
+      else if (h >= 12 && h < 18) prefix = "Boa tarde";
+      return `${prefix}, ${this.greetingDisplayName}!`;
+    },
+    heroNiceDayMessage() {
+      const d = new Date().getDay();
+      const weekdays = [
+        "domingo",
+        "segunda-feira",
+        "terça-feira",
+        "quarta-feira",
+        "quinta-feira",
+        "sexta-feira",
+        "sábado",
+      ];
+      const name = weekdays[d];
+      if (d === 0 || d === 6) {
+        return `Tenha um ótimo ${name}!`;
+      }
+      return `Tenha uma ótima ${name}!`;
+    },
+    heroDateTimeLabel() {
+      try {
+        return new Intl.DateTimeFormat("pt-BR", {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        }).format(new Date());
+      } catch {
+        return "";
+      }
     },
   },
   data() {
@@ -820,76 +916,268 @@ useHead({
 .welcome-page {
   min-height: calc(100vh - 40px);
   background-color: #f5f5f5;
-  padding: 24px 0;
-  max-width: 1400px;
+  padding: 24px 28px 32px;
+  max-width: 1600px;
   margin: 0 auto;
   width: 100%;
+  box-sizing: border-box;
 }
 
 .welcome-container {
-  max-width: 800px;
+  max-width: 100%;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
+  gap: 24px;
+}
+
+/* Duas colunas: conteúdo principal | eventos + feedbacks */
+.dashboard-layout {
+  display: grid;
+  grid-template-columns: 1fr minmax(300px, 380px);
+  gap: 24px;
+  align-items: start;
+  width: 100%;
+}
+
+.dashboard-layout__primary {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.dashboard-layout__sidebar {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  position: sticky;
+  top: 24px;
+}
+
+.dashboard-layout__primary .dashboard-hero__inner {
+  padding: 22px 24px 20px;
+  min-height: 160px;
   gap: 16px;
 }
 
-/* Welcome Section */
-.welcome-section {
-  text-align: center;
-  padding: 32px 20px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+.dashboard-layout__primary .dashboard-hero__visual {
+  width: min(200px, 30vw);
+  height: 160px;
 }
 
-.volleyball-icon {
-  margin-bottom: 16px;
-  opacity: 0.1;
+.dashboard-layout__primary .hero-main-ball {
+  width: 112px;
+  height: 112px;
+  margin-bottom: -18px;
 }
 
-.welcome-title {
-  font-size: 28px;
-  font-weight: 700;
-  color: #0b1e3a;
+.dashboard-layout__primary .hero-decoration {
+  width: 42px;
+  height: 42px;
+}
+
+/* Banner principal — gradiente laranja (dashboard) */
+.dashboard-hero {
+  position: relative;
+  border-radius: 24px;
+  overflow: hidden;
+  background: linear-gradient(
+    125deg,
+    #ff4e1b 0%,
+    #ff6b35 38%,
+    #ff8c42 65%,
+    #ff9800 100%
+  );
+  box-shadow:
+    0 12px 40px rgba(255, 78, 27, 0.35),
+    0 2px 8px rgba(0, 0, 0, 0.06);
+  color: #fff;
+}
+
+.dashboard-hero__pattern {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.45;
+  background-image:
+    radial-gradient(
+      ellipse 120% 80% at 100% 100%,
+      rgba(255, 255, 255, 0.2) 0%,
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse 90% 70% at 0% 0%,
+      rgba(0, 0, 0, 0.12) 0%,
+      transparent 50%
+    ),
+    repeating-linear-gradient(
+      -12deg,
+      transparent,
+      transparent 18px,
+      rgba(255, 255, 255, 0.04) 18px,
+      rgba(255, 255, 255, 0.04) 20px
+    );
+}
+
+.dashboard-hero__inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 28px 32px 24px;
+  min-height: 200px;
+}
+
+.dashboard-hero__left {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+}
+
+.dashboard-hero__datetime-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(11, 30, 58, 0.35);
+  backdrop-filter: blur(8px);
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 18px;
+  letter-spacing: 0.01em;
+}
+
+.dashboard-hero__datetime-pill :deep(.va-icon) {
+  opacity: 0.95;
+}
+
+.dashboard-hero__title {
+  font-size: clamp(1.5rem, 3vw, 2.25rem);
+  font-weight: 800;
+  line-height: 1.15;
+  margin: 0 0 10px 0;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
+}
+
+.dashboard-hero__subtitle {
+  font-size: 1.05rem;
+  font-weight: 500;
   margin: 0 0 8px 0;
-  line-height: 1.2;
-}
-
-.highlight {
-  color: #e9742b;
-}
-
-.welcome-subtitle {
-  font-size: 14px;
-  color: #6c757d;
-  margin: 0 0 20px 0;
+  opacity: 0.96;
   line-height: 1.4;
 }
 
-.start-button {
-  background-color: #e9742b !important;
-  color: white !important;
-  border-radius: 8px;
-  padding: 10px 24px;
-  font-size: 14px;
-  font-weight: 500;
-  display: inline-flex;
+.dashboard-hero__tagline {
+  font-size: 0.875rem;
+  margin: 0 0 20px 0;
+  opacity: 0.88;
+  line-height: 1.45;
+  max-width: 36rem;
+}
+
+.dashboard-hero__cta {
+  background: #fff !important;
+  color: #ff4e1b !important;
+  border-radius: 10px !important;
+  padding: 10px 22px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;
+  border: none !important;
+}
+
+.dashboard-hero__cta:hover {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+}
+
+.dashboard-hero__cta-icon {
+  font-size: 18px !important;
+  margin-right: 8px !important;
+}
+
+.dashboard-hero__visual {
+  position: relative;
+  flex-shrink: 0;
+  width: min(280px, 34vw);
+  height: 200px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.hero-main-ball {
+  display: flex;
   align-items: center;
-  gap: 6px;
-  box-shadow: 0 2px 8px rgba(233, 116, 43, 0.3);
-  transition: all 0.2s ease;
+  justify-content: center;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.22);
+  border: 3px solid rgba(255, 255, 255, 0.45);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  margin-bottom: -24px;
 }
 
-.start-button:hover {
-  background-color: #d6652a !important;
-  box-shadow: 0 4px 12px rgba(233, 116, 43, 0.4);
-  transform: translateY(-2px);
+.hero-main-ball :deep(.va-icon) {
+  color: #fff !important;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
 }
 
-.button-icon {
-  font-size: 16px;
-  margin-right: 10px;
+.hero-decoration {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+  animation: hero-float 5s ease-in-out infinite;
+}
+
+.hero-decoration :deep(.va-icon) {
+  color: #ff4e1b !important;
+}
+
+.hero-decoration--1 {
+  top: 8%;
+  right: 8%;
+  animation-delay: 0s;
+}
+
+.hero-decoration--2 {
+  top: 38%;
+  right: -4%;
+  animation-delay: 0.6s;
+}
+
+.hero-decoration--3 {
+  bottom: 28%;
+  right: 18%;
+  animation-delay: 1.2s;
+}
+
+.hero-decoration--4 {
+  top: 22%;
+  left: 0;
+  animation-delay: 0.3s;
+}
+
+@keyframes hero-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
 }
 
 /* Botão discreto para ver configuração quando já está completa */
@@ -906,9 +1194,9 @@ useHead({
 }
 
 .view-config-button:hover {
-  color: #e9742b !important;
+  color: #FF4E1B !important;
   opacity: 1;
-  background: rgba(233, 116, 43, 0.05) !important;
+  background: rgba(255, 78, 27, 0.05) !important;
 }
 
 .view-config-button :deep(.va-button__content) {
@@ -950,8 +1238,8 @@ useHead({
 }
 
 .close-config-button:hover {
-  color: #e9742b !important;
-  background: rgba(233, 116, 43, 0.1) !important;
+  color: #FF4E1B !important;
+  background: rgba(255, 78, 27, 0.1) !important;
 }
 
 .progress-bar-container {
@@ -963,7 +1251,7 @@ useHead({
 }
 
 .progress-bar-fill {
-  background-color: #e9742b;
+  background-color: #FF4E1B;
   height: 100%;
   border-radius: 8px;
   transition: width 0.3s ease;
@@ -1105,7 +1393,7 @@ useHead({
   line-height: 1.4;
 }
 
-/* Totals Section */
+/* Totais — layout tipo dashboard (rótulo em cima, valor embaixo) */
 .totals-section {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -1115,10 +1403,11 @@ useHead({
 }
 
 .total-card {
-  background: white;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  background: #fff;
+  border-radius: 14px;
+  padding: 18px 20px;
+  border: 1px solid #eef0f3;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
   display: flex;
   align-items: center;
   gap: 16px;
@@ -1130,68 +1419,54 @@ useHead({
 
 .total-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 }
 
 .total-icon {
   flex-shrink: 0;
-  width: 48px;
-  height: 48px;
+  width: 52px;
+  height: 52px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #fff4ec;
-  border-radius: 10px;
+  background: #f3f4f6;
+  border-radius: 12px;
 }
 
 .total-icon :deep(.va-icon) {
-  font-size: 28px !important;
-}
-
-.players-card .total-icon {
-  background: #fff4ec;
-}
-
-.teams-card .total-icon {
-  background: #e3f2fd;
-}
-
-.trainings-card .total-icon {
-  background: #f5f5f5;
+  font-size: 26px !important;
 }
 
 .total-info {
   flex: 1;
   min-width: 0;
-}
-
-.total-number {
-  font-size: 28px;
-  font-weight: 700;
-  color: #0b1e3a;
-  margin: 0 0 2px 0;
-  line-height: 1;
-}
-
-.plan-limit {
-  color: #9e9e9e;
-  font-weight: 500;
-  font-size: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
 }
 
 .total-label {
-  font-size: 15px;
-  font-weight: 600;
-  color: #0b1e3a;
-  margin: 0 0 2px 0;
-  line-height: 1.2;
+  font-size: 13px;
+  font-weight: 500;
+  color: #9ca3af;
+  margin: 0;
+  line-height: 1.25;
+  letter-spacing: 0.01em;
 }
 
-.total-description {
-  font-size: 12px;
-  color: #6c757d;
+.total-number {
+  font-size: 26px;
+  font-weight: 700;
+  color: #111827;
   margin: 0;
-  line-height: 1.3;
+  line-height: 1.1;
+}
+
+.plan-limit {
+  color: #9ca3af;
+  font-weight: 600;
+  font-size: 0.85em;
 }
 
 .plan-popover-wrapper {
@@ -1325,6 +1600,18 @@ useHead({
     max-width: 100%;
   }
 
+  .dashboard-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-layout__sidebar {
+    position: static;
+  }
+
+  .dashboard-layout__primary .dashboard-hero__visual {
+    width: min(240px, 55vw);
+  }
+
   .totals-section {
     grid-template-columns: repeat(3, 1fr);
     gap: 12px;
@@ -1370,25 +1657,34 @@ useHead({
     font-size: 80px !important;
   }
 
-  .welcome-section {
-    padding: 24px 16px;
+  .dashboard-hero__inner {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 22px 20px 20px;
+    min-height: 0;
   }
 
-  .welcome-title {
-    font-size: 24px;
+  .dashboard-hero__visual {
+    width: 100%;
+    max-width: 280px;
+    height: 168px;
+    margin: 12px auto 0;
+    align-self: center;
   }
 
-  .welcome-subtitle {
-    font-size: 13px;
+  .hero-main-ball {
+    width: 120px;
+    height: 120px;
+    margin-bottom: -20px;
   }
 
-  .volleyball-icon :deep(.va-icon) {
-    font-size: 60px !important;
+  .hero-main-ball :deep(.va-icon) {
+    font-size: 80px !important;
   }
 
-  .start-button {
-    padding: 8px 20px;
-    font-size: 13px;
+  .dashboard-hero__cta {
+    width: 100%;
+    max-width: 320px;
   }
 
   .totals-section {
@@ -1420,11 +1716,7 @@ useHead({
   }
 
   .total-label {
-    font-size: 13px;
-  }
-
-  .total-description {
-    font-size: 11px;
+    font-size: 12px;
   }
 
   .step-item {
@@ -1465,39 +1757,52 @@ useHead({
     gap: 12px;
   }
 
-  .welcome-section {
-    padding: 20px 12px;
-    border-radius: 8px;
+  .dashboard-hero {
+    border-radius: 16px;
   }
 
-  .volleyball-icon {
-    margin-bottom: 12px;
+  .dashboard-hero__inner {
+    padding: 18px 16px 16px;
   }
 
-  .volleyball-icon :deep(.va-icon) {
-    font-size: 50px !important;
+  .dashboard-hero__datetime-pill {
+    font-size: 11px;
+    padding: 6px 12px;
+    margin-bottom: 14px;
   }
 
-  .welcome-title {
-    font-size: 20px;
-    margin-bottom: 6px;
-  }
-
-  .welcome-subtitle {
-    font-size: 12px;
+  .dashboard-hero__tagline {
     margin-bottom: 16px;
   }
 
-  .start-button {
+  .dashboard-hero__cta {
     width: 100%;
+    max-width: none;
     justify-content: center;
-    padding: 10px 16px;
-    font-size: 12px;
   }
 
-  .button-icon {
-    font-size: 14px;
-    margin-right: 8px;
+  .dashboard-hero__visual {
+    max-width: 240px;
+    height: 150px;
+  }
+
+  .hero-decoration {
+    width: 40px;
+    height: 40px;
+  }
+
+  .hero-decoration :deep(.va-icon) {
+    font-size: 22px !important;
+  }
+
+  .hero-main-ball {
+    width: 100px;
+    height: 100px;
+    margin-bottom: -14px;
+  }
+
+  .hero-main-ball :deep(.va-icon) {
+    font-size: 64px !important;
   }
 
   .completion-content {
@@ -1620,7 +1925,6 @@ useHead({
 
   .total-number {
     font-size: 20px;
-    margin-bottom: 2px;
   }
 
   .plan-limit {
@@ -1628,12 +1932,7 @@ useHead({
   }
 
   .total-label {
-    font-size: 12px;
-    margin-bottom: 2px;
-  }
-
-  .total-description {
-    font-size: 10px;
+    font-size: 11px;
   }
 
   .plan-popover-wrapper {

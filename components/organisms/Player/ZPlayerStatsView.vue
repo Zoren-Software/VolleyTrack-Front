@@ -1,13 +1,5 @@
 <template>
-  <ZModal
-    :model-value="modelValue"
-    @update:model-value="$emit('update:modelValue', $event)"
-    :title="`Estatísticas de ${playerData?.player?.displayName || playerData?.player?.name || 'Jogador'}`"
-    :ok-text="'Fechar'"
-    @ok="closeModal"
-    @cancel="closeModal"
-    size="large"
-  >
+  <div>
     <div v-if="loading" class="loading-container">
       <va-progress-circle indeterminate size="small" />
       <span class="loading-text">Carregando estatísticas...</span>
@@ -18,7 +10,7 @@
       <p class="error-text">{{ errorMessage }}</p>
     </div>
 
-    <div v-else-if="playerData" class="player-stats-modal">
+    <div v-else-if="playerData" class="player-stats-view">
       <!-- Header do Jogador -->
       <div class="player-header-section">
         <ZUser :data="playerData.player" show-position />
@@ -43,11 +35,13 @@
 
         <div class="stat-card trainings-card">
           <div class="stat-icon">
-            <va-icon name="fitness_center" size="32px" color="#e9742b" />
+            <va-icon name="fitness_center" size="32px" color="#FF4E1B" />
           </div>
           <div class="stat-content">
             <div class="stat-value trainings-value">
-              {{ playerData.presencesCount || 0 }} / {{ playerData.trainingsCount || 0 }} / {{ playerData.pendingTrainingsCount || 0 }}
+              {{ playerData.presencesCount || 0 }} /
+              {{ playerData.trainingsCount || 0 }} /
+              {{ playerData.pendingTrainingsCount || 0 }}
             </div>
             <div class="stat-label">
               Treinos
@@ -89,7 +83,10 @@
             {{ position?.name }}
           </span>
           <span
-            v-if="!playerData.player.positions || playerData.player.positions.length === 0"
+            v-if="
+              !playerData.player.positions ||
+              playerData.player.positions.length === 0
+            "
             class="position-tag empty"
           >
             Sem posição
@@ -103,27 +100,32 @@
           <h4 class="section-title">Visão Técnica dos Treinos</h4>
           <div class="section-actions">
             <va-button
-              :icon="fundamentalsViewMode === 'chart' ? 'visibility' : 'bar_chart'"
+              :icon="
+                fundamentalsViewMode === 'chart' ? 'visibility' : 'bar_chart'
+              "
               preset="plain"
               size="small"
               class="toggle-view-btn"
+              :title="
+                fundamentalsViewMode === 'chart'
+                  ? 'Ver informações detalhadas'
+                  : 'Ver gráfico radar'
+              "
               @click="toggleFundamentalsView"
-              :title="fundamentalsViewMode === 'chart' ? 'Ver informações detalhadas' : 'Ver gráfico radar'"
             />
           </div>
         </div>
         <div
           v-if="
-            playerData.topFundamentals &&
-            playerData.topFundamentals.length > 0
+            playerData.topFundamentals && playerData.topFundamentals.length > 0
           "
         >
           <!-- Modo Gráfico Radar -->
-          <div v-if="fundamentalsViewMode === 'chart'" class="radar-chart-container">
-            <Radar
-              :data="getRadarChartData()"
-              :options="radarChartOptions"
-            />
+          <div
+            v-if="fundamentalsViewMode === 'chart'"
+            class="radar-chart-container"
+          >
+            <Radar :data="getRadarChartData()" :options="radarChartOptions" />
           </div>
           <!-- Modo Informações Detalhadas -->
           <div v-else class="fundamentals-list">
@@ -176,21 +178,15 @@
                 <div class="fundamental-badges">
                   <div class="stat-badge stat-badge-a">
                     <span class="stat-label">A</span>
-                    <span class="stat-value">{{
-                      fundamental.totalA
-                    }}</span>
+                    <span class="stat-value">{{ fundamental.totalA }}</span>
                   </div>
                   <div class="stat-badge stat-badge-b">
                     <span class="stat-label">B</span>
-                    <span class="stat-value">{{
-                      fundamental.totalB
-                    }}</span>
+                    <span class="stat-value">{{ fundamental.totalB }}</span>
                   </div>
                   <div class="stat-badge stat-badge-c">
                     <span class="stat-label">C</span>
-                    <span class="stat-value">{{
-                      fundamental.totalC
-                    }}</span>
+                    <span class="stat-value">{{ fundamental.totalC }}</span>
                   </div>
                 </div>
               </div>
@@ -204,10 +200,13 @@
       </div>
 
       <!-- Ranking de Presença nos Times -->
-      <div v-if="playerData.teamRankings && playerData.teamRankings.length > 0" class="team-rankings-section">
+      <div
+        v-if="playerData.teamRankings && playerData.teamRankings.length > 0"
+        class="team-rankings-section"
+      >
         <div class="section-title-wrapper">
           <h4 class="section-title">Ranking de Presença nos Times</h4>
-          <va-icon name="emoji_events" size="20px" color="#E9742B" />
+          <va-icon name="emoji_events" size="20px" color="#FF4E1B" />
         </div>
         <div class="team-rankings-list">
           <div
@@ -216,11 +215,17 @@
             class="team-ranking-card"
             :class="getTeamRankingCardClass(index)"
           >
-            <div class="team-ranking-border" :class="getTeamRankingBorderClass(index)"></div>
+            <div
+              class="team-ranking-border"
+              :class="getTeamRankingBorderClass(index)"
+            ></div>
             <div class="team-ranking-content">
               <div class="team-ranking-header">
                 <ZTeam :data="teamRanking.team" :showCategoryAndLevel="true" />
-                <div class="team-ranking-badge" :class="getTeamRankingBadgeClass(index)">
+                <div
+                  class="team-ranking-badge"
+                  :class="getTeamRankingBadgeClass(index)"
+                >
                   {{ formatPercentage(teamRanking.presencePercentage) }}
                 </div>
               </div>
@@ -241,11 +246,17 @@
                 <div class="ranking-details">
                   <div class="ranking-detail-item">
                     <span class="detail-label">Presenças:</span>
-                    <span class="detail-value">{{ teamRanking.totalPresences }}/{{ teamRanking.totalConfirmations }}</span>
+                    <span class="detail-value"
+                      >{{ teamRanking.totalPresences }}/{{
+                        teamRanking.totalConfirmations
+                      }}</span
+                    >
                   </div>
                   <div class="ranking-detail-item">
                     <span class="detail-label">Total de jogadores no time:</span>
-                    <span class="detail-value">{{ teamRanking.totalPlayersInTeam }}</span>
+                    <span class="detail-value">{{
+                      teamRanking.totalPlayersInTeam
+                    }}</span>
                   </div>
                 </div>
               </div>
@@ -254,12 +265,11 @@
         </div>
       </div>
     </div>
-  </ZModal>
+  </div>
 </template>
 
 <script>
 import { gql } from "@apollo/client/core";
-import ZModal from "~/components/atoms/Modal/ZModal.vue";
 import ZUser from "~/components/molecules/Datatable/Slots/ZUser.vue";
 import ZTeam from "~/components/molecules/Datatable/Slots/ZTeam.vue";
 import PLAYER_INDIVIDUAL_ANALYSIS from "~/graphql/dashboard/query/playerIndividualAnalysis.graphql";
@@ -273,56 +283,29 @@ import {
   Tooltip,
 } from "chart.js";
 
-// Registrar componentes do Chart.js
 ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, Tooltip);
 
 export default {
-  name: "ZPlayerStatsModal",
+  name: "ZPlayerStatsView",
   components: {
-    ZModal,
     ZUser,
     ZTeam,
     Radar,
   },
   props: {
-    modelValue: {
-      type: Boolean,
-      required: true,
-    },
     playerId: {
       type: [String, Number],
-      required: false,
-      default: null,
+      required: true,
     },
   },
-  emits: ["update:modelValue"],
+  emits: ["loaded"],
   data() {
     return {
       playerData: null,
       loadingData: false,
       errorMessage: null,
-      fundamentalsViewMode: 'chart', // 'chart' ou 'info'
+      fundamentalsViewMode: "chart",
     };
-  },
-  watch: {
-    modelValue(newVal) {
-      if (newVal && this.playerId) {
-        this.loadPlayerStats();
-      } else {
-        this.playerData = null;
-        this.errorMessage = null;
-      }
-    },
-    playerId() {
-      if (this.modelValue && this.playerId) {
-        this.loadPlayerStats();
-      }
-    },
-  },
-  mounted() {
-    if (this.modelValue && this.playerId) {
-      this.loadPlayerStats();
-    }
   },
   computed: {
     loading() {
@@ -365,14 +348,14 @@ export default {
           },
           tooltip: {
             callbacks: {
-              label: function (context) {
+              label(context) {
                 return `${context.label}: ${context.parsed.r}%`;
               },
             },
             backgroundColor: "rgba(0, 0, 0, 0.8)",
             titleColor: "#fff",
             bodyColor: "#fff",
-            borderColor: "rgba(233, 116, 43, 1)",
+            borderColor: "rgba(255, 78, 27, 1)",
             borderWidth: 1,
           },
         },
@@ -387,9 +370,22 @@ export default {
       };
     },
   },
+  watch: {
+    playerId: {
+      immediate: true,
+      handler(id) {
+        if (id != null && id !== "") {
+          this.loadPlayerStats();
+        } else {
+          this.playerData = null;
+          this.errorMessage = null;
+        }
+      },
+    },
+  },
   methods: {
     async loadPlayerStats() {
-      if (!this.playerId) return;
+      if (this.playerId == null || this.playerId === "") return;
 
       this.loadingData = true;
       this.errorMessage = null;
@@ -404,7 +400,6 @@ export default {
           playerId: String(this.playerId),
         };
 
-        // Usar Apollo Client diretamente para evitar warnings do Nuxt
         const nuxtApp = useNuxtApp();
         const apolloClient = nuxtApp._apolloClients?.default;
 
@@ -415,24 +410,23 @@ export default {
         const result = await apolloClient.query({
           query,
           variables,
-          fetchPolicy: "network-only", // Sempre buscar dados atualizados
+          fetchPolicy: "network-only",
         });
 
         this.loadingData = false;
 
         if (result?.data?.playerIndividualAnalysis) {
           this.playerData = result.data.playerIndividualAnalysis;
+          this.$emit("loaded", this.playerData);
         } else {
           this.errorMessage = "Nenhum dado encontrado para este jogador.";
         }
       } catch (error) {
         this.loadingData = false;
-        this.errorMessage = error.message || "Erro ao carregar estatísticas do jogador.";
+        this.errorMessage =
+          error.message || "Erro ao carregar estatísticas do jogador.";
         console.error("Erro ao carregar estatísticas:", error);
       }
-    },
-    closeModal() {
-      this.$emit("update:modelValue", false);
     },
     formatPercentage(value) {
       return `${Math.round(value)}%`;
@@ -467,14 +461,11 @@ export default {
 
       return baseClass;
     },
-    formatPercentage(value) {
-      return `${Math.round(value)}%`;
-    },
     toggleFundamentalsView() {
-      this.fundamentalsViewMode = this.fundamentalsViewMode === 'chart' ? 'info' : 'chart';
+      this.fundamentalsViewMode =
+        this.fundamentalsViewMode === "chart" ? "info" : "chart";
     },
     getAllFundamentals() {
-      // Ordem: Saque, Recepção, Ataque, Bloqueio, Defesa, Levantamento (sentido horário)
       return [
         { id: 1, name: "Saque" },
         { id: 2, name: "Recepção" },
@@ -494,13 +485,11 @@ export default {
 
       const allFundamentals = this.getAllFundamentals();
 
-      // Criar um mapa dos fundamentos treinados
       const fundamentalsMap = {};
       this.playerData.topFundamentals.forEach((f) => {
         fundamentalsMap[f.fundamental.name] = f;
       });
 
-      // Calcular dados para o gráfico radar
       const labels = allFundamentals.map((f) => f.name);
       const data = allFundamentals.map((fundamental) => {
         const trained = fundamentalsMap[fundamental.name];
@@ -508,7 +497,6 @@ export default {
           return 0;
         }
 
-        // Calcular score: (A * 3 + B * 2 + C * 1) / (total * 3) * 100
         const score =
           ((trained.totalA * 3 + trained.totalB * 2 + trained.totalC * 1) /
             (trained.grandTotal * 3)) *
@@ -522,13 +510,13 @@ export default {
           {
             label: "Performance",
             data,
-            backgroundColor: "rgba(233, 116, 43, 0.2)",
-            borderColor: "rgba(233, 116, 43, 1)",
+            backgroundColor: "rgba(255, 78, 27, 0.2)",
+            borderColor: "rgba(255, 78, 27, 1)",
             borderWidth: 2,
-            pointBackgroundColor: "rgba(233, 116, 43, 1)",
+            pointBackgroundColor: "rgba(255, 78, 27, 1)",
             pointBorderColor: "#fff",
             pointHoverBackgroundColor: "#fff",
-            pointHoverBorderColor: "rgba(233, 116, 43, 1)",
+            pointHoverBorderColor: "rgba(255, 78, 27, 1)",
             pointRadius: 4,
             pointHoverRadius: 6,
           },
@@ -561,15 +549,17 @@ export default {
   color: #dc3545;
 }
 
-.player-stats-modal {
+.player-stats-view {
   display: flex;
   flex-direction: column;
   gap: 24px;
 }
 
 .player-header-section {
-  padding-bottom: 20px;
-  border-bottom: 1px solid #e9ecef;
+  padding: 20px;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e9ecef;
 }
 
 .main-stats-section {
@@ -617,7 +607,7 @@ export default {
 }
 
 .trainings-value {
-  color: #e9742b;
+  color: #ff4e1b;
 }
 
 .stat-label {
@@ -642,7 +632,7 @@ export default {
 }
 
 .info-icon:hover {
-  color: #e9742b;
+  color: #ff4e1b;
 }
 
 .info-popover-text {
@@ -660,6 +650,19 @@ export default {
   border: 1px solid #e9ecef;
 }
 
+.section-title-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.section-title-wrapper .section-title {
+  margin: 0;
+}
+
 .section-actions {
   display: flex;
   align-items: center;
@@ -672,8 +675,8 @@ export default {
 }
 
 .toggle-view-btn:hover {
-  color: #e9742b !important;
-  background: rgba(233, 116, 43, 0.1) !important;
+  color: #ff4e1b !important;
+  background: rgba(255, 78, 27, 0.1) !important;
 }
 
 .radar-chart-container {
@@ -821,6 +824,10 @@ export default {
   margin: 0 0 16px 0;
 }
 
+.positions-section .section-title {
+  margin: 0 0 16px 0;
+}
+
 .positions-tags {
   display: flex;
   flex-wrap: wrap;
@@ -833,8 +840,8 @@ export default {
   font-size: 13px;
   font-weight: 500;
   background-color: #fff4ec;
-  border: 1px solid #e9742b;
-  color: #e9742b;
+  border: 1px solid #ff4e1b;
+  color: #ff4e1b;
 }
 
 .position-tag.empty {
@@ -842,27 +849,6 @@ export default {
   border-color: #9e9e9e;
   color: #9e9e9e;
 }
-
-.fundamentals-title-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 20px;
-}
-
-.top3-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 8px;
-  background: #e9742b;
-  color: white;
-  border-radius: 12px;
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
 
 .empty-fundamentals {
   display: flex;
@@ -913,7 +899,7 @@ export default {
 }
 
 .border-orange {
-  background: #e9742b;
+  background: #ff4e1b;
 }
 
 .border-blue {
@@ -962,8 +948,8 @@ export default {
 }
 
 .badge-orange {
-  background: rgba(233, 116, 43, 0.1);
-  color: #e9742b;
+  background: rgba(255, 78, 27, 0.1);
+  color: #ff4e1b;
 }
 
 .badge-blue {
@@ -1007,7 +993,7 @@ export default {
 }
 
 .rank-orange {
-  background: #e9742b;
+  background: #ff4e1b;
 }
 
 .rank-blue {
@@ -1089,4 +1075,3 @@ export default {
   }
 }
 </style>
-

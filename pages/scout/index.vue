@@ -1,11 +1,25 @@
 <template>
   <div class="scout-page">
-    <ZTechnicalScout @save-evaluation="handleSaveEvaluation" />
+    <ZTechnicalScout
+      :training-id="scoutTrainingId"
+      @save-evaluation="handleSaveEvaluation"
+    />
   </div>
 </template>
 
 <script setup>
+import { computed } from "vue";
+import { useRoute } from "vue-router";
 import ZTechnicalScout from "~/components/organisms/Scout/ZTechnicalScout.vue";
+
+const route = useRoute();
+const scoutTrainingId = computed(() => {
+  const raw = route.query.trainingId;
+  if (raw === undefined || raw === null || String(raw).trim() === "") {
+    return undefined;
+  }
+  return String(raw);
+});
 
 // Define a página
 definePageMeta({

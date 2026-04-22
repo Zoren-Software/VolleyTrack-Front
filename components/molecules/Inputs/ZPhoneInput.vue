@@ -2,10 +2,11 @@
   <ZInput
     v-model="displayedValue"
     name="phone"
-    label="Celular"
+    :label="label"
     id="phone"
     class="mb-3"
     maxlength="15"
+    :placeholder="placeholder"
   />
 </template>
 
@@ -21,6 +22,14 @@ export default {
     modelValue: {
       type: String,
       default: "",
+    },
+    label: {
+      type: String,
+      default: "Celular",
+    },
+    placeholder: {
+      type: String,
+      default: "(00) 00000-0000",
     },
   },
   computed: {

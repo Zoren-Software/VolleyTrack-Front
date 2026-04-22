@@ -5,7 +5,7 @@
   >
     <div class="section-header">
       <div class="section-title-wrapper">
-        <va-icon name="emoji_events" size="24px" color="#E9742B" />
+        <va-icon name="emoji_events" size="24px" color="#FF4E1B" />
         <h2 class="section-title">Ranking de Presença</h2>
       </div>
     </div>
@@ -283,7 +283,7 @@ export default {
 }
 
 .border-orange {
-  background: #e9742b;
+  background: #FF4E1B;
 }
 
 .border-blue {
@@ -332,8 +332,8 @@ export default {
 }
 
 .badge-orange {
-  background: rgba(233, 116, 43, 0.1);
-  color: #e9742b;
+  background: rgba(255, 78, 27, 0.1);
+  color: #FF4E1B;
 }
 
 .badge-blue {
@@ -466,7 +466,7 @@ export default {
 }
 
 .rank-orange {
-  background: #e9742b;
+  background: #FF4E1B;
 }
 
 .rank-blue {
@@ -517,7 +517,7 @@ export default {
 }
 
 .percentage-orange {
-  color: #e9742b;
+  color: #FF4E1B;
 }
 
 .percentage-blue {

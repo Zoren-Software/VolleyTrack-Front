@@ -41,8 +41,8 @@
         </div>
         <div class="filter-actions">
           <va-button
-            color="#E9742B"
             class="search-button"
+            :class="{ 'search-button--active': hasSearchFilterCriteria }"
             @click="handleSearch"
           >
             <va-icon name="search" class="button-icon" />
@@ -66,13 +66,6 @@
         </va-button>
 
         <div v-if="showAdvancedFilters" class="advanced-filters-content">
-          <div class="filter-item">
-            <label class="filter-label">Usuário Alteração</label>
-            <ZSelectUser
-              label=""
-              v-model="variablesGetTrainings.filter.usersIds"
-            />
-          </div>
           <div class="filter-item">
             <label class="filter-label">Data Início</label>
             <VaDateInput
@@ -101,7 +94,9 @@
     <ZDatatableGeneric
       :buttonActionAdd="false"
       buttonActionDelete
+      bulk-delete-via-selection-badge
       includeActionsColumn
+      disable-action-delete
       includeActionEditList
       includeActionDeleteList
       selectable
@@ -121,6 +116,42 @@
       @update:currentPageActive="updateCurrentPageActive"
       @selectionChange="handleSelectionChange"
     >
+      <template #extra-modals>
+        <VaModal
+          v-model="showTeamsListModal"
+          :title="teamsListModalTitle"
+          size="small"
+          close-button
+          hide-default-actions
+          class="training-teams-list-modal"
+        >
+          <div class="training-teams-list">
+            <div
+              v-for="(team, index) in teamsModalList"
+              :key="team?.id || index"
+              class="training-teams-list-item"
+            >
+              <div class="training-teams-list-name">{{ team?.name || "-" }}</div>
+              <div
+                v-if="team?.teamCategory || team?.teamLevel"
+                class="training-teams-list-meta"
+              >
+                <span v-if="team?.teamCategory" class="training-teams-list-cat">{{
+                  team.teamCategory.name
+                }}</span>
+                <span
+                  v-if="team?.teamCategory && team?.teamLevel"
+                  class="training-teams-list-sep"
+                  >·</span
+                >
+                <span v-if="team?.teamLevel" class="training-teams-list-level">{{
+                  team.teamLevel.name
+                }}</span>
+              </div>
+            </div>
+          </div>
+        </VaModal>
+      </template>
       <template #extra-actions-top>
         <va-button
           v-if="hasBulkCreatedSelected"
@@ -139,49 +170,83 @@
       <!-- CELL -->
       <template
         #cell(name)="{
-          rowKey: {
-            id,
-            name,
-            dateStart,
-            status,
-            displayStatus,
-            confirmationTrainingMetrics,
-          },
+          rowKey: { id, name, dateStart, dateEnd, confirmationTrainingMetrics },
         }"
       >
         <ZTraining
-          :data="{ id, name, dateStart, status, displayStatus }"
+          :data="{ id, name, dateStart, dateEnd }"
           :metrics="confirmationTrainingMetrics"
         />
       </template>
       <template #cell(team)="{ rowKey: { team } }">
-        <div v-if="team">
-          <ZTeam :data="team" :showCategoryAndLevel="true" />
+        <div class="teams-cell">
+          <template v-if="team">
+            <button
+              type="button"
+              class="teams-count-chip"
+              title="Ver times relacionados"
+              @click="openTeamsListModal(team)"
+            >
+              <va-icon name="groups" size="14px" color="#FF4E1B" />
+              <span class="teams-count-chip-text">1 time</span>
+            </button>
+          </template>
+          <span v-else class="no-data-text">-</span>
         </div>
       </template>
-      <template #cell(dateStart)="{ rowKey: { dateStart, dateEnd } }">
-        <ZDateTraining
-          :dateStart="formatTrainingDate(dateStart)"
-          :dateEnd="formatTrainingDate(dateEnd)"
-        />
+      <template #cell(status)="{ rowKey }">
+        <div class="status-cell">
+          <span
+            class="training-status-badge"
+            :class="trainingRowStatusClass(rowKey)"
+          >
+            {{ trainingRowStatusLabel(rowKey) }}
+          </span>
+        </div>
       </template>
-      <template #cell(user)="{ rowKey: { user, createdAt, updatedAt } }">
-        <ZUser
-          :data="user || {}"
-          :createdAt="createdAt"
-          :updatedAt="updatedAt"
-          showUpdatedAt
-          showCreatedAt
-        />
+      <template #cell(presence)="{ rowKey: { dateStart, confirmationTrainingMetrics } }">
+        <div class="presence-cell">
+          <template v-if="isPastTrainingDate(dateStart)">
+            <div class="presence-lines">
+              <div class="presence-line">
+                <va-icon name="check_circle" size="16px" color="#16a34a" />
+                <span class="presence-text">
+                  {{ Number(confirmationTrainingMetrics?.presence || 0) }}
+                  presentes
+                </span>
+              </div>
+              <div class="presence-line">
+                <va-icon name="cancel" size="16px" color="#dc2626" />
+                <span class="presence-text">
+                  {{ Number(confirmationTrainingMetrics?.absence || 0) }}
+                  ausentes
+                </span>
+              </div>
+            </div>
+          </template>
+          <span v-else class="no-data-text">-</span>
+        </div>
       </template>
       <template #cell(actions)="{ rowKey }">
         <div class="actions-cell">
           <ZDataTableActions
             :id="Number(rowKey.id)"
+            :includeActionDetailsList="true"
+            :includeActionAttendanceList="true"
+            :includeActionTechnicalAnalysis="true"
             :includeActionEditList="true"
             :includeActionDeleteList="true"
+            :includeActionFinalize="trainingRowShowsFinalize(rowKey)"
+            :includeActionCancelTraining="trainingRowShowsCancelTraining(rowKey)"
+            :includeActionReactivate="trainingRowShowsReactivate(rowKey)"
+            @details="goToDetails"
+            @attendanceList="goToAttendanceList"
+            @technicalAnalysis="goToTechnicalAnalysis"
             @edit="editTraining"
             @delete="deleteTraining"
+            @finalize="confirmFinalizeTraining"
+            @cancelTraining="confirmCancelTraining"
+            @reactivate="confirmReactivateTraining"
           />
           <va-button
             v-if="rowKey.isBulkCreated"
@@ -195,19 +260,6 @@
         </div>
       </template>
     </ZDatatableGeneric>
-
-    <!-- Summary Cards -->
-    <div class="summary-cards">
-      <va-card class="summary-card">
-        <div class="summary-content">
-          <div class="summary-icon">
-            <va-icon name="fitness_center" size="large" color="#E9742B" />
-          </div>
-          <div class="summary-number">{{ paginatorInfo.total || 0 }}</div>
-          <div class="summary-label">Total de Treinos</div>
-        </div>
-      </va-card>
-    </div>
   </div>
 </template>
 
@@ -221,10 +273,11 @@ import ZSelectTeam from "~/components/molecules/Selects/ZSelectTeam";
 import ZSelectUser from "~/components/molecules/Selects/ZSelectUser";
 import ZDataTableInputSearch from "~/components/molecules/Datatable/ZDataTableInputSearch";
 import ZDataTableActions from "~/components/molecules/Datatable/ZDataTableActions.vue";
-import ZUser from "~/components/molecules/Datatable/Slots/ZUser";
 import ZDateTraining from "~/components/molecules/Datatable/Slots/ZDateTraining";
 import ZTeam from "~/components/molecules/Datatable/Slots/ZTeam";
 import ZTraining from "~/components/molecules/Datatable/Slots/ZTraining";
+import TRAINING from "~/graphql/training/query/training.graphql";
+import TRAININGEDIT from "~/graphql/training/mutation/trainingEdit.graphql";
 import TRAININGDELETE from "~/graphql/training/mutation/trainingDelete.graphql";
 import TRAININGBULKDELETE from "~/graphql/training/mutation/trainingBulkDelete.graphql";
 import TRAININGBULKDELETECOUNT from "~/graphql/training/query/trainingBulkDeleteCount.graphql";
@@ -239,7 +292,6 @@ export default defineComponent({
     ZDataTableActions,
     ZDateTraining,
     ZTeam,
-    ZUser,
     ZSelectPosition,
     ZSelectTeam,
     ZSelectUser,
@@ -256,18 +308,13 @@ export default defineComponent({
 
     const columns = [
       { key: "name", name: "name", label: "Treino", sortable: true },
-      { key: "team", name: "team", label: "Time", sortable: true },
+      { key: "team", name: "team", label: "TIMES", sortable: false },
+      { key: "status", name: "status", label: "STATUS", sortable: false },
       {
-        key: "dateStart",
-        name: "dateStart",
-        label: "Horário Treino",
-        sortable: true,
-      },
-      {
-        key: "user",
-        name: "user",
-        label: "Usuário Alteração",
-        sortable: true,
+        key: "presence",
+        name: "presence",
+        label: "PRESENÇAS",
+        sortable: false,
       },
     ];
 
@@ -282,10 +329,10 @@ export default defineComponent({
       },
       variablesGetTrainings: {
         page: 1,
+        first: 50,
         filter: {
           status: null,
           teamsIds: [],
-          usersIds: [],
           playersIds: [],
           search: "%%",
           dateStart: null,
@@ -307,10 +354,16 @@ export default defineComponent({
       selectColorOptions: ["primary", "danger", "warning", "#EF467F"],
       internalSearchValue: "",
       showAdvancedFilters: false,
+      showTeamsListModal: false,
+      teamsModalList: [],
     };
   },
 
   computed: {
+    teamsListModalTitle() {
+      const count = (this.teamsModalList || []).length;
+      return `Times relacionados (${count})`;
+    },
     selectedBulkTrainings() {
       // Filtrar apenas treinos criados em massa que estão selecionados
       // Verificar tanto isBulkCreated === true quanto isBulkCreated === 1 (caso venha como número do banco)
@@ -324,6 +377,25 @@ export default defineComponent({
     },
     hasBulkCreatedSelected() {
       return this.selectedBulkTrainings.length > 0;
+    },
+    hasSearchFilterCriteria() {
+      const f = this.variablesGetTrainings.filter;
+      if ((this.internalSearchValue || "").trim().length > 0) {
+        return true;
+      }
+      if (Array.isArray(f.teamsIds) && f.teamsIds.length > 0) {
+        return true;
+      }
+      if (Array.isArray(f.playersIds) && f.playersIds.length > 0) {
+        return true;
+      }
+      if (f.dateStart) {
+        return true;
+      }
+      if (f.dateEnd) {
+        return true;
+      }
+      return false;
     },
   },
 
@@ -341,6 +413,217 @@ export default defineComponent({
   },
 
   methods: {
+    trainingRowStatusUpper(row) {
+      const raw = String(row?.status ?? "").trim();
+      if (!raw) return "PENDING";
+      return raw.toUpperCase();
+    },
+    trainingRowShowsFinalize(row) {
+      const u = this.trainingRowStatusUpper(row);
+      return u === "PENDING" || u === "PENDING_ACTION";
+    },
+    trainingRowShowsCancelTraining(row) {
+      const u = this.trainingRowStatusUpper(row);
+      return (
+        u === "PENDING" ||
+        u === "PENDING_ACTION" ||
+        u === "FINISHED"
+      );
+    },
+    trainingRowShowsReactivate(row) {
+      return this.trainingRowStatusUpper(row) === "CANCELLED";
+    },
+    buildTrainingEditPayload(training, statusGraphQL) {
+      const dateStart = moment(training.dateStart).format("YYYY-MM-DD HH:mm:ss");
+      const dateEnd = moment(training.dateEnd).format("YYYY-MM-DD HH:mm:ss");
+      const playerIds = (training.confirmationsTraining || [])
+        .filter((c) => !c.teamId && c.playerId != null)
+        .map((c) => parseInt(c.playerId, 10))
+        .filter((n) => !Number.isNaN(n));
+      return {
+        id: parseInt(training.id, 10),
+        name: training.name,
+        description: training.description || null,
+        status: statusGraphQL,
+        teamId:
+          training.teamId != null ? parseInt(training.teamId, 10) : null,
+        fundamentalId: (training.fundamentals || [])
+          .map((f) => parseInt(f.id, 10))
+          .filter((n) => !Number.isNaN(n)),
+        specificFundamentalId: (training.specificFundamentals || [])
+          .map((f) => parseInt(f.id, 10))
+          .filter((n) => !Number.isNaN(n)),
+        playerIds,
+        dateStart,
+        dateEnd,
+      };
+    },
+    async fetchTrainingById(id) {
+      const nuxtApp = useNuxtApp();
+      const apolloClient = nuxtApp._apolloClients?.default;
+      if (!apolloClient) {
+        confirmError("Cliente GraphQL indisponível.");
+        return null;
+      }
+      const query = gql`
+        ${TRAINING}
+      `;
+      const { data } = await apolloClient.query({
+        query,
+        variables: { id: String(id) },
+        fetchPolicy: "network-only",
+      });
+      return data?.training || null;
+    },
+    async runTrainingStatusChange(id, statusGraphQL, successMessage) {
+      try {
+        this.loading = true;
+        const training = await this.fetchTrainingById(id);
+        if (!training) {
+          confirmError("Treino não encontrado.");
+          return;
+        }
+        const variables = this.buildTrainingEditPayload(training, statusGraphQL);
+        const mutation = gql`
+          ${TRAININGEDIT}
+        `;
+        const { mutate } = await useMutation(mutation, { variables });
+        const { data, errors } = await mutate();
+        if (errors?.length) {
+          confirmError(errors[0]?.message || "Não foi possível atualizar o treino.");
+          return;
+        }
+        if (data?.trainingEdit) {
+          confirmSuccess(successMessage, () => {
+            this.getTrainings({ fetchPolicy: "network-only" });
+          });
+        }
+      } catch (error) {
+        console.error(error);
+        const msg =
+          error?.graphQLErrors?.[0]?.message ||
+          "Não foi possível atualizar o treino.";
+        confirmError(msg);
+      } finally {
+        this.loading = false;
+      }
+    },
+    confirmFinalizeTraining(id) {
+      Swal.fire({
+        title: "Finalizar treino?",
+        text: "O treino será marcado como finalizado.",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: "Finalizar",
+        cancelButtonText: "Voltar",
+        confirmButtonColor: "#16a34a",
+        cancelButtonColor: "#6b7280",
+        reverseButtons: true,
+      }).then((result) => {
+        if (result.isConfirmed) {
+          this.runTrainingStatusChange(
+            id,
+            "FINISHED",
+            "Treino finalizado com sucesso!"
+          );
+        }
+      });
+    },
+    confirmCancelTraining(id) {
+      Swal.fire({
+        title: "Cancelar treino?",
+        text: "O treino será marcado como cancelado.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Cancelar treino",
+        cancelButtonText: "Voltar",
+        confirmButtonColor: "#dc2626",
+        cancelButtonColor: "#6b7280",
+        reverseButtons: true,
+      }).then((result) => {
+        if (result.isConfirmed) {
+          this.runTrainingStatusChange(
+            id,
+            "CANCELLED",
+            "Treino cancelado com sucesso!"
+          );
+        }
+      });
+    },
+    confirmReactivateTraining(id) {
+      Swal.fire({
+        title: "Reativar treino?",
+        text: "O treino voltará para o status agendado.",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: "Reativar",
+        cancelButtonText: "Voltar",
+        confirmButtonColor: "#FF4E1B",
+        cancelButtonColor: "#6b7280",
+        reverseButtons: true,
+      }).then((result) => {
+        if (result.isConfirmed) {
+          this.runTrainingStatusChange(
+            id,
+            "PENDING",
+            "Treino reativado com sucesso!"
+          );
+        }
+      });
+    },
+    trainingRowStatusKey(row) {
+      const raw = String(row?.displayStatus || row?.status || "")
+        .toLowerCase()
+        .trim();
+      if (!raw) return "pending";
+      return raw;
+    },
+    trainingRowStatusLabel(row) {
+      const key = this.trainingRowStatusKey(row);
+      const map = {
+        pending: "Agendado",
+        pending_action: "Pendente ação",
+        finished: "Finalizado",
+        cancelled: "Cancelado",
+      };
+      return (
+        map[key] || row?.displayStatus || row?.status || "Agendado"
+      );
+    },
+    trainingRowStatusClass(row) {
+      const key = this.trainingRowStatusKey(row);
+      return {
+        "status-pending": key === "pending",
+        "status-pending-action": key === "pending_action",
+        "status-finished": key === "finished",
+        "status-cancelled": key === "cancelled",
+      };
+    },
+    isPastTrainingDate(dateStart) {
+      if (!dateStart) return false;
+      return new Date(dateStart) <= new Date();
+    },
+    goToDetails(id) {
+      this.$router.push(`/trainings/details/${id}`);
+    },
+    goToAttendanceList(id) {
+      this.$router.push(`/trainings/attendance/${id}`);
+    },
+    goToTechnicalAnalysis(id) {
+      this.$router.push({
+        path: "/scout",
+        query: { trainingId: String(id) },
+      });
+    },
+    normalizeTeams(teamOrTeams) {
+      if (!teamOrTeams) return [];
+      if (Array.isArray(teamOrTeams)) return teamOrTeams.filter(Boolean);
+      return [teamOrTeams].filter(Boolean);
+    },
+    openTeamsListModal(teamOrTeams) {
+      this.teamsModalList = this.normalizeTeams(teamOrTeams);
+      this.showTeamsListModal = true;
+    },
     handleSelectionChange(selectedItems) {
       this.selectedItemsEmitted = selectedItems.currentSelectedItems || [];
     },
@@ -590,19 +873,18 @@ export default defineComponent({
       this.variablesGetTrainings.filter = {
         status: null,
         teamsIds: [],
-        usersIds: [],
         playersIds: [],
         search: "%%",
         dateStart: null,
         dateEnd: null,
       };
+      this.showAdvancedFilters = false;
       // Recarregar dados após limpar filtros
       this.getTrainings({ fetchPolicy: "network-only" });
     },
 
     getTrainings(fetchPolicyOptions = {}) {
       this.loading = true;
-      this.items = [];
 
       const query = gql`
         ${TRAININGS}
@@ -611,11 +893,6 @@ export default defineComponent({
       let teamsIdsValues =
         this.variablesGetTrainings.filter.teamsIds?.map((team) =>
           parseInt(team?.value || team),
-        ) || [];
-
-      let usersIdsValues =
-        this.variablesGetTrainings.filter.usersIds?.map((user) =>
-          parseInt(user?.value || user),
         ) || [];
 
       let playersIdsValues =
@@ -635,15 +912,23 @@ export default defineComponent({
         dateStart = moment(dateStart).format("YYYY-MM-DD 00:00:00");
       }
 
-      // Preparar filtro de status
       const filterData = {
         ...this.variablesGetTrainings.filter,
         teamsIds: teamsIdsValues,
-        usersIds: usersIdsValues,
         playersIds: playersIdsValues,
-        dateStart,
-        dateEnd,
       };
+
+      if (dateStart) {
+        filterData.dateStart = dateStart;
+      } else {
+        delete filterData.dateStart;
+      }
+
+      if (dateEnd) {
+        filterData.dateEnd = dateEnd;
+      } else {
+        delete filterData.dateEnd;
+      }
 
       // Adicionar status apenas se não for null (todos)
       if (
@@ -651,28 +936,52 @@ export default defineComponent({
         this.variablesGetTrainings.filter.status !== null
       ) {
         filterData.status = this.variablesGetTrainings.filter.status;
+      } else {
+        delete filterData.status;
       }
 
       const consult = {
         ...this.variablesGetTrainings,
+        first: this.variablesGetTrainings.first ?? 50,
         filter: filterData,
       };
 
-      const { onResult } = useQuery(query, consult, {
-        fetchPolicy: fetchPolicyOptions.fetchPolicy || "network-only", // Sempre buscar dados atualizados
-      });
-
-      onResult((result) => {
+      const nuxtApp = useNuxtApp();
+      const apolloClient = nuxtApp._apolloClients?.default;
+      if (!apolloClient) {
         this.loading = false;
-        if (result?.data?.trainings) {
-          this.paginatorInfo =
-            result.data.trainings.paginatorInfo || this.paginatorInfo;
-          // Sempre atualizar items, mesmo se for array vazio
-          this.items = result.data.trainings.data || [];
-        } else {
-          this.items = [];
-        }
-      });
+        confirmError("Cliente GraphQL indisponível.");
+        return;
+      }
+
+      apolloClient
+        .query({
+          query,
+          variables: consult,
+          fetchPolicy: fetchPolicyOptions.fetchPolicy || "network-only",
+        })
+        .then((result) => {
+          this.loading = false;
+          if (result?.data?.trainings) {
+            this.paginatorInfo =
+              result.data.trainings.paginatorInfo || this.paginatorInfo;
+            this.items = result.data.trainings.data || [];
+          } else {
+            this.items = [];
+          }
+          if (result?.errors?.length) {
+            console.error("[trainings]", result.errors);
+            confirmError(
+              "Não foi possível carregar os treinos.",
+              result.errors.map((e) => e.message).join("<br>") || ""
+            );
+          }
+        })
+        .catch((err) => {
+          this.loading = false;
+          console.error("[trainings] query error", err);
+          confirmError("Não foi possível carregar os treinos.");
+        });
     },
   },
 });
@@ -754,9 +1063,9 @@ export default defineComponent({
   padding: 12px 24px;
   font-weight: 500;
   white-space: nowrap;
-  background-color: #e9742b !important;
+  background-color: #6b7280 !important;
   color: #ffffff !important;
-  box-shadow: 0 2px 8px rgba(233, 116, 43, 0.3);
+  box-shadow: 0 2px 6px rgba(75, 85, 99, 0.25);
   border: none;
   display: inline-flex;
   align-items: center;
@@ -766,15 +1075,29 @@ export default defineComponent({
   height: 40px;
 }
 
+.search-button.search-button--active {
+  background-color: #ff4e1b !important;
+  box-shadow: 0 2px 8px rgba(255, 78, 27, 0.3);
+}
+
 .search-button:hover {
-  background-color: #d6652a !important;
-  box-shadow: 0 4px 12px rgba(233, 116, 43, 0.4);
+  background-color: #4b5563 !important;
+  box-shadow: 0 4px 10px rgba(75, 85, 99, 0.35);
   transform: translateY(-1px);
+}
+
+.search-button.search-button--active:hover {
+  background-color: #d6652a !important;
+  box-shadow: 0 4px 12px rgba(255, 78, 27, 0.4);
 }
 
 .search-button:active {
   transform: translateY(0);
-  box-shadow: 0 2px 6px rgba(233, 116, 43, 0.3);
+  box-shadow: 0 2px 6px rgba(75, 85, 99, 0.3);
+}
+
+.search-button.search-button--active:active {
+  box-shadow: 0 2px 6px rgba(255, 78, 27, 0.3);
 }
 
 .search-button .button-icon {
@@ -806,7 +1129,7 @@ export default defineComponent({
 }
 
 .advanced-filters-toggle:hover {
-  color: #e9742b !important;
+  color: #FF4E1B !important;
 }
 
 .advanced-filters-content {
@@ -852,6 +1175,128 @@ export default defineComponent({
   display: flex;
   gap: 8px;
   align-items: center;
+}
+
+.teams-cell {
+  display: flex;
+  align-items: center;
+}
+
+.status-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.training-status-badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.training-status-badge.status-pending {
+  background-color: #fef3c7;
+  color: #d97706;
+}
+
+.training-status-badge.status-finished {
+  background-color: #d1fae5;
+  color: #059669;
+}
+
+.training-status-badge.status-cancelled {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
+.training-status-badge.status-pending-action {
+  background-color: #fef3c7;
+  color: #d97706;
+  border: 1px solid #fbbf24;
+}
+
+.teams-count-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+  font: inherit;
+}
+
+.teams-count-chip:hover {
+  border-color: rgba(255, 78, 27, 0.35);
+  background: #fffdfb;
+}
+
+.teams-count-chip-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+  line-height: 1;
+}
+
+.presence-cell {
+  min-width: 0;
+  padding: 2px 0;
+}
+
+.presence-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.presence-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.presence-text {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.training-teams-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.training-teams-list-item {
+  padding: 10px 12px;
+  background: #f8f9fa;
+  border-radius: 10px;
+  border-left: 3px solid #ff4e1b;
+}
+
+.training-teams-list-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0b1e3a;
+  margin-bottom: 4px;
+}
+
+.training-teams-list-meta {
+  font-size: 11px;
+  color: #6c757d;
+  line-height: 1.4;
+}
+
+.training-teams-list-sep {
+  margin: 0 4px;
+  color: #9e9e9e;
 }
 
 .action-btn-bulk-delete {

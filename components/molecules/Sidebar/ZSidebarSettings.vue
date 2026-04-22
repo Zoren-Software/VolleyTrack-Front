@@ -44,12 +44,6 @@ export default {
           active: false,
         },
         {
-          title: "Configurações de Notificação",
-          icon: "notifications",
-          active: false,
-          to: "/settings/notifications",
-        },
-        {
           title: "Fechar Configurações",
           icon: "close",
           action: () => {

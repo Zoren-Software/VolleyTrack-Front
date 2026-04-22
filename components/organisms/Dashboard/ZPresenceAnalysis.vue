@@ -12,7 +12,7 @@
   >
     <div class="section-header">
       <div class="section-title-wrapper">
-        <va-icon name="event_available" size="24px" color="#E9742B" />
+        <va-icon name="event_available" size="24px" color="#FF4E1B" />
         <h2 class="section-title">Análise de Presenças</h2>
       </div>
     </div>
@@ -302,7 +302,7 @@ export default {
 }
 
 .general-title {
-  color: #e9742b;
+  color: #FF4E1B;
 }
 
 .teams-title {
@@ -329,7 +329,7 @@ export default {
 }
 
 .general-value {
-  color: #e9742b;
+  color: #FF4E1B;
 }
 
 .metric-description {
@@ -427,7 +427,7 @@ export default {
 }
 
 .name-orange {
-  color: #e9742b;
+  color: #FF4E1B;
 }
 
 .name-blue {
@@ -464,7 +464,7 @@ export default {
 }
 
 .percentage-orange {
-  color: #e9742b;
+  color: #FF4E1B;
 }
 
 .percentage-blue {

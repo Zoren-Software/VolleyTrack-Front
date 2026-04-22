@@ -78,9 +78,9 @@ export default {
   align-items: center;
   justify-content: center;
   padding: 4px 10px;
-  background: linear-gradient(135deg, #e9742b 0%, #d6652a 100%);
+  background: linear-gradient(135deg, #FF4E1B 0%, #d6652a 100%);
   border-radius: 12px;
-  box-shadow: 0 2px 6px rgba(233, 116, 43, 0.25);
+  box-shadow: 0 2px 6px rgba(255, 78, 27, 0.25);
   cursor: pointer;
   transition: all 0.2s ease;
   border: 1px solid rgba(255, 255, 255, 0.2);
@@ -88,7 +88,7 @@ export default {
 
 .teams-extra-badge:hover {
   background: linear-gradient(135deg, #d6652a 0%, #c55a24 100%);
-  box-shadow: 0 4px 10px rgba(233, 116, 43, 0.35);
+  box-shadow: 0 4px 10px rgba(255, 78, 27, 0.35);
   transform: translateY(-1px);
 }
 
@@ -114,7 +114,7 @@ export default {
   padding: 8px 12px;
   background: #f8f9fa;
   border-radius: 8px;
-  border-left: 3px solid #e9742b;
+  border-left: 3px solid #FF4E1B;
   transition: all 0.2s ease;
 }
 
@@ -157,7 +157,7 @@ export default {
 }
 
 .teams-list::-webkit-scrollbar-thumb {
-  background: #e9742b;
+  background: #FF4E1B;
   border-radius: 10px;
 }
 

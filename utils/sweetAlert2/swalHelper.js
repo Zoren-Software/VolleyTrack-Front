@@ -43,10 +43,10 @@ export function confirmDeleteSingle(onDelete, onCancel) {
 export function confirmDeleteMultiple(totalItems, onDelete, onCancel) {
   confirmAction(
     {
-      title: "Deseja deletar estes registros?",
-      text: "Você não será capaz de reverter isso!",
+      title: "Excluir registros selecionados?",
+      text: "Você não poderá desfazer esta ação.",
       icon: "warning",
-      html: `Você tem <b>${totalItems}</b> registros selecionados para deletar.<br>`,
+      html: `Você selecionou <b>${totalItems}</b> registro(s). Deseja excluí-los permanentemente?`,
       showCancelButton: true,
       confirmButtonText: "Sim, deletar!",
       confirmButtonColor: "#154EC1",
@@ -111,14 +111,29 @@ export function confirmError(text, footer) {
 export function confirmAskSendEmailNotification(onConfirm, onCancel) {
   confirmAction(
     {
-      title: "Deseja enviar um e-mail de ativação para o usuário?",
-      text: "O usuário receberá um link para ativar a conta.",
+      title: "E-mail de ativação",
+      html: `
+        <div style="text-align: left; padding: 4px 0 2px;">
+          <p style="margin: 0 0 14px; font-size: 16px; color: #111827; line-height: 1.5;">
+            <strong>Deseja enviar um e-mail de ativação para o usuário?</strong>
+          </p>
+          <div style="background-color: #fff4ef; padding: 14px 16px; border-radius: 10px; border: 1px solid rgba(255, 78, 27, 0.2); border-left: 4px solid #FF4E1B;">
+            <p style="margin: 0; font-size: 14px; color: #374151; line-height: 1.55;">
+              O usuário receberá um link para <strong>ativar a conta</strong> e poderá definir a senha no primeiro acesso.
+            </p>
+          </div>
+        </div>
+      `,
       icon: "question",
+      iconColor: "#FF4E1B",
       showCancelButton: true,
-      confirmButtonText: "Sim, enviar",
-      confirmButtonColor: "#154EC1",
+      confirmButtonText: "Sim, enviar e-mail",
+      confirmButtonColor: "#FF4E1B",
       cancelButtonText: "Não, apenas salvar",
-      cancelButtonColor: "#E42222",
+      cancelButtonColor: "#6b7280",
+      reverseButtons: true,
+      width: "480px",
+      padding: "1.5rem",
     },
     onConfirm,
     onCancel

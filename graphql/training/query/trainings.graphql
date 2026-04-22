@@ -61,6 +61,16 @@ query trainings(
       isBulkCreated
       createdAt
       updatedAt
+      scoutFundamentalsTraining {
+        id
+        feedback
+        updatedAt
+        player {
+          id
+          name
+          displayName
+        }
+      }
     }
   }
 }

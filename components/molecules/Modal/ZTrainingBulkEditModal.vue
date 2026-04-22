@@ -359,7 +359,7 @@ export default {
   content: "";
   width: 4px;
   height: 24px;
-  background: #e9742b;
+  background: #FF4E1B;
   border-radius: 2px;
 }
 
