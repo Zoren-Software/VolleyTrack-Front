@@ -12,6 +12,7 @@
           </div>
         </div>
       </div>
+      <div class="login-version">v{{ appVersion }}</div>
     </div>
     <div class="flex flex-col md6 vuestic-hide-on-xs">
       <va-carousel
@@ -28,9 +29,12 @@
 </template>
 
 <script>
+import { version as appVersion } from "~/package.json";
+
 export default {
   data() {
     return {
+      appVersion,
       items: [
         "/images/balls/ball-1.jpg",
         "/images/balls/ball-2.jpg",
@@ -54,5 +58,17 @@ export default {
 
 .custom-width {
   min-width: 54rem !important;
+}
+
+.login-version {
+  position: absolute;
+  bottom: 16px;
+  left: 0;
+  width: 50%;
+  text-align: center;
+  font-size: 11px;
+  color: rgba(0, 0, 0, 0.25);
+  pointer-events: none;
+  user-select: none;
 }
 </style>

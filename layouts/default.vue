@@ -110,6 +110,9 @@
           </div>
         </div>
       </nav>
+      <div class="sidebar-footer">
+        <span class="sidebar-version">v{{ appVersion }}</span>
+      </div>
     </aside>
     <div class="main-area">
       <div class="top-bar">
@@ -208,6 +211,7 @@ import ZListItemsUser from "~/components/molecules/List/ZListItemsUser.vue";
 import NOTIFICATIONSTOTAL from "~/graphql/notification/query/notificationsTotal.graphql";
 import ME from "~/graphql/user/query/me.graphql";
 import { getActivePlan } from "~/services/stripeCheckoutService.js";
+import { version as appVersion } from "~/package.json";
 
 export default {
   components: {
@@ -234,6 +238,7 @@ export default {
         roles: [],
       },
       activePlanData: null,
+      appVersion,
     };
   },
   computed: {
@@ -711,7 +716,7 @@ export default {
   flex-direction: column;
   background-color: #0b1e3a;
   border-right: 1px solid #1e3a5f;
-  padding: 20px 16px;
+  padding: 20px 16px 8px;
   box-sizing: border-box;
   z-index: 1001;
   position: fixed;
@@ -1350,6 +1355,33 @@ export default {
 
 .sidebar--collapsed .sidebar-nav {
   margin-top: 0px;
+}
+
+/* ── Rodapé da Sidebar ── */
+.sidebar-footer {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 0 4px;
+  overflow: hidden;
+}
+
+.sidebar-version {
+  font-size: 12px;
+  color: rgba(232, 238, 247, 0.3);
+  white-space: nowrap;
+  overflow: hidden;
+  max-width: 120px;
+  opacity: 1;
+  transition:
+    opacity 0.15s cubic-bezier(0.4, 0, 0.2, 1),
+    max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar--collapsed .sidebar-version {
+  max-width: 0;
+  opacity: 0;
 }
 
 /* ── Mobile Hamburger (só visível em mobile) ── */
