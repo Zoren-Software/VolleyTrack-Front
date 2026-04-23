@@ -1,178 +1,239 @@
 <template>
-  <div
-    v-if="loading || (data && data.topTeams && data.topTeams.length > 0)"
-    class="presence-ranking-section"
-  >
+  <section class="presence-ranking-section" aria-label="Rankings de presenca e faltas">
     <div class="section-header">
       <div class="section-title-wrapper">
-        <va-icon name="emoji_events" size="24px" color="#FF4E1B" />
-        <h2 class="section-title">Ranking de Presença</h2>
-      </div>
-    </div>
-
-    <div v-if="loading" class="loading-container">
-      <va-progress-circle indeterminate size="small" />
-      <span class="loading-text">Carregando ranking...</span>
-    </div>
-
-    <div
-      v-else-if="!data || !data.topTeams || data.topTeams.length === 0"
-      class="empty-state"
-    >
-      <va-icon name="info" size="48px" color="#9E9E9E" />
-      <p class="empty-text">Nenhum dado disponível</p>
-    </div>
-
-    <div v-else class="teams-ranking-grid">
-      <div
-        v-for="(teamData, index) in data.topTeams"
-        :key="teamData.team.id"
-        class="team-ranking-card"
-        :class="getTeamCardClass(index)"
-      >
-        <div class="team-card-border" :class="getTeamBorderClass(index)"></div>
-        <div class="team-card-content">
-          <div class="team-header">
-            <ZTeam :data="teamData.team" :showCategoryAndLevel="true" />
-            <div class="team-presence-badge" :class="getTeamBadgeClass(index)">
-              {{ formatPercentage(teamData.presencePercentage) }}
-            </div>
-          </div>
-
-          <div class="players-ranking-list">
-            <div
-              v-for="(playerData, playerIndex) in teamData.topPlayers"
-              :key="playerData.player.id"
-              class="player-ranking-item"
-            >
-              <div class="player-rank-wrapper">
-                <div
-                  class="player-rank"
-                  :class="getRankClass(index, playerData.rank)"
-                >
-                  <span class="rank-number">{{ playerData.rank }}º</span>
-                </div>
-                <va-icon
-                  v-if="playerData.rank === 1"
-                  name="emoji_events"
-                  class="trophy-icon"
-                />
-              </div>
-              <ZUser :data="playerData.player" :show-position="true" />
-              <div class="player-metrics">
-                <div
-                  class="player-percentage"
-                  :class="getPlayerPercentageClass(index)"
-                >
-                  {{ formatPercentage(playerData.presencePercentage) }}
-                </div>
-                <div class="player-trainings-info">
-                  {{ playerData.totalPresences }}/{{
-                    playerData.totalTrainings
-                  }}
-                </div>
-              </div>
-            </div>
-          </div>
+        <va-icon name="leaderboard" size="24px" color="#FF4E1B" />
+        <div>
+          <h2 class="section-title">Rankings de frequencia</h2>
+          <p class="section-subtitle">
+            Rankings simulados com total e percentual de presenca e faltas nos treinos.
+          </p>
         </div>
       </div>
     </div>
-  </div>
+
+    <div class="ranking-grid">
+      <section class="ranking-card" aria-label="Top 5 jogadores mais presentes">
+        <div class="ranking-card__header">
+          <div>
+            <h3 class="ranking-card__title">Top 5 jogadores mais presentes</h3>
+            <p class="ranking-card__subtitle">Total de presencas e percentual de presenca.</p>
+          </div>
+        </div>
+
+        <div class="ranking-list">
+          <article
+            v-for="player in presenceRankingItems"
+            :key="`presence-${player.id}`"
+            class="ranking-row"
+          >
+            <div class="ranking-row__left">
+              <div class="ranking-position-wrap">
+                <span class="ranking-position">{{ player.rank }}.</span>
+              </div>
+
+              <va-avatar size="44px" class="ranking-avatar">
+                {{ getInitial(player.name) }}
+              </va-avatar>
+
+              <div class="ranking-player">
+                <div class="ranking-player__name-row">
+                  <h3 class="ranking-player__name">{{ player.name }}</h3>
+                  <va-icon
+                    v-if="player.rank <= 3"
+                    name="workspace_premium"
+                    class="ranking-medal"
+                    :class="`ranking-medal--${player.rank}`"
+                    aria-hidden="true"
+                    size="18px"
+                  />
+                </div>
+                <p class="ranking-player__team">{{ player.team }}</p>
+              </div>
+            </div>
+
+            <div class="ranking-row__metrics ranking-row__metrics--two-cols">
+              <div class="ranking-metric">
+                <span class="ranking-metric__label">Presencas</span>
+                <span class="ranking-metric__value">{{ player.totalPresences }}</span>
+              </div>
+              <div class="ranking-metric">
+                <span class="ranking-metric__label">Presenca %</span>
+                <span class="ranking-metric__value ranking-metric__value--accent">
+                  {{ formatPercentage(player.presencePercentage) }}
+                </span>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="ranking-card" aria-label="Top 5 jogadores mais faltosos">
+        <div class="ranking-card__header">
+          <div>
+            <h3 class="ranking-card__title">Top 5 jogadores mais faltosos</h3>
+            <p class="ranking-card__subtitle">Total de faltas e percentual de ausencias.</p>
+          </div>
+        </div>
+
+        <div class="ranking-list">
+          <article
+            v-for="player in absenceRankingItems"
+            :key="`absence-${player.id}`"
+            class="ranking-row"
+          >
+            <div class="ranking-row__left">
+              <div class="ranking-position-wrap">
+                <span class="ranking-position">{{ player.rank }}.</span>
+              </div>
+
+              <va-avatar size="44px" class="ranking-avatar">
+                {{ getInitial(player.name) }}
+              </va-avatar>
+
+              <div class="ranking-player">
+                <div class="ranking-player__name-row">
+                  <h3 class="ranking-player__name">{{ player.name }}</h3>
+                  <va-icon
+                    v-if="player.rank <= 3"
+                    name="workspace_premium"
+                    class="ranking-medal"
+                    :class="`ranking-medal--${player.rank}`"
+                    aria-hidden="true"
+                    size="18px"
+                  />
+                </div>
+                <p class="ranking-player__team">{{ player.team }}</p>
+              </div>
+            </div>
+
+            <div class="ranking-row__metrics ranking-row__metrics--two-cols">
+              <div class="ranking-metric">
+                <span class="ranking-metric__label">Faltas</span>
+                <span class="ranking-metric__value">{{ player.totalAbsences }}</span>
+              </div>
+              <div class="ranking-metric">
+                <span class="ranking-metric__label">Ausencia %</span>
+                <span class="ranking-metric__value ranking-metric__value--danger">
+                  {{ formatPercentage(player.absencePercentage) }}
+                </span>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+    </div>
+  </section>
 </template>
 
 <script>
-import { gql } from "@apollo/client/core";
-import { useQuery } from "@vue/apollo-composable";
-import PRESENCE_RANKING from "~/graphql/dashboard/query/presenceRanking.graphql";
-import ZTeam from "~/components/molecules/Datatable/Slots/ZTeam.vue";
-import ZUser from "~/components/molecules/Datatable/Slots/ZUser.vue";
-
 export default {
   name: "ZPresenceRanking",
-  components: {
-    ZTeam,
-    ZUser,
-  },
   data() {
     return {
-      data: null,
-      loading: false,
+      presenceRankingItems: [
+        {
+          id: 1,
+          rank: 1,
+          name: "Ana Beatriz",
+          team: "Sub-17 Feminino",
+          totalPresences: 23,
+          totalTrainings: 24,
+          totalAbsences: 1,
+          presencePercentage: 95.8,
+        },
+        {
+          id: 2,
+          rank: 2,
+          name: "Lucas Ferreira",
+          team: "Adulto Masculino",
+          totalPresences: 22,
+          totalTrainings: 24,
+          totalAbsences: 2,
+          presencePercentage: 91.7,
+        },
+        {
+          id: 3,
+          rank: 3,
+          name: "Mariana Silva",
+          team: "Sub-15 Feminino",
+          totalPresences: 21,
+          totalTrainings: 23,
+          totalAbsences: 2,
+          presencePercentage: 91.3,
+        },
+        {
+          id: 4,
+          rank: 4,
+          name: "Carlos Henrique",
+          team: "Adulto Masculino",
+          totalPresences: 20,
+          totalTrainings: 22,
+          totalAbsences: 2,
+          presencePercentage: 90.9,
+        },
+        {
+          id: 5,
+          rank: 5,
+          name: "Julia Martins",
+          team: "Sub-17 Feminino",
+          totalPresences: 19,
+          totalTrainings: 21,
+          totalAbsences: 2,
+          presencePercentage: 90.5,
+        },
+      ],
+      absenceRankingItems: [
+        {
+          id: 11,
+          rank: 1,
+          name: "Pedro Lima",
+          team: "Sub-17 Masculino",
+          totalAbsences: 8,
+          absencePercentage: 33.3,
+        },
+        {
+          id: 12,
+          rank: 2,
+          name: "Camila Rocha",
+          team: "Sub-15 Feminino",
+          totalAbsences: 7,
+          absencePercentage: 31.8,
+        },
+        {
+          id: 13,
+          rank: 3,
+          name: "Rafael Souza",
+          team: "Adulto Masculino",
+          totalAbsences: 7,
+          absencePercentage: 29.2,
+        },
+        {
+          id: 14,
+          rank: 4,
+          name: "Bianca Melo",
+          team: "Sub-17 Feminino",
+          totalAbsences: 6,
+          absencePercentage: 28.6,
+        },
+        {
+          id: 15,
+          rank: 5,
+          name: "Diego Martins",
+          team: "Adulto Masculino",
+          totalAbsences: 6,
+          absencePercentage: 27.3,
+        },
+      ],
     };
   },
-  mounted() {
-    this.getPresenceRanking();
-  },
   methods: {
-    getPresenceRanking(fetchPolicyOptions = {}) {
-      this.loading = true;
-
-      const query = gql`
-        ${PRESENCE_RANKING}
-      `;
-
-      const variables = {
-        filter: {},
-      };
-
-      const {
-        result: { value },
-      } = useQuery(query, variables, {
-        fetchPolicy: fetchPolicyOptions.fetchPolicy || "cache-and-network",
-      });
-
-      const { onResult } = useQuery(query, variables);
-
-      onResult((result) => {
-        if (result?.data?.presenceRanking) {
-          this.data = result.data.presenceRanking;
-        }
-        this.loading = false;
-      });
-
-      if (value) {
-        if (value?.presenceRanking) {
-          this.data = value.presenceRanking;
-        }
-        this.loading = false;
-      }
+    getInitial(name) {
+      if (!name) return "?";
+      return name.trim().charAt(0).toUpperCase() || "?";
     },
     formatPercentage(value) {
       return `${Math.round(value)}%`;
-    },
-    getTeamCardClass(index) {
-      const classes = ["team-card-orange", "team-card-blue", "team-card-black"];
-      return classes[index % classes.length];
-    },
-    getTeamBorderClass(index) {
-      const classes = ["border-orange", "border-blue", "border-black"];
-      return classes[index % classes.length];
-    },
-    getTeamBadgeClass(index) {
-      const classes = ["badge-orange", "badge-blue", "badge-black"];
-      return classes[index % classes.length];
-    },
-    getRankClass(index, rank) {
-      const baseClasses = ["rank-orange", "rank-blue", "rank-black"];
-      const baseClass = baseClasses[index % baseClasses.length];
-
-      // Adicionar classe especial para os 3 primeiros
-      if (rank === 1) {
-        return `${baseClass} rank-gold`;
-      } else if (rank === 2) {
-        return `${baseClass} rank-silver`;
-      } else if (rank === 3) {
-        return `${baseClass} rank-bronze`;
-      }
-
-      return baseClass;
-    },
-    getPlayerPercentageClass(index) {
-      const classes = [
-        "percentage-orange",
-        "percentage-blue",
-        "percentage-black",
-      ];
-      return classes[index % classes.length];
     },
   },
 };
@@ -180,400 +241,297 @@ export default {
 
 <style scoped>
 .presence-ranking-section {
-  background: white;
-  border-radius: 12px;
-  padding: 24px;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 22px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   margin-top: 24px;
+  border: 1px solid #eef0f3;
 }
 
 .section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  gap: 16px;
+  margin-bottom: 18px;
 }
 
 .section-title-wrapper {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: 1;
+  align-items: flex-start;
+  gap: 10px;
 }
 
 .section-title {
+  margin: 0;
   font-size: 20px;
   font-weight: 700;
   color: #0b1e3a;
-  margin: 0;
 }
 
-.loading-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px;
-  gap: 12px;
+.section-subtitle {
+  margin: 4px 0 0;
+  color: #94a3b8;
+  font-size: 12px;
+  line-height: 1.4;
 }
 
-.loading-text {
-  color: #6c757d;
-  font-size: 14px;
-}
-
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px;
-  gap: 12px;
-}
-
-.empty-text {
-  color: #6c757d;
-  font-size: 14px;
-  margin: 0;
-}
-
-.teams-ranking-grid {
+.ranking-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
 }
 
-@media (max-width: 1200px) {
-  .teams-ranking-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 768px) {
-  .teams-ranking-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.team-ranking-card {
-  background: white;
-  border-radius: 12px;
-  padding: 0;
-  border: 1px solid #e9ecef;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  transition: all 0.2s ease;
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-.team-ranking-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
-}
-
-.team-card-border {
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 4px;
-}
-
-.border-orange {
-  background: #FF4E1B;
-}
-
-.border-blue {
-  background: #1976d2;
-}
-
-.border-black {
-  background: #0b1e3a;
-}
-
-.team-card-content {
+.ranking-card {
+  background: #ffffff;
+  border: 1px solid #eef0f3;
+  border-radius: 16px;
   padding: 16px;
-  padding-left: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
 }
 
-.team-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 10px;
-  margin-bottom: 2px;
+.ranking-card__header {
+  margin-bottom: 14px;
 }
 
-.team-header :deep(.team-container) {
+.ranking-card__title {
   margin: 0;
-  gap: 8px;
-}
-
-.team-header :deep(.team-name) {
-  font-size: 13px;
-}
-
-.team-header :deep(.info-text) {
-  font-size: 10px;
-}
-
-.team-presence-badge {
-  font-size: 14px;
+  font-size: 17px;
   font-weight: 700;
-  padding: 4px 10px;
-  border-radius: 6px;
-  flex-shrink: 0;
-}
-
-.badge-orange {
-  background: rgba(255, 78, 27, 0.1);
-  color: #FF4E1B;
-}
-
-.badge-blue {
-  background: rgba(25, 118, 210, 0.1);
-  color: #1976d2;
-}
-
-.badge-black {
-  background: rgba(11, 30, 58, 0.1);
   color: #0b1e3a;
 }
 
-.players-ranking-list {
+.ranking-card__subtitle {
+  margin: 4px 0 0;
+  color: #94a3b8;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.ranking-list {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.player-ranking-item {
+.ranking-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  background: #f8fafc;
+  border: 1px solid #e8edf3;
+  border-radius: 14px;
+  padding: 10px 14px;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.ranking-row:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 78, 27, 0.22);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+}
+
+.ranking-row__left {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px;
-  background: #f8f9fa;
-  border-radius: 6px;
-  transition: all 0.2s ease;
-}
-
-.player-ranking-item:hover {
-  background: #f0f0f0;
-  transform: translateX(2px);
-}
-
-.player-ranking-item :deep(.user-cell) {
-  flex: 1;
   min-width: 0;
-  padding: 0;
-  margin: 0;
-  gap: 8px;
 }
 
-.player-ranking-item :deep(.user-avatar) {
-  width: 32px !important;
-  height: 32px !important;
-  min-width: 32px !important;
-  min-height: 32px !important;
-  border-radius: 50% !important;
-  overflow: hidden !important;
+.ranking-position-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 34px;
+  flex-shrink: 0;
 }
 
-.player-ranking-item :deep(.user-avatar .va-avatar) {
-  width: 32px !important;
-  height: 32px !important;
-  min-width: 32px !important;
-  min-height: 32px !important;
-  border-radius: 50% !important;
-  overflow: hidden !important;
+.ranking-position {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #94a3b8;
+  flex-shrink: 0;
 }
 
-.player-ranking-item :deep(.user-avatar .va-avatar__content) {
-  width: 100% !important;
-  height: 100% !important;
-  border-radius: 50% !important;
+.ranking-medal {
+  flex-shrink: 0;
+  filter: drop-shadow(0 2px 4px rgba(15, 23, 42, 0.12));
+}
+
+.ranking-medal--1 {
+  color: #d4af37;
+}
+
+.ranking-medal--2 {
+  color: #c0c7d1;
+}
+
+.ranking-medal--3 {
+  color: #cd7f32;
+}
+
+.ranking-avatar {
+  width: 40px !important;
+  height: 40px !important;
+  min-width: 40px !important;
+  min-height: 40px !important;
+  border: 2px solid white !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+  background: #ff4e1b !important;
+  color: #ffffff !important;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.ranking-avatar :deep(.va-avatar) {
+  border: 2px solid white !important;
+  background: #ff4e1b !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+}
+
+.ranking-avatar :deep(.va-avatar__content) {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
+  width: 100% !important;
+  height: 100% !important;
+  padding: 0 0 1px 0 !important;
+  font-size: 12px !important;
+  line-height: 1 !important;
 }
 
-.player-ranking-item :deep(.user-info) {
-  overflow: hidden;
+.ranking-player {
   min-width: 0;
-  flex: 1;
 }
 
-.player-ranking-item :deep(.user-name) {
-  font-size: 13px;
+.ranking-player__name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.ranking-player__name {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #111827;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  display: block;
-  max-width: 15ch;
 }
 
-.player-ranking-item :deep(.user-detail-item) {
-  font-size: 11px;
-  gap: 4px;
+.ranking-player__team {
+  margin: 1px 0 0;
+  font-size: 12px;
+  color: #6b7280;
 }
 
-.player-rank-wrapper {
+.ranking-row__metrics {
+  display: grid;
   flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  width: 24px;
 }
 
-.player-rank {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 10px;
-  font-weight: 700;
-  color: white;
-  position: relative;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+.ranking-row__metrics--two-cols {
+  grid-template-columns: repeat(2, minmax(88px, 1fr));
+  gap: 8px;
 }
 
-.player-rank .rank-number {
-  font-size: 10px;
-  font-weight: 700;
-  line-height: 1;
-  color: white;
-}
-
-.trophy-icon {
-  position: absolute;
-  left: 16px;
-  top: 49%;
-  flex-shrink: 0;
-  filter: drop-shadow(0 2px 4px rgba(212, 175, 55, 0.3));
-  z-index: 1;
-  color: rgb(143, 108, 38);
-  font-size: 16px;
-  height: 16px;
-  line-height: 16px;
-}
-
-.rank-orange {
-  background: #FF4E1B;
-}
-
-.rank-blue {
-  background: #1976d2;
-}
-
-.rank-black {
-  background: #0b1e3a;
-}
-
-.rank-gold {
-  background: linear-gradient(135deg, #d4af37 0%, #b8941f 100%);
-  box-shadow: 0 2px 6px rgba(212, 175, 55, 0.4);
-  border: 2px solid #b8941f;
-}
-
-.rank-silver {
-  background: linear-gradient(135deg, #9e9e9e 0%, #757575 100%);
-  box-shadow: 0 2px 6px rgba(158, 158, 158, 0.4);
-  border: 2px solid #757575;
-}
-
-.rank-bronze {
-  background: linear-gradient(135deg, #cd7f32 0%, #b87333 100%);
-  box-shadow: 0 2px 6px rgba(205, 127, 50, 0.4);
-  border: 2px solid #b87333;
-}
-
-.player-metrics {
+.ranking-metric {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
   gap: 4px;
-  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  min-height: 56px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid #eef0f3;
 }
 
-.player-percentage {
-  font-size: 13px;
-  font-weight: 700;
-  line-height: 1.2;
-}
-
-.player-trainings-info {
+.ranking-metric__label {
   font-size: 11px;
-  font-weight: 500;
-  color: #6c757d;
-  line-height: 1.2;
+  font-weight: 600;
+  color: #94a3b8;
 }
 
-.percentage-orange {
-  color: #FF4E1B;
+.ranking-metric__value {
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1;
 }
 
-.percentage-blue {
-  color: #1976d2;
+.ranking-metric__value--accent {
+  color: #ff4e1b;
 }
 
-.percentage-black {
-  color: #0b1e3a;
+.ranking-metric__value--danger {
+  color: #dc3545;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .presence-ranking-section {
-    padding: 16px;
-    margin-top: 16px;
+@media (max-width: 1024px) {
+  .ranking-grid {
+    grid-template-columns: 1fr;
   }
 
-  .section-header {
-    margin-bottom: 16px;
+  .ranking-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .ranking-row__metrics {
+    width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .presence-ranking-section {
+    padding: 16px;
   }
 
   .section-title {
     font-size: 18px;
   }
 
-  .team-card-content {
-    padding: 14px;
-    padding-left: 18px;
+  .ranking-row {
+    padding: 10px 12px;
+  }
+
+  .ranking-row__left {
     gap: 10px;
   }
 
-  .team-presence-badge {
+  .ranking-position {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
     font-size: 12px;
-    padding: 3px 8px;
   }
 
-  .player-ranking-item {
-    padding: 6px;
+  .ranking-avatar {
+    width: 38px !important;
+    height: 38px !important;
+  }
+
+  .ranking-row__metrics--two-cols {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
   }
 
-  .player-rank {
-    width: 22px;
-    height: 22px;
+  .ranking-metric {
+    min-height: 56px;
   }
 
-  .player-rank .rank-number {
-    font-size: 9px;
-  }
-
-  .player-percentage {
-    font-size: 12px;
-  }
-
-  .player-trainings-info {
-    font-size: 10px;
+  .ranking-metric__value {
+    font-size: 16px;
   }
 }
 </style>

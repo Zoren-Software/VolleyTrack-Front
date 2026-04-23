@@ -46,7 +46,7 @@
             </div>
           </section>
 
-          <!-- Totais do clube (layout dashboard) -->
+          <!-- Totais do clube -->
       <div class="totals-section">
         <div class="total-card total-card--trainings">
           <div class="total-icon">
@@ -164,6 +164,9 @@
       </div>
 
       <ZHomeTrainingsYearChart />
+
+      <!-- Presence Ranking Section -->
+      <ZPresenceRanking v-if="totalTrainings > 0" />
 
       <!-- Completion Animation -->
       <Transition name="completion">
@@ -392,20 +395,10 @@
         </va-card>
       </Transition>
 
-      <!-- Individual Analysis Section -->
-      <ZIndividualAnalysis v-if="totalUsers > 0" />
-
-      <!-- Team Performance Section -->
-      <ZTeamPerformance v-if="totalTeams > 0" />
-
-      <!-- Training Technical Vision Section -->
-      <ZTrainingTechnicalVision v-if="totalTrainings > 0" />
-
       <!-- Presence Analysis Section -->
       <ZPresenceAnalysis v-if="totalTrainings > 0" />
 
-      <!-- Presence Ranking Section -->
-      <ZPresenceRanking v-if="totalTrainings > 0" />
+      <ZHomeRecentFeedbacks />
 
       <!-- Perfil do jogador (usuário logado) -->
       <ZHomePlayerProfileCard
@@ -416,10 +409,54 @@
 
         <aside
           class="dashboard-layout__sidebar"
-          aria-label="Próximos treinos e últimos feedbacks"
+          aria-label="Próximos treinos, totais e últimos feedbacks"
         >
-          <ZHomeUpcomingTrainings />
-          <ZHomeRecentFeedbacks />
+          <ZHomeUpcomingTrainings @summary-change="handleUpcomingSummary" />
+
+          <div class="upcoming-summary-section">
+            <div class="upcoming-summary-section__header">
+              <h3 class="upcoming-summary-section__title">Esta semana</h3>
+              <p class="upcoming-summary-section__subtitle">
+                Resumo rapido dos treinos desta semana
+              </p>
+            </div>
+
+            <div class="upcoming-summary-card upcoming-summary-card--scheduled">
+              <div class="upcoming-summary-card__icon">
+                <va-icon name="event" size="24px" color="#D97706" />
+              </div>
+              <div class="upcoming-summary-card__info">
+                <div class="upcoming-summary-card__label">Treinos agendados</div>
+                <div class="upcoming-summary-card__value">
+                  {{ upcomingSummary.upcomingThisWeek }}
+                </div>
+              </div>
+            </div>
+
+            <div class="upcoming-summary-card upcoming-summary-card--cancelled">
+              <div class="upcoming-summary-card__icon">
+                <va-icon name="close" size="24px" color="#DC2626" />
+              </div>
+              <div class="upcoming-summary-card__info">
+                <div class="upcoming-summary-card__label">Treinos cancelados</div>
+                <div class="upcoming-summary-card__value">
+                  {{ upcomingSummary.cancelledThisWeek }}
+                </div>
+              </div>
+            </div>
+
+            <div class="upcoming-summary-card upcoming-summary-card--success">
+              <div class="upcoming-summary-card__icon">
+                <va-icon name="task_alt" size="24px" color="#16A34A" />
+              </div>
+              <div class="upcoming-summary-card__info">
+                <div class="upcoming-summary-card__label">Treinos finalizados</div>
+                <div class="upcoming-summary-card__value">
+                  {{ upcomingSummary.finalizedThisWeek }}
+                </div>
+              </div>
+            </div>
+          </div>
         </aside>
       </div>
     </div>
@@ -433,8 +470,6 @@ import TEAMSTOTAL from "~/graphql/team/query/teamsTotal.graphql";
 import TRAININGSTOTAL from "~/graphql/training/query/trainingsTotal.graphql";
 import { getActivePlan } from "~/services/stripeCheckoutService.js";
 import ZIndividualAnalysis from "~/components/organisms/Dashboard/ZIndividualAnalysis.vue";
-import ZTeamPerformance from "~/components/organisms/Dashboard/ZTeamPerformance.vue";
-import ZTrainingTechnicalVision from "~/components/organisms/Dashboard/ZTrainingTechnicalVision.vue";
 import ZPresenceAnalysis from "~/components/organisms/Dashboard/ZPresenceAnalysis.vue";
 import ZPresenceRanking from "~/components/organisms/Dashboard/ZPresenceRanking.vue";
 import ZHomePlayerProfileCard from "~/components/organisms/Dashboard/ZHomePlayerProfileCard.vue";
@@ -445,8 +480,6 @@ import ZHomeTrainingsYearChart from "~/components/organisms/Dashboard/ZHomeTrain
 export default {
   components: {
     ZIndividualAnalysis,
-    ZTeamPerformance,
-    ZTrainingTechnicalVision,
     ZPresenceAnalysis,
     ZPresenceRanking,
     ZHomePlayerProfileCard,
@@ -600,6 +633,11 @@ export default {
       showCompletionAnimation: false,
       showConfigurationDetails: false,
       activePlanData: null,
+      upcomingSummary: {
+        upcomingThisWeek: 0,
+        cancelledThisWeek: 2,
+        finalizedThisWeek: 4,
+      },
       paginatorInfo: {},
       variablesGetPlayers: {
         page: 1,
@@ -861,6 +899,13 @@ export default {
     closeConfigurationDetails() {
       this.showConfigurationDetails = false;
     },
+    handleUpcomingSummary(summary) {
+      this.upcomingSummary = {
+        upcomingThisWeek: summary?.upcomingThisWeek || 0,
+        cancelledThisWeek: summary?.cancelledThisWeek || 0,
+        finalizedThisWeek: summary?.finalizedThisWeek || 0,
+      };
+    },
     async loadActivePlan() {
       try {
         const token =
@@ -954,6 +999,110 @@ useHead({
   gap: 20px;
   position: sticky;
   top: 24px;
+}
+
+.upcoming-summary-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.upcoming-summary-section__header {
+  padding: 2px 2px 0;
+}
+
+.upcoming-summary-section__title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0b1e3a;
+}
+
+.upcoming-summary-section__subtitle {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.upcoming-summary-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 16px;
+  background: #fff;
+  border: 1px solid #eef0f3;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.upcoming-summary-card--scheduled {
+  background: #fff;
+  border-color: #eef0f3;
+}
+
+.upcoming-summary-card--cancelled {
+  background: #fff;
+  border-color: #eef0f3;
+}
+
+.upcoming-summary-card--success {
+  background: #fff;
+  border-color: #eef0f3;
+}
+
+.upcoming-summary-card__icon {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  background: #f3f4f6;
+}
+
+.upcoming-summary-card--scheduled .upcoming-summary-card__icon {
+  background: #fef3c7;
+}
+
+.upcoming-summary-card--cancelled .upcoming-summary-card__icon {
+  background: #fee2e2;
+}
+
+.upcoming-summary-card--success .upcoming-summary-card__icon {
+  background: #ecfdf3;
+}
+
+.upcoming-summary-card__info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.upcoming-summary-card__label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.upcoming-summary-card__value {
+  font-size: 30px;
+  line-height: 1;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.upcoming-summary-card--scheduled .upcoming-summary-card__value {
+  color: #92400e;
+}
+
+.upcoming-summary-card--cancelled .upcoming-summary-card__value {
+  color: #991b1b;
+}
+
+.upcoming-summary-card--success .upcoming-summary-card__value {
+  color: #166534;
 }
 
 .dashboard-layout__primary .dashboard-hero__inner {
