@@ -79,6 +79,8 @@ export default {
   },
 
   data() {
+    const config = useRuntimeConfig();
+    const isLocal = config.public.appEnv === "local";
     return {
       success: false,
       successMessage: [],
@@ -87,8 +89,8 @@ export default {
       errorMessagePassword: "",
       errorMessageEmail: "",
       loading: false,
-      email: "",
-      password: "",
+      email: isLocal ? config.public.loginTestEmail || "" : "",
+      password: isLocal ? config.public.loginTestPassword || "" : "",
     };
   },
 

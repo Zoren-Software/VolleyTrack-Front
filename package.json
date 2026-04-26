@@ -3,7 +3,7 @@
   "version": "2.7.0",
   "scripts": {
     "build": "nuxt build",
-    "dev": "NODE_OPTIONS='--no-deprecation' nuxt dev",
+    "dev": "NODE_OPTIONS='--no-deprecation' nuxt dev --open",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",

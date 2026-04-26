@@ -7,6 +7,19 @@ const env = dotenv.config({ quiet: true }).parsed || {}
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: '2025-11-21',
+  devServer: {
+    host: 'test.volleytrack.local',
+    port: 3000,
+    url: 'http://test.volleytrack.local:3000',
+  },
+  hooks: {
+    'listen'(_server, listener) {
+      const port = listener.port ?? 3000
+      process.stdout.write(
+        `  \x1b[32m➜\x1b[0m Local test and development (subdomain): \x1b[36mhttp://test.volleytrack.local:${port}/\x1b[0m\n`
+      )
+    },
+  },
   experimental: {
     // Desabilita app manifest para evitar erro de resolução do #app-manifest
     appManifest: false,
@@ -79,6 +92,9 @@ export default defineNuxtConfig({
       apiEndpoint: process.env.NUXT_PUBLIC_API_ENDPOINT || process.env.API_ENDPOINT || env.API_ENDPOINT || 'http://api.volleytrack.local',
       // APP_ENV: ex. "local" para ver coluna ID em datatables; use NUXT_PUBLIC_APP_ENV ou APP_ENV no .env
       appEnv: process.env.NUXT_PUBLIC_APP_ENV || process.env.APP_ENV || '',
+      // Credenciais de teste para login (apenas desenvolvimento)
+      loginTestEmail: '',    // pode ser sobrescrito por NUXT_PUBLIC_LOGIN_TEST_EMAIL no .env
+      loginTestPassword: '', // pode ser sobrescrito por NUXT_PUBLIC_LOGIN_TEST_PASSWORD no .env
     }
   },
   vuestic: {

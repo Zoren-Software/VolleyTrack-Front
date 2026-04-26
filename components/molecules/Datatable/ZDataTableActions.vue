@@ -98,6 +98,16 @@
           </button>
 
           <button
+            v-if="includeActionResendVerificationEmail"
+            type="button"
+            class="action-menu-item"
+            @click="emitResendVerificationEmail(id)"
+          >
+            <va-icon name="mark_email_unread" size="16px" color="#6b7280" />
+            <span>Reenviar verificação</span>
+          </button>
+
+          <button
             v-if="includeActionDeleteList"
             type="button"
             class="action-menu-item"
@@ -157,6 +167,10 @@ export default {
       type: Boolean,
       default: false,
     },
+    includeActionResendVerificationEmail: {
+      type: Boolean,
+      default: false,
+    },
   },
   emits: [
     "stats",
@@ -168,6 +182,7 @@ export default {
     "reactivate",
     "attendanceList",
     "technicalAnalysis",
+    "resendVerificationEmail",
   ],
   methods: {
     emitStats(id) {
@@ -178,6 +193,9 @@ export default {
     },
     emitTechnicalAnalysis(id) {
       this.$emit("technicalAnalysis", id);
+    },
+    emitResendVerificationEmail(id) {
+      this.$emit("resendVerificationEmail", id);
     },
     emitFinalize(id) {
       this.$emit("finalize", id);
@@ -201,7 +219,7 @@ export default {
         },
         () => {
           // Você pode adicionar qualquer lógica adicional para o caso de cancelamento aqui
-        }
+        },
       );
     },
   },
