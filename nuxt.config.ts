@@ -79,6 +79,9 @@ export default defineNuxtConfig({
       apiEndpoint: process.env.NUXT_PUBLIC_API_ENDPOINT || process.env.API_ENDPOINT || env.API_ENDPOINT || 'http://api.volleytrack.local',
       // APP_ENV: ex. "local" para ver coluna ID em datatables; use NUXT_PUBLIC_APP_ENV ou APP_ENV no .env
       appEnv: process.env.NUXT_PUBLIC_APP_ENV || process.env.APP_ENV || '',
+      // Credenciais de teste para login (apenas desenvolvimento)
+      loginTestEmail: '',    // pode ser sobrescrito por NUXT_PUBLIC_LOGIN_TEST_EMAIL no .env
+      loginTestPassword: '', // pode ser sobrescrito por NUXT_PUBLIC_LOGIN_TEST_PASSWORD no .env
     }
   },
   vuestic: {
