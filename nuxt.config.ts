@@ -7,6 +7,19 @@ const env = dotenv.config({ quiet: true }).parsed || {}
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: '2025-11-21',
+  devServer: {
+    host: 'test.volleytrack.local',
+    port: 3000,
+    url: 'http://test.volleytrack.local:3000',
+  },
+  hooks: {
+    'listen'(_server, listener) {
+      const port = listener.port ?? 3000
+      process.stdout.write(
+        `  \x1b[32m➜\x1b[0m Local test and development (subdomain): \x1b[36mhttp://test.volleytrack.local:${port}/\x1b[0m\n`
+      )
+    },
+  },
   experimental: {
     // Desabilita app manifest para evitar erro de resolução do #app-manifest
     appManifest: false,
