@@ -178,9 +178,11 @@
             include-action-stats-list
             include-action-edit-list
             include-action-delete-list
+            :include-action-resend-verification-email="!rowKey.emailVerifiedAt"
             @stats="openStatsModal"
             @edit="editPlayer"
             @delete="deletePlayer"
+            @resend-verification-email="resendVerificationEmail"
           />
         </div>
       </template>
@@ -274,6 +276,7 @@ import ZUser from "~/components/molecules/Datatable/Slots/ZUser";
 import ZPosition from "~/components/molecules/Datatable/Slots/ZPosition";
 import ZCPF from "~/components/molecules/Datatable/Slots/ZCPF";
 import USERDELETE from "~/graphql/user/mutation/userDelete.graphql";
+import USERRESENDVERIFICATIONEMAIL from "~/graphql/user/mutation/userResendVerificationEmail.graphql";
 import ROLES from "~/graphql/role/query/roles.graphql";
 import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
 
@@ -423,6 +426,26 @@ export default defineComponent({
     },
     addPlayer() {
       this.$router.push("/players/create");
+    },
+    async resendVerificationEmail(id) {
+      try {
+        const query = gql`
+          ${USERRESENDVERIFICATIONEMAIL}
+        `;
+
+        const { mutate } = await useMutation(query, {
+          variables: { id },
+        });
+
+        await mutate();
+
+        confirmSuccess("E-mail de verificação reenviado com sucesso!");
+      } catch (error) {
+        const message =
+          error?.graphQLErrors?.[0]?.message ||
+          "Ocorreu um erro ao reenviar o e-mail de verificação.";
+        confirmError(message);
+      }
     },
     editPlayer(id) {
       this.$router.push(`/players/edit/${id}`);

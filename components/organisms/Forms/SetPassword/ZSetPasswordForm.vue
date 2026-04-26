@@ -1,7 +1,7 @@
 <template>
   <va-card stripe stripe-color="primary" class="mx-5">
     <va-card-title> Set Password </va-card-title>
-    <va-form>
+    <va-form @keyup.enter="registerPassword">
       <div class="row justify-center px-3 pb-4">
         <div class="flex flex-col">
           <div class="item">
