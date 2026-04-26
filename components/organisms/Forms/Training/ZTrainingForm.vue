@@ -59,7 +59,8 @@
                       v-for="opt in trainingStatusCards"
                       :key="opt.value"
                       role="button"
-                      tabindex="0"
+                      :tabindex="opt.disabled ? -1 : 0"
+                      :aria-disabled="opt.disabled || false"
                       :class="[
                         'training-status-card',
                         {
@@ -67,6 +68,7 @@
                             isTrainingStatusSelected(opt.value),
                           'training-status-card--error':
                             errorFields.includes('status'),
+                          'training-status-card--disabled': opt.disabled,
                         },
                       ]"
                       @click="selectTrainingStatus(opt.value)"
@@ -87,6 +89,9 @@
                         <h4 class="training-status-title">{{ opt.title }}</h4>
                         <p class="training-status-description">
                           {{ opt.description }}
+                        </p>
+                        <p v-if="opt.disabled && opt.disabledReason" class="training-status-disabled-reason">
+                          {{ opt.disabledReason }}
                         </p>
                       </div>
                     </div>
@@ -525,6 +530,25 @@ export default {
   },
 
   computed: {
+    trainingEndDateTime() {
+      if (!this.form.dateValue || !this.form.timeEndValue) return null;
+      try {
+        // Usar moment para evitar problemas de timezone com new Date(string ISO)
+        // new Date("YYYY-MM-DD") é interpretado como UTC meia-noite,
+        // causando deslocamento de data em fusos negativos (ex: Brasil UTC-3)
+        const dateStr = moment(this.form.dateValue).format("YYYY-MM-DD");
+        const timeStr = moment(this.form.timeEndValue).format("HH:mm:ss");
+        const combined = moment(`${dateStr} ${timeStr}`, "YYYY-MM-DD HH:mm:ss");
+        return combined.isValid() ? combined.toDate() : null;
+      } catch (e) {
+        return null;
+      }
+    },
+    isTrainingInFuture() {
+      const end = this.trainingEndDateTime;
+      if (!end) return false;
+      return end > new Date();
+    },
     trainingStatusCards() {
       return [
         {
@@ -540,6 +564,10 @@ export default {
           description:
             "Treino já realizado; use para encerrar chamada e consolidar registros.",
           icon: "task_alt",
+          disabled: this.isTrainingInFuture,
+          disabledReason: this.isTrainingInFuture
+            ? "Indisponível para treinos futuros."
+            : null,
         },
         {
           value: "cancelled",
@@ -867,6 +895,13 @@ export default {
       return s === String(value).toLowerCase();
     },
     selectTrainingStatus(value) {
+      if (value === "finished" && this.isTrainingInFuture) {
+        confirmError(
+          "Status inválido",
+          "Não é possível marcar como Finalizado um treino agendado para o futuro."
+        );
+        return;
+      }
       this.form.status = value;
     },
     // Valida se os campos obrigatórios estão preenchidos
@@ -1949,6 +1984,22 @@ export default {
 
 .training-status-card--selected .training-status-title {
   color: #111827;
+}
+
+.training-status-card--disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.training-status-card--disabled:focus-visible {
+  outline: none;
+}
+
+.training-status-disabled-reason {
+  font-size: 10px;
+  color: #e53e3e;
+  margin: 3px 0 0 0;
+  line-height: 1.3;
 }
 
 .training-status-description {
