@@ -90,7 +90,10 @@
                         <p class="training-status-description">
                           {{ opt.description }}
                         </p>
-                        <p v-if="opt.disabled && opt.disabledReason" class="training-status-disabled-reason">
+                        <p
+                          v-if="opt.disabled && opt.disabledReason"
+                          class="training-status-disabled-reason"
+                        >
                           {{ opt.disabledReason }}
                         </p>
                       </div>
@@ -142,8 +145,9 @@
                     :class="[
                       'fundamental-pick-card',
                       {
-                        'fundamental-pick-card--selected':
-                          isFundamentalPicked(item.id),
+                        'fundamental-pick-card--selected': isFundamentalPicked(
+                          item.id,
+                        ),
                       },
                     ]"
                     @click="toggleFundamentalPick(item)"
@@ -592,7 +596,7 @@ export default {
         if (newStep > 2 && !this.isTrainingSaved) {
           confirmError(
             "Salve o treino",
-            "Para acessar a Marcação dos Scouts, conclua o cadastro na etapa «Relacionar times» usando o botão Salvar."
+            "Para acessar a Marcação dos Scouts, conclua o cadastro na etapa «Relacionar times» usando o botão Salvar.",
           );
           return;
         }
@@ -659,7 +663,7 @@ export default {
                   (existing.playerId &&
                     existing.playerId === newConfirmation.playerId) ||
                   (existing.player?.id &&
-                    existing.player?.id === newConfirmation.player?.id)
+                    existing.player?.id === newConfirmation.player?.id),
               );
 
               if (existingConfirmation) {
@@ -687,7 +691,7 @@ export default {
 
               // Caso contrário, usar os novos dados
               return newConfirmation;
-            }
+            },
           );
         } else if (
           val.confirmationsTraining &&
@@ -713,27 +717,27 @@ export default {
             Array.isArray(val.teams) && val.teams.length > 0
               ? val.teams
               : isFormInitialized &&
-                Array.isArray(existingTeams) &&
-                existingTeams.length > 0
-              ? existingTeams
-              : [],
+                  Array.isArray(existingTeams) &&
+                  existingTeams.length > 0
+                ? existingTeams
+                : [],
           fundamentals:
             Array.isArray(val.fundamentals) && val.fundamentals.length > 0
               ? val.fundamentals
               : isFormInitialized &&
-                Array.isArray(existingFundamentals) &&
-                existingFundamentals.length > 0
-              ? existingFundamentals
-              : [],
+                  Array.isArray(existingFundamentals) &&
+                  existingFundamentals.length > 0
+                ? existingFundamentals
+                : [],
           specificFundamentals:
             Array.isArray(val.specificFundamentals) &&
             val.specificFundamentals.length > 0
               ? val.specificFundamentals
               : isFormInitialized &&
-                Array.isArray(existingSpecificFundamentals) &&
-                existingSpecificFundamentals.length > 0
-              ? existingSpecificFundamentals
-              : [],
+                  Array.isArray(existingSpecificFundamentals) &&
+                  existingSpecificFundamentals.length > 0
+                ? existingSpecificFundamentals
+                : [],
         };
 
         this.$nextTick(() => {
@@ -801,7 +805,7 @@ export default {
         this.fundamentalCatalog = rows
           .map((r) => ({ id: Number(r.id), name: r.name }))
           .sort((a, b) =>
-            a.name.localeCompare(b.name, "pt-BR", { sensitivity: "base" })
+            a.name.localeCompare(b.name, "pt-BR", { sensitivity: "base" }),
           );
       } catch (e) {
         console.error("ZTrainingForm - fundamentos:", e);
@@ -831,15 +835,15 @@ export default {
             search: "%%",
             fundamentalsIds: ids,
             ignoreIds: [],
-          }
+          },
         );
         this.specificFundamentalCatalog = rows
           .map((r) => ({ id: Number(r.id), name: r.name }))
           .sort((a, b) =>
-            a.name.localeCompare(b.name, "pt-BR", { sensitivity: "base" })
+            a.name.localeCompare(b.name, "pt-BR", { sensitivity: "base" }),
           );
         const allowed = new Set(
-          this.specificFundamentalCatalog.map((r) => r.id)
+          this.specificFundamentalCatalog.map((r) => r.id),
         );
         this.form.specificFundamentals = (
           this.form.specificFundamentals || []
@@ -853,12 +857,12 @@ export default {
     },
     isFundamentalPicked(id) {
       return (this.form.fundamentals || []).some(
-        (f) => Number(f.id) === Number(id)
+        (f) => Number(f.id) === Number(id),
       );
     },
     isSpecificFundamentalPicked(id) {
       return (this.form.specificFundamentals || []).some(
-        (s) => Number(s.id) === Number(id)
+        (s) => Number(s.id) === Number(id),
       );
     },
     async toggleFundamentalPick(item) {
@@ -898,7 +902,7 @@ export default {
       if (value === "finished" && this.isTrainingInFuture) {
         confirmError(
           "Status inválido",
-          "Não é possível marcar como Finalizado um treino agendado para o futuro."
+          "Não é possível marcar como Finalizado um treino agendado para o futuro.",
         );
         return;
       }
@@ -928,7 +932,7 @@ export default {
       // Validação específica para arrays
       console.log(
         "DEBUG - validateRequiredFields: Teams no form:",
-        this.form.teams
+        this.form.teams,
       );
       if (!this.form.teams || this.form.teams.length === 0) {
         console.log("DEBUG - validateRequiredFields: Time está vazio!");
@@ -939,8 +943,8 @@ export default {
         confirmError(
           "Campos obrigatórios não preenchidos!",
           `Por favor, preencha os seguintes campos antes de salvar: ${missingFields.join(
-            ", "
-          )}`
+            ", ",
+          )}`,
         );
         return false;
       }
@@ -1044,7 +1048,7 @@ export default {
         teamsToAdd = this.teams
           .filter(
             (item) =>
-              item && typeof item === "object" && item.value !== undefined
+              item && typeof item === "object" && item.value !== undefined,
           )
           .map((item) => ({
             id: item.value,
@@ -1066,7 +1070,7 @@ export default {
       // Adicionar apenas times que ainda não foram adicionados
       teamsToAdd.forEach((newTeam) => {
         const isAlreadyAdded = this.form.teams.some(
-          (existingTeam) => existingTeam.id === newTeam.id
+          (existingTeam) => existingTeam.id === newTeam.id,
         );
 
         if (!isAlreadyAdded) {
@@ -1087,7 +1091,7 @@ export default {
         if (this.teamPlayersCache[teamId]) {
           this.addTeamPlayersToConfirmations(
             this.teamPlayersCache[teamId],
-            teamId
+            teamId,
           );
           return;
         }
@@ -1110,7 +1114,7 @@ export default {
             // Adicionar jogadores à lista de confirmações
             this.addTeamPlayersToConfirmations(
               result.data.team.players,
-              teamId
+              teamId,
             );
           }
         });
@@ -1139,7 +1143,7 @@ export default {
         const alreadyExists = this.form.confirmationsTraining.some(
           (confirmation) =>
             confirmation.player?.id === player.id &&
-            confirmation.teamId === teamId
+            confirmation.teamId === teamId,
         );
 
         if (!alreadyExists) {
@@ -1206,7 +1210,7 @@ export default {
 
       transformedPlayers.forEach((newPlayer) => {
         const isAlreadyAdded = this.form.players.some(
-          (existingPlayer) => existingPlayer.id === newPlayer.id
+          (existingPlayer) => existingPlayer.id === newPlayer.id,
         );
 
         if (!isAlreadyAdded) {
@@ -1227,7 +1231,7 @@ export default {
 
       transformedScouts.forEach((newScout) => {
         const isAlreadyAdded = this.form.scouts.some(
-          (existingScout) => existingScout.id === newScout.id
+          (existingScout) => existingScout.id === newScout.id,
         );
 
         if (!isAlreadyAdded) {
@@ -1270,7 +1274,7 @@ export default {
 
       const teamIds = this.form.teams.map((t) => parseInt(t.id));
       return this.form.confirmationsTraining.filter(
-        (ct) => ct.teamId && teamIds.includes(parseInt(ct.teamId))
+        (ct) => ct.teamId && teamIds.includes(parseInt(ct.teamId)),
       );
     },
 
@@ -1299,7 +1303,7 @@ export default {
 
       if (!this.form.id) {
         confirmError(
-          "O treino precisa ser salvo antes de adicionar jogadores avulsos."
+          "O treino precisa ser salvo antes de adicionar jogadores avulsos.",
         );
         return;
       }
@@ -1312,7 +1316,7 @@ export default {
             (item) =>
               item &&
               typeof item === "object" &&
-              (item.value !== undefined || item.id !== undefined)
+              (item.value !== undefined || item.id !== undefined),
           )
           .map((item) => ({
             id: parseInt(item.value || item.id),
@@ -1327,7 +1331,7 @@ export default {
         this.standalonePlayers !== null
       ) {
         const playerId = parseInt(
-          this.standalonePlayers.value || this.standalonePlayers.id || 0
+          this.standalonePlayers.value || this.standalonePlayers.id || 0,
         );
 
         if (!isNaN(playerId) && playerId > 0) {
@@ -1360,7 +1364,7 @@ export default {
 
       if (newPlayerIds.length === 0) {
         confirmError(
-          "Todos os jogadores selecionados já foram adicionados anteriormente."
+          "Todos os jogadores selecionados já foram adicionados anteriormente.",
         );
         return;
       }
@@ -1480,7 +1484,7 @@ export default {
           // Filtrar apenas os jogadores avulsos (sem teamId) retornados
           const standaloneConfirmations =
             data.trainingEdit.confirmationsTraining.filter(
-              (ct) => !ct.teamId || ct.teamId === null
+              (ct) => !ct.teamId || ct.teamId === null,
             );
 
           // Atualizar a lista local: manter jogadores do time e atualizar jogadores avulsos
@@ -1490,7 +1494,7 @@ export default {
 
           // Separar jogadores do time e jogadores avulsos
           const teamPlayers = this.form.confirmationsTraining.filter(
-            (ct) => ct.teamId && ct.teamId !== null
+            (ct) => ct.teamId && ct.teamId !== null,
           );
 
           // Combinar jogadores do time com os jogadores avulsos retornados
@@ -1509,7 +1513,7 @@ export default {
         this.standalonePlayers = [];
 
         confirmSuccess(
-          `${newPlayerIds.length} jogador(es) avulso(s) adicionado(s) com sucesso!`
+          `${newPlayerIds.length} jogador(es) avulso(s) adicionado(s) com sucesso!`,
         );
 
         // Emitir refresh para atualizar os dados
@@ -1517,7 +1521,7 @@ export default {
       } catch (error) {
         console.error("Erro ao adicionar jogadores avulsos:", error);
         confirmError(
-          "Ocorreu um erro ao adicionar os jogadores avulsos. Tente novamente."
+          "Ocorreu um erro ao adicionar os jogadores avulsos. Tente novamente.",
         );
       }
     },
@@ -1562,7 +1566,7 @@ export default {
           await this.$refs.listRelationPlayersWithScoutsRef.forceSaveAllScouts();
         } else {
           console.log(
-            "DEBUG - saveScoutsOnly: forceSaveAllScouts não disponível"
+            "DEBUG - saveScoutsOnly: forceSaveAllScouts não disponível",
           );
         }
 
@@ -1958,7 +1962,9 @@ export default {
   box-shadow: 0 0 0 1px rgba(255, 78, 27, 0.2);
 }
 
-.training-status-card.training-status-card--error:not(.training-status-card--selected) {
+.training-status-card.training-status-card--error:not(
+    .training-status-card--selected
+  ) {
   border-color: #e53e3e;
   background-color: #fef2f2;
 }
@@ -2058,7 +2064,7 @@ export default {
   font-size: 11px;
   font-weight: 500;
   display: inline-block;
-  background-color: #FF4E1B;
+  background-color: #ff4e1b;
   color: white;
   line-height: 1.3;
 }
@@ -2124,7 +2130,7 @@ export default {
   content: "";
   width: 4px;
   height: 20px;
-  background: #FF4E1B;
+  background: #ff4e1b;
   border-radius: 2px;
 }
 
@@ -2157,7 +2163,7 @@ export default {
   width: 20px;
   height: 20px;
   cursor: pointer;
-  accent-color: #FF4E1B;
+  accent-color: #ff4e1b;
   flex-shrink: 0;
 }
 
