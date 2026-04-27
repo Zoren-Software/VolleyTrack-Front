@@ -107,6 +107,22 @@
               />
               <span>Configuração de Notificações</span>
             </a>
+            <NuxtLink
+              to="/settings/devices"
+              class="dropdown-item"
+              @click="closeDropdown"
+            >
+              <va-icon name="devices" size="18px" class="dropdown-item-icon" />
+              <span>Dispositivos</span>
+            </NuxtLink>
+            <NuxtLink
+              to="/settings/audit"
+              class="dropdown-item"
+              @click="closeDropdown"
+            >
+              <va-icon name="history" size="18px" class="dropdown-item-icon" />
+              <span>Auditoria</span>
+            </NuxtLink>
           </div>
         </div>
       </nav>
@@ -546,7 +562,10 @@ export default {
     isSettingsRouteActive() {
       const currentPath = this.$route.path;
       return (
-        currentPath === "/settings" || currentPath === "/settings/notifications"
+        currentPath === "/settings" ||
+        currentPath === "/settings/notifications" ||
+        currentPath === "/settings/devices" ||
+        currentPath === "/settings/audit"
       );
     },
     toggleDropdown() {
