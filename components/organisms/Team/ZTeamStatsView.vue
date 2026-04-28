@@ -1,13 +1,5 @@
 <template>
-  <ZModal
-    :model-value="modelValue"
-    @update:model-value="$emit('update:modelValue', $event)"
-    :title="`Estatísticas de ${teamData?.team?.name || 'Time'}`"
-    :ok-text="'Fechar'"
-    @ok="closeModal"
-    @cancel="closeModal"
-    size="large"
-  >
+  <div class="z-team-stats-view">
     <div v-if="loading" class="loading-container">
       <va-progress-circle indeterminate size="small" />
       <span class="loading-text">Carregando estatísticas...</span>
@@ -18,7 +10,7 @@
       <p class="error-text">{{ errorMessage }}</p>
     </div>
 
-    <div v-else-if="teamData" class="team-stats-modal">
+    <div v-else-if="teamData" class="team-stats-view">
       <!-- Header do Time -->
       <div class="team-header-section">
         <ZTeam :data="teamData.team" :showCategoryAndLevel="true" />
@@ -102,46 +94,167 @@
           <div
             v-for="(playerData, index) in teamData.players"
             :key="playerData.player.id"
-            class="player-card"
-            :class="getPlayerCardClass(index)"
+            class="player-profile-card"
+            :class="'player-profile-card--accent-' + (index % 3)"
           >
-            <div class="player-card-border" :class="getPlayerBorderClass(index)"></div>
-            <div class="player-card-content">
-              <div class="player-header">
-                <div class="player-rank-wrapper">
-                  <div
-                    class="player-rank"
-                    :class="getRankClass(index, playerData.rank)"
-                  >
-                    <span class="rank-number">{{ playerData.rank }}º</span>
-                  </div>
-                  <va-icon
-                    v-if="playerData.rank === 1"
-                    name="emoji_events"
-                    class="trophy-icon"
+            <div class="player-profile-top">
+              <div class="player-profile-actions">
+                <va-button
+                  preset="plain"
+                  :icon="isPlayerBookmarked(playerData.player.id) ? 'bookmark' : 'bookmark_border'"
+                  size="small"
+                  round
+                  class="profile-action-btn"
+                  :color="isPlayerBookmarked(playerData.player.id) ? 'warning' : 'secondary'"
+                  aria-label="Marcar jogador"
+                  @click="togglePlayerBookmark(playerData.player.id)"
+                />
+                <NuxtLink
+                  :to="`/players/stats/${playerData.player.id}`"
+                  class="profile-action-link"
+                  title="Estatísticas individuais"
+                >
+                  <va-button
+                    preset="plain"
+                    icon="analytics"
+                    size="small"
+                    round
+                    class="profile-action-btn"
+                    color="secondary"
                   />
-                </div>
-                <ZUser :data="playerData.player" show-position />
-                <div class="player-metrics">
-                  <div
-                    class="player-percentage"
-                    :class="getPlayerPercentageClass(index)"
+                </NuxtLink>
+              </div>
+
+              <div class="player-profile-main">
+                <va-avatar
+                  class="player-profile-avatar"
+                  :size="64"
+                >
+                  {{ playerNameInitial(playerData.player) }}
+                </va-avatar>
+
+                <div class="player-profile-body">
+                  <div class="player-profile-name-row">
+                    <h3 class="player-profile-name">
+                      {{ playerData.player.displayName || playerData.player.name }}
+                    </h3>
+                    <va-icon
+                      v-if="showPresenceVerified(playerData)"
+                      name="verified"
+                      color="#22c55e"
+                      size="20px"
+                      class="player-profile-verified"
+                    />
+                    <span
+                      v-if="playerData.rank <= 3"
+                      class="player-profile-rank-pill"
+                      :class="getRankPillClass(playerData.rank)"
+                    >
+                      <va-icon
+                        v-if="playerData.rank === 1"
+                        name="emoji_events"
+                        size="14px"
+                        class="rank-pill-icon"
+                      />
+                      {{ playerData.rank }}º no ranking
+                    </span>
+                  </div>
+
+                  <div class="player-profile-tags">
+                    <span
+                      v-for="(pos, pi) in playerData.player.positions || []"
+                      :key="pos.id || pi"
+                      class="position-tag"
+                      :class="'position-tag--' + (pi % 3)"
+                    >
+                      {{ pos.name }}
+                    </span>
+                    <span
+                      v-if="!(playerData.player.positions || []).length"
+                      class="position-tag position-tag--muted"
+                    >
+                      Sem posição
+                    </span>
+                  </div>
+
+                  <div class="player-profile-meta">
+                    <span class="profile-meta-item">
+                      <va-icon name="military_tech" size="16px" color="#9ca3af" />
+                      Ranking {{ playerData.rank }}º no time
+                    </span>
+                    <span class="profile-meta-item">
+                      <va-icon name="event_available" size="16px" color="#9ca3af" />
+                      {{ playerData.presencesCount || 0 }}/{{ playerData.trainingsCount || 0 }} presenças / treinos fin.
+                    </span>
+                    <span class="profile-meta-item">
+                      <va-icon name="schedule" size="16px" color="#9ca3af" />
+                      {{ playerData.pendingTrainingsCount || 0 }} treino(s) pendente(s)
+                    </span>
+                  </div>
+
+                  <p class="player-profile-summary">
+                    {{ getPlayerSummaryText(playerData, isPlayerBioExpanded(playerData.player.id)) }}
+                  </p>
+                  <button
+                    v-if="shouldShowReadMore(playerData)"
+                    type="button"
+                    class="player-profile-read-more"
+                    @click="togglePlayerBioExpanded(playerData.player.id)"
                   >
-                    {{ formatPercentage(playerData.presencePercentage) }}
-                  </div>
-                  <div class="player-trainings-info">
-                    {{ playerData.presencesCount || 0 }}/{{ playerData.trainingsCount || 0 }}
-                  </div>
+                    {{ isPlayerBioExpanded(playerData.player.id) ? "Ver menos" : "Ver mais…" }}
+                  </button>
                 </div>
               </div>
-              <div class="player-stats">
-                <div class="player-stat-item">
-                  <div class="player-stat-value">{{ playerData.pendingTrainingsCount || 0 }}</div>
-                  <div class="player-stat-label">Treinos Pendentes</div>
+            </div>
+
+            <div class="player-profile-stats-divider" />
+
+            <div class="player-profile-stats-row">
+              <div class="profile-stat-col">
+                <div class="profile-stat-icon profile-stat-icon--blue">
+                  <va-icon name="percent" size="20px" color="#2563eb" />
                 </div>
+                <div class="profile-stat-value">
+                  {{ formatPercentage(playerData.presencePercentage ?? 0) }}
+                </div>
+                <div class="profile-stat-label">Presença</div>
               </div>
-              <!-- Visão Técnica dos Fundamentos -->
-              <div v-if="playerData.topFundamentals && playerData.topFundamentals.length > 0" class="player-fundamentals">
+              <div class="profile-stat-col">
+                <div class="profile-stat-icon profile-stat-icon--orange">
+                  <va-icon name="check_circle" size="20px" color="#ea580c" />
+                </div>
+                <div class="profile-stat-value">
+                  {{ playerData.presencesCount || 0 }}/{{ playerData.trainingsCount || 0 }}
+                </div>
+                <div class="profile-stat-label">Presenças / Treinos</div>
+              </div>
+              <div class="profile-stat-col">
+                <div class="profile-stat-icon profile-stat-icon--red">
+                  <va-icon name="fitness_center" size="20px" color="#dc2626" />
+                </div>
+                <div class="profile-stat-value">{{ playerData.trainingsCount || 0 }}</div>
+                <div class="profile-stat-label">Treinos finalizados</div>
+              </div>
+              <div class="profile-stat-col">
+                <div class="profile-stat-icon profile-stat-icon--green">
+                  <va-icon name="pending_actions" size="20px" color="#16a34a" />
+                </div>
+                <div class="profile-stat-value">{{ playerData.pendingTrainingsCount || 0 }}</div>
+                <div class="profile-stat-label">Treinos pendentes</div>
+              </div>
+              <div class="profile-stat-col">
+                <div class="profile-stat-icon profile-stat-icon--purple">
+                  <va-icon name="shield" size="20px" color="#7c3aed" />
+                </div>
+                <div class="profile-stat-value profile-stat-value--sm">
+                  {{ getTopFundamentalShort(playerData) }}
+                </div>
+                <div class="profile-stat-label">Destaque técnico</div>
+              </div>
+            </div>
+
+            <!-- Visão Técnica dos Fundamentos -->
+              <div v-if="playerData.topFundamentals && playerData.topFundamentals.length > 0" class="player-fundamentals player-fundamentals--in-card">
                 <div class="fundamentals-header">
                   <div class="fundamentals-title">Visão Técnica dos Treinos</div>
                   <div class="section-actions">
@@ -234,7 +347,6 @@
                   </div>
                 </div>
               </div>
-            </div>
           </div>
         </div>
         <div v-else class="empty-players">
@@ -243,13 +355,11 @@
         </div>
       </div>
     </div>
-  </ZModal>
+  </div>
 </template>
 
 <script>
 import { gql } from "@apollo/client/core";
-import ZModal from "~/components/atoms/Modal/ZModal.vue";
-import ZUser from "~/components/molecules/Datatable/Slots/ZUser.vue";
 import ZTeam from "~/components/molecules/Datatable/Slots/ZTeam.vue";
 import TEAM_PERFORMANCE_ANALYSIS_DETAIL from "~/graphql/dashboard/query/teamPerformanceAnalysisDetail.graphql";
 import { Radar } from "vue-chartjs";
@@ -266,52 +376,40 @@ import {
 ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, Tooltip);
 
 export default {
-  name: "ZTeamStatsModal",
+  name: "ZTeamStatsView",
   components: {
-    ZModal,
-    ZUser,
     ZTeam,
     Radar,
   },
   props: {
-    modelValue: {
-      type: Boolean,
-      required: true,
-    },
     teamId: {
       type: [String, Number],
-      required: false,
-      default: null,
+      required: true,
     },
   },
-  emits: ["update:modelValue"],
+  emits: ["loaded"],
   data() {
     return {
       teamData: null,
       loadingData: false,
       errorMessage: null,
-      playerViewModes: {}, // Armazena o modo de visualização de cada jogador: 'chart' ou 'info'
+      playerViewModes: {},
+      playerBioExpanded: {},
+      playerBookmarked: {},
     };
   },
   watch: {
-    modelValue(newVal) {
-      if (newVal && this.teamId) {
-        this.loadTeamStats();
-      } else {
-        this.teamData = null;
-        this.errorMessage = null;
-      }
+    teamId: {
+      immediate: true,
+      handler(newId) {
+        if (newId != null && newId !== "") {
+          this.loadTeamStats();
+        } else {
+          this.teamData = null;
+          this.errorMessage = null;
+        }
+      },
     },
-    teamId() {
-      if (this.modelValue && this.teamId) {
-        this.loadTeamStats();
-      }
-    },
-  },
-  mounted() {
-    if (this.modelValue && this.teamId) {
-      this.loadTeamStats();
-    }
   },
   computed: {
     loading() {
@@ -411,6 +509,7 @@ export default {
 
         if (result?.data?.teamPerformanceAnalysisDetail) {
           this.teamData = result.data.teamPerformanceAnalysisDetail;
+          this.$emit("loaded", this.teamData);
         } else {
           this.errorMessage = "Nenhum dado encontrado para este time.";
         }
@@ -420,51 +519,83 @@ export default {
         console.error("Erro ao carregar estatísticas:", error);
       }
     },
-    closeModal() {
-      this.$emit("update:modelValue", false);
-    },
     formatPercentage(value) {
       return `${Math.round(value)}%`;
     },
-    getPlayerCardClass(index) {
-      const classes = ["player-card-orange", "player-card-blue", "player-card-black"];
-      return classes[index % classes.length];
+    playerNameInitial(player) {
+      const nameToUse = player?.displayName || player?.name || "?";
+      return String(nameToUse).charAt(0).toUpperCase();
     },
-    getPlayerBorderClass(index) {
-      const classes = ["border-orange", "border-blue", "border-black"];
-      return classes[index % classes.length];
+    showPresenceVerified(playerData) {
+      return (playerData?.presencePercentage ?? 0) >= 60;
     },
-    getPresenceBadgeClass(percentage) {
-      if (percentage >= 80) {
-        return "badge-high";
-      } else if (percentage >= 60) {
-        return "badge-medium";
-      } else {
-        return "badge-low";
+    getRankPillClass(rank) {
+      if (rank === 1) return "rank-pill-gold";
+      if (rank === 2) return "rank-pill-silver";
+      if (rank === 3) return "rank-pill-bronze";
+      return "";
+    },
+    isPlayerBookmarked(playerId) {
+      return !!this.playerBookmarked[playerId];
+    },
+    togglePlayerBookmark(playerId) {
+      this.playerBookmarked = {
+        ...this.playerBookmarked,
+        [playerId]: !this.playerBookmarked[playerId],
+      };
+    },
+    isPlayerBioExpanded(playerId) {
+      return !!this.playerBioExpanded[playerId];
+    },
+    togglePlayerBioExpanded(playerId) {
+      this.playerBioExpanded = {
+        ...this.playerBioExpanded,
+        [playerId]: !this.playerBioExpanded[playerId],
+      };
+    },
+    getPlayerSummaryShort(playerData) {
+      const pct = this.formatPercentage(playerData.presencePercentage ?? 0);
+      const pres = playerData.presencesCount || 0;
+      const train = playerData.trainingsCount || 0;
+      return `Integra o elenco com ${pct} de presença nos treinos finalizados, com ${pres} presença(s) registrada(s) em ${train} treino(s) concluído(s).`;
+    },
+    getPlayerSummaryLong(playerData) {
+      const base = this.getPlayerSummaryShort(playerData);
+      const rank = playerData.rank;
+      const pending = playerData.pendingTrainingsCount || 0;
+      let extra = ` Ocupa a ${rank}ª posição no ranking de presença do time.`;
+      if (pending > 0) {
+        extra += ` Há ${pending} treino(s) agendado(s) ainda não finalizado(s).`;
       }
-    },
-    getRankClass(index, rank) {
-      const baseClasses = ["rank-orange", "rank-blue", "rank-black"];
-      const baseClass = baseClasses[index % baseClasses.length];
-
-      // Adicionar classe especial para os 3 primeiros
-      if (rank === 1) {
-        return `${baseClass} rank-gold`;
-      } else if (rank === 2) {
-        return `${baseClass} rank-silver`;
-      } else if (rank === 3) {
-        return `${baseClass} rank-bronze`;
+      const topName = this.getTopFundamentalName(playerData);
+      if (topName) {
+        extra += ` Maior volume de registros técnicos em ${topName}.`;
       }
-
-      return baseClass;
+      return base + extra;
     },
-    getPlayerPercentageClass(index) {
-      const classes = [
-        "percentage-orange",
-        "percentage-blue",
-        "percentage-black",
-      ];
-      return classes[index % classes.length];
+    getPlayerSummaryText(playerData, expanded) {
+      return expanded
+        ? this.getPlayerSummaryLong(playerData)
+        : this.getPlayerSummaryShort(playerData);
+    },
+    shouldShowReadMore(playerData) {
+      const pending = playerData.pendingTrainingsCount || 0;
+      const hasFund = !!this.getTopFundamentalName(playerData);
+      return pending > 0 || hasFund;
+    },
+    getTopFundamentalName(playerData) {
+      const list = playerData?.topFundamentals;
+      if (!list?.length) return null;
+      const sorted = [...list].sort(
+        (a, b) => (b.grandTotal || 0) - (a.grandTotal || 0)
+      );
+      return sorted[0]?.fundamental?.name || null;
+    },
+    getTopFundamentalShort(playerData) {
+      const name = this.getTopFundamentalName(playerData);
+      if (!name) return "—";
+      const max = 20;
+      return name.length > max ? `${name.slice(0, max - 1)}…` : name;
     },
     getPlayerViewMode(playerId) {
       return this.playerViewModes[playerId] || 'chart';
@@ -568,7 +699,11 @@ export default {
   color: #dc3545;
 }
 
-.team-stats-modal {
+.z-team-stats-view {
+  width: 100%;
+}
+
+.team-stats-view {
   display: flex;
   flex-direction: column;
   gap: 24px;
@@ -699,243 +834,294 @@ export default {
   gap: 16px;
 }
 
-.player-card {
-  background: white;
-  border-radius: 12px;
-  padding: 0;
-  border: 1px solid #e9ecef;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  transition: all 0.2s ease;
+.player-profile-card {
   position: relative;
+  background: #fff;
+  border-radius: 10px;
+  border: 1px solid #e8ecf1;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 4px 14px rgba(15, 23, 42, 0.04);
   overflow: hidden;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 
-.player-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
+.player-profile-card:hover {
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08);
+  transform: translateY(-1px);
 }
 
-.player-card-border {
+.player-profile-card--accent-0 {
+  border-left: 4px solid #ff4e1b;
+}
+
+.player-profile-card--accent-1 {
+  border-left: 4px solid #1976d2;
+}
+
+.player-profile-card--accent-2 {
+  border-left: 4px solid #0b1e3a;
+}
+
+.player-profile-top {
+  position: relative;
+  padding: 22px 24px 20px;
+}
+
+.player-profile-actions {
   position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 4px;
-}
-
-.border-orange {
-  background: #FF4E1B;
-}
-
-.border-blue {
-  background: #1976d2;
-}
-
-.border-black {
-  background: #0b1e3a;
-}
-
-.player-card-content {
-  padding: 16px;
-  padding-left: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.player-header {
+  top: 16px;
+  right: 16px;
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 8px;
-  padding: 8px;
-  background: #f8f9fa;
-  border-radius: 8px;
+  gap: 4px;
+  z-index: 1;
 }
 
-.player-header :deep(.user-cell) {
+.profile-action-btn {
+  border: 1px solid #e5e7eb !important;
+  background: #fafafa !important;
+}
+
+.profile-action-link {
+  display: inline-flex;
+  text-decoration: none;
+}
+
+.player-profile-main {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 20px;
+  padding-right: 72px;
+}
+
+.player-profile-avatar {
+  flex-shrink: 0;
+  border-radius: 10px !important;
+  font-size: 22px !important;
+  font-weight: 700 !important;
+  background: linear-gradient(145deg, #ff4e1b 0%, #e03d12 100%) !important;
+  color: #fff !important;
+}
+
+.player-profile-card--accent-1 .player-profile-avatar {
+  background: linear-gradient(145deg, #1976d2 0%, #125ea2 100%) !important;
+}
+
+.player-profile-card--accent-2 .player-profile-avatar {
+  background: linear-gradient(145deg, #0b1e3a 0%, #1a365d 100%) !important;
+}
+
+.player-profile-body {
   flex: 1;
   min-width: 0;
-  padding: 0;
+}
+
+.player-profile-name-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  margin-bottom: 10px;
+}
+
+.player-profile-name {
   margin: 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #1e293b;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.player-profile-verified {
+  flex-shrink: 0;
+}
+
+.player-profile-rank-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.rank-pill-icon {
+  flex-shrink: 0;
+}
+
+.rank-pill-gold {
+  background: linear-gradient(135deg, #d4af37 0%, #b8941f 100%);
+  box-shadow: 0 1px 4px rgba(212, 175, 55, 0.35);
+}
+
+.rank-pill-silver {
+  background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+}
+
+.rank-pill-bronze {
+  background: linear-gradient(135deg, #cd7f32 0%, #a65d24 100%);
+}
+
+.player-profile-tags {
+  display: flex;
+  flex-wrap: wrap;
   gap: 8px;
+  margin-bottom: 14px;
 }
 
-.player-header :deep(.user-avatar) {
-  width: 36px !important;
-  height: 36px !important;
-  min-width: 36px !important;
-  min-height: 36px !important;
-}
-
-.player-header :deep(.user-name) {
-  font-size: 14px;
+.position-tag {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
   font-weight: 600;
 }
 
-.player-header :deep(.user-detail-item) {
-  font-size: 11px;
+.position-tag--0 {
+  background: #e0f2fe;
+  color: #0369a1;
 }
 
-.player-rank-wrapper {
-  flex-shrink: 0;
+.position-tag--1 {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.position-tag--2 {
+  background: #ffedd5;
+  color: #c2410c;
+}
+
+.position-tag--muted {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.player-profile-meta {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  width: 32px;
+  flex-wrap: wrap;
+  gap: 14px 22px;
+  margin-bottom: 14px;
 }
 
-.player-rank {
-  width: 32px;
-  height: 32px;
+.profile-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+.player-profile-summary {
+  margin: 0 0 6px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: #475569;
+}
+
+.player-profile-read-more {
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1976d2;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.player-profile-read-more:hover {
+  text-decoration: underline;
+  color: #125ea2;
+}
+
+.player-profile-stats-divider {
+  height: 1px;
+  background: #eef2f6;
+  margin: 0;
+}
+
+.player-profile-stats-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px 8px;
+  padding: 20px 20px 22px;
+  background: #fafbfc;
+}
+
+.profile-stat-col {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.profile-stat-icon {
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
+}
+
+.profile-stat-icon--blue {
+  background: rgba(37, 99, 235, 0.1);
+}
+
+.profile-stat-icon--orange {
+  background: rgba(234, 88, 12, 0.12);
+}
+
+.profile-stat-icon--red {
+  background: rgba(220, 38, 38, 0.1);
+}
+
+.profile-stat-icon--green {
+  background: rgba(22, 163, 74, 0.1);
+}
+
+.profile-stat-icon--purple {
+  background: rgba(124, 58, 237, 0.1);
+}
+
+.profile-stat-value {
+  font-size: 1.125rem;
   font-weight: 700;
-  color: white;
-  position: relative;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-}
-
-.player-rank .rank-number {
-  font-size: 11px;
-  font-weight: 700;
-  line-height: 1;
-  color: white;
-}
-
-.trophy-icon {
-  position: absolute;
-  left: 20px;
-  top: 50%;
-  transform: translateY(-50%);
-  flex-shrink: 0;
-  filter: drop-shadow(0 2px 4px rgba(212, 175, 55, 0.3));
-  z-index: 1;
-  color: rgb(143, 108, 38);
-  font-size: 18px;
-  height: 18px;
-  line-height: 18px;
-}
-
-.rank-orange {
-  background: #FF4E1B;
-}
-
-.rank-blue {
-  background: #1976d2;
-}
-
-.rank-black {
-  background: #0b1e3a;
-}
-
-.rank-gold {
-  background: linear-gradient(135deg, #d4af37 0%, #b8941f 100%);
-  box-shadow: 0 2px 6px rgba(212, 175, 55, 0.4);
-  border: 2px solid #b8941f;
-}
-
-.rank-silver {
-  background: linear-gradient(135deg, #9e9e9e 0%, #757575 100%);
-  box-shadow: 0 2px 6px rgba(158, 158, 158, 0.4);
-  border: 2px solid #757575;
-}
-
-.rank-bronze {
-  background: linear-gradient(135deg, #cd7f32 0%, #b87333 100%);
-  box-shadow: 0 2px 6px rgba(205, 127, 50, 0.4);
-  border: 2px solid #b87333;
-}
-
-.player-metrics {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 4px;
-  flex-shrink: 0;
-}
-
-.player-percentage {
-  font-size: 14px;
-  font-weight: 700;
+  color: #0f172a;
   line-height: 1.2;
+  word-break: break-word;
 }
 
-.player-trainings-info {
-  font-size: 12px;
+.profile-stat-value--sm {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.profile-stat-label {
+  font-size: 11px;
   font-weight: 500;
-  color: #6c757d;
-  line-height: 1.2;
-}
-
-.percentage-orange {
-  color: #FF4E1B;
-}
-
-.percentage-blue {
-  color: #1976d2;
-}
-
-.percentage-black {
-  color: #0b1e3a;
-}
-
-.player-presence-badge {
-  font-size: 14px;
-  font-weight: 700;
-  padding: 4px 10px;
-  border-radius: 6px;
-  flex-shrink: 0;
-}
-
-.badge-high {
-  background: rgba(40, 167, 69, 0.1);
-  color: #28a745;
-}
-
-.badge-medium {
-  background: rgba(255, 193, 7, 0.1);
-  color: #ff9800;
-}
-
-.badge-low {
-  background: rgba(220, 53, 69, 0.1);
-  color: #dc3545;
-}
-
-.player-stats {
-  display: flex;
-  gap: 20px;
-  padding: 12px;
-  background: #f8f9fa;
-  border-radius: 8px;
-}
-
-.player-stat-item {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.player-stat-value {
-  font-size: 18px;
-  font-weight: 700;
-  color: #0b1e3a;
-}
-
-.player-stat-label {
-  font-size: 12px;
-  color: #6c757d;
-  font-weight: 500;
+  color: #94a3b8;
+  line-height: 1.3;
+  max-width: 100%;
 }
 
 .player-fundamentals {
   padding-top: 8px;
   border-top: 1px solid #e9ecef;
+}
+
+.player-fundamentals--in-card {
+  padding: 16px 20px 20px;
+  margin: 0;
+  border-top: 1px solid #eef2f6;
+  background: #fff;
 }
 
 .fundamentals-header {
@@ -1131,9 +1317,19 @@ export default {
     font-size: 28px;
   }
 
-  .player-stats {
+  .player-profile-main {
     flex-direction: column;
-    gap: 12px;
+    padding-right: 0;
+    gap: 16px;
+  }
+
+  .player-profile-stats-row {
+    grid-template-columns: repeat(2, 1fr);
+    padding: 16px 14px 18px;
+  }
+
+  .profile-stat-col:nth-child(5) {
+    grid-column: 1 / -1;
   }
 }
 </style>
