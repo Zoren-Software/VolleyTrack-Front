@@ -1,0 +1,12 @@
+query myDevices {
+  myDevices {
+    id
+    name
+    deviceName
+    ipAddress
+    location
+    userAgent
+    lastUsedAt
+    createdAt
+  }
+}
