@@ -75,6 +75,12 @@
                   <span :class="device.ipAddress ? '' : 'ip-unknown'">
                     {{ device.ipAddress || "IP não registrado" }}
                   </span>
+                  <template v-if="device.ipAddress">
+                    &nbsp;·&nbsp;
+                    <span class="device-location">
+                      {{ device.location || "Cidade não identificada" }}
+                    </span>
+                  </template>
                   &nbsp;·&nbsp;
                   <va-icon name="schedule" size="14px" color="#9ca3af" />
                   {{ formatDate(device.createdAt) }}
@@ -170,6 +176,15 @@
             :class="{ 'ip-unknown': !deviceSelecionado.ipAddress }"
           >
             {{ deviceSelecionado.ipAddress || "Não registrado" }}
+          </span>
+        </div>
+        <div class="token-detail-row">
+          <span class="token-detail-label">Localização</span>
+          <span
+            class="token-detail-value"
+            :class="{ 'ip-unknown': !deviceSelecionado.location }"
+          >
+            {{ deviceSelecionado.location || "Cidade não identificada" }}
           </span>
         </div>
         <div class="token-detail-row">
@@ -437,6 +452,11 @@ export default {
 
 .ip-unknown {
   color: #d1d5db;
+  font-style: italic;
+}
+
+.device-location {
+  color: #6b7280;
   font-style: italic;
 }
 

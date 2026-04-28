@@ -4,6 +4,7 @@ query myDevices {
     name
     deviceName
     ipAddress
+    location
     userAgent
     lastUsedAt
     createdAt

@@ -8,6 +8,7 @@
           <va-select
             v-model="selectedLogName"
             :options="logNameOptions"
+            :text-by="'label'"
             placeholder="Todos"
             style="min-width: 220px"
           />
@@ -65,6 +66,20 @@
           ]"
         >
           {{ formatSubjectType(rowKey.subjectType, rowKey.logName) }}
+        </span>
+      </template>
+
+      <!-- Localização -->
+      <template #cell(location)="{ rowKey }">
+        <span class="location-cell">
+          <va-icon
+            v-if="getLocation(rowKey.properties)"
+            name="location_on"
+            size="14px"
+            color="#9ca3af"
+            class="location-icon"
+          />
+          {{ getLocation(rowKey.properties) || "Não disponível" }}
         </span>
       </template>
 
@@ -158,6 +173,12 @@ export default defineComponent({
         label: "TIPO DE REGISTRO",
         sortable: false,
       },
+      {
+        key: "location",
+        name: "location",
+        label: "LOCALIZAÇÃO",
+        sortable: false,
+      },
       { key: "causer", name: "causer", label: "CAUSADOR", sortable: false },
     ];
 
@@ -209,6 +230,16 @@ export default defineComponent({
         return obj && Object.keys(obj).length > 0;
       } catch {
         return false;
+      }
+    },
+    getLocation(properties) {
+      if (!properties) return null;
+      try {
+        const obj =
+          typeof properties === "string" ? JSON.parse(properties) : properties;
+        return obj?.location ?? null;
+      } catch {
+        return null;
       }
     },
     handleFilter() {
@@ -300,26 +331,49 @@ export default defineComponent({
 .filter-actions {
   display: flex;
   gap: 8px;
-  align-items: center;
+  align-items: flex-end;
 }
 
 .search-button {
   border-radius: 8px;
-  padding: 8px 14px;
+  padding: 12px 24px;
   font-weight: 500;
-  background-color: #f3f4f6 !important;
-  color: #374151 !important;
-  border: 1px solid #e5e7eb !important;
-  box-shadow: none !important;
+  white-space: nowrap;
+  background-color: #6b7280 !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 6px rgba(75, 85, 99, 0.25);
+  border: none;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  height: 40px;
 }
 
-.search-button--active {
+.search-button.search-button--active {
   background-color: #ff4e1b !important;
-  color: white !important;
-  border-color: #ff4e1b !important;
+  box-shadow: 0 2px 8px rgba(255, 78, 27, 0.3);
+}
+
+.search-button:hover {
+  background-color: #4b5563 !important;
+  box-shadow: 0 4px 10px rgba(75, 85, 99, 0.35);
+  transform: translateY(-1px);
+}
+
+.search-button.search-button--active:hover {
+  background-color: #d6652a !important;
+  box-shadow: 0 4px 12px rgba(255, 78, 27, 0.4);
+}
+
+.search-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(75, 85, 99, 0.3);
+}
+
+.search-button.search-button--active:active {
+  box-shadow: 0 2px 6px rgba(255, 78, 27, 0.3);
 }
 
 .log-badge {
@@ -360,6 +414,18 @@ export default defineComponent({
   font-size: 13px;
   color: #6b7280;
   white-space: nowrap;
+}
+
+.location-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.location-icon {
+  flex-shrink: 0;
 }
 
 .no-details {
