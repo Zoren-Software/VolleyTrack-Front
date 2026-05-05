@@ -95,6 +95,11 @@ export default defineNuxtConfig({
       // Credenciais de teste para login (apenas desenvolvimento)
       loginTestEmail: '',    // pode ser sobrescrito por NUXT_PUBLIC_LOGIN_TEST_EMAIL no .env
       loginTestPassword: '', // pode ser sobrescrito por NUXT_PUBLIC_LOGIN_TEST_PASSWORD no .env
+      // Testes: forçar faixa BR/US na listagem de planos e enviar headers no checkout (ex.: US + cartão BR)
+      volleytrackForcePricingIpCountry:
+        process.env.NUXT_PUBLIC_VOLLEYTRACK_FORCE_PRICING_IP_COUNTRY || '',
+      volleytrackForcePricingBillingCountry:
+        process.env.NUXT_PUBLIC_VOLLEYTRACK_FORCE_PRICING_BILLING_COUNTRY || '',
     }
   },
   vuestic: {

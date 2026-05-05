@@ -4,6 +4,11 @@
  */
 
 import { getApiBaseUrl } from '~/utils/apiBaseUrl'
+import {
+  getVolleytrackPricingTestHeaders,
+  getVolleytrackDeclaredPricingBodyFields,
+} from '~/utils/volleytrackPricingTestHeaders'
+import { fetchVolleytrackGeoCountryOnce } from '~/utils/volleytrackGeoIp.js'
 
 /**
  * Criar sessão de checkout no Stripe
@@ -33,6 +38,8 @@ export const createCheckoutSession = async (checkoutData) => {
       throw new Error("Token de autenticação não encontrado. Faça login novamente.");
     }
 
+    await fetchVolleytrackGeoCountryOnce()
+
     // Usar o token disponível (priorizar userToken, depois apollo)
     const authToken = token || apolloToken;
     console.log('🔍 Token que será usado:', authToken);
@@ -44,8 +51,12 @@ export const createCheckoutSession = async (checkoutData) => {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
         'Authorization': `Bearer ${authToken}`, // ✅ Adicionar token de autenticação
+        ...getVolleytrackPricingTestHeaders(),
       },
-      body: JSON.stringify(checkoutData)
+      body: JSON.stringify({
+        ...checkoutData,
+        ...getVolleytrackDeclaredPricingBodyFields(),
+      })
     })
 
     console.log('🔍 Response status:', response.status)
@@ -357,18 +368,38 @@ export const syncCheckoutSession = async (sessionId) => {
     console.log('🔍 Response status:', response.status)
 
     if (!response.ok) {
-      const errorData = await response.json()
-      console.error('❌ Erro na sincronização:', errorData)
-      
-      if (response.status === 400) {
-        throw new Error('Sessão não foi paga ou é inválida')
-      } else if (response.status === 404) {
-        throw new Error('Customer não encontrado no banco de dados')
-      } else if (response.status === 500) {
-        throw new Error(`Erro interno do servidor: ${errorData.message || 'Erro interno'}`)
-      } else {
-        throw new Error(`Erro HTTP ${response.status}: ${errorData.message || 'Erro desconhecido'}`)
+      let errorData = {}
+      try {
+        errorData = await response.json()
+      } catch (_) {
+        /* corpo vazio ou não-JSON */
       }
+      console.error('❌ Erro na sincronização:', errorData)
+
+      if (response.status === 400) {
+        throw Object.assign(new Error('Sessão não foi paga ou é inválida'), { code: null })
+      }
+      if (response.status === 404) {
+        throw Object.assign(new Error('Customer não encontrado no banco de dados'), { code: null })
+      }
+      if (response.status === 422) {
+        const code = errorData.code || null
+        const backendMsg = typeof errorData.message === 'string' ? errorData.message.trim() : ''
+        const err = new Error(backendMsg || 'Não foi possível concluir esta etapa.')
+        err.code = code
+        throw err
+      }
+      if (response.status === 500) {
+        throw Object.assign(
+          new Error(errorData.message || 'Erro interno do servidor. Tente novamente em instantes.'),
+          { code: null },
+        )
+      }
+      const fallbackMsg =
+        typeof errorData.message === 'string' && errorData.message.trim() !== ''
+          ? errorData.message.trim()
+          : 'Não foi possível sincronizar. Tente novamente ou fale com o suporte.'
+      throw Object.assign(new Error(fallbackMsg), { code: errorData.code || null })
     }
 
     const data = await response.json()
@@ -382,7 +413,8 @@ export const syncCheckoutSession = async (sessionId) => {
     console.error('❌ Erro ao sincronizar sessão:', error)
     return {
       success: false,
-      error: error.message
+      error: error.message,
+      errorCode: error.code ?? null,
     }
   }
 }
