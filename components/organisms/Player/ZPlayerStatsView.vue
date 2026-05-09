@@ -317,12 +317,112 @@
 
           <div
             v-show="activePlayerTab === 'feedbacks'"
-            class="player-stats-tab-panel"
+            class="player-stats-tab-panel player-stats-tab-panel--feedbacks"
             role="tabpanel"
           >
-            <p class="tab-panel-placeholder">
-              Feedbacks do jogador estarão disponíveis em breve.
-            </p>
+            <div class="feedbacks-two-columns">
+              <div class="feedbacks-column feedbacks-column--scouts">
+                <h4 class="feedbacks-column-title">Feedback por Scout</h4>
+                <div
+                  v-if="!scoutFeedbackCards.length"
+                  class="feedbacks-empty"
+                >
+                  <va-icon name="chat_bubble_outline" size="28px" color="#9ca3af" />
+                  <p>
+                    Nenhum feedback por scout registrado em treinos finalizados.
+                  </p>
+                </div>
+                <div v-else class="feedback-scout-rows">
+                  <div
+                    v-for="(row, rowIdx) in scoutFeedbackRows"
+                    :key="'fb-row-' + rowIdx"
+                    class="feedback-scout-row"
+                  >
+                    <div
+                      v-for="(card, cardIdx) in row"
+                      :key="
+                        'fb-' +
+                        rowIdx +
+                        '-' +
+                        cardIdx +
+                        '-' +
+                        card.trainingName +
+                        '-' +
+                        card.scoutLabel
+                      "
+                      class="scout-feedback-card"
+                    >
+                      <div class="scout-feedback-card__head">
+                        <div class="scout-feedback-card__training-block">
+                          <span class="scout-feedback-card__training-name">{{
+                            card.trainingName
+                          }}</span>
+                          <span class="scout-feedback-card__training-date">{{
+                            formatScoutCardDate(card.trainingDate)
+                          }}</span>
+                        </div>
+                        <span class="scout-feedback-card__scout-label">{{
+                          card.scoutLabel
+                        }}</span>
+                      </div>
+                      <p class="scout-feedback-card__text">
+                        {{ card.feedbackText }}
+                      </p>
+                      <div class="scout-feedback-card__divider" />
+                      <div class="scout-feedback-card__meta">
+                        <span class="scout-feedback-card__author">{{
+                          card.evaluatorDisplayName || "—"
+                        }}</span>
+                        <span class="scout-feedback-card__team">{{
+                          card.teamName || "—"
+                        }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="feedbacks-column feedbacks-column--observations">
+                <h4 class="feedbacks-column-title">Observações gerais</h4>
+                <div
+                  v-if="!scoutGeneralObservations.length"
+                  class="feedbacks-empty"
+                >
+                  <va-icon name="notes" size="28px" color="#9ca3af" />
+                  <p>
+                    Nenhuma observação geral registrada em treinos finalizados.
+                  </p>
+                </div>
+                <div v-else class="general-observations-list">
+                  <div
+                    v-for="(obs, obsIdx) in scoutGeneralObservations"
+                    :key="'obs-' + obsIdx + '-' + obs.trainingName"
+                    class="general-observation-card"
+                  >
+                    <div class="general-observation-card__head">
+                      <span class="general-observation-card__training-name">{{
+                        obs.trainingName
+                      }}</span>
+                      <span class="general-observation-card__training-date">{{
+                        formatScoutCardDate(obs.trainingDate)
+                      }}</span>
+                    </div>
+                    <p class="general-observation-card__text">
+                      {{ obs.observationsText }}
+                    </p>
+                    <div class="general-observation-card__divider" />
+                    <div class="general-observation-card__meta">
+                      <span class="general-observation-card__author">{{
+                        obs.evaluatorDisplayName || "—"
+                      }}</span>
+                      <span class="general-observation-card__team">{{
+                        obs.teamName || "—"
+                      }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div
@@ -616,6 +716,20 @@ export default {
         },
       };
     },
+    scoutFeedbackCards() {
+      return this.playerData?.scoutFeedbackByFundamental || [];
+    },
+    scoutFeedbackRows() {
+      const cards = this.scoutFeedbackCards;
+      const rows = [];
+      for (let i = 0; i < cards.length; i += 3) {
+        rows.push(cards.slice(i, i + 3));
+      }
+      return rows;
+    },
+    scoutGeneralObservations() {
+      return this.playerData?.scoutGeneralObservations || [];
+    },
   },
   watch: {
     playerId: {
@@ -831,6 +945,12 @@ export default {
     },
     formatPercentage(value) {
       return `${Math.round(value)}%`;
+    },
+    formatScoutCardDate(iso) {
+      if (!iso) {
+        return "—";
+      }
+      return moment(iso).format("DD/MM/YYYY HH:mm");
     },
     playerNameInitial(player) {
       const nameToUse = player?.displayName || player?.name || "?";
@@ -1695,6 +1815,218 @@ export default {
 
 .empty-tab p {
   margin: 0;
+}
+
+.player-stats-tab-panel--feedbacks {
+  padding: 0 2px;
+}
+
+.feedbacks-two-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 340px);
+  gap: 24px;
+  align-items: start;
+}
+
+.feedbacks-column-title {
+  margin: 0 0 14px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #0b1e3a;
+}
+
+.feedbacks-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+  padding: 28px 16px;
+  color: #64748b;
+  font-size: 13px;
+  background: #fafbfc;
+  border-radius: 12px;
+  border: 1px dashed #e5e7eb;
+}
+
+.feedbacks-empty p {
+  margin: 0;
+  max-width: 280px;
+  line-height: 1.45;
+}
+
+.feedback-scout-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.feedback-scout-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.scout-feedback-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  background: #fafbfc;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  min-height: 100%;
+  transition: box-shadow 0.2s ease;
+}
+
+.scout-feedback-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.scout-feedback-card__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.scout-feedback-card__training-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.scout-feedback-card__training-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0b1e3a;
+  line-height: 1.3;
+}
+
+.scout-feedback-card__training-date {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.scout-feedback-card__scout-label {
+  flex-shrink: 0;
+  text-align: right;
+  font-size: 12px;
+  font-weight: 700;
+  color: #ff4e1b;
+  max-width: 42%;
+  line-height: 1.3;
+}
+
+.scout-feedback-card__text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #334155;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.scout-feedback-card__divider {
+  height: 1px;
+  background: #e5e7eb;
+  margin: 2px 0;
+}
+
+.scout-feedback-card__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.scout-feedback-card__author {
+  font-weight: 600;
+  color: #0b1e3a;
+}
+
+.scout-feedback-card__team {
+  color: #64748b;
+}
+
+.general-observations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: min(70vh, 560px);
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.general-observation-card {
+  padding: 14px;
+  background: #fafbfc;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+}
+
+.general-observation-card__head {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+
+.general-observation-card__training-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0b1e3a;
+}
+
+.general-observation-card__training-date {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.general-observation-card__text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #334155;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.general-observation-card__divider {
+  height: 1px;
+  background: #e5e7eb;
+  margin: 10px 0;
+}
+
+.general-observation-card__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.general-observation-card__author {
+  font-weight: 600;
+  color: #0b1e3a;
+}
+
+.general-observation-card__team {
+  color: #64748b;
+}
+
+@media (max-width: 1100px) {
+  .feedbacks-two-columns {
+    grid-template-columns: 1fr;
+  }
+
+  .general-observations-list {
+    max-height: none;
+  }
+
+  .feedback-scout-row {
+    grid-template-columns: 1fr;
+  }
 }
 
 .section-title-wrapper {

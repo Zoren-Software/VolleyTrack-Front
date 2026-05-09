@@ -55,12 +55,12 @@
           </span>
           <div v-if="dropdownOpen" class="dropdown-menu" @click.stop>
             <NuxtLink
-              to="/settings"
+              to="/account"
               class="dropdown-item"
               @click="closeDropdown"
             >
               <va-icon name="manage_accounts" size="18px" class="dropdown-item-icon" />
-              <span>Configuração de Conta</span>
+              <span>Minha conta</span>
             </NuxtLink>
             <a
               href="#"
@@ -72,6 +72,14 @@
             </a>
           </div>
         </div>
+        <button
+          type="button"
+          class="sidebar-link sidebar-link--logout"
+          @click="logout"
+        >
+          <va-icon name="logout" size="20px" class="sidebar-link-icon" />
+          <span class="sidebar-link-text">Sair</span>
+        </button>
       </nav>
     </aside>
     <div class="main-area">
@@ -100,23 +108,38 @@
           </ol>
         </nav>
         <div class="top-bar-right">
-          <div
-            class="notification-wrapper"
-            :class="{ 'notification-active': isNotificationsPage }"
-          >
-            <va-button-dropdown color="background-primary" hide-icon>
+          <ZTopBarLanguageSwitcher />
+          <div class="notification-wrapper">
+            <va-button-dropdown
+              color="background-primary"
+              hide-icon
+              placement="bottom-end"
+              stick-to-edges
+            >
               <template #label>
-                <va-badge
-                  v-if="totalNotifications > 0"
-                  overlap
-                  color="danger"
-                  :text="
-                    totalNotifications > 99 ? '99+' : String(totalNotifications)
-                  "
-                >
-                  <va-icon name="notifications_none" class="notification-icon" />
-                </va-badge>
-                <va-icon v-else name="notifications_none" class="notification-icon" />
+                <span class="notification-trigger">
+                  <va-badge
+                    v-if="totalNotifications > 0"
+                    overlap
+                    color="danger"
+                    :text="
+                      totalNotifications > 99 ? '99+' : String(totalNotifications)
+                    "
+                    class="notification-badge"
+                  >
+                    <va-icon
+                      name="notifications_none"
+                      size="22px"
+                      class="notification-icon"
+                    />
+                  </va-badge>
+                  <va-icon
+                    v-else
+                    name="notifications_none"
+                    size="22px"
+                    class="notification-icon"
+                  />
+                </span>
               </template>
               <ZListItemsNotification
                 @updateTotalNotifications="totalNotificationsChange"
@@ -124,22 +147,15 @@
               />
             </va-button-dropdown>
           </div>
-          <div class="user-menu-wrapper">
-            <va-button-dropdown color="background-primary" hide-icon>
-              <template #label>
-                <div class="user-menu-trigger">
-                  <va-avatar v-if="user.id" class="user-avatar">
-                    {{ firstLatter }}
-                  </va-avatar>
-                  <va-icon v-else name="account_circle" class="user-icon" />
-                  <div class="user-menu-text">
-                    <span class="user-menu-name">{{ userDisplayName }}</span>
-                    <span class="user-menu-role">{{ userRolesLabel }}</span>
-                  </div>
-                </div>
-              </template>
-              <ZListItemsUser />
-            </va-button-dropdown>
+          <div class="top-bar-user" aria-label="Usuário logado">
+            <va-avatar v-if="user.id" class="user-avatar user-avatar--static">
+              {{ firstLatter }}
+            </va-avatar>
+            <va-icon v-else name="account_circle" class="user-icon" />
+            <div class="user-menu-text">
+              <span class="user-menu-name">{{ userDisplayName }}</span>
+              <span class="user-menu-role">{{ userRolesLabel }}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -151,16 +167,16 @@
 </template>
 
 <script>
+import ZTopBarLanguageSwitcher from "~/components/molecules/NavBar/ZTopBarLanguageSwitcher.vue";
 import ZListItemsNotification from "~/components/organisms/List/Notification/ZListItemsNotification.vue";
-import ZListItemsUser from "~/components/molecules/List/ZListItemsUser.vue";
 import NOTIFICATIONSTOTAL from "~/graphql/notification/query/notificationsTotal.graphql";
 import ME from "~/graphql/user/query/me.graphql";
 import { getActivePlan } from "~/services/stripeCheckoutService.js";
 
 export default {
   components: {
+    ZTopBarLanguageSwitcher,
     ZListItemsNotification,
-    ZListItemsUser,
   },
   data() {
     return {
@@ -335,9 +351,6 @@ export default {
 
       return this.activePlanData.product.name || "Plano Ativo";
     },
-    isNotificationsPage() {
-      return this.$route.path === "/notifications";
-    },
     breadcrumbs() {
       const path = this.$route?.path || "/";
       const items = [{ label: "Home", to: "/" }];
@@ -473,9 +486,7 @@ export default {
     },
     isSettingsRouteActive() {
       const currentPath = this.$route.path;
-      return (
-        currentPath === "/settings" || currentPath === "/settings/notifications"
-      );
+      return currentPath.startsWith("/settings");
     },
     toggleDropdown() {
       this.dropdownOpen = !this.dropdownOpen;
@@ -500,6 +511,14 @@ export default {
     openNotificationSettings() {
       this.$router.push("/settings/notifications");
       this.dropdownOpen = false; // Fechar o dropdown ao navegar
+    },
+    logout() {
+      const { onLogout } = useApollo();
+      onLogout();
+      localStorage.removeItem("user");
+      localStorage.removeItem("userToken");
+      this.closeDropdown();
+      this.$router.push("/login");
     },
     totalNotificationsChange(value) {
       if (value > 99) {
@@ -697,6 +716,35 @@ export default {
 .sidebar-link.dropdown-toggle {
   cursor: pointer;
   user-select: none;
+}
+
+button.sidebar-link {
+  width: 100%;
+  border: none;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sidebar-link--logout {
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  color: #fca5a5;
+}
+
+.sidebar-link--logout .sidebar-link-icon {
+  color: #fca5a5 !important;
+}
+
+.sidebar-link--logout:hover {
+  background-color: rgba(220, 38, 38, 0.2);
+  color: #fecaca;
+}
+
+.sidebar-link--logout:hover .sidebar-link-icon {
+  color: #fecaca !important;
 }
 
 .sidebar-dropdown {
@@ -981,92 +1029,95 @@ export default {
 .notification-wrapper :deep(.va-button-dropdown__anchor) {
   --va-background-color: transparent !important;
   background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 44px;
 }
 
-.notification-wrapper :deep(.va-button-dropdown__content) {
+.notification-wrapper :deep(.va-dropdown__content-wrapper) {
   background: transparent;
   border-radius: 0;
   box-shadow: none;
   margin-top: 8px;
-  min-width: 320px;
-  max-width: 420px;
+  min-width: min(320px, calc(100vw - 24px));
+  max-width: min(420px, calc(100vw - 24px));
   max-height: none;
   overflow: visible;
   padding: 0;
   z-index: 10002 !important;
+}
+
+.notification-wrapper :deep(.va-dropdown__content) {
+  padding: 0 !important;
+  overflow: visible !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+}
+
+.notification-trigger {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  min-height: 40px;
+  padding: 2px;
+  flex-shrink: 0;
+  line-height: 0;
   position: relative;
+  cursor: pointer;
+}
+
+.notification-badge {
+  line-height: 0 !important;
+}
+
+.notification-wrapper :deep(.notification-trigger .va-badge) {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 0 !important;
 }
 
 .notification-icon {
-  font-size: 20px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
   color: #6b7280 !important;
   cursor: pointer;
   transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease,
     box-shadow 0.2s ease;
   --va-background-color: transparent !important;
   background: transparent !important;
+  line-height: 1 !important;
 }
 
 .notification-icon:hover {
   color: #4b5563 !important;
-  --va-background-color: transparent !important;
-  background: transparent !important;
-}
-
-.notification-wrapper.notification-active :deep(.notification-icon) {
-  position: relative;
-  padding: 6px;
-  border-radius: 50%;
-  background: rgba(107, 114, 128, 0.1) !important;
-  border: 2px solid #9ca3af !important;
-  box-shadow: 0 0 0 2px rgba(156, 163, 175, 0.25),
-    0 2px 8px rgba(107, 114, 128, 0.15) !important;
-  color: #6b7280 !important;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.notification-wrapper.notification-active :deep(.notification-icon):hover {
-  background: rgba(107, 114, 128, 0.14) !important;
-  border-color: #6b7280 !important;
-  box-shadow: 0 0 0 3px rgba(156, 163, 175, 0.3),
-    0 4px 12px rgba(107, 114, 128, 0.2) !important;
-  transform: scale(1.05);
 }
 
 .notification-wrapper :deep(.va-button-dropdown__label) {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
   --va-background-color: transparent !important;
   background: transparent !important;
+  line-height: 0 !important;
+  min-height: 44px;
 }
 
-.user-menu-wrapper {
-  position: relative;
-  z-index: 1001;
-  overflow: visible;
-}
-
-.user-menu-wrapper :deep(.va-button-dropdown) {
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  padding: 0 !important;
-  --va-background-color: transparent !important;
-  z-index: 1001;
-}
-
-.user-menu-wrapper :deep(.va-button-dropdown__label) {
-  display: flex !important;
-  align-items: center;
-  min-width: 0;
-  --va-background-color: transparent !important;
-  background: transparent !important;
-}
-
-.user-menu-trigger {
+.top-bar-user {
   display: flex;
   align-items: center;
   gap: 8px;
   min-width: 0;
-  cursor: pointer;
+  max-width: min(260px, 32vw);
   text-align: left;
 }
 
@@ -1104,22 +1155,10 @@ export default {
   word-break: break-word;
 }
 
-.user-menu-wrapper :deep(.va-button-dropdown__content) {
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  margin-top: 8px;
-  min-width: 200px;
-  max-width: 250px;
-  z-index: 10002 !important;
-  position: relative;
-}
-
 .user-avatar {
   width: 32px;
   height: 32px;
   border: 2px solid white !important;
-  cursor: pointer;
   transition: all 0.2s ease;
   background: #FF4E1B !important;
   color: white !important;
@@ -1138,16 +1177,14 @@ export default {
   height: 32px !important;
 }
 
-.user-avatar:hover {
-  border-color: white !important;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(255, 78, 27, 0.3);
+.user-avatar--static {
+  cursor: default;
 }
 
 .user-icon {
   font-size: 32px;
   color: #0b1e3a;
-  cursor: pointer;
+  flex-shrink: 0;
 }
 .content-wrapper {
   flex: 1;
@@ -1192,6 +1229,12 @@ export default {
   .sidebar-dropdown .dropdown-menu {
     width: max-content;
     min-width: 200px;
+  }
+
+  .sidebar-link--logout {
+    margin-top: 8px;
+    flex-basis: 100%;
+    width: 100%;
   }
 }
 </style>

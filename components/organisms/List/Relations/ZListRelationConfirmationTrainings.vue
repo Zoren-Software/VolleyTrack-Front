@@ -5,10 +5,16 @@
       <slot name="filter" />
     </template>
     <template #list>
-      <div class="players-list-wrapper">
-        <h3 class="players-list-title">Jogadores Relacionados</h3>
-        <ZDatatableGeneric
-          selectable
+      <va-card class="players-list-card">
+        <div class="players-list-card__header">
+          <div class="players-list-card__title-row">
+            <va-icon name="people" size="24px" color="#FF4E1B" />
+            <h3 class="players-list-card__title">Lista de Jogadores</h3>
+          </div>
+        </div>
+        <div class="players-list-card__body">
+          <div class="players-list-wrapper">
+            <ZDatatableGeneric
           :includeActionsColumn="true"
           includeActionDeleteList
           disableActionDelete
@@ -20,23 +26,28 @@
         >
           <!-- FILTER -->
 
-          <!-- CELL: jogador — nome, posição, time -->
+          <!-- CELL: jogador — avatar + nome + posições · + time / Avulso -->
           <template #cell(user)="{ rowKey }">
-            <div class="player-info-cell">
-              <div class="player-info-name">
-                {{ rowKey.player?.displayName || rowKey.player?.name || "—" }}
-              </div>
-              <div class="player-info-meta">
-                <span class="player-meta-label">Posição</span>
-                <span class="player-meta-value">{{
-                  formatPositions(rowKey.player)
-                }}</span>
-              </div>
-              <div class="player-info-meta">
-                <span class="player-meta-label">Time</span>
-                <span class="player-meta-value">{{
-                  playerTeamLabel(rowKey)
-                }}</span>
+            <div class="player-cell">
+              <va-avatar class="player-avatar" size="medium">
+                {{
+                  playerInitial(rowKey.player)
+                }}
+              </va-avatar>
+              <div class="player-cell__info">
+                <div class="player-cell__name">
+                  {{
+                    rowKey.player?.displayName ||
+                    rowKey.player?.name ||
+                    "—"
+                  }}
+                </div>
+                <div class="player-cell__meta">
+                  {{ formatPositions(rowKey.player) }}
+                </div>
+                <div class="player-cell__meta">
+                  {{ playerTeamLabel(rowKey) }}
+                </div>
               </div>
             </div>
           </template>
@@ -47,7 +58,43 @@
             }"
           >
             <div class="presence-cell">
-              <template v-if="presence === true">
+              <template
+                v-if="
+                  isEditingRow(id) &&
+                  hasAdminOrTechnicianRole()
+                "
+              >
+                <div
+                  class="edit-actions-inline"
+                  role="group"
+                  :aria-label="
+                    'Presença: ' +
+                    (player?.displayName || player?.name || '')
+                  "
+                >
+                  <button
+                    type="button"
+                    class="choice-btn choice-btn--present"
+                    @click="
+                      onConfirmPresence(id, player.id, trainingId, true)
+                    "
+                  >
+                    <va-icon name="how_to_reg" size="16px" />
+                    <span>Presente</span>
+                  </button>
+                  <button
+                    type="button"
+                    class="choice-btn choice-btn--absent"
+                    @click="
+                      onConfirmPresence(id, player.id, trainingId, false)
+                    "
+                  >
+                    <va-icon name="person_off" size="16px" />
+                    <span>Ausente</span>
+                  </button>
+                </div>
+              </template>
+              <template v-else-if="presence === true">
                 <div
                   class="pill pill-presence pill-presence--present"
                 >
@@ -63,47 +110,16 @@
                   <span>Ausente</span>
                 </div>
               </template>
-              <template
-                v-else-if="hasAdminOrTechnicianRole() && !isEditingRow(id)"
-              >
+              <template v-else-if="hasAdminOrTechnicianRole()">
                 <span class="presence-placeholder presence-placeholder--dash"
                   >—</span
                 >
               </template>
-              <div v-else-if="!hasAdminOrTechnicianRole()" class="presence-placeholder">
-                Aguardando o técnico marcar a presença.
-              </div>
-
-              <div
-                v-if="
-                  isEditingRow(id) &&
-                  hasAdminOrTechnicianRole()
-                "
-                class="squircle-actions"
-                role="group"
-                :aria-label="'Presença: ' + (player?.displayName || player?.name || '')"
-              >
-                <button
-                  type="button"
-                  class="squircle-btn squircle-btn--yes"
-                  title="Marcar presente"
-                  @click="
-                    onConfirmPresence(id, player.id, trainingId, true)
-                  "
-                >
-                  <va-icon name="check" size="20px" />
-                </button>
-                <button
-                  type="button"
-                  class="squircle-btn squircle-btn--no"
-                  title="Marcar ausente"
-                  @click="
-                    onConfirmPresence(id, player.id, trainingId, false)
-                  "
-                >
-                  <va-icon name="close" size="20px" />
-                </button>
-              </div>
+              <template v-else>
+                <div class="presence-placeholder">
+                  Aguardando o técnico marcar a presença.
+                </div>
+              </template>
             </div>
           </template>
 
@@ -113,52 +129,58 @@
             }"
           >
             <div class="intention-cell">
-              <div
-                v-if="normalizeIntentionStatus(status) === 'CONFIRMED'"
-                class="pill pill-intention pill-intention--confirmed"
-              >
-                <va-icon name="check_circle" size="16px" />
-                <span>Confirmado</span>
-              </div>
-              <div
-                v-else-if="normalizeIntentionStatus(status) === 'REJECTED'"
-                class="pill pill-intention pill-intention--rejected"
-              >
-                <va-icon name="cancel" size="16px" />
-                <span>Rejeitado</span>
-              </div>
-              <div v-else class="pill pill-intention pill-intention--pending">
-                <va-icon name="schedule" size="16px" />
-                <span>Pendente</span>
-              </div>
-
-              <div
-                v-if="
-                  isEditingRow(id) &&
-                  canInteractWithStatus(player) &&
-                  normalizeIntentionStatus(status) === 'PENDING'
-                "
-                class="squircle-actions"
-                role="group"
-                :aria-label="'Intenção: ' + (player?.displayName || player?.name || '')"
-              >
-                <button
-                  type="button"
-                  class="squircle-btn squircle-btn--yes"
-                  title="Confirmar presença"
-                  @click="onConfirmIntention(id, player.id, trainingId)"
+              <template v-if="isEditingRow(id) && canEditIntention(player)">
+                <div
+                  class="edit-actions-inline"
+                  role="group"
+                  :aria-label="
+                    'Intenção: ' +
+                    (player?.displayName || player?.name || '')
+                  "
                 >
-                  <va-icon name="check" size="20px" />
-                </button>
-                <button
-                  type="button"
-                  class="squircle-btn squircle-btn--no"
-                  title="Rejeitar"
-                  @click="onRejectIntention(id, player.id, trainingId)"
+                  <button
+                    type="button"
+                    class="choice-btn choice-btn--confirm"
+                    @click="onConfirmIntention(id, player.id, trainingId)"
+                  >
+                    <va-icon name="check_circle" size="16px" />
+                    <span>Confirmar</span>
+                  </button>
+                  <button
+                    type="button"
+                    class="choice-btn choice-btn--reject"
+                    @click="onRejectIntention(id, player.id, trainingId)"
+                  >
+                    <va-icon name="cancel" size="16px" />
+                    <span>Rejeitar</span>
+                  </button>
+                </div>
+              </template>
+              <template v-else>
+                <div
+                  v-if="normalizeIntentionStatus(status) === 'CONFIRMED'"
+                  class="pill pill-intention pill-intention--confirmed"
                 >
-                  <va-icon name="close" size="20px" />
-                </button>
-              </div>
+                  <va-icon name="check_circle" size="16px" />
+                  <span>Confirmado</span>
+                </div>
+                <div
+                  v-else-if="
+                    normalizeIntentionStatus(status) === 'REJECTED'
+                  "
+                  class="pill pill-intention pill-intention--rejected"
+                >
+                  <va-icon name="cancel" size="16px" />
+                  <span>Rejeitado</span>
+                </div>
+                <div
+                  v-else
+                  class="pill pill-intention pill-intention--pending"
+                >
+                  <va-icon name="schedule" size="16px" />
+                  <span>Pendente</span>
+                </div>
+              </template>
             </div>
           </template>
 
@@ -167,26 +189,32 @@
               <template v-if="editingRowId === rowKey.id">
                 <button
                   type="button"
-                  class="link-action"
+                  class="icon-cancel-btn"
+                  title="Cancelar edição"
+                  aria-label="Cancelar edição"
                   @click="cancelEdit"
                 >
-                  Cancelar
+                  <va-icon name="close" size="20px" />
                 </button>
               </template>
               <template v-else-if="canShowEditar(rowKey)">
                 <button
                   type="button"
-                  class="link-action link-action--edit"
+                  class="icon-edit-btn"
+                  title="Editar"
+                  aria-label="Editar linha"
                   @click="startEdit(rowKey.id)"
                 >
-                  Editar
+                  <va-icon name="edit" size="20px" />
                 </button>
               </template>
               <span v-else class="row-actions__none">—</span>
             </div>
           </template>
         </ZDatatableGeneric>
-      </div>
+          </div>
+        </div>
+      </va-card>
     </template>
   </ZListRelationGeneric>
 </template>
@@ -252,6 +280,17 @@ export default {
     },
     cancelEdit() {
       this.editingRowId = null;
+    },
+    playerInitial(player) {
+      const raw = player?.displayName || player?.name || "";
+      const ch = raw.trim().charAt(0);
+      return ch ? ch.toUpperCase() : "";
+    },
+    canEditIntention(player) {
+      return (
+        this.hasAdminOrTechnicianRole() ||
+        this.canInteractWithStatus(player)
+      );
     },
     canShowEditar(rowKey) {
       if (!rowKey) return false;
@@ -337,7 +376,7 @@ export default {
         return "—";
       }
       const names = positions.map((p) => p?.name).filter(Boolean);
-      return names.length ? names.join(", ") : "—";
+      return names.length ? names.join(" · ") : "—";
     },
     playerTeamLabel(row) {
       const player = row?.player;
@@ -350,7 +389,7 @@ export default {
         const match = teams.find((t) => String(t.id) === String(teamId));
         if (match?.name) return match.name;
       }
-      return "—";
+      return "Avulso";
     },
     canInteractWithStatus(player) {
       if (!player || !this.user) return false;
@@ -413,8 +452,47 @@ export default {
 </script>
 
 <style scoped>
+.players-list-card {
+  margin-top: 28px;
+  border-radius: 14px;
+  border: 1px solid #eef0f3 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.players-list-card :deep(.va-card__inner) {
+  padding: 0;
+}
+
+.players-list-card__header {
+  padding: 16px 18px 12px;
+  border-bottom: 1px solid #eef0f3;
+}
+
+.players-list-card__title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.players-list-card__title-row :deep(.va-icon) {
+  flex-shrink: 0;
+}
+
+.players-list-card__title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: #0b1e3a;
+  line-height: 1.25;
+}
+
+.players-list-card__body {
+  padding: 0 4px 14px;
+}
+
 .players-list-wrapper {
-  margin-top: 24px;
+  margin-top: 0;
+  padding: 0 12px;
   width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
@@ -431,15 +509,6 @@ export default {
   min-width: 0;
 }
 
-.players-list-title {
-  font-size: 16px;
-  font-weight: 700;
-  color: #ff4e1b;
-  margin-bottom: 16px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
 :deep(.va-data-table__table tbody tr) {
   height: auto;
   min-height: 60px;
@@ -451,65 +520,218 @@ export default {
   padding-bottom: 12px;
 }
 
-/* Com selectable: 1=checkbox; 2=jogador; 3=intenção; 4=presença; 5=ações */
-:deep(.va-data-table__table td:nth-child(2)),
-:deep(.va-data-table__table th:nth-child(2)) {
+/* Sem seleção: 1=jogador; 2=intenção; 3=presença; 4=ações */
+:deep(.va-data-table__table td:nth-child(1)),
+:deep(.va-data-table__table th:nth-child(1)) {
   width: auto;
   min-width: 220px;
   max-width: 380px;
 }
 
+:deep(.va-data-table__table td:nth-child(2)),
+:deep(.va-data-table__table th:nth-child(2)),
 :deep(.va-data-table__table td:nth-child(3)),
-:deep(.va-data-table__table th:nth-child(3)),
-:deep(.va-data-table__table td:nth-child(4)),
-:deep(.va-data-table__table th:nth-child(4)) {
+:deep(.va-data-table__table th:nth-child(3)) {
   min-width: 200px;
   max-width: 320px;
 }
 
-:deep(.va-data-table__table td:nth-child(5)),
-:deep(.va-data-table__table th:nth-child(5)) {
+:deep(.va-data-table__table td:nth-child(4)),
+:deep(.va-data-table__table th:nth-child(4)) {
   width: 100px;
   min-width: 96px;
   max-width: 120px;
   text-align: center;
 }
 
-/* Jogador */
-.player-info-cell {
+/* Jogador — alinhado à listagem /players */
+.player-cell {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  align-items: flex-start;
+  gap: 10px;
   text-align: left;
 }
 
-.player-info-name {
-  font-size: 14px;
-  font-weight: 700;
+.player-cell__info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
+}
+
+.player-cell__name {
+  font-size: 13px;
+  font-weight: 600;
   color: #0b1e3a;
   line-height: 1.3;
 }
 
-.player-info-meta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 6px;
+.player-cell__meta {
   font-size: 12px;
+  font-weight: 500;
+  color: #9ca3af;
   line-height: 1.35;
 }
 
-.player-meta-label {
-  font-weight: 600;
-  color: #6b7280;
-  text-transform: uppercase;
-  font-size: 10px;
-  letter-spacing: 0.04em;
+.player-avatar {
+  flex-shrink: 0;
 }
 
-.player-meta-value {
-  font-weight: 600;
-  color: #374151;
+.player-avatar,
+.player-avatar :deep(.va-avatar),
+.player-avatar :deep(.va-avatar__content) {
+  width: 44px !important;
+  height: 44px !important;
+  min-width: 44px !important;
+  min-height: 44px !important;
+  max-width: 44px !important;
+  max-height: 44px !important;
+  font-size: 18px !important;
+  line-height: 44px !important;
+  background: #ff4e1b !important;
+  color: #fff !important;
+  border: 2px solid #fff !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+}
+
+.edit-actions-inline {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.choice-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.choice-btn :deep(.va-icon) {
+  flex-shrink: 0;
+}
+
+.choice-btn--confirm {
+  color: #15803d;
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+}
+
+.choice-btn--confirm :deep(.va-icon) {
+  color: #15803d !important;
+}
+
+.choice-btn--confirm:hover {
+  background: #dcfce7;
+}
+
+.choice-btn--reject {
+  color: #b91c1c;
+  border-color: #fecaca;
+  background: #fef2f2;
+}
+
+.choice-btn--reject :deep(.va-icon) {
+  color: #b91c1c !important;
+}
+
+.choice-btn--reject:hover {
+  background: #fee2e2;
+}
+
+.choice-btn--present {
+  color: #15803d;
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+}
+
+.choice-btn--present :deep(.va-icon) {
+  color: #15803d !important;
+}
+
+.choice-btn--present:hover {
+  background: #dcfce7;
+}
+
+.choice-btn--absent {
+  color: #be123c;
+  border-color: #fecdd3;
+  background: #fff1f2;
+}
+
+.choice-btn--absent :deep(.va-icon) {
+  color: #be123c !important;
+}
+
+.choice-btn--absent:hover {
+  background: #ffe4e6;
+}
+
+.icon-edit-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  cursor: pointer;
+  color: #94a3b8;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.icon-edit-btn:hover {
+  background: #f3f4f6;
+  color: #64748b;
+}
+
+.icon-edit-btn :deep(.va-icon) {
+  color: #94a3b8 !important;
+}
+
+.icon-edit-btn:hover :deep(.va-icon) {
+  color: #64748b !important;
+}
+
+.icon-cancel-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.icon-cancel-btn :deep(.va-icon) {
+  color: #94a3b8 !important;
+}
+
+.icon-cancel-btn:hover {
+  background: #fef2f2;
+}
+
+.icon-cancel-btn:hover :deep(.va-icon) {
+  color: #b91c1c !important;
 }
 
 /* Pills (intenção e presença) */
@@ -621,15 +843,6 @@ export default {
   color: #0f172a;
 }
 
-.link-action--edit {
-  color: #ff4e1b;
-  font-weight: 800;
-}
-
-.link-action--edit:hover {
-  color: #c53d16;
-}
-
 .row-actions {
   display: flex;
   align-items: center;
@@ -642,61 +855,6 @@ export default {
   font-weight: 700;
 }
 
-.squircle-actions {
-  display: inline-flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 10px;
-  margin-top: 4px;
-}
-
-.squircle-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 42px;
-  height: 42px;
-  padding: 0;
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: transform 0.08s ease, filter 0.15s ease;
-}
-
-.squircle-btn:active {
-  transform: scale(0.96);
-}
-
-.squircle-btn :deep(.va-icon) {
-  flex-shrink: 0;
-}
-
-.squircle-btn--yes {
-  background: #ecfdf5;
-  color: #15803d;
-}
-
-.squircle-btn--yes :deep(.va-icon) {
-  color: #15803d !important;
-}
-
-.squircle-btn--yes:hover {
-  filter: brightness(0.97);
-}
-
-.squircle-btn--no {
-  background: #fff1f2;
-  color: #be123c;
-}
-
-.squircle-btn--no :deep(.va-icon) {
-  color: #be123c !important;
-}
-
-.squircle-btn--no:hover {
-  filter: brightness(0.97);
-}
-
 @media (max-width: 1024px) {
   .players-list-wrapper :deep(.va-data-table) {
     min-width: 640px;
@@ -704,8 +862,8 @@ export default {
 }
 
 @media (max-width: 768px) {
-  .players-list-title {
-    font-size: 14px;
+  .players-list-card__title {
+    font-size: 16px;
   }
 
   .players-list-wrapper :deep(.va-data-table) {

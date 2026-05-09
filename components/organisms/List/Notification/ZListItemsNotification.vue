@@ -2,14 +2,14 @@
   <div class="notification-dropdown-card">
     <header class="notification-dropdown-header">
       <h2 class="notification-dropdown-title">Notificações</h2>
-      <button
-        type="button"
+      <NuxtLink
+        to="/settings/notifications"
         class="notification-settings-trigger"
         aria-label="Configurações de notificação"
-        @click="goToNotificationSettings"
+        @click.stop
       >
         <va-icon name="settings" size="22px" color="#475569" />
-      </button>
+      </NuxtLink>
     </header>
 
     <div class="notification-dropdown-body">
@@ -212,9 +212,6 @@ export default {
     goToNotifications() {
       this.$router.push("/notifications");
     },
-    goToNotificationSettings() {
-      this.$router.push("/settings/notifications");
-    },
   },
 };
 </script>
@@ -264,6 +261,9 @@ export default {
   background: transparent;
   cursor: pointer;
   transition: background 0.15s ease;
+  text-decoration: none;
+  color: inherit;
+  box-sizing: border-box;
 }
 
 .notification-settings-trigger:hover {
@@ -319,7 +319,7 @@ export default {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #ff4e1b;
+  background: #22c55e;
 }
 
 .notification-row__dot--read::before {

@@ -1,7 +1,12 @@
 <template>
   <ZNavBarItem>
     <va-navbar-item>
-      <va-button-dropdown :color="color()" hide-icon>
+      <va-button-dropdown
+        :color="color()"
+        hide-icon
+        placement="bottom-end"
+        stick-to-edges
+      >
         <template #label>
           <va-badge
             overlap
@@ -96,3 +101,23 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+/* Mesmos alvos do Vuestic que em layouts/default.vue (.va-dropdown__content-wrapper). */
+:deep(.va-dropdown__content-wrapper) {
+  margin-top: 8px;
+  min-width: min(320px, calc(100vw - 24px));
+  max-width: min(420px, calc(100vw - 24px));
+  overflow: visible;
+  padding: 0;
+  z-index: 10002 !important;
+}
+
+:deep(.va-dropdown__content) {
+  padding: 0 !important;
+  overflow: visible !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+}
+</style>

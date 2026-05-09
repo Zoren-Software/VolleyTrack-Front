@@ -4,32 +4,19 @@
       <h3 class="metrics-card-title">{{ title }}</h3>
     </div>
     <div class="metrics-card-content">
-      <div class="metrics-row">
-        <div class="metrics-item">
-          <span class="metrics-label">Confirmados:</span>
-          <span class="metrics-value">{{ data.confirmed }}</span>
-          <span class="metrics-percentage"
-            >{{ formatPercentage(data.confirmedPercentage) }}%</span
-          >
+      <div class="metrics-columns">
+        <div class="metric-column">
+          <span class="column-label">Confirmados</span>
+          <span class="column-value">{{ data.confirmed }}</span>
         </div>
-        <div class="metrics-item">
-          <span class="metrics-label">Pendentes:</span>
-          <span class="metrics-value">{{ data.pending }}</span>
-          <span class="metrics-percentage"
-            >{{ formatPercentage(data.pendingPercentage) }}%</span
-          >
+        <div class="metric-column">
+          <span class="column-label">Pendentes</span>
+          <span class="column-value">{{ data.pending }}</span>
         </div>
-        <div class="metrics-item">
-          <span class="metrics-label">Rejeitados:</span>
-          <span class="metrics-value">{{ data.rejected }}</span>
-          <span class="metrics-percentage"
-            >{{ formatPercentage(data.rejectedPercentage) }}%</span
-          >
+        <div class="metric-column">
+          <span class="column-label">Rejeitados</span>
+          <span class="column-value">{{ data.rejected }}</span>
         </div>
-      </div>
-      <div class="metrics-total">
-        <span class="total-label">Total Pessoas no Time:</span>
-        <span class="total-value">{{ data.total }}</span>
       </div>
     </div>
   </div>
@@ -87,14 +74,6 @@ export default {
       default: () => ({}),
     },
   },
-  methods: {
-    formatPercentage(value) {
-      if (value == null || value === undefined || isNaN(value)) {
-        return "0.00";
-      }
-      return Number(value).toFixed(2);
-    },
-  },
 };
 </script>
 
@@ -108,7 +87,7 @@ export default {
 }
 
 .metrics-card-header {
-  background: linear-gradient(135deg, #FF4E1B 0%, #ff6b35 100%);
+  background: linear-gradient(135deg, #e9742b 0%, #ff6b35 100%);
   padding: 16px 20px;
 }
 
@@ -125,76 +104,55 @@ export default {
   padding: 20px;
 }
 
-.metrics-row {
+.metrics-columns {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.metric-column {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.metrics-item {
-  display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 12px;
+  text-align: center;
+  padding: 14px 10px;
   background: #f8f9fa;
   border-radius: 8px;
-  gap: 12px;
+  gap: 8px;
 }
 
-.metrics-label {
-  font-size: 14px;
+.column-label {
+  font-size: 13px;
   color: #6c757d;
-  font-weight: 500;
-  flex: 1;
+  font-weight: 600;
+  line-height: 1.2;
 }
 
-.metrics-value {
-  font-size: 16px;
+.column-value {
+  font-size: 22px;
   font-weight: 700;
   color: #0b1e3a;
-  min-width: 40px;
-  text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 
-.metrics-percentage {
-  font-size: 14px;
-  font-weight: 600;
-  color: #FF4E1B;
-  min-width: 50px;
-  text-align: right;
-}
-
-.metrics-total {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px;
-  background: #fff4ec;
-  border-radius: 8px;
-  border: 1px solid #ffe3d1;
-}
-
-.total-label {
-  font-size: 14px;
-  font-weight: 600;
-  color: #0b1e3a;
-}
-
-.total-value {
-  font-size: 18px;
-  font-weight: 700;
-  color: #FF4E1B;
-}
-
-@media (max-width: 768px) {
-  .metrics-item {
-    flex-wrap: wrap;
+@media (max-width: 520px) {
+  .metrics-columns {
+    flex-direction: column;
   }
 
-  .metrics-value,
-  .metrics-percentage {
-    min-width: auto;
+  .metric-column {
+    flex-direction: row;
+    justify-content: space-between;
+    text-align: left;
+    align-items: center;
+  }
+
+  .column-label {
+    text-align: left;
   }
 }
 </style>
