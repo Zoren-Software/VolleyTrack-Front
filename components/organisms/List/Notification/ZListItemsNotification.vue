@@ -212,6 +212,9 @@ export default {
     goToNotifications() {
       this.$router.push("/notifications");
     },
+    goToNotificationSettings() {
+      this.$router.push("/settings/notifications");
+    },
   },
 };
 </script>

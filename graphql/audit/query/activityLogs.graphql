@@ -1,0 +1,25 @@
+query activityLogs($logName: String, $page: Int, $first: Int) {
+  activityLogs(logName: $logName, page: $page, first: $first) {
+    paginatorInfo {
+      currentPage
+      lastPage
+      total
+      perPage
+      hasMorePages
+    }
+    data {
+      id
+      logName
+      description
+      event
+      subjectType
+      subjectId
+      properties
+      createdAt
+      causer {
+        id
+        name
+      }
+    }
+  }
+}

@@ -1,198 +1,280 @@
 <template>
   <div
     class="form-container"
-    :class="{ 'form-container-full-width': controlledStep === 2 }"
+    :class="{ 'form-container-full-width': controlledStep === lastStepIndex }"
   >
-    <va-card
+    <div
       class="training-form-card"
-      :class="{ 'training-form-card-full-width': controlledStep === 2 }"
+      :class="{
+        'training-form-card-full-width': controlledStep === lastStepIndex,
+      }"
     >
       <va-form ref="myForm" class="flex flex-col gap-6 mb-2">
         <va-stepper v-model="controlledStep" :steps="steps" controls-hidden>
-          <!-- Etapa 1: Informações Essenciais -->
+          <!-- Etapa 1: Informações Gerais -->
           <template #step-content-0>
             <div class="step-content">
-              <h2 class="section-title">Informações Essenciais</h2>
-              <ZTextInput
-                id="name"
-                v-model="form.name"
-                name="name"
-                label="Nome"
-                class="mb-3"
-                :error-messages="errors.name || []"
-              />
-              <ZDateTimeRangePicker
-                id="dateTimeRange"
-                label="Data Inicio"
-                clearable
-                :date="form.dateValue"
-                :time-start="form.timeStartValue"
-                :time-end="form.timeEndValue"
-                @update:date="form.dateValue = $event"
-                @update:time-start="form.timeStartValue = $event"
-                @update:time-end="form.timeEndValue = $event"
-              />
-              <VaTextarea
-                id="description"
-                v-model="form.description"
-                style="width: 100%"
-                name="description"
-                label="Descrição do Treino"
-                class="mb-3"
-                :error="errorFields.includes('description')"
-                :error-messages="errors.description || []"
-              />
+              <va-card class="training-step-card">
+                <h2 class="section-title">Informações gerais</h2>
+                <ZTextInput
+                  id="name"
+                  v-model="form.name"
+                  name="name"
+                  label="Nome"
+                  class="mb-3"
+                  :error-messages="errors.name || []"
+                />
+                <VaTextarea
+                  id="description"
+                  v-model="form.description"
+                  style="width: 100%"
+                  name="description"
+                  label="Descrição do treino"
+                  class="mb-3"
+                  :error="errorFields.includes('description')"
+                  :error-messages="errors.description || []"
+                />
+                <ZDateTimeRangePicker
+                  id="dateTimeRange"
+                  label="Data início"
+                  clearable
+                  :date="form.dateValue"
+                  :time-start="form.timeStartValue"
+                  :time-end="form.timeEndValue"
+                  @update:date="form.dateValue = $event"
+                  @update:time-start="form.timeStartValue = $event"
+                  @update:time-end="form.timeEndValue = $event"
+                />
+              </va-card>
 
-              <VaSelect
-                id="status"
-                v-model="form.status"
-                label="Status do Treino"
-                :options="statusOptions"
-                text-by="label"
-                value-by="value"
-                class="mb-3"
-                :error="errorFields.includes('status')"
-                :error-messages="errors.status || []"
-              />
-
-              <h3 class="subsection-title">Fundamentos</h3>
-              <div class="mb-5">
-                <ZListRelationFundamentals
-                  :items="form.fundamentals || []"
-                  :selected-value="fundamentals"
-                  @add="addFundamentals"
-                  @delete="actionDeleteFundamental"
+              <va-card class="training-step-card">
+                <h2 class="section-title">Status do treino</h2>
+                <div
+                  class="training-status-wrapper"
+                  :class="{
+                    'training-status-wrapper--error':
+                      errorFields.includes('status'),
+                  }"
                 >
-                  <template #filter>
-                    <ZSelectFundamental
-                      v-model="fundamentals"
-                      class="mb-3"
-                      label="Fundamentos"
-                      :ignore-ids="form.fundamentals.map((item) => item.id)"
-                    />
-                  </template>
-                </ZListRelationFundamentals>
-              </div>
-              <div>
-                <ZListRelationSpecificFundamentals
-                  :items="form.specificFundamentals || []"
-                  :selected-value="specificFundamentals"
-                  @add="addSpecificFundamental"
-                  @delete="actionDeleteSpecificFundamental"
-                >
-                  <template #filter>
-                    <ZSelectSpecificFundamental
-                      v-model="specificFundamentals"
-                      class="mb-3"
-                      label="Fundamentos Específicos"
-                      :disabled="!form.fundamentals.length"
-                      :ignore-ids="
-                        form.specificFundamentals.map((item) => item.id)
-                      "
-                      :fundamentals-ids="
-                        form.fundamentals.map((item) => item.id)
-                      "
-                      :messages="messageSpecificFundamental()"
-                    />
-                  </template>
-                </ZListRelationSpecificFundamentals>
-              </div>
-
-              <h3 class="subsection-title">Relacionar Time</h3>
-              <ZListRelationTeams
-                :items="form.teams || []"
-                :selected-value="teams"
-                @add="addTeams"
-                @delete="actionDeleteTeam"
-              >
-                <template #filter>
-                  <ZSelectTeam
-                    ref="selectTeamRef"
-                    v-model="teams"
-                    class="mb-3"
-                    label="Times"
-                    :disabled="form.teams.length >= 1"
-                    :ignore-ids="form.teams.map((item) => parseInt(item.id))"
-                    :messages="
-                      form.teams.length >= 1 ? 'Você já selecionou um time' : ''
-                    "
-                  />
-                </template>
-              </ZListRelationTeams>
-
-              <!-- Mostrar jogadores do time após relacionar (apenas visualização) -->
-              <div
-                v-if="
-                  form.teams &&
-                  form.teams.length > 0 &&
-                  getTeamPlayers().length > 0
-                "
-                class="mt-5"
-              >
-                <h3 class="subsection-title">Jogadores Relacionados</h3>
-                <div class="players-list-simple">
-                  <div
-                    v-for="confirmation in getTeamPlayers()"
-                    :key="confirmation.player?.id || confirmation.playerId"
-                    class="player-item-simple"
-                  >
-                    <ZUser :data="confirmation.player" />
-                    <div class="player-positions">
-                      <span
-                        v-for="(position, index) in confirmation.player
-                          ?.positions || []"
-                        :key="position?.id || index"
-                        class="position-tag"
-                      >
-                        {{ position?.name }}
-                      </span>
-                      <span
-                        v-if="
-                          !confirmation.player?.positions ||
-                          confirmation.player?.positions.length === 0
+                  <div class="training-status-grid">
+                    <div
+                      v-for="opt in trainingStatusCards"
+                      :key="opt.value"
+                      role="button"
+                      :tabindex="opt.disabled ? -1 : 0"
+                      :aria-disabled="opt.disabled || false"
+                      :class="[
+                        'training-status-card',
+                        {
+                          'training-status-card--selected':
+                            isTrainingStatusSelected(opt.value),
+                          'training-status-card--error':
+                            errorFields.includes('status'),
+                          'training-status-card--disabled': opt.disabled,
+                        },
+                      ]"
+                      @click="selectTrainingStatus(opt.value)"
+                      @keydown.enter.prevent="selectTrainingStatus(opt.value)"
+                      @keydown.space.prevent="selectTrainingStatus(opt.value)"
+                    >
+                      <va-icon
+                        class="training-status-card-icon"
+                        :name="opt.icon"
+                        :color="
+                          isTrainingStatusSelected(opt.value)
+                            ? '#FF4E1B'
+                            : '#9CA3AF'
                         "
-                        class="no-positions"
-                      >
-                        Sem posições
-                      </span>
+                        size="22px"
+                      />
+                      <div class="training-status-info">
+                        <h4 class="training-status-title">{{ opt.title }}</h4>
+                        <p class="training-status-description">
+                          {{ opt.description }}
+                        </p>
+                        <p
+                          v-if="opt.disabled && opt.disabledReason"
+                          class="training-status-disabled-reason"
+                        >
+                          {{ opt.disabledReason }}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
-
-              <!-- Adicionar jogadores avulsos (apenas na tela de edição) -->
-              <div v-if="isTrainingSaved" class="mt-5">
-                <h3 class="subsection-title">Jogadores Avulsos</h3>
-                <p class="subsection-description mb-3">
-                  Adicione jogadores que não fazem parte do time relacionado
-                </p>
-                <div class="standalone-players-section">
-                  <ZSelectUser
-                    v-model="standalonePlayers"
-                    :ignoreIds="getAllPlayerIds()"
-                    :rolesIds="[3]"
-                    class="mb-3"
-                    label="Buscar e selecionar jogadores avulsos"
-                    placeholder="Digite o nome do jogador"
-                  />
-                  <va-button
-                    color="primary"
-                    icon="add"
-                    @click="addStandalonePlayers"
-                    class="mb-3"
+                  <div
+                    v-if="
+                      errorFields.includes('status') &&
+                      errors.status &&
+                      errors.status.length
+                    "
+                    class="training-status-error-message"
                   >
-                    Adicionar Jogador Avulso
-                  </va-button>
+                    <va-icon name="error" size="small" color="danger" />
+                    <span>{{ (errors.status || []).join(" ") }}</span>
+                  </div>
+                </div>
+              </va-card>
+            </div>
+          </template>
+
+          <!-- Etapa 2: Fundamentos -->
+          <template #step-content-1>
+            <div class="step-content">
+              <va-card class="training-step-card">
+                <h2 class="section-title">Fundamentos</h2>
+                <p class="subsection-description fundamental-section-hint">
+                  Selecione um ou mais fundamentos gerais do treino.
+                </p>
+                <div
+                  v-if="fundamentalsCatalogLoading"
+                  class="fundamentals-loading"
+                >
+                  <va-progress-circle indeterminate size="small" />
+                  <span>Carregando fundamentos...</span>
+                </div>
+                <p
+                  v-else-if="!fundamentalCatalog.length"
+                  class="fundamental-empty-hint mb-5"
+                >
+                  Nenhum fundamento geral disponível no sistema.
+                </p>
+                <div v-else class="fundamental-pick-grid mb-5">
+                  <div
+                    v-for="item in fundamentalCatalog"
+                    :key="'f-' + item.id"
+                    role="button"
+                    tabindex="0"
+                    :class="[
+                      'fundamental-pick-card',
+                      {
+                        'fundamental-pick-card--selected': isFundamentalPicked(
+                          item.id,
+                        ),
+                      },
+                    ]"
+                    @click="toggleFundamentalPick(item)"
+                    @keydown.enter.prevent="toggleFundamentalPick(item)"
+                    @keydown.space.prevent="toggleFundamentalPick(item)"
+                  >
+                    <va-icon
+                      class="fundamental-pick-card-icon"
+                      name="sports_volleyball"
+                      :color="
+                        isFundamentalPicked(item.id) ? '#FF4E1B' : '#9CA3AF'
+                      "
+                      size="22px"
+                    />
+                    <span class="fundamental-pick-card-title">{{
+                      item.name
+                    }}</span>
+                  </div>
                 </div>
 
-                <!-- Mostrar jogadores avulsos adicionados (apenas visualização) -->
-                <div v-if="getStandalonePlayers().length > 0" class="mt-4">
-                  <h4 class="subsection-subtitle mb-3">
-                    Jogadores Avulsos Adicionados
+                <template v-if="form.fundamentals && form.fundamentals.length">
+                  <h4 class="fundamental-specific-heading">
+                    Fundamentos específicos
                   </h4>
+                  <p class="subsection-description fundamental-section-hint">
+                    Escolha uma ou mais opções ligadas aos fundamentos
+                    selecionados.
+                  </p>
+                  <div
+                    v-if="specificFundamentalsLoading"
+                    class="fundamentals-loading"
+                  >
+                    <va-progress-circle indeterminate size="small" />
+                    <span>Carregando fundamentos específicos...</span>
+                  </div>
+                  <p
+                    v-else-if="!specificFundamentalCatalog.length"
+                    class="fundamental-empty-hint"
+                  >
+                    Não há fundamentos específicos cadastrados para a combinação
+                    selecionada.
+                  </p>
+                  <div v-else class="fundamental-pick-grid mb-5">
+                    <div
+                      v-for="item in specificFundamentalCatalog"
+                      :key="'sf-' + item.id"
+                      role="button"
+                      tabindex="0"
+                      :class="[
+                        'fundamental-pick-card',
+                        'fundamental-pick-card--specific',
+                        {
+                          'fundamental-pick-card--selected':
+                            isSpecificFundamentalPicked(item.id),
+                        },
+                      ]"
+                      @click="toggleSpecificFundamentalPick(item)"
+                      @keydown.enter.prevent="
+                        toggleSpecificFundamentalPick(item)
+                      "
+                      @keydown.space.prevent="
+                        toggleSpecificFundamentalPick(item)
+                      "
+                    >
+                      <va-icon
+                        class="fundamental-pick-card-icon"
+                        name="tune"
+                        :color="
+                          isSpecificFundamentalPicked(item.id)
+                            ? '#FF4E1B'
+                            : '#9CA3AF'
+                        "
+                        size="22px"
+                      />
+                      <span class="fundamental-pick-card-title">{{
+                        item.name
+                      }}</span>
+                    </div>
+                  </div>
+                </template>
+              </va-card>
+            </div>
+          </template>
+
+          <!-- Etapa 3: Relacionar Times -->
+          <template #step-content-2>
+            <div class="step-content">
+              <va-card class="training-step-card">
+                <h2 class="section-title">Relacionar times</h2>
+                <ZListRelationTeams
+                  :items="form.teams || []"
+                  :selected-value="teams"
+                  @add="addTeams"
+                  @delete="actionDeleteTeam"
+                >
+                  <template #filter>
+                    <ZSelectTeam
+                      ref="selectTeamRef"
+                      v-model="teams"
+                      class="mb-3"
+                      label="Times"
+                      :disabled="form.teams.length >= 1"
+                      :ignore-ids="form.teams.map((item) => parseInt(item.id))"
+                      :messages="
+                        form.teams.length >= 1
+                          ? 'Você já selecionou um time'
+                          : ''
+                      "
+                    />
+                  </template>
+                </ZListRelationTeams>
+
+                <!-- Mostrar jogadores do time após relacionar (apenas visualização) -->
+                <div
+                  v-if="
+                    form.teams &&
+                    form.teams.length > 0 &&
+                    getTeamPlayers().length > 0
+                  "
+                  class="mt-5"
+                >
+                  <h3 class="subsection-title">Jogadores Relacionados</h3>
                   <div class="players-list-simple">
                     <div
-                      v-for="confirmation in getStandalonePlayers()"
+                      v-for="confirmation in getTeamPlayers()"
                       :key="confirmation.player?.id || confirmation.playerId"
                       class="player-item-simple"
                     >
@@ -219,12 +301,73 @@
                     </div>
                   </div>
                 </div>
-              </div>
+
+                <!-- Adicionar jogadores avulsos (apenas na tela de edição) -->
+                <div v-if="isTrainingSaved" class="mt-5">
+                  <h3 class="subsection-title">Jogadores Avulsos</h3>
+                  <p class="subsection-description mb-3">
+                    Adicione jogadores que não fazem parte do time relacionado
+                  </p>
+                  <div class="standalone-players-section">
+                    <ZSelectUser
+                      v-model="standalonePlayers"
+                      :ignoreIds="getAllPlayerIds()"
+                      :rolesIds="[3]"
+                      class="mb-3"
+                      label="Buscar e selecionar jogadores avulsos"
+                      placeholder="Digite o nome do jogador"
+                    />
+                    <va-button
+                      color="primary"
+                      icon="add"
+                      @click="addStandalonePlayers"
+                      class="mb-3"
+                    >
+                      Adicionar Jogador Avulso
+                    </va-button>
+                  </div>
+
+                  <!-- Mostrar jogadores avulsos adicionados (apenas visualização) -->
+                  <div v-if="getStandalonePlayers().length > 0" class="mt-4">
+                    <h4 class="subsection-subtitle mb-3">
+                      Jogadores Avulsos Adicionados
+                    </h4>
+                    <div class="players-list-simple">
+                      <div
+                        v-for="confirmation in getStandalonePlayers()"
+                        :key="confirmation.player?.id || confirmation.playerId"
+                        class="player-item-simple"
+                      >
+                        <ZUser :data="confirmation.player" />
+                        <div class="player-positions">
+                          <span
+                            v-for="(position, index) in confirmation.player
+                              ?.positions || []"
+                            :key="position?.id || index"
+                            class="position-tag"
+                          >
+                            {{ position?.name }}
+                          </span>
+                          <span
+                            v-if="
+                              !confirmation.player?.positions ||
+                              confirmation.player?.positions.length === 0
+                            "
+                            class="no-positions"
+                          >
+                            Sem posições
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </va-card>
             </div>
           </template>
 
-          <!-- Etapa 2: Lista de Presença -->
-          <template #step-content-1>
+          <!-- Etapa 4: Lista de Presença -->
+          <template #step-content-3>
             <div class="step-content">
               <ZTrainingAttendanceContent
                 :form="form"
@@ -234,8 +377,8 @@
             </div>
           </template>
 
-          <!-- Etapa 3: Marcação dos Scouts -->
-          <template #step-content-2>
+          <!-- Etapa 5: Marcação dos Scouts -->
+          <template #step-content-4>
             <div class="step-content step-content-full-width">
               <ZListRelationPlayersWithScouts
                 ref="listRelationPlayersWithScoutsRef"
@@ -249,79 +392,37 @@
           </template>
         </va-stepper>
       </va-form>
-    </va-card>
+    </div>
 
     <!-- Botões de Ação (Fora do Card) -->
     <div class="action-buttons">
-      <va-button color="secondary" @click="goBack" class="mr-1"
+      <va-button
+        v-if="controlledStep === 0"
+        color="secondary"
+        class="mr-1"
+        @click="goBack"
         >Voltar</va-button
       >
       <va-button
         v-if="controlledStep > 0"
         color="secondary"
-        @click="handlePrevStep()"
         class="mr-1"
+        @click="handlePrevStep()"
         >Anterior</va-button
       >
       <va-button
-        v-if="controlledStep < steps.length - 1"
+        v-if="controlledStep < lastStepIndex"
         color="primary"
-        @click="handleNextStep()"
         class="mr-1"
+        @click="handleNextStep()"
         >Próximo</va-button
       >
       <va-button
-        color="success"
-        @click="saveAndContinue()"
-        v-if="!isTrainingSaved && controlledStep === 0"
-        class="mr-1"
-        >Salvar e Continuar</va-button
+        v-if="controlledStep === lastStepIndex"
+        color="primary"
+        @click="handleSaveClick"
+        >Salvar</va-button
       >
-      <va-button
-        color="success"
-        @click="saveScoutsOnly()"
-        v-if="isTrainingSaved && controlledStep === 2"
-        class="mr-1"
-        >Salvar Scouts</va-button
-      >
-      <va-button
-        color="#059669"
-        @click="finishTraining()"
-        v-if="form.status === 'PENDING' || form.status === 'pending'"
-        class="mr-1"
-      >
-        <va-icon name="check_circle" class="mr-2" />
-        Finalizar Treino
-      </va-button>
-      <va-button
-        color="#d97706"
-        @click="unfinishTraining()"
-        v-if="form.status === 'FINISHED' || form.status === 'finished'"
-        class="mr-1"
-      >
-        <va-icon name="cancel" class="mr-2" />
-        Cancelar Finalização
-      </va-button>
-      <va-button
-        color="#dc2626"
-        @click="cancelTraining()"
-        v-if="form.status === 'PENDING' || form.status === 'pending'"
-        class="mr-1"
-      >
-        <va-icon name="block" class="mr-2" />
-        Cancelar Treino
-      </va-button>
-      <va-button
-        color="#059669"
-        @click="uncancelTraining()"
-        v-if="form.status === 'CANCELLED' || form.status === 'cancelled'"
-        class="mr-1"
-      >
-        <va-icon name="check_circle" class="mr-2" />
-        Reativar Treino
-      </va-button>
-
-      <va-button color="primary" @click="save()">Salvar</va-button>
     </div>
   </div>
 </template>
@@ -329,8 +430,6 @@
 <script>
 import ZTextInput from "~/components/molecules/Inputs/ZTextInput";
 import ZSelectTeam from "~/components/molecules/Selects/ZSelectTeam";
-import ZListRelationFundamentals from "~/components/organisms/List/Relations/ZListRelationFundamentals";
-import ZListRelationSpecificFundamentals from "~/components/organisms/List/Relations/ZListRelationSpecificFundamentals";
 import ZListRelationTeams from "~/components/organisms/List/Relations/ZListRelationTeams";
 import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
 import Swal from "sweetalert2";
@@ -391,8 +490,6 @@ export default {
   components: {
     ZTextInput,
     ZSelectTeam,
-    ZListRelationFundamentals,
-    ZListRelationSpecificFundamentals,
     ZListRelationTeams,
     ZDateTimeRangePicker,
     ZSelectFundamental,
@@ -421,11 +518,6 @@ export default {
         { label: "Alterar apenas este treino", value: false },
         { label: "Alterar este treino e todos os futuros", value: true },
       ],
-      statusOptions: [
-        { label: "Agendado", value: "pending" },
-        { label: "Finalizado", value: "finished" },
-        { label: "Cancelado", value: "cancelled" },
-      ],
       user: localStorage.getItem("user")
         ? JSON.parse(localStorage.getItem("user"))
         : null,
@@ -441,12 +533,12 @@ export default {
         fundamentals: this.data.fundamentals || [],
         specificFundamentals: this.data.specificFundamentals || [],
         confirmationsTraining: this.data.confirmationsTraining || [],
-        confirmationTrainingMetrics:
-          this.data.confirmationTrainingMetrics || {},
         standalonePlayerIds: [],
       },
-      fundamentals: [],
-      specificFundamentals: [],
+      fundamentalCatalog: [],
+      fundamentalsCatalogLoading: false,
+      specificFundamentalCatalog: [],
+      specificFundamentalsLoading: false,
       users: [],
       players: [],
       scouts: [],
@@ -456,6 +548,54 @@ export default {
   },
 
   computed: {
+    trainingEndDateTime() {
+      if (!this.form.dateValue || !this.form.timeEndValue) return null;
+      try {
+        // Usar moment para evitar problemas de timezone com new Date(string ISO)
+        // new Date("YYYY-MM-DD") é interpretado como UTC meia-noite,
+        // causando deslocamento de data em fusos negativos (ex: Brasil UTC-3)
+        const dateStr = moment(this.form.dateValue).format("YYYY-MM-DD");
+        const timeStr = moment(this.form.timeEndValue).format("HH:mm:ss");
+        const combined = moment(`${dateStr} ${timeStr}`, "YYYY-MM-DD HH:mm:ss");
+        return combined.isValid() ? combined.toDate() : null;
+      } catch (e) {
+        return null;
+      }
+    },
+    isTrainingInFuture() {
+      const end = this.trainingEndDateTime;
+      if (!end) return false;
+      return end > new Date();
+    },
+    trainingStatusCards() {
+      return [
+        {
+          value: "pending",
+          title: "Agendado",
+          description:
+            "Treino na programação; confirmações de presença ficam disponíveis.",
+          icon: "event",
+        },
+        {
+          value: "finished",
+          title: "Finalizado",
+          description:
+            "Treino já realizado; use para encerrar chamada e consolidar registros.",
+          icon: "task_alt",
+          disabled: this.isTrainingInFuture,
+          disabledReason: this.isTrainingInFuture
+            ? "Indisponível para treinos futuros."
+            : null,
+        },
+        {
+          value: "cancelled",
+          title: "Cancelado",
+          description:
+            "Treino não ocorrerá; informe os envolvidos quando necessário.",
+          icon: "event_busy",
+        },
+      ];
+    },
     // Verifica se o treino está salvo (tem ID)
     isTrainingSaved() {
       return this.form.id && this.form.id > 0;
@@ -466,8 +606,8 @@ export default {
         return this.internalStep;
       },
       set(newStep) {
-        // Validar se pode acessar a etapa
-        if (newStep > 0 && !this.isTrainingSaved) {
+        // Marcação dos Scouts só após salvar o treino
+        if (newStep > 2 && !this.isTrainingSaved) {
           confirmError(
             "Ação não permitida!",
             "Você precisa salvar as informações básicas do treino antes de acessar as etapas de Lista de Presença e Scouts. Por favor, salve o treino primeiro."
@@ -477,10 +617,12 @@ export default {
         this.internalStep = newStep;
       },
     },
-    // Steps dinâmicos com validação
+    // Steps dinâmicos com validação (índices alinhados a #step-content-N)
     steps() {
       return [
         { label: "Informações Essenciais" },
+        { label: "Fundamentos" },
+        { label: "Relacionar times" },
         {
           label: "Lista de Presença",
           disabled: !this.isTrainingSaved,
@@ -490,6 +632,9 @@ export default {
           disabled: !this.isTrainingSaved,
         },
       ];
+    },
+    lastStepIndex() {
+      return Math.max(0, this.steps.length - 1);
     },
   },
 
@@ -534,7 +679,7 @@ export default {
                   (existing.playerId &&
                     existing.playerId === newConfirmation.playerId) ||
                   (existing.player?.id &&
-                    existing.player?.id === newConfirmation.player?.id)
+                    existing.player?.id === newConfirmation.player?.id),
               );
 
               if (existingConfirmation) {
@@ -562,7 +707,7 @@ export default {
 
               // Caso contrário, usar os novos dados
               return newConfirmation;
-            }
+            },
           );
         } else if (
           val.confirmationsTraining &&
@@ -588,28 +733,33 @@ export default {
             Array.isArray(val.teams) && val.teams.length > 0
               ? val.teams
               : isFormInitialized &&
-                Array.isArray(existingTeams) &&
-                existingTeams.length > 0
-              ? existingTeams
-              : [],
+                  Array.isArray(existingTeams) &&
+                  existingTeams.length > 0
+                ? existingTeams
+                : [],
           fundamentals:
             Array.isArray(val.fundamentals) && val.fundamentals.length > 0
               ? val.fundamentals
               : isFormInitialized &&
-                Array.isArray(existingFundamentals) &&
-                existingFundamentals.length > 0
-              ? existingFundamentals
-              : [],
+                  Array.isArray(existingFundamentals) &&
+                  existingFundamentals.length > 0
+                ? existingFundamentals
+                : [],
           specificFundamentals:
             Array.isArray(val.specificFundamentals) &&
             val.specificFundamentals.length > 0
               ? val.specificFundamentals
               : isFormInitialized &&
-                Array.isArray(existingSpecificFundamentals) &&
-                existingSpecificFundamentals.length > 0
-              ? existingSpecificFundamentals
-              : [],
+                  Array.isArray(existingSpecificFundamentals) &&
+                  existingSpecificFundamentals.length > 0
+                ? existingSpecificFundamentals
+                : [],
         };
+
+        this.$nextTick(() => {
+          this.refreshSpecificFundamentalsCatalog();
+          this.syncStepFromRoute();
+        });
       },
       immediate: false,
     },
@@ -628,14 +778,17 @@ export default {
     },
   },
 
-  mounted() {
+  async mounted() {
+    this.$nextTick(() => this.syncStepFromRoute());
+    await this.fetchAllFundamentalsCatalog();
+    await this.refreshSpecificFundamentalsCatalog();
     this.$nextTick(() => this.syncStepFromRoute());
   },
 
   methods: {
     /**
-     * Abre o passo indicado por ?step= na URL (0, 1 ou 2).
-     * Compat: ?step=3 do fluxo antigo abre a Lista de Presença (passo 1).
+     * Abre o passo indicado por ?step= na URL (0 a N-1).
+     * Compat: ?step=3 do fluxo antigo (Lista de Presença) → passo 3 no fluxo atual.
      */
     syncStepFromRoute() {
       const raw = this.$route?.query?.step;
@@ -646,14 +799,11 @@ export default {
       if (Number.isNaN(step)) {
         return;
       }
-      if (step === 3) {
-        step = 1;
-      }
       const max = this.steps.length - 1;
       if (step < 0 || step > max) {
         return;
       }
-      if (step > 0 && !this.isTrainingSaved) {
+      if (step > 2 && !this.isTrainingSaved) {
         return;
       }
       this.internalStep = step;
@@ -682,7 +832,7 @@ export default {
       // Validação específica para arrays
       console.log(
         "DEBUG - validateRequiredFields: Teams no form:",
-        this.form.teams
+        this.form.teams,
       );
       if (!this.form.teams || this.form.teams.length === 0) {
         console.log("DEBUG - validateRequiredFields: Time está vazio!");
@@ -693,8 +843,8 @@ export default {
         confirmError(
           "Campos obrigatórios não preenchidos!",
           `Por favor, preencha os seguintes campos antes de salvar: ${missingFields.join(
-            ", "
-          )}`
+            ", ",
+          )}`,
         );
         return false;
       }
@@ -706,17 +856,19 @@ export default {
       this.$router.push("/trainings");
     },
     handleNextStep() {
-      // Se está tentando ir para as etapas 2 ou 3, valida se o treino está salvo
-      if (this.controlledStep === 0 && !this.isTrainingSaved) {
-        confirmError(
-          "Ação não permitida!",
-          "Você precisa salvar as informações básicas do treino antes de acessar as etapas de Lista de Presença e Scouts. Por favor, salve o treino primeiro."
-        );
-        return;
-      }
-      if (this.controlledStep < this.steps.length - 1) {
+      if (this.controlledStep < this.lastStepIndex) {
         this.controlledStep = this.controlledStep + 1;
       }
+    },
+    async handleSaveClick() {
+      if (!this.validateRequiredFields()) {
+        return;
+      }
+      if (!this.isTrainingSaved) {
+        this.$emit("saveAndContinue", this.form);
+        return;
+      }
+      await this.saveScoutsOnly();
     },
     handlePrevStep() {
       if (this.controlledStep > 0) {
@@ -777,7 +929,7 @@ export default {
         teamsToAdd = this.teams
           .filter(
             (item) =>
-              item && typeof item === "object" && item.value !== undefined
+              item && typeof item === "object" && item.value !== undefined,
           )
           .map((item) => ({
             id: item.value,
@@ -799,7 +951,7 @@ export default {
       // Adicionar apenas times que ainda não foram adicionados
       teamsToAdd.forEach((newTeam) => {
         const isAlreadyAdded = this.form.teams.some(
-          (existingTeam) => existingTeam.id === newTeam.id
+          (existingTeam) => existingTeam.id === newTeam.id,
         );
 
         if (!isAlreadyAdded) {
@@ -820,7 +972,7 @@ export default {
         if (this.teamPlayersCache[teamId]) {
           this.addTeamPlayersToConfirmations(
             this.teamPlayersCache[teamId],
-            teamId
+            teamId,
           );
           return;
         }
@@ -843,7 +995,7 @@ export default {
             // Adicionar jogadores à lista de confirmações
             this.addTeamPlayersToConfirmations(
               result.data.team.players,
-              teamId
+              teamId,
             );
           }
         });
@@ -872,7 +1024,7 @@ export default {
         const alreadyExists = this.form.confirmationsTraining.some(
           (confirmation) =>
             confirmation.player?.id === player.id &&
-            confirmation.teamId === teamId
+            confirmation.teamId === teamId,
         );
 
         if (!alreadyExists) {
@@ -903,12 +1055,9 @@ export default {
       });
     },
 
-    addFundamentals() {
-      const transformedfundamentals = this.fundamentals.map((item) => {
-        return {
-          id: item.value,
-          fundamental: item.text,
-        };
+    actionDeletePosition(id) {
+      this.form.positions = this.form.positions.filter((position) => {
+        return position.id !== id;
       });
 
       transformedfundamentals.forEach((newFundamental) => {
@@ -998,7 +1147,7 @@ export default {
 
       transformedPlayers.forEach((newPlayer) => {
         const isAlreadyAdded = this.form.players.some(
-          (existingPlayer) => existingPlayer.id === newPlayer.id
+          (existingPlayer) => existingPlayer.id === newPlayer.id,
         );
 
         if (!isAlreadyAdded) {
@@ -1019,7 +1168,7 @@ export default {
 
       transformedScouts.forEach((newScout) => {
         const isAlreadyAdded = this.form.scouts.some(
-          (existingScout) => existingScout.id === newScout.id
+          (existingScout) => existingScout.id === newScout.id,
         );
 
         if (!isAlreadyAdded) {
@@ -1058,7 +1207,7 @@ export default {
 
       const teamIds = this.form.teams.map((t) => parseInt(t.id));
       return this.form.confirmationsTraining.filter(
-        (ct) => ct.teamId && teamIds.includes(parseInt(ct.teamId))
+        (ct) => ct.teamId && teamIds.includes(parseInt(ct.teamId)),
       );
     },
 
@@ -1087,7 +1236,7 @@ export default {
 
       if (!this.form.id) {
         confirmError(
-          "O treino precisa ser salvo antes de adicionar jogadores avulsos."
+          "O treino precisa ser salvo antes de adicionar jogadores avulsos.",
         );
         return;
       }
@@ -1100,7 +1249,7 @@ export default {
             (item) =>
               item &&
               typeof item === "object" &&
-              (item.value !== undefined || item.id !== undefined)
+              (item.value !== undefined || item.id !== undefined),
           )
           .map((item) => ({
             id: parseInt(item.value || item.id),
@@ -1115,7 +1264,7 @@ export default {
         this.standalonePlayers !== null
       ) {
         const playerId = parseInt(
-          this.standalonePlayers.value || this.standalonePlayers.id || 0
+          this.standalonePlayers.value || this.standalonePlayers.id || 0,
         );
 
         if (!isNaN(playerId) && playerId > 0) {
@@ -1148,7 +1297,7 @@ export default {
 
       if (newPlayerIds.length === 0) {
         confirmError(
-          "Todos os jogadores selecionados já foram adicionados anteriormente."
+          "Todos os jogadores selecionados já foram adicionados anteriormente.",
         );
         return;
       }
@@ -1268,7 +1417,7 @@ export default {
           // Filtrar apenas os jogadores avulsos (sem teamId) retornados
           const standaloneConfirmations =
             data.trainingEdit.confirmationsTraining.filter(
-              (ct) => !ct.teamId || ct.teamId === null
+              (ct) => !ct.teamId || ct.teamId === null,
             );
 
           // Atualizar a lista local: manter jogadores do time e atualizar jogadores avulsos
@@ -1278,7 +1427,7 @@ export default {
 
           // Separar jogadores do time e jogadores avulsos
           const teamPlayers = this.form.confirmationsTraining.filter(
-            (ct) => ct.teamId && ct.teamId !== null
+            (ct) => ct.teamId && ct.teamId !== null,
           );
 
           // Combinar jogadores do time com os jogadores avulsos retornados
@@ -1297,7 +1446,7 @@ export default {
         this.standalonePlayers = [];
 
         confirmSuccess(
-          `${newPlayerIds.length} jogador(es) avulso(s) adicionado(s) com sucesso!`
+          `${newPlayerIds.length} jogador(es) avulso(s) adicionado(s) com sucesso!`,
         );
 
         // Emitir refresh para atualizar os dados
@@ -1305,7 +1454,7 @@ export default {
       } catch (error) {
         console.error("Erro ao adicionar jogadores avulsos:", error);
         confirmError(
-          "Ocorreu um erro ao adicionar os jogadores avulsos. Tente novamente."
+          "Ocorreu um erro ao adicionar os jogadores avulsos. Tente novamente.",
         );
       }
     },
@@ -1316,14 +1465,6 @@ export default {
       });
 
       confirmSuccess("Scout removido com sucesso!");
-    },
-
-    messageSpecificFundamental() {
-      if (!this.form.fundamentals.length) {
-        return "Selecione um Fundamento para habilitar este campo";
-      }
-
-      return "";
     },
 
     async save() {
@@ -1354,7 +1495,7 @@ export default {
           await this.$refs.listRelationPlayersWithScoutsRef.forceSaveAllScouts();
         } else {
           console.log(
-            "DEBUG - saveScoutsOnly: forceSaveAllScouts não disponível"
+            "DEBUG - saveScoutsOnly: forceSaveAllScouts não disponível",
           );
         }
 
@@ -1527,10 +1668,11 @@ export default {
 .training-form-card {
   width: 100%;
   max-width: 800px;
-  padding: 20px;
-  background-color: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 0;
+  background-color: transparent;
+  border-radius: 12px;
+  box-shadow: none;
+  border: none;
 }
 
 /* Quando estiver na etapa 3 (scouts), expandir para usar toda a largura */
@@ -1543,11 +1685,68 @@ export default {
   border: none !important;
 }
 
+.training-step-card {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 32px 28px;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e5e7eb;
+}
+
+.training-step-card + .training-step-card {
+  margin-top: 20px;
+}
+
+.training-form-card :deep(.va-input-wrapper__label) {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  color: #6b7280 !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
+}
+
+.training-form-card :deep(.va-input-wrapper__label *) {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  font-size: inherit !important;
+  font-weight: inherit !important;
+  letter-spacing: inherit !important;
+  text-transform: inherit !important;
+  color: inherit !important;
+}
+
+.training-form-card :deep(.va-input-wrapper input),
+.training-form-card :deep(.va-input-wrapper textarea) {
+  font-size: 14px !important;
+  font-weight: 500 !important;
+}
+
 .section-title {
   font-size: 18px;
-  font-weight: bold;
-  color: #0b1e3a;
+  font-weight: 600;
+  color: #111827;
   margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.section-title::before {
+  content: "";
+  width: 4px;
+  height: 24px;
+  background: #ff4e1b;
+  border-radius: 2px;
 }
 
 .subsection-title {
@@ -1558,6 +1757,200 @@ export default {
   margin-bottom: 16px;
   padding-bottom: 8px;
   border-bottom: 1px solid #e9ecef;
+}
+
+.fundamental-section-hint {
+  margin-top: -6px;
+  margin-bottom: 12px;
+}
+
+.fundamentals-loading {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.25rem 0 1rem;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.fundamental-pick-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  align-items: stretch;
+}
+
+.fundamental-pick-card {
+  min-width: 0;
+  width: 100%;
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition:
+    border-color 0.2s,
+    background-color 0.2s,
+    box-shadow 0.2s;
+  outline: none;
+}
+
+.fundamental-pick-card:focus-visible {
+  outline: 2px solid #ff4e1b;
+  outline-offset: 2px;
+}
+
+.fundamental-pick-card--selected {
+  background-color: #fff4ec;
+  border-color: #ff4e1b;
+  box-shadow: 0 0 0 1px rgba(255, 78, 27, 0.2);
+}
+
+.fundamental-pick-card-icon {
+  flex-shrink: 0;
+}
+
+.fundamental-pick-card-title {
+  font-weight: 600;
+  font-size: 13px;
+  color: #4b5563;
+  line-height: 1.35;
+}
+
+.fundamental-pick-card--selected .fundamental-pick-card-title {
+  color: #111827;
+}
+
+.fundamental-specific-heading {
+  font-size: 15px;
+  font-weight: 600;
+  color: #0b1e3a;
+  margin: 8px 0 0 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.fundamental-empty-hint {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0 0 8px 0;
+  line-height: 1.45;
+}
+
+.training-status-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.training-status-wrapper--error .training-status-card {
+  border-color: #fecaca;
+}
+
+.training-status-grid {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.training-status-card {
+  flex: 1 1 160px;
+  min-width: 140px;
+  max-width: 260px;
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+  transition:
+    border-color 0.2s,
+    background-color 0.2s,
+    box-shadow 0.2s;
+  outline: none;
+}
+
+.training-status-card:focus-visible {
+  outline: 2px solid #ff4e1b;
+  outline-offset: 2px;
+}
+
+.training-status-card--selected {
+  background-color: #fff4ec;
+  border-color: #ff4e1b;
+  box-shadow: 0 0 0 1px rgba(255, 78, 27, 0.2);
+}
+
+.training-status-card.training-status-card--error:not(
+    .training-status-card--selected
+  ) {
+  border-color: #e53e3e;
+  background-color: #fef2f2;
+}
+
+.training-status-card-icon {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.training-status-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.training-status-title {
+  font-weight: 600;
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0 0 2px 0;
+  line-height: 1.3;
+  transition: color 0.2s;
+}
+
+.training-status-card--selected .training-status-title {
+  color: #111827;
+}
+
+.training-status-card--disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.training-status-card--disabled:focus-visible {
+  outline: none;
+}
+
+.training-status-disabled-reason {
+  font-size: 10px;
+  color: #e53e3e;
+  margin: 3px 0 0 0;
+  line-height: 1.3;
+}
+
+.training-status-description {
+  font-size: 11px;
+  color: #9ca3af;
+  margin: 0;
+  line-height: 1.35;
+}
+
+.training-status-error-message {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #e53e3e;
+  margin-top: 4px;
 }
 
 .subsection-description {
@@ -1600,7 +1993,7 @@ export default {
   font-size: 11px;
   font-weight: 500;
   display: inline-block;
-  background-color: #e9742b;
+  background-color: #ff4e1b;
   color: white;
   line-height: 1.3;
 }
@@ -1612,10 +2005,10 @@ export default {
 }
 
 .step-content {
-  padding: 20px 0;
+  padding: 12px 0;
 }
 
-/* Etapa 3 - Usar toda a largura disponível */
+/* Etapa Marcação dos Scouts - largura total */
 .step-content-full-width {
   padding: 0;
   width: 100%;
@@ -1623,7 +2016,7 @@ export default {
   margin: 0;
 }
 
-/* Ajustar o stepper quando estiver na etapa 3 */
+/* Ajustar o stepper na etapa de Marcação dos Scouts (última) */
 .training-form-card-full-width .va-stepper {
   padding: 0 20px;
   margin-bottom: 0;
@@ -1666,7 +2059,7 @@ export default {
   content: "";
   width: 4px;
   height: 20px;
-  background: #e9742b;
+  background: #ff4e1b;
   border-radius: 2px;
 }
 
@@ -1699,7 +2092,7 @@ export default {
   width: 20px;
   height: 20px;
   cursor: pointer;
-  accent-color: #e9742b;
+  accent-color: #ff4e1b;
   flex-shrink: 0;
 }
 
@@ -1730,9 +2123,8 @@ export default {
 }
 
 @media (max-width: 768px) {
-  .metrics-cards {
-    grid-template-columns: 1fr;
-    gap: 16px;
+  .fundamental-pick-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .action-buttons {
@@ -1744,6 +2136,12 @@ export default {
   .action-buttons va-button {
     width: 100%;
     min-width: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .fundamental-pick-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>

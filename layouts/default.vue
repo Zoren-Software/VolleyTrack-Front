@@ -172,6 +172,7 @@ import ZListItemsNotification from "~/components/organisms/List/Notification/ZLi
 import NOTIFICATIONSTOTAL from "~/graphql/notification/query/notificationsTotal.graphql";
 import ME from "~/graphql/user/query/me.graphql";
 import { getActivePlan } from "~/services/stripeCheckoutService.js";
+import { version as appVersion } from "~/package.json";
 
 export default {
   components: {
@@ -188,6 +189,8 @@ export default {
         { title: "Pagamentos", link: "/payment", icon: "payments" },
       ],
       dropdownOpen: false,
+      sidebarCollapsed: false,
+      sidebarMobileOpen: false,
       totalNotifications: 0,
       paginatorInfo: {},
       user: {
@@ -196,6 +199,7 @@ export default {
         roles: [],
       },
       activePlanData: null,
+      appVersion,
     };
   },
   computed: {
@@ -293,7 +297,7 @@ export default {
       const productName = (product.name || "").toLowerCase();
       if (productName.includes("trial")) {
         console.log(
-          "✅ activePlanIcon retornando: card_giftcard (detectado pelo nome)"
+          "✅ activePlanIcon retornando: card_giftcard (detectado pelo nome)",
         );
         return "card_giftcard";
       }
@@ -303,7 +307,7 @@ export default {
       }
       if (productName.includes("clubes") || productName.includes("clube")) {
         console.log(
-          "✅ activePlanIcon retornando: emoji_events (detectado pelo nome)"
+          "✅ activePlanIcon retornando: emoji_events (detectado pelo nome)",
         );
         return "emoji_events";
       }
@@ -312,7 +316,7 @@ export default {
         productName.includes("lifetime")
       ) {
         console.log(
-          "✅ activePlanIcon retornando: diamond (detectado pelo nome)"
+          "✅ activePlanIcon retornando: diamond (detectado pelo nome)",
         );
         return "diamond";
       }
@@ -431,6 +435,96 @@ export default {
 
       return items;
     },
+    breadcrumbs() {
+      const path = this.$route?.path || "/";
+      const items = [{ label: "Home", to: "/" }];
+
+      if (path === "/" || path === "") {
+        return items;
+      }
+
+      const labelMap = {
+        players: "Jogadores",
+        teams: "Times",
+        trainings: "Treinos",
+        payment: "Pagamentos",
+        settings: "Configurações",
+        notifications: "Notificações",
+        billing: "Faturamentos",
+        account: "Conta",
+        scout: "Scout",
+        "active-plan": "Plano ativo",
+        "tenant-deleted": "Conta removida",
+        "payment-test": "Teste de pagamento",
+        login: "Entrar",
+        create: "Novo",
+        edit: "Editar",
+        success: "Sucesso",
+        cancel: "Cancelamento",
+        swap: "Troca de plano",
+        "set-password": "Definir senha",
+      };
+
+      const isIdSegment = (s) =>
+        /^\d+$/.test(s) ||
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+          s,
+        );
+
+      const formatFallback = (s) =>
+        s.length
+          ? s.charAt(0).toUpperCase() + s.slice(1).replace(/-/g, " ")
+          : s;
+
+      const parts = path.split("/").filter(Boolean);
+      let i = 0;
+
+      while (i < parts.length) {
+        const seg = parts[i];
+
+        if (
+          seg === "edit" &&
+          i + 1 < parts.length &&
+          isIdSegment(parts[i + 1])
+        ) {
+          items.push({
+            label: labelMap.edit,
+            to: path.split("?")[0],
+          });
+          i += 2;
+          continue;
+        }
+
+        if (seg === "create") {
+          const subpath = `/${parts.slice(0, i + 1).join("/")}`;
+          items.push({
+            label: labelMap.create,
+            to: subpath,
+          });
+          i += 1;
+          continue;
+        }
+
+        if (isIdSegment(seg)) {
+          i += 1;
+          continue;
+        }
+
+        const subpath = `/${parts.slice(0, i + 1).join("/")}`;
+        items.push({
+          label: labelMap[seg] || formatFallback(seg),
+          to: subpath,
+        });
+        i += 1;
+      }
+
+      return items;
+    },
+  },
+  watch: {
+    $route() {
+      this.closeMobileSidebar();
+    },
   },
   mounted() {
     this.notificationsTotal();
@@ -438,6 +532,9 @@ export default {
     this.loadActivePlan();
     // Fechar dropdown ao clicar fora
     document.addEventListener("click", this.handleClickOutside);
+    // Restaurar estado colapsado da sidebar
+    const saved = localStorage.getItem("sidebarCollapsed");
+    if (saved !== null) this.sidebarCollapsed = saved === "true";
   },
   beforeUnmount() {
     document.removeEventListener("click", this.handleClickOutside);
@@ -633,6 +730,16 @@ export default {
         console.error("❌ Erro ao carregar plano ativo no menu:", error);
       }
     },
+    toggleSidebar() {
+      this.sidebarCollapsed = !this.sidebarCollapsed;
+      localStorage.setItem("sidebarCollapsed", String(this.sidebarCollapsed));
+    },
+    toggleMobileSidebar() {
+      this.sidebarMobileOpen = !this.sidebarMobileOpen;
+    },
+    closeMobileSidebar() {
+      this.sidebarMobileOpen = false;
+    },
   },
 };
 </script>
@@ -655,7 +762,8 @@ export default {
   border-right: 1px solid #1e3a5f;
   padding: 20px 16px;
   box-sizing: border-box;
-  z-index: 1000;
+  z-index: 999;
+  flex-shrink: 0;
 }
 
 .sidebar-brand {
@@ -841,10 +949,58 @@ button.sidebar-link {
   user-select: none;
 }
 
+.breadcrumb-list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+  line-height: 1.3;
+  min-width: 0;
+}
+
+.breadcrumb-item {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+}
+
+.breadcrumb-link {
+  color: #6b7280;
+  text-decoration: none;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+.breadcrumb-link:hover {
+  color: #ff4e1b;
+}
+
+.breadcrumb-current {
+  color: #0b1e3a;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 280px;
+}
+
+.breadcrumb-sep {
+  color: #d1d5db;
+  margin: 0 8px;
+  font-weight: 500;
+  user-select: none;
+}
+
 .logo {
   display: flex;
   align-items: center;
-  gap: 12px;
   position: relative;
 }
 
@@ -880,7 +1036,12 @@ button.sidebar-link {
   justify-content: center;
   margin-left: 4px;
   visibility: visible !important;
-  opacity: 1 !important;
+  opacity: 1;
+  max-width: 40px;
+  overflow: hidden;
+  transition:
+    opacity 0.15s cubic-bezier(0.4, 0, 0.2, 1),
+    max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .plan-icon-wrapper {
@@ -920,7 +1081,9 @@ button.sidebar-link {
   min-width: 200px;
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.2s ease, visibility 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    visibility 0.2s ease;
   pointer-events: none;
   z-index: 1000;
 }

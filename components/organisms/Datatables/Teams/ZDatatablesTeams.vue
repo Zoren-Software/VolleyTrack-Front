@@ -390,6 +390,53 @@ export default defineComponent({
       }
       return "bar_chart";
     },
+    normalizePlayers(players) {
+      if (!players) return [];
+      return Array.isArray(players) ? players : [players].filter(Boolean);
+    },
+    openTeamPlayersModal(rowKey) {
+      this.teamPlayersModalList = this.normalizePlayers(rowKey?.players);
+      this.teamPlayersModalTeamLabel = rowKey?.name || "";
+      this.showTeamPlayersModal = true;
+    },
+    getTeamLevelIconName(teamLevel) {
+      const raw = (teamLevel?.name || "").trim();
+      if (!raw) {
+        return "help_outline";
+      }
+      const n = raw
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+      if (n.includes("sem nivel")) {
+        return "help_outline";
+      }
+      if (n.includes("ouro") || n.includes("gold")) {
+        return "workspace_premium";
+      }
+      if (n.includes("prata") || n.includes("silver")) {
+        return "grade";
+      }
+      if (n.includes("bronze")) {
+        return "shield";
+      }
+      if (n.includes("iniciante")) {
+        return "fitness_center";
+      }
+      if (n.includes("intermediario")) {
+        return "trending_flat";
+      }
+      if (n.includes("avancado") || n.includes("elite")) {
+        return "trending_up";
+      }
+      if (n.includes("juvenil")) {
+        return "child_care";
+      }
+      if (n.includes("adulto")) {
+        return "groups";
+      }
+      return "bar_chart";
+    },
     async deleteItems(ids) {
       try {
         this.loading = true;

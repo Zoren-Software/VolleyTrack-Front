@@ -240,133 +240,53 @@
                 <p class="step-description">
                   Adicione os jogadores da sua equipe.
                 </p>
-              </div>
-              <div class="step-actions">
-                <span
-                  v-if="steps.registerPlayers.completed"
-                  class="status-badge status-completed"
-                >
-                  Concluído
-                </span>
                 <va-button
                   v-else
                   color="#FF4E1B"
                   size="small"
                   @click="navigateTo('/players')"
                 >
-                  Editar
+                  <va-icon name="send" class="dashboard-hero__cta-icon" />
+                  <span>Começar Configuração</span>
                 </va-button>
               </div>
-            </div>
-
-            <!-- Step 2: Times -->
-            <div
-              class="step-item"
-              :class="{ completed: steps.registerTeams.completed }"
-            >
-              <div class="step-icon-wrapper">
-                <va-icon
-                  v-if="steps.registerTeams.completed"
-                  name="check_circle"
-                  color="#28A745"
-                  size="20px"
-                />
-                <va-icon
-                  v-else-if="steps.registerTeams.inProgress"
-                  name="hourglass_empty"
-                  color="#1976D2"
-                  size="20px"
-                />
-                <va-icon
-                  v-else
-                  name="radio_button_unchecked"
-                  color="#9E9E9E"
-                  size="20px"
-                />
-              </div>
-              <div class="step-content">
-                <h3 class="step-title">Registrar Times</h3>
-                <p class="step-description">Organize seus times.</p>
-              </div>
-              <div class="step-actions">
-                <span
-                  v-if="steps.registerTeams.completed"
-                  class="status-badge status-completed"
-                >
-                  Concluído
-                </span>
-                <template v-else-if="steps.registerTeams.inProgress">
-                  <span class="status-badge status-in-progress">
-                    Em andamento
-                  </span>
-                  <va-button
-                    color="#1976D2"
-                    size="small"
-                    @click="navigateTo('/teams')"
-                    style="margin-left: 8px"
-                  >
-                    Continuar
-                  </va-button>
-                </template>
-                <span v-else class="status-badge status-pending">
-                  <va-icon name="warning" size="small" />
-                  Pendente
-                </span>
+              <div class="dashboard-hero__visual" aria-hidden="true">
+                <div class="hero-decoration hero-decoration--1">
+                  <va-icon name="sports_volleyball" size="24px" />
+                </div>
+                <div class="hero-decoration hero-decoration--2">
+                  <va-icon name="fitness_center" size="22px" />
+                </div>
+                <div class="hero-decoration hero-decoration--3">
+                  <va-icon name="emoji_events" size="22px" />
+                </div>
+                <div class="hero-decoration hero-decoration--4">
+                  <va-icon name="groups" size="22px" />
+                </div>
+                <div class="hero-main-ball">
+                  <va-icon name="sports_volleyball" size="72px" />
+                </div>
               </div>
             </div>
+          </section>
 
-            <!-- Step 3: Treinos -->
-            <div
-              class="step-item"
-              :class="{ completed: steps.registerTrainings.completed }"
-            >
-              <div class="step-icon-wrapper">
-                <va-icon
-                  v-if="steps.registerTrainings.completed"
-                  name="check_circle"
-                  color="#28A745"
-                  size="20px"
-                />
-                <va-icon
-                  v-else-if="steps.registerTrainings.inProgress"
-                  name="hourglass_empty"
-                  color="#1976D2"
-                  size="20px"
-                />
-                <va-icon
-                  v-else
-                  name="radio_button_unchecked"
-                  color="#9E9E9E"
-                  size="20px"
-                />
+          <!-- Totais do clube (layout dashboard) -->
+          <div class="totals-section">
+            <div class="total-card total-card--trainings">
+              <div class="total-icon">
+                <va-icon name="event" size="26px" color="#FF4E1B" />
               </div>
-              <div class="step-content">
-                <h3 class="step-title">Registrar Treinos</h3>
-                <p class="step-description">Planeje e registre os treinos.</p>
-              </div>
-              <div class="step-actions">
-                <span
-                  v-if="steps.registerTrainings.completed"
-                  class="status-badge status-completed"
-                >
-                  Concluído
-                </span>
-                <template v-else-if="steps.registerTrainings.inProgress">
-                  <span class="status-badge status-in-progress">
-                    Em andamento
-                  </span>
-                  <va-button
-                    color="#1976D2"
-                    size="small"
-                    @click="navigateTo('/trainings')"
-                    style="margin-left: 8px"
+              <div class="total-info">
+                <div class="total-label">Total de treinos</div>
+                <div class="total-number">
+                  {{ totalTrainings || 0
+                  }}<span
+                    v-if="showPlanLimits && planLimits.maxTrainings"
+                    class="plan-limit"
                   >
-                    Continuar
-                  </va-button>
-                </template>
-                <template v-else>
-                  <span class="status-badge status-waiting"> Aguardando </span>
-                </template>
+                    / {{ planLimits.maxTrainings }}</span
+                  >
+                </div>
               </div>
             </div>
           </div>
@@ -498,6 +418,17 @@ export default {
     }
     this.checkConfigurationStatus();
     this.loadActivePlan();
+    const msUntilNextMinute = (60 - new Date().getSeconds()) * 1000;
+    this._clockTimeout = setTimeout(() => {
+      this.now = new Date();
+      this._clockTimer = setInterval(() => {
+        this.now = new Date();
+      }, 60000);
+    }, msUntilNextMinute);
+  },
+  beforeUnmount() {
+    clearTimeout(this._clockTimeout);
+    clearInterval(this._clockTimer);
   },
   watch: {
     progressPercentage(newValue) {
@@ -626,6 +557,7 @@ export default {
     return {
       token: "",
       user: {},
+      now: new Date(),
       loading: false,
       totalUsers: 0,
       totalTeams: 0,

@@ -137,6 +137,12 @@ export default defineComponent({
     };
   },
 
+  computed: {
+    hasSearchFilterCriteria() {
+      return this.read === true;
+    },
+  },
+
   methods: {
     parseData(rowKeyData) {
       try {

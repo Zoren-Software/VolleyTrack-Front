@@ -87,7 +87,7 @@ export default {
 }
 
 .metrics-card-header {
-  background: linear-gradient(135deg, #e9742b 0%, #ff6b35 100%);
+  background: linear-gradient(135deg, #FF4E1B 0%, #ff6b35 100%);
   padding: 16px 20px;
 }
 

@@ -201,7 +201,7 @@ export default {
         },
         () => {
           // Você pode adicionar qualquer lógica adicional para o caso de cancelamento aqui
-        }
+        },
       );
     },
   },

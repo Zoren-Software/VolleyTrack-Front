@@ -822,27 +822,6 @@ export default {
   font-weight: 700;
 }
 
-.link-action {
-  margin: 0;
-  padding: 0;
-  border: none;
-  background: none;
-  font: inherit;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-
-.link-action--muted {
-  color: #64748b;
-}
-
-.link-action--muted:hover {
-  color: #0f172a;
-}
-
 .row-actions {
   display: flex;
   align-items: center;

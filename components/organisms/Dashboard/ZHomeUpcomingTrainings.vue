@@ -419,5 +419,4 @@ export default {
 .see-all-btn :deep(.va-button__content) {
   gap: 6px;
 }
-
 </style>

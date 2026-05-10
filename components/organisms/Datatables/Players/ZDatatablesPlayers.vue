@@ -274,6 +274,7 @@ import ZUser from "~/components/molecules/Datatable/Slots/ZUser";
 import ZPosition from "~/components/molecules/Datatable/Slots/ZPosition";
 import ZCPF from "~/components/molecules/Datatable/Slots/ZCPF";
 import USERDELETE from "~/graphql/user/mutation/userDelete.graphql";
+import USERRESENDVERIFICATIONEMAIL from "~/graphql/user/mutation/userResendVerificationEmail.graphql";
 import ROLES from "~/graphql/role/query/roles.graphql";
 import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
 
@@ -383,7 +384,7 @@ export default defineComponent({
   methods: {
     unselectItem(item) {
       this.selectedItems = this.selectedItems.filter(
-        (selectedItem) => selectedItem !== item
+        (selectedItem) => selectedItem !== item,
       );
     },
     openTeamsListModal(rowKey) {
@@ -423,6 +424,26 @@ export default defineComponent({
     },
     addPlayer() {
       this.$router.push("/players/create");
+    },
+    async resendVerificationEmail(id) {
+      try {
+        const query = gql`
+          ${USERRESENDVERIFICATIONEMAIL}
+        `;
+
+        const { mutate } = await useMutation(query, {
+          variables: { id },
+        });
+
+        await mutate();
+
+        confirmSuccess("E-mail de verificação reenviado com sucesso!");
+      } catch (error) {
+        const message =
+          error?.graphQLErrors?.[0]?.message ||
+          "Ocorreu um erro ao reenviar o e-mail de verificação.";
+        confirmError(message);
+      }
     },
     editPlayer(id) {
       this.$router.push(`/players/edit/${id}`);
@@ -481,18 +502,19 @@ export default defineComponent({
 
     async deletePlayer(id) {
       // Encontrar o nome do jogador para exibir na mensagem de confirmação
-      const player = this.items.find(item => item.id === id);
-      const playerName = player?.displayName || player?.name || `jogador #${id}`;
+      const player = this.items.find((item) => item.id === id);
+      const playerName =
+        player?.displayName || player?.name || `jogador #${id}`;
 
       const result = await Swal.fire({
-        title: 'Tem certeza?',
+        title: "Tem certeza?",
         html: `Você tem certeza que deseja deletar o jogador <strong>${playerName}</strong>? Esta ação não pode ser desfeita.`,
-        icon: 'warning',
+        icon: "warning",
         showCancelButton: true,
-        confirmButtonColor: '#dc3545',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Sim, deletar',
-        cancelButtonText: 'Cancelar',
+        confirmButtonColor: "#dc3545",
+        cancelButtonColor: "#6c757d",
+        confirmButtonText: "Sim, deletar",
+        cancelButtonText: "Cancelar",
         reverseButtons: true,
       });
 
@@ -503,14 +525,14 @@ export default defineComponent({
 
     async deletePlayers(items) {
       const result = await Swal.fire({
-        title: 'Tem certeza?',
+        title: "Tem certeza?",
         html: `Você tem certeza que deseja deletar <strong>${items.length} jogador(es)</strong>? Esta ação não pode ser desfeita.`,
-        icon: 'warning',
+        icon: "warning",
         showCancelButton: true,
-        confirmButtonColor: '#dc3545',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Sim, deletar',
-        cancelButtonText: 'Cancelar',
+        confirmButtonColor: "#dc3545",
+        cancelButtonColor: "#6c757d",
+        confirmButtonText: "Sim, deletar",
+        cancelButtonText: "Cancelar",
         reverseButtons: true,
       });
 
@@ -560,17 +582,17 @@ export default defineComponent({
 
       let positionsIdsValues =
         this.variablesGetPlayers.filter.positionsIds?.map(
-          (position) => position?.value || position
+          (position) => position?.value || position,
         ) || [];
 
       let teamsIdsValues =
         this.variablesGetPlayers.filter.teamsIds?.map(
-          (team) => team?.value || team
+          (team) => team?.value || team,
         ) || [];
 
       let rolesIdsValues =
         this.variablesGetPlayers.filter.rolesIds?.map(
-          (role) => role?.value || role?.id || role
+          (role) => role?.value || role?.id || role,
         ) || [];
 
       const consult = {
@@ -604,11 +626,11 @@ export default defineComponent({
       const cleaned = phone.replace(/\D/g, "");
       if (cleaned.length === 11) {
         return `(${cleaned.slice(0, 2)}) ${cleaned.slice(2, 7)}-${cleaned.slice(
-          7
+          7,
         )}`;
       } else if (cleaned.length === 10) {
         return `(${cleaned.slice(0, 2)}) ${cleaned.slice(2, 6)}-${cleaned.slice(
-          6
+          6,
         )}`;
       }
       return phone;
@@ -668,7 +690,7 @@ export default defineComponent({
             if (result?.data?.roles?.data) {
               // Procurar role "jogadores" (case insensitive)
               const jogadorRole = result.data.roles.data.find((role) =>
-                role.name.toLowerCase().includes("jogador")
+                role.name.toLowerCase().includes("jogador"),
               );
 
               if (jogadorRole) {
@@ -734,7 +756,9 @@ export default defineComponent({
   border: 2px solid white !important;
   background: #FF4E1B !important;
   color: white !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 1.3), 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 1.3),
+    0 1px 3px rgba(0, 0, 0, 0.08) !important;
 }
 
 /* Garantir que o tamanho seja aplicado corretamente */
