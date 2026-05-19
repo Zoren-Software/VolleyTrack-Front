@@ -95,6 +95,20 @@ export default defineNuxtConfig({
       // Credenciais de teste para login (apenas desenvolvimento)
       loginTestEmail: '',    // pode ser sobrescrito por NUXT_PUBLIC_LOGIN_TEST_EMAIL no .env
       loginTestPassword: '', // pode ser sobrescrito por NUXT_PUBLIC_LOGIN_TEST_PASSWORD no .env
+      // Testes: forçar faixa BR/US na listagem de planos e enviar headers no checkout (ex.: US + cartão BR)
+      volleytrackForcePricingIpCountry:
+        process.env.NUXT_PUBLIC_VOLLEYTRACK_FORCE_PRICING_IP_COUNTRY || '',
+      volleytrackForcePricingBillingCountry:
+        process.env.NUXT_PUBLIC_VOLLEYTRACK_FORCE_PRICING_BILLING_COUNTRY || '',
+      // Mesma ideia do apiEndpoint: process.env + .env (parsed) + fallback. Ignora string vazia.
+      privacyPolicyUrl: (() => {
+        const raw =
+          process.env.NUXT_PUBLIC_PRIVACY_POLICY_URL ||
+          env.NUXT_PUBLIC_PRIVACY_POLICY_URL ||
+          ''
+        const trimmed = String(raw).trim()
+        return trimmed || 'https://volleytrack.com/privacy-policy'
+      })(),
     }
   },
   vuestic: {

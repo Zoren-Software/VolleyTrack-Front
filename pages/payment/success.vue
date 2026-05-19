@@ -1,37 +1,81 @@
 <template>
-  <div class="list-page-container">
+  <div
+    class="list-page-container"
+    :class="{ 'list-page-container--failure': pageFailureMode }"
+  >
     <!-- Page Header -->
     <div class="page-header">
       <div class="header-content">
         <div>
-          <h1 class="page-title">Pagamento Realizado com Sucesso!</h1>
-          <p class="page-subtitle">
-            Obrigado pela sua compra. Você receberá um email de confirmação em
+          <h1 v-if="!pageFailureMode" class="page-title">
+            Pagamento realizado com sucesso!
+          </h1>
+          <h1 v-else class="page-title page-title--failure">
+            {{ failurePageTitle }}
+          </h1>
+          <p v-if="!pageFailureMode" class="page-subtitle">
+            Obrigado pela sua compra. Você receberá um e-mail de confirmação em
             breve.
+          </p>
+          <p v-else class="page-subtitle page-subtitle--failure">
+            {{ failurePageSubtitle }}
           </p>
         </div>
       </div>
     </div>
 
     <!-- Success Card -->
-    <div class="success-card">
-      <div class="success-icon">
-        <svg
-          width="80"
-          height="80"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
+    <div
+      class="success-card"
+      :class="{ 'success-card--failure': pageFailureMode }"
+    >
+      <template v-if="!loading">
+        <div
+          v-if="pageFailureMode"
+          class="hero-icon hero-icon--failure"
+          aria-hidden="true"
         >
-          <path
-            d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z"
-            stroke="#10b981"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>
-      </div>
+          <svg
+            class="hero-failure-mark"
+            width="96"
+            height="96"
+            viewBox="0 0 96 96"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <circle
+              cx="48"
+              cy="48"
+              r="40"
+              class="hero-failure-mark__ring"
+            />
+            <path
+              class="hero-failure-mark__x"
+              d="M38 38L58 58M58 38L38 58"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </div>
+        <div v-else class="hero-icon hero-icon--success">
+          <svg
+            class="hero-success-mark"
+            width="80"
+            height="80"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z"
+              stroke="#10b981"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </div>
+      </template>
 
       <!-- Loading State -->
       <div v-if="loading" class="loading-section">
@@ -42,12 +86,16 @@
         <p v-else>Carregando detalhes da assinatura...</p>
       </div>
 
-      <!-- Error State -->
-      <div v-else-if="error" class="error-section">
-        <div class="error-icon">⚠️</div>
-        <p>Erro ao carregar detalhes: {{ error }}</p>
-        <p class="error-note">
-          Mas não se preocupe, seu pagamento foi processado com sucesso!
+      <!-- Error State (falha ao carregar sessão) -->
+      <div v-else-if="error" class="failure-panel failure-panel--load">
+        <span class="failure-panel__badge">Erro ao carregar</span>
+        <h2 class="failure-panel__title">Não foi possível exibir os detalhes</h2>
+        <p class="failure-panel__text failure-panel__text--detail">
+          {{ error }}
+        </p>
+        <p class="failure-panel__text failure-panel__text--muted">
+          Se o pagamento foi concluído no Stripe, aguarde o e-mail de confirmação
+          ou atualize esta página.
         </p>
       </div>
 
@@ -61,17 +109,50 @@
         </p>
       </div>
 
-      <!-- Sync Error State -->
-      <div v-if="syncError" class="sync-error-section">
-        <div class="sync-error-icon">⚠️</div>
-        <p>Aviso: Erro na sincronização: {{ syncError }}</p>
-        <p class="sync-error-note">
-          Seu pagamento foi processado, mas pode haver um atraso na ativação.
+      <!-- Cartão / região Brasil (422 br_declared_non_br_card) -->
+      <div
+        v-if="syncError && regionalPricingBlocked"
+        class="failure-panel failure-panel--regional"
+        role="alert"
+      >
+        <span class="failure-panel__badge">Pagamento não concluído</span>
+        <h2 class="failure-panel__title">
+          Cartão não aceito para planos com preço no Brasil
+        </h2>
+        <p class="failure-panel__text">
+          Para assinaturas em real (R$), só aceitamos cartão emitido por bancos
+          <strong>no Brasil</strong>, alinhado à política de preços regionais.
+        </p>
+        <p class="failure-panel__text failure-panel__text--muted">
+          O valor foi estornado (ou será em breve). O retorno ao cartão depende
+          do seu banco — em geral, alguns dias úteis.
+        </p>
+        <div class="failure-panel__footer">
+          <span class="failure-panel__footer-label">Precisa de ajuda?</span>
+          <a
+            class="failure-panel__link"
+            href="mailto:support@volleytrack.com"
+          >support@volleytrack.com</a>
+        </div>
+      </div>
+
+      <!-- Outros erros de sincronização -->
+      <div v-else-if="syncError" class="failure-panel failure-panel--sync">
+        <span class="failure-panel__badge failure-panel__badge--soft">Sincronização</span>
+        <h2 class="failure-panel__title">
+          Não conseguimos finalizar a atualização da sua conta
+        </h2>
+        <p class="failure-panel__text failure-panel__text--detail">
+          {{ syncError }}
+        </p>
+        <p class="failure-panel__text failure-panel__text--muted">
+          Se o pagamento consta no Stripe, a ativação pode ocorrer em instantes.
+          Caso contrário, fale com o suporte.
         </p>
       </div>
 
-      <!-- Subscription Details -->
-      <div v-else class="subscription-details">
+      <!-- Subscription Details (somente sem erro de sync nem de carregamento) -->
+      <div v-if="!loading && !error && !syncError" class="subscription-details">
         <h3>Detalhes da Assinatura</h3>
         <div class="detail-item">
           <span class="label">Status:</span>
@@ -140,9 +221,7 @@
       </div>
 
       <div class="action-buttons">
-        <NuxtLink to="/payment" class="btn btn-primary">
-          Pagamentos
-        </NuxtLink>
+        <NuxtLink to="/payment" class="btn btn-primary"> Pagamentos </NuxtLink>
         <NuxtLink to="/billing" class="btn btn-secondary">
           Faturamentos
         </NuxtLink>
@@ -159,7 +238,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import {
   getCheckoutSession,
   getCurrentSessionId,
@@ -181,6 +260,37 @@ const loading = ref(true);
 const syncLoading = ref(false);
 const error = ref(null);
 const syncError = ref(null);
+const syncErrorCode = ref(null);
+
+/** Pagamento estornado por política de região (cartão não emitido no BR). */
+const regionalPricingBlocked = computed(
+  () => syncErrorCode.value === "br_declared_non_br_card",
+);
+
+/** Falha visível após carregar (sync ou detalhes da sessão). */
+const pageFailureMode = computed(
+  () => !loading.value && (!!syncError.value || !!error.value),
+);
+
+const failurePageTitle = computed(() => {
+  if (regionalPricingBlocked.value) {
+    return "Não foi possível ativar o plano";
+  }
+  if (syncError.value) {
+    return "Não foi possível concluir a ativação";
+  }
+  return "Não foi possível carregar esta página";
+});
+
+const failurePageSubtitle = computed(() => {
+  if (regionalPricingBlocked.value) {
+    return "A cobrança foi estornada. Para preços em real (R$), use um cartão emitido no Brasil — ou entre em contato com o suporte.";
+  }
+  if (syncError.value) {
+    return "Veja os detalhes abaixo. Se o pagamento apareceu no Stripe, aguarde alguns instantes ou fale com o suporte.";
+  }
+  return "Recarregue a página ou tente novamente em alguns minutos.";
+});
 
 // Função para formatar data
 const formatDate = (date) => {
@@ -209,7 +319,7 @@ const calculateNextBilling = (sessionData) => {
   // Se for subscription, calcular baseado no período
   if (sessionData.mode === "subscription" && sessionData.subscription) {
     const currentPeriodEnd = new Date(
-      sessionData.subscription.current_period_end * 1000
+      sessionData.subscription.current_period_end * 1000,
     );
     return currentPeriodEnd;
   }
@@ -231,6 +341,7 @@ const syncSessionData = async (sessionId) => {
     console.log("🔄 Sincronizando sessão com o banco de dados:", sessionId);
     syncLoading.value = true;
     syncError.value = null;
+    syncErrorCode.value = null;
 
     const result = await syncCheckoutSession(sessionId);
 
@@ -242,7 +353,7 @@ const syncSessionData = async (sessionId) => {
       // Se temos dados de sincronização, usar eles para atualizar as informações
       if (syncData.value.subscription) {
         const nextBilling = new Date(
-          syncData.value.subscription.current_period_end
+          syncData.value.subscription.current_period_end,
         );
         nextBillingDate.value = formatDate(nextBilling);
       }
@@ -252,10 +363,12 @@ const syncSessionData = async (sessionId) => {
     } else {
       console.warn("⚠️ Erro na sincronização:", result.error);
       syncError.value = result.error;
+      syncErrorCode.value = result.errorCode ?? null;
     }
   } catch (err) {
     console.error("❌ Erro ao sincronizar sessão:", err);
     syncError.value = err.message;
+    syncErrorCode.value = err.code ?? null;
     // Não bloquear a UI por erro de sincronização
   } finally {
     syncLoading.value = false;
@@ -268,6 +381,7 @@ const loadSessionData = async () => {
     loading.value = true;
     error.value = null;
     syncError.value = null;
+    syncErrorCode.value = null;
 
     // Obter session ID da URL
     const sessionId = getCurrentSessionId();
@@ -362,6 +476,14 @@ onMounted(async () => {
   max-width: 1400px;
   margin: 0 auto;
   width: 100%;
+  transition: background 0.25s ease;
+}
+
+.list-page-container--failure {
+  background: linear-gradient(180deg, #fff5f5 0%, #fafafa 42%, #ffffff 100%);
+  min-height: 100vh;
+  padding-top: 8px;
+  padding-bottom: 48px;
 }
 
 .page-header {
@@ -383,6 +505,11 @@ onMounted(async () => {
   line-height: 1.2;
 }
 
+.page-title--failure {
+  color: #b91c1c;
+  letter-spacing: -0.02em;
+}
+
 .page-subtitle {
   font-size: 16px;
   color: #6c757d;
@@ -390,24 +517,174 @@ onMounted(async () => {
   line-height: 1.5;
 }
 
+.page-subtitle--failure {
+  color: #57534e;
+  max-width: 38rem;
+}
+
 .success-card {
   background: white;
-  border-radius: 12px;
+  border-radius: 16px;
   padding: 40px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   text-align: center;
   max-width: 600px;
   margin: 0 auto;
+  border: 1px solid transparent;
+  transition:
+    box-shadow 0.25s ease,
+    border-color 0.25s ease;
 }
 
-.success-icon {
-  margin-bottom: 30px;
+.success-card--failure {
+  border-color: #fecaca;
+  box-shadow:
+    0 4px 24px rgba(220, 38, 38, 0.12),
+    0 0 0 1px rgba(254, 202, 202, 0.6);
+}
+
+.hero-icon {
+  margin-bottom: 28px;
   display: flex;
   justify-content: center;
+  align-items: center;
 }
 
-.success-icon svg {
-  filter: drop-shadow(0 4px 8px rgba(16, 185, 129, 0.3));
+.hero-icon--failure {
+  animation: failure-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.hero-failure-mark {
+  filter: drop-shadow(0 10px 28px rgba(220, 38, 38, 0.28));
+}
+
+.hero-failure-mark__ring {
+  fill: #fef2f2;
+  stroke: #fca5a5;
+  stroke-width: 2;
+}
+
+.hero-failure-mark__x {
+  stroke: #dc2626;
+  stroke-width: 3.2;
+}
+
+.hero-success-mark {
+  filter: drop-shadow(0 4px 12px rgba(16, 185, 129, 0.35));
+}
+
+@keyframes failure-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.88);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.failure-panel {
+  text-align: left;
+  border-radius: 14px;
+  padding: 1.35rem 1.4rem 1.25rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid #fecaca;
+  background: linear-gradient(145deg, #fff1f2 0%, #fffbfb 55%, #ffffff 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+
+.failure-panel--regional {
+  border-color: #f87171;
+  background: linear-gradient(160deg, #ffe4e6 0%, #fff5f5 45%, #ffffff 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 8px 32px rgba(185, 28, 28, 0.1);
+}
+
+.failure-panel--sync,
+.failure-panel--load {
+  border-color: #fecaca;
+}
+
+.failure-panel__badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #fef2f2;
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  margin-bottom: 0.85rem;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.35);
+}
+
+.failure-panel__badge--soft {
+  background: linear-gradient(135deg, #991b1b 0%, #7f1d1d 100%);
+  box-shadow: 0 2px 8px rgba(127, 29, 29, 0.25);
+}
+
+.failure-panel__title {
+  margin: 0 0 0.65rem 0;
+  font-size: 1.22rem;
+  font-weight: 700;
+  color: #7f1d1d;
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+}
+
+.failure-panel__text {
+  margin: 0 0 0.65rem 0;
+  font-size: 0.98rem;
+  line-height: 1.55;
+  color: #44403c;
+}
+
+.failure-panel__text--muted {
+  color: #78716c;
+  font-size: 0.92rem;
+  margin-bottom: 0;
+}
+
+.failure-panel__text--detail {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.85rem;
+  background: rgba(254, 226, 226, 0.65);
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 0.65rem 0.75rem;
+  color: #57534e;
+  word-break: break-word;
+}
+
+.failure-panel__footer {
+  margin-top: 1.1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(252, 165, 165, 0.65);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem 0.6rem;
+  text-align: center;
+}
+
+.failure-panel__footer-label {
+  font-size: 0.9rem;
+  color: #57534e;
+}
+
+.failure-panel__link {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #7c3aed;
+  text-decoration: none;
+}
+
+.failure-panel__link:hover {
+  text-decoration: underline;
 }
 
 .subscription-details {
@@ -465,8 +742,7 @@ onMounted(async () => {
   font-weight: 700;
 }
 
-.loading-section,
-.error-section {
+.loading-section {
   text-align: center;
   padding: 20px;
   margin: 20px 0;
@@ -480,44 +756,6 @@ onMounted(async () => {
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto 15px;
-}
-
-.error-section {
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  border-radius: 8px;
-  color: #dc2626;
-}
-
-.error-icon {
-  font-size: 2rem;
-  margin-bottom: 10px;
-}
-
-.error-note {
-  color: #059669;
-  font-weight: 500;
-  margin-top: 10px;
-}
-
-.sync-error-section {
-  background: #fef3cd;
-  border: 1px solid #fde68a;
-  border-radius: 8px;
-  color: #92400e;
-  margin-bottom: 20px;
-}
-
-.sync-error-icon {
-  font-size: 1.5rem;
-  margin-bottom: 8px;
-}
-
-.sync-error-note {
-  color: #059669;
-  font-weight: 500;
-  margin-top: 8px;
-  font-size: 0.9rem;
 }
 
 .sync-success-section {
@@ -658,6 +896,14 @@ onMounted(async () => {
 
   .page-title {
     font-size: 24px;
+  }
+
+  .page-title--failure {
+    font-size: 22px;
+  }
+
+  .failure-panel {
+    padding: 1.1rem 1rem;
   }
 
   .success-card {

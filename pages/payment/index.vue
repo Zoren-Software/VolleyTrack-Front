@@ -6,6 +6,24 @@
       <p>Validando e-mail...</p>
     </div>
     <div v-else class="container">
+      <div
+        v-if="showVolleytrackRegionalDevBanner"
+        class="pricing-override-banner"
+        role="status"
+      >
+        <strong>Preço por região:</strong>
+        listagem como
+        <code>{{ effectivePricingIpCountry ?? "—" }}</code>
+        <template v-if="forcedBillingCountry">
+          · billing (env)
+          <code>{{ forcedBillingCountry }}</code>
+        </template>
+        <template v-else-if="effectivePricingBillingCountry && !forcedBillingCountry">
+          · billing (IP ou padrão BR)
+          <code>{{ effectivePricingBillingCountry }}</code>
+        </template>
+        (valor cobrado no Stripe segue o cartão; use cartões de teste por país).
+      </div>
       <!-- Mensagem de Sucesso Discreta (Canto Inferior Esquerdo) -->
       <div
         v-if="emailValidation.validated && emailValidation.valid"
@@ -241,18 +259,22 @@
         <div v-else>
           <p><strong>Usuário:</strong> Não logado</p>
         </div>
-        <div v-if="selectedPlan && selectedPlan.prices?.data?.[0]">
-          <p><strong>Price ID:</strong> {{ selectedPlan.prices.data[0].id }}</p>
+        <div v-if="selectedPlan && getPlanPrimaryPrice(selectedPlan)">
           <p>
-            <strong>Price Amount:</strong> R$ {{ getPlanPrice(selectedPlan) }}
+            <strong>Price ID:</strong> {{ getPlanPrimaryPrice(selectedPlan).id }}
           </p>
           <p>
-            <strong>Price Type:</strong> {{ selectedPlan.prices.data[0].type }}
+            <strong>Price Amount:</strong>
+            {{ formatPlanMoney(selectedPlan) }}
           </p>
-          <p v-if="selectedPlan.prices.data[0].recurring">
+          <p>
+            <strong>Price Type:</strong>
+            {{ getPlanPrimaryPrice(selectedPlan).type }}
+          </p>
+          <p v-if="getPlanPrimaryPrice(selectedPlan).recurring">
             <strong>Recurring:</strong>
-            {{ selectedPlan.prices.data[0].recurring.interval_count }}
-            {{ selectedPlan.prices.data[0].recurring.interval }}
+            {{ getPlanPrimaryPrice(selectedPlan).recurring.interval_count }}
+            {{ getPlanPrimaryPrice(selectedPlan).recurring.interval }}
           </p>
         </div>
       </div>
@@ -320,9 +342,9 @@
               <div class="plan-card-hero">
                 <div class="plan-price-modern">
                   <div class="plan-price-line">
-                    <span class="price-amount"
-                      >R$ {{ getPlanPrice(plan) }}</span
-                    >
+                    <span class="price-amount">{{
+                      formatPlanMoney(plan)
+                    }}</span>
                     <template v-if="getPlanPeriod(plan)">
                       <span class="price-sep" aria-hidden="true">|</span>
                       <span class="price-period-label">{{
@@ -342,7 +364,7 @@
                     "
                     class="price-yearly"
                   >
-                    ou R$ {{ getYearlyPrice(plan) }}/ano
+                    ou {{ formatYearlyAlternateMoney(plan) }}/ano
                   </span>
                 </div>
 
@@ -552,10 +574,10 @@
                           hasPurchasedLifetimePlan()
                         ? "💎 Plano Vitalício já comprado"
                         : canSwapPlan
-                          ? `🔄 Trocar para ${selectedPlan.name} - R$ ${getPlanPrice(
+                          ? `🔄 Trocar para ${selectedPlan.name} - ${formatPlanMoney(
                               selectedPlan,
                             )}${getPlanPeriod(selectedPlan)}`
-                          : `Assinar ${selectedPlan.name} - R$ ${getPlanPrice(
+                          : `Assinar ${selectedPlan.name} - ${formatPlanMoney(
                               selectedPlan,
                             )}${getPlanPeriod(selectedPlan)}`
             }}
@@ -611,7 +633,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick } from "vue";
+import { ref, computed, onMounted, nextTick, watch } from "vue";
 import { loadStripe } from "@stripe/stripe-js";
 import {
   createCheckoutSession,
@@ -627,6 +649,7 @@ import BillingFormModal from "~/components/BillingFormModal.vue";
 import PaymentMethodCard from "~/components/PaymentMethodCard.vue";
 import PlanLimitErrorModal from "~/components/PlanLimitErrorModal.vue";
 import { usePlanLimitError } from "~/composables/usePlanLimitError.js";
+import { useVolleytrackPricingTestOverride } from "~/composables/useVolleytrackPricingTestOverride.js";
 import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
 import { getApiBaseUrl } from "~/utils/apiBaseUrl";
 import { useQuery } from "@vue/apollo-composable";
@@ -637,6 +660,32 @@ const runtimeConfig = useRuntimeConfig();
 const stripeKey = runtimeConfig.public.stripePublishableKey;
 const route = useRoute();
 const router = useRouter();
+
+const {
+  forcedIpCountry,
+  forcedBillingCountry,
+  isPricingOverrideActive,
+  effectivePricingIpCountry,
+  effectivePricingBillingCountry,
+} = useVolleytrackPricingTestOverride();
+
+/** Banner “Preço por região” só no desenvolvimento (NODE_ENV / Nuxt dev / APP_ENV). */
+const showVolleytrackRegionalDevBanner = computed(() => {
+  if (!isPricingOverrideActive.value) {
+    return false;
+  }
+  if (import.meta.dev) {
+    return true;
+  }
+  if (typeof process !== "undefined" && process.env?.NODE_ENV === "development") {
+    return true;
+  }
+  const appEnv = String(runtimeConfig.public?.appEnv ?? "")
+    .trim()
+    .toLowerCase();
+
+  return appEnv === "development" || appEnv === "dev";
+});
 
 // Composable para usuário
 const { user, getUserInfo, getUserEmail } = useUser();
@@ -671,7 +720,7 @@ const refreshingPlans = ref(false);
 const lifetimeCounter = ref(null);
 
 const PLANS_CACHE_KEY = "subscription_plans_cache";
-const PLANS_CACHE_VERSION = "v2";
+const PLANS_CACHE_VERSION = "v4";
 const PLANS_CACHE_TTL_MS = 1000 * 60 * 60 * 4; // 4 horas
 const PLANS_REQUEST_TIMEOUT_MS = 15000; // 15 segundos
 
@@ -792,15 +841,48 @@ const lifetimePurchaseLabel = computed(() => {
 
 // Removido: Estado do modal de troca de planos (agora redirecionamos para rota específica)
 
-// API URL (baseada em API_ENDPOINT / NUXT_PUBLIC_API_ENDPOINT)
-const getProductsUrl = () => `${getApiBaseUrl()}/v1/products`;
+const getProductsIpCountry = () => effectivePricingIpCountry.value;
+
+const getPlansStorageKey = () =>
+  `${PLANS_CACHE_KEY}:${getProductsIpCountry() ?? "default"}`;
+
+// API: lista produtos; ip_country opcional alinha preço exibido com pricing_catalog (BR vs US).
+const getProductsUrl = () => {
+  const base = `${getApiBaseUrl()}/v1/products`;
+  const ip = getProductsIpCountry();
+  if (!ip) {
+    return base;
+  }
+  return `${base}?${new URLSearchParams({ ip_country: ip }).toString()}`;
+};
 
 // URLs de redirecionamento
 const successURL = `${window.location.origin}/payment/success`;
 const cancelURL = `${window.location.origin}/payment/cancel`;
 
-// Planos exibidos baseados na periodicidade selecionada
-const getPlanPrimaryPrice = (plan) => plan?.prices?.data?.[0] || null;
+// Preço “principal” para UI: alinha com a região (BR → BRL; demais → USD), não só data[0].
+const getPlanPrimaryPrice = (plan) => {
+  const rows = plan?.prices?.data;
+  if (!Array.isArray(rows) || rows.length === 0) {
+    return null;
+  }
+  const region = effectivePricingIpCountry.value;
+  const preferCurrency =
+    region === "BR" ? "brl" : region && region.length === 2 ? "usd" : null;
+
+  if (preferCurrency) {
+    const found = rows.find(
+      (p) =>
+        p &&
+        typeof p === "object" &&
+        String(p.currency || "").toLowerCase() === preferCurrency,
+    );
+    if (found) {
+      return found;
+    }
+  }
+  return rows[0] || null;
+};
 
 const isPlanRenderable = (plan) => {
   if (!plan || !plan.metadata?.plan_type) {
@@ -891,7 +973,7 @@ const checkoutMode = computed(() => {
   if (!selectedPlan.value) return "subscription";
 
   // Verificar se o preço é recorrente ou único
-  const priceData = selectedPlan.value.prices?.data?.[0];
+  const priceData = getPlanPrimaryPrice(selectedPlan.value);
   if (!priceData) {
     console.log(
       "⚠️ Price data não encontrado, usando subscription como padrão",
@@ -1050,7 +1132,7 @@ const loadPlansFromCache = () => {
   }
 
   try {
-    const cached = localStorage.getItem(PLANS_CACHE_KEY);
+    const cached = localStorage.getItem(getPlansStorageKey());
     if (!cached) {
       return false;
     }
@@ -1064,7 +1146,7 @@ const loadPlansFromCache = () => {
       !parsed.timestamp ||
       Date.now() - parsed.timestamp > PLANS_CACHE_TTL_MS
     ) {
-      localStorage.removeItem(PLANS_CACHE_KEY);
+      localStorage.removeItem(getPlansStorageKey());
       return false;
     }
 
@@ -1073,7 +1155,7 @@ const loadPlansFromCache = () => {
     return true;
   } catch (cacheError) {
     console.warn("⚠️ Falha ao ler cache local de planos:", cacheError);
-    localStorage.removeItem(PLANS_CACHE_KEY);
+    localStorage.removeItem(getPlansStorageKey());
     return false;
   }
 };
@@ -1085,7 +1167,7 @@ const savePlansToCache = (planList) => {
 
   try {
     localStorage.setItem(
-      PLANS_CACHE_KEY,
+      getPlansStorageKey(),
       JSON.stringify({
         version: PLANS_CACHE_VERSION,
         timestamp: Date.now(),
@@ -1103,7 +1185,7 @@ const clearPlansCache = () => {
     return;
   }
 
-  localStorage.removeItem(PLANS_CACHE_KEY);
+  localStorage.removeItem(getPlansStorageKey());
   console.log("🧹 Cache de planos limpo manualmente");
 };
 
@@ -1199,6 +1281,47 @@ const getPlanPrice = (plan) => {
 
   const formatted = formatCurrencyFromCents(priceData.unit_amount);
   return formatted ?? "—";
+};
+
+const currencyPrefixFromPlan = (plan) => {
+  const c = (getPlanPrimaryPrice(plan)?.currency || "brl").toLowerCase();
+  if (c === "brl") {
+    return "R$";
+  }
+  if (c === "usd") {
+    return "US$";
+  }
+  if (c === "eur") {
+    return "€";
+  }
+  return c.toUpperCase();
+};
+
+const formatPlanMoney = (plan) => {
+  const amt = getPlanPrice(plan);
+  if (amt === "—") {
+    return "—";
+  }
+  return `${currencyPrefixFromPlan(plan)} ${amt}`;
+};
+
+const formatYearlyAlternateMoney = (plan) => {
+  if (plan.metadata?.type !== "monthly") {
+    return "";
+  }
+  const yearlyPlan = plans.value.find(
+    (p) =>
+      p.metadata?.plan_type === plan.metadata?.plan_type &&
+      p.metadata?.type === "yearly",
+  );
+  if (yearlyPlan) {
+    return formatPlanMoney(yearlyPlan);
+  }
+  const v = getYearlyPrice(plan);
+  if (!v || v === "—") {
+    return "—";
+  }
+  return `${currencyPrefixFromPlan(plan)} ${v}`;
 };
 
 // Calcular desconto anual baseado nos preços reais
@@ -1559,7 +1682,7 @@ const isPlanActive = (plan) => {
   }
 
   const activePriceId = activePlanData.value.subscription.price_id;
-  const planPriceId = plan.prices?.data?.[0]?.id;
+  const planPriceId = getPlanPrimaryPrice(plan)?.id;
 
   const activeProduct = activePlanData.value.product || {};
   const activeProductId = activeProduct.stripe_id || activeProduct.id || null;
@@ -1754,10 +1877,11 @@ const isBetterPlan = (plan) => {
 
 // Obter valor do plano para comparação
 const getPlanValue = (plan) => {
-  if (!plan.prices?.data?.[0]?.unit_amount) {
+  const p = getPlanPrimaryPrice(plan);
+  if (!p || typeof p.unit_amount !== "number") {
     return 0;
   }
-  return plan.prices.data[0].unit_amount;
+  return p.unit_amount;
 };
 
 // Obter nível de animação baseado na diferença de valor
@@ -1953,9 +2077,9 @@ const handleSubscriptionAction = async () => {
     activePlanData.value?.subscription?.type === "one_time_payment";
 
   // Verificar se o plano selecionado é recorrente (subscription)
+  const selPrice = getPlanPrimaryPrice(selectedPlan.value);
   const selectedPlanIsRecurring =
-    selectedPlan.value?.prices?.data?.[0]?.recurring !== null &&
-    selectedPlan.value?.prices?.data?.[0]?.type !== "one_time";
+    Boolean(selPrice?.recurring) && selPrice?.type !== "one_time";
 
   console.log("🔍 isLifetimePlan:", isLifetimePlan);
   console.log("🔍 selectedPlanIsRecurring:", selectedPlanIsRecurring);
@@ -2012,7 +2136,7 @@ const handleSubscriptionAction = async () => {
 
     // Para outros casos (subscription ativa tentando comprar outra subscription),
     // redirecionar para swap
-    const priceId = selectedPlan.value.prices?.data?.[0]?.id;
+    const priceId = getPlanPrimaryPrice(selectedPlan.value)?.id;
     const customerId = activePlanData.value.customer_id;
     console.log("🔍 priceId encontrado:", priceId);
     console.log("🔍 customerId encontrado:", customerId);
@@ -2426,7 +2550,7 @@ const subscribeToPlan = async () => {
     }
 
     // Verificar se o plano tem preço válido
-    const priceId = selectedPlan.value.prices?.data?.[0]?.id;
+    const priceId = getPlanPrimaryPrice(selectedPlan.value)?.id;
     if (!priceId) {
       alert("Erro: Preço não encontrado para este plano. Tente novamente.");
       return;
@@ -2480,7 +2604,7 @@ const subscribeToPlan = async () => {
     stripeLoading.value = true;
 
     // Verificar compatibilidade do modo com o preço
-    const priceData = selectedPlan.value.prices?.data?.[0];
+    const priceData = getPlanPrimaryPrice(selectedPlan.value);
     const isRecurring = priceData?.recurring;
     const priceType = priceData?.type;
     const mode = checkoutMode.value;
@@ -2557,7 +2681,7 @@ const subscribeToPlan = async () => {
         );
         console.log("🔍 Dados do erro:", sessionResult.errorData);
 
-        const priceId = selectedPlan.value.prices?.data?.[0]?.id;
+        const priceId = getPlanPrimaryPrice(selectedPlan.value)?.id;
         if (priceId) {
           const swapUrl = `/payment/swap?price_id=${encodeURIComponent(
             priceId,
@@ -2698,6 +2822,23 @@ const loadLifetimeCounter = async () => {
   }
 };
 
+watch(
+  [() => route.query.ip_country, effectivePricingIpCountry],
+  async ([nextQuery, nextEffective], [prevQuery, prevEffective]) => {
+    if (
+      String(nextQuery ?? "") === String(prevQuery ?? "") &&
+      String(nextEffective ?? "") === String(prevEffective ?? "")
+    ) {
+      return;
+    }
+    if (!emailValidationReady.value) {
+      return;
+    }
+    clearPlansCache();
+    await loadPlans({ forceRefresh: true });
+  },
+);
+
 onMounted(async () => {
   try {
     console.log("🚀 Iniciando carregamento da página...");
@@ -2796,6 +2937,23 @@ onMounted(async () => {
   width: 100%;
   padding: 0 16px 40px;
   box-sizing: border-box;
+}
+
+.pricing-override-banner {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: #fff7ed;
+  border: 1px solid #fdba74;
+  color: #9a3412;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+.pricing-override-banner code {
+  background: #ffedd5;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.85em;
 }
 
 /* Header + botões na mesma linha (alinhado com o conteúdo abaixo) */
