@@ -222,6 +222,7 @@
         </footer>
       </div>
     </div>
+    <ZTermsAcceptanceModal />
   </div>
 </template>
 
@@ -229,6 +230,8 @@
 import ZListItemsNotification from "~/components/organisms/List/Notification/ZListItemsNotification.vue";
 import ZListItemsUser from "~/components/molecules/List/ZListItemsUser.vue";
 import ZLegalLinks from "~/components/organisms/Footer/ZLegalLinks.vue";
+import ZTermsAcceptanceModal from "~/components/organisms/Modal/ZTermsAcceptanceModal.vue";
+import { useTermsAcceptance } from "~/composables/useTermsAcceptance";
 import NOTIFICATIONSTOTAL from "~/graphql/notification/query/notificationsTotal.graphql";
 import ME from "~/graphql/user/query/me.graphql";
 import { getActivePlan } from "~/services/stripeCheckoutService.js";
@@ -239,6 +242,7 @@ export default {
     ZListItemsNotification,
     ZListItemsUser,
     ZLegalLinks,
+    ZTermsAcceptanceModal,
   },
   data() {
     return {
@@ -661,6 +665,7 @@ export default {
               roles: value.me.roles || [],
             };
             localStorage.setItem("user", JSON.stringify(this.user));
+            useTermsAcceptance().syncFromUser(value.me);
             return;
           }
         } catch (e) {
