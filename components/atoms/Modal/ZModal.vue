@@ -2,15 +2,15 @@
   <VaModal
     v-bind="$attrs"
     :model-value="modelValue"
-    @update:modelValue="$emit('update:modelValue', $event)"
+    @update:modelValue="onModelUpdate"
     :ok-text="okText"
     :cancel-text="cancelText"
     :ok-disabled="okDisabled"
     @ok="$emit('ok')"
     @cancel="$emit('cancel')"
     size="medium"
-    close-button
-    :no-dismiss="false"
+    :close-button="!hideCloseButton"
+    :no-dismiss="persistent"
     class="z-modal"
     style="z-index: 1001"
   >
@@ -48,9 +48,25 @@ export default {
       type: Boolean,
       default: false,
     },
+    persistent: {
+      type: Boolean,
+      default: false,
+    },
+    hideCloseButton: {
+      type: Boolean,
+      default: false,
+    },
   },
   emits: ["update:modelValue", "ok", "cancel"],
-  inheritAttrs: false, // 🔥 necessário para evitar duplicação com `v-bind="$attrs"`
+  inheritAttrs: false,
+  methods: {
+    onModelUpdate(value) {
+      if (this.persistent && value === false) {
+        return;
+      }
+      this.$emit("update:modelValue", value);
+    },
+  },
 };
 </script>
 

@@ -1,0 +1,8 @@
+mutation acceptTerms {
+  acceptTerms {
+    id
+    termsVersion
+    termsAcceptedAt
+    termsAcceptedIp
+  }
+}

@@ -2,6 +2,7 @@ import { defineNuxtPlugin } from '#app'
 import { ApolloClient, InMemoryCache, HttpLink } from '@apollo/client/core'
 import { setContext } from '@apollo/client/link/context'
 import { onError } from '@apollo/client/link/error'
+import { useTermsAcceptance } from '~/composables/useTermsAcceptance'
 
 export default defineNuxtPlugin(nuxtAppMain => {
   
@@ -35,7 +36,13 @@ export default defineNuxtPlugin(nuxtAppMain => {
   // NOTE - Adicionar link de tratamento de erro
   const errorLink = onError(({ graphQLErrors, networkError, operation, forward }) => {
     if (graphQLErrors) {
+      const { handleGraphQLError: handleTermsError } = useTermsAcceptance()
+
       for (let err of graphQLErrors) {
+        if (handleTermsError({ graphQLErrors: [err] })) {
+          continue
+        }
+
         console.log(err.message)
         if (err.message === 'Unauthenticated.') {
           localStorage.removeItem("user");
