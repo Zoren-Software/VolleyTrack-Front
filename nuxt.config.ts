@@ -109,6 +109,14 @@ export default defineNuxtConfig({
         const trimmed = String(raw).trim()
         return trimmed || 'https://volleytrack.com/privacy-policy'
       })(),
+      termsOfUseUrl: (() => {
+        const raw =
+          process.env.NUXT_PUBLIC_TERMS_OF_USE_URL ||
+          env.NUXT_PUBLIC_TERMS_OF_USE_URL ||
+          ''
+        const trimmed = String(raw).trim()
+        return trimmed || 'https://volleytrack.com/terms-of-use'
+      })(),
     }
   },
   vuestic: {
