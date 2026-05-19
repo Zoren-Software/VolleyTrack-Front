@@ -100,6 +100,15 @@ export default defineNuxtConfig({
         process.env.NUXT_PUBLIC_VOLLEYTRACK_FORCE_PRICING_IP_COUNTRY || '',
       volleytrackForcePricingBillingCountry:
         process.env.NUXT_PUBLIC_VOLLEYTRACK_FORCE_PRICING_BILLING_COUNTRY || '',
+      // Mesma ideia do apiEndpoint: process.env + .env (parsed) + fallback. Ignora string vazia.
+      privacyPolicyUrl: (() => {
+        const raw =
+          process.env.NUXT_PUBLIC_PRIVACY_POLICY_URL ||
+          env.NUXT_PUBLIC_PRIVACY_POLICY_URL ||
+          ''
+        const trimmed = String(raw).trim()
+        return trimmed || 'https://volleytrack.com/privacy-policy'
+      })(),
     }
   },
   vuestic: {

@@ -127,6 +127,7 @@
         </div>
       </nav>
       <div class="sidebar-footer">
+        <ZLegalLinks variant="dark" class="sidebar-legal-links" />
         <span class="sidebar-version">v{{ appVersion }}</span>
       </div>
     </aside>
@@ -216,6 +217,9 @@
       </div>
       <div class="content-wrapper">
         <NuxtPage />
+        <footer class="app-main-footer">
+          <ZLegalLinks variant="light" />
+        </footer>
       </div>
     </div>
   </div>
@@ -224,6 +228,7 @@
 <script>
 import ZListItemsNotification from "~/components/organisms/List/Notification/ZListItemsNotification.vue";
 import ZListItemsUser from "~/components/molecules/List/ZListItemsUser.vue";
+import ZLegalLinks from "~/components/organisms/Footer/ZLegalLinks.vue";
 import NOTIFICATIONSTOTAL from "~/graphql/notification/query/notificationsTotal.graphql";
 import ME from "~/graphql/user/query/me.graphql";
 import { getActivePlan } from "~/services/stripeCheckoutService.js";
@@ -233,6 +238,7 @@ export default {
   components: {
     ZListItemsNotification,
     ZListItemsUser,
+    ZLegalLinks,
   },
   data() {
     return {
@@ -849,6 +855,20 @@ export default {
   transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.content-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.app-main-footer {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+  padding: 12px 16px 20px;
+}
+
 .sidebar-is-collapsed .main-area {
   margin-left: 64px;
 }
@@ -1298,16 +1318,6 @@ export default {
   color: #0b1e3a;
   cursor: pointer;
 }
-.content-wrapper {
-  flex: 1;
-  padding: 20px;
-  overflow-x: hidden;
-  width: 100%;
-  box-sizing: border-box;
-  position: relative;
-  z-index: 0;
-  min-height: 0;
-}
 
 /* ── Sidebar Toggle Button ── */
 .sidebar-toggle-btn {
@@ -1380,10 +1390,25 @@ export default {
 .sidebar-footer {
   flex-shrink: 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 6px;
   padding: 12px 0 4px;
   overflow: hidden;
+}
+
+.sidebar-legal-links {
+  max-width: 100%;
+  overflow: hidden;
+  opacity: 1;
+  transition:
+    opacity 0.15s cubic-bezier(0.4, 0, 0.2, 1),
+    max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar--collapsed .sidebar-legal-links {
+  display: none;
 }
 
 .sidebar-version {
