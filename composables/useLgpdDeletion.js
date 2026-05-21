@@ -13,6 +13,9 @@ const LGPD_CENTRAL_UNAUTHENTICATED =
 const LGPD_CENTRAL_GENERIC_ERROR =
   "Não foi possível processar a solicitação na conta central. Tente novamente.";
 
+const LGPD_CENTRAL_THROTTLED =
+  "Muitas tentativas de exclusão. Aguarde alguns minutos e tente novamente.";
+
 /**
  * Mensagem amigável para erros do DELETE /v1/user-lgpd ($fetch / ofetch).
  */
@@ -37,6 +40,14 @@ export function getLgpdCentralErrorMessage(error) {
 
   if (status === 401) {
     return LGPD_CENTRAL_UNAUTHENTICATED;
+  }
+
+  if (status === 429) {
+    if (apiMessage && apiMessage !== "Too Many Attempts.") {
+      return apiMessage;
+    }
+
+    return LGPD_CENTRAL_THROTTLED;
   }
 
   if (apiMessage && apiMessage !== "Unauthenticated.") {
@@ -75,12 +86,20 @@ export const useLgpdDeletion = () => {
     }
   };
 
-  const logoutAfterDeletion = () => {
+  const logoutAfterDeletion = ({ tenantDeleted = false } = {}) => {
     const { onLogout } = useApollo();
     onLogout();
     localStorage.removeItem("user");
     localStorage.removeItem("userToken");
+    localStorage.removeItem("customer_id");
+    localStorage.removeItem("activePlanData");
     useTermsAcceptance().reset();
+
+    if (tenantDeleted) {
+      navigateTo({ path: "/tenant-deleted", query: { reason: "owner_lgpd" } });
+      return;
+    }
+
     navigateTo({ path: "/login", query: { lgpd: "processed" } });
   };
 

@@ -20,7 +20,7 @@
     <div
       v-else
       class="account-summary-grid"
-      :class="{ 'account-summary-grid--with-lgpd': activePlanData }"
+      :class="{ 'account-summary-grid--with-lgpd': showLgpdSection }"
     >
       <!-- Meus dados: cabeçalho + resumo (ícone + texto à esquerda) -->
       <section class="account-card account-card--meus-dados">
@@ -201,38 +201,60 @@
         </div>
       </section>
 
-      <section
-        v-if="activePlanData"
-        class="account-card account-card--lgpd-central"
-      >
+      <section v-if="showLgpdSection" class="account-card account-card--lgpd">
         <div class="meus-dados-header">
-          <h2 class="meus-dados-title">Conta central (LGPD)</h2>
+          <h2 class="meus-dados-title">Privacidade e exclusão de dados</h2>
         </div>
-        <div class="account-lgpd-card__body">
-          <p class="account-lgpd-card__text">
-            Anonimiza faturamento e pagamentos na conta VolleyTrack. Perfil no
-            clube:
-            <NuxtLink to="/settings/privacy">Privacidade e dados</NuxtLink>.
-          </p>
-          <p class="account-lgpd-card__hint">
-            Use a mesma senha do login. Não remove histórico esportivo no clube.
-          </p>
-          <va-button
-            color="danger"
-            size="small"
-            class="account-lgpd-card__button"
-            :loading="lgpdCentralSubmitting"
-            @click="openLgpdCentralModal"
-          >
-            Excluir dados da conta
-          </va-button>
+        <div v-if="accountOwnerValidationLoading" class="account-lgpd-card__body">
+          <p class="account-lgpd-card__hint">Validando titular da conta…</p>
+        </div>
+        <div v-else class="account-lgpd-card__body">
+          <template v-if="isAccountOwner">
+            <p class="account-lgpd-card__text">
+              Como titular da conta, você pode encerrar o clube por completo:
+              anonimização dos dados no tenant, faturamento central e remoção
+              do tenant.
+            </p>
+            <p class="account-lgpd-card__hint">
+              Operação irreversível. Use a senha do login do clube.
+            </p>
+            <va-button
+              color="danger"
+              size="small"
+              class="account-lgpd-card__button"
+              :loading="lgpdCentralSubmitting"
+              @click="openLgpdCentralModal"
+            >
+              Excluir conta e encerrar clube
+            </va-button>
+          </template>
+          <template v-else>
+            <p class="account-lgpd-card__text">
+              Para excluir apenas seus dados pessoais neste clube (perfil,
+              notificações, etc.), use a página de privacidade.
+            </p>
+            <p class="account-lgpd-card__hint">
+              Faturamento e encerramento do clube são exclusivos do titular da
+              assinatura.
+            </p>
+            <va-button
+              color="danger"
+              size="small"
+              preset="secondary"
+              class="account-lgpd-card__button"
+              to="/settings/privacy"
+            >
+              Exclusão de dados no clube
+            </va-button>
+          </template>
         </div>
       </section>
     </div>
 
     <ZModal
+      v-if="isAccountOwner"
       v-model="lgpdCentralModalOpen"
-      title="Confirmar exclusão de dados (central)"
+      title="Confirmar exclusão da conta e do clube"
       ok-text="Confirmar solicitação"
       cancel-text="Cancelar"
       :ok-disabled="!lgpdCentralCanSubmit"
@@ -241,14 +263,15 @@
       @cancel="closeLgpdCentralModal"
     >
       <p class="account-lgpd-modal__intro">
-        Digite sua senha para confirmar. Esta operação é irreversível para os
-        dados pessoais da conta central (faturamento e pagamentos).
+        Digite sua senha para confirmar. Serão anonimizados seus dados no clube e
+        na conta central, e o clube (tenant) será encerrado e removido do
+        sistema. Esta operação é irreversível.
       </p>
       <label class="account-lgpd-modal__checkbox">
         <input v-model="lgpdCentralAgreed" type="checkbox" />
         <span>
-          Entendo que meus dados de faturamento e pagamentos serão anonimizados
-          e que não poderei usar esta conta central com as mesmas credenciais.
+          Entendo que meus dados serão anonimizados, o clube será encerrado e
+          não poderei acessar esta conta com as mesmas credenciais.
         </span>
       </label>
       <va-input
@@ -265,6 +288,7 @@
 <script>
 import ZModal from "~/components/atoms/Modal/ZModal.vue";
 import PLAYER from "~/graphql/user/query/user.graphql";
+import { useCustomerAccountOwner } from "~/composables/useCustomerAccountOwner";
 import {
   getLgpdCentralErrorMessage,
   useLgpdDeletion,
@@ -289,6 +313,10 @@ export default {
       lgpdCentralAgreed: false,
       lgpdCentralPassword: "",
       lgpdCentralSubmitting: false,
+      isAccountOwner: false,
+      accountOwnerValidationLoading: false,
+      accountOwnerValidationReady: false,
+      accountOwnerCustomerId: null,
       variablesGetUser: {
         id: localStorage.getItem("user")
           ? JSON.parse(localStorage.getItem("user")).id
@@ -392,10 +420,13 @@ export default {
         !this.lgpdCentralSubmitting
       );
     },
+    showLgpdSection() {
+      return Boolean(this.user) && this.accountOwnerValidationReady;
+    },
   },
-  mounted() {
+  async mounted() {
     this.getUser();
-    this.loadPaymentInfo();
+    await Promise.all([this.loadPaymentInfo(), this.validateAccountOwner()]);
   },
   methods: {
     getUser() {
@@ -429,7 +460,30 @@ export default {
         this.loading = false;
       });
     },
+    async validateAccountOwner() {
+      this.accountOwnerValidationLoading = true;
+      const { validateCustomerAccountOwner } = useCustomerAccountOwner();
+
+      try {
+        const result = await validateCustomerAccountOwner();
+        this.isAccountOwner = Boolean(result?.isOwner);
+        this.accountOwnerCustomerId = result?.customer?.id ?? null;
+      } catch {
+        this.isAccountOwner = false;
+        this.accountOwnerCustomerId = null;
+      } finally {
+        this.accountOwnerValidationLoading = false;
+        this.accountOwnerValidationReady = true;
+      }
+    },
     openLgpdCentralModal() {
+      if (!this.isAccountOwner) {
+        confirmError(
+          "Seu usuário é inválido para excluir a conta central. Entre em contato com o suporte se for necessário rever isso.",
+        );
+        return;
+      }
+
       this.lgpdCentralAgreed = false;
       this.lgpdCentralPassword = "";
       this.lgpdCentralModalOpen = true;
@@ -442,7 +496,15 @@ export default {
         return;
       }
 
-      const customerId = this.activePlanData?.customer_id;
+      if (!this.isAccountOwner) {
+        confirmError(
+          "Seu usuário é inválido para excluir a conta central. Entre em contato com o suporte se for necessário rever isso.",
+        );
+        return;
+      }
+
+      const customerId =
+        this.accountOwnerCustomerId ?? this.activePlanData?.customer_id;
 
       if (!customerId) {
         confirmError(
@@ -452,7 +514,7 @@ export default {
       }
 
       this.lgpdCentralSubmitting = true;
-      const { requestCentralDeletion } = useLgpdDeletion();
+      const { requestCentralDeletion, logoutAfterDeletion } = useLgpdDeletion();
 
       try {
         const result = await requestCentralDeletion(this.lgpdCentralPassword, {
@@ -460,9 +522,12 @@ export default {
           tenantId: localStorage.getItem("tenant_id"),
         });
         this.closeLgpdCentralModal();
+        const tenantDeleted = Boolean(result?.tenant_deleted);
         await confirmSuccess(
           result?.message || "Solicitação processada.",
-          () => {},
+          () => {
+            logoutAfterDeletion({ tenantDeleted });
+          },
         );
       } catch (error) {
         confirmError(getLgpdCentralErrorMessage(error));
@@ -962,7 +1027,7 @@ useHead({
   padding-bottom: 8px;
 }
 
-.account-card--lgpd-central {
+.account-card--lgpd {
   padding: 0;
   overflow: hidden;
 }

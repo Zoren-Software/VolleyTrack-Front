@@ -225,7 +225,10 @@
       </div>
       <div class="content-wrapper">
         <NuxtPage />
-        <footer class="app-main-footer">
+        <footer
+          class="app-main-footer"
+          :class="{ 'app-main-footer--hidden': hideMainFooter }"
+        >
           <ZLegalLinks variant="light" />
         </footer>
       </div>
@@ -290,6 +293,12 @@ export default {
       }
       const names = roles.map((r) => r?.name).filter(Boolean);
       return names.length ? names.join(" • ") : "Sem função definida";
+    },
+    hideMainFooter() {
+      return (
+        this.$route.meta.hideMainFooter === true ||
+        this.$route.path === "/settings/privacy"
+      );
     },
     activePlanIcon() {
       if (!this.activePlanData) {
@@ -881,6 +890,10 @@ export default {
   display: flex;
   justify-content: center;
   padding: 12px 16px 20px;
+}
+
+.app-main-footer--hidden {
+  display: none;
 }
 
 .sidebar-is-collapsed .main-area {
