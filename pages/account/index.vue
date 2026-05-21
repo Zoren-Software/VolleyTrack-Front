@@ -17,7 +17,11 @@
       <va-button color="primary" @click="getUser">Tentar novamente</va-button>
     </div>
 
-    <div v-else class="account-summary-grid">
+    <div
+      v-else
+      class="account-summary-grid"
+      :class="{ 'account-summary-grid--with-lgpd': activePlanData }"
+    >
       <!-- Meus dados: cabeçalho + resumo (ícone + texto à esquerda) -->
       <section class="account-card account-card--meus-dados">
         <div class="meus-dados-header">
@@ -115,11 +119,15 @@
             <div class="payment-cc-card__bottom">
               <div class="payment-cc-card__holder-block">
                 <span class="payment-cc-card__k">CARD HOLDER</span>
-                <span class="payment-cc-card__v">{{ paymentCardHolderVisual }}</span>
+                <span class="payment-cc-card__v">{{
+                  paymentCardHolderVisual
+                }}</span>
               </div>
               <div class="payment-cc-card__expire-block">
                 <span class="payment-cc-card__k">VALIDADE</span>
-                <span class="payment-cc-card__v">{{ paymentCardExpiryShort }}</span>
+                <span class="payment-cc-card__v">{{
+                  paymentCardExpiryShort
+                }}</span>
               </div>
             </div>
           </div>
@@ -186,15 +194,82 @@
         </dl>
         <div class="account-hint">
           <va-icon name="info" size="18px" color="#9ca3af" />
-          <span>Para alterar dados sensíveis ou permissões, use <strong>Editar</strong>.</span>
+          <span
+            >Para alterar dados sensíveis ou permissões, use
+            <strong>Editar</strong>.</span
+          >
+        </div>
+      </section>
+
+      <section
+        v-if="activePlanData"
+        class="account-card account-card--lgpd-central"
+      >
+        <div class="meus-dados-header">
+          <h2 class="meus-dados-title">Conta central (LGPD)</h2>
+        </div>
+        <div class="account-lgpd-card__body">
+          <p class="account-lgpd-card__text">
+            Anonimiza faturamento e pagamentos na conta VolleyTrack. Perfil no
+            clube:
+            <NuxtLink to="/settings/privacy">Privacidade e dados</NuxtLink>.
+          </p>
+          <p class="account-lgpd-card__hint">
+            Use a mesma senha do login. Não remove histórico esportivo no clube.
+          </p>
+          <va-button
+            color="danger"
+            size="small"
+            class="account-lgpd-card__button"
+            :loading="lgpdCentralSubmitting"
+            @click="openLgpdCentralModal"
+          >
+            Excluir dados da conta
+          </va-button>
         </div>
       </section>
     </div>
+
+    <ZModal
+      v-model="lgpdCentralModalOpen"
+      title="Confirmar exclusão de dados (central)"
+      ok-text="Confirmar solicitação"
+      cancel-text="Cancelar"
+      :ok-disabled="!lgpdCentralCanSubmit"
+      :loading="lgpdCentralSubmitting"
+      @ok="confirmCentralLgpdDeletion"
+      @cancel="closeLgpdCentralModal"
+    >
+      <p class="account-lgpd-modal__intro">
+        Digite sua senha para confirmar. Esta operação é irreversível para os
+        dados pessoais da conta central (faturamento e pagamentos).
+      </p>
+      <label class="account-lgpd-modal__checkbox">
+        <input v-model="lgpdCentralAgreed" type="checkbox" />
+        <span>
+          Entendo que meus dados de faturamento e pagamentos serão anonimizados
+          e que não poderei usar esta conta central com as mesmas credenciais.
+        </span>
+      </label>
+      <va-input
+        v-model="lgpdCentralPassword"
+        type="password"
+        label="Senha atual"
+        class="account-lgpd-modal__password"
+        :disabled="lgpdCentralSubmitting"
+      />
+    </ZModal>
   </div>
 </template>
 
 <script>
+import ZModal from "~/components/atoms/Modal/ZModal.vue";
 import PLAYER from "~/graphql/user/query/user.graphql";
+import {
+  getLgpdCentralErrorMessage,
+  useLgpdDeletion,
+} from "~/composables/useLgpdDeletion";
+import { confirmError, confirmSuccess } from "~/utils/sweetAlert2/swalHelper";
 import moment from "moment";
 import {
   formatCPF,
@@ -205,10 +280,15 @@ import { getActivePlan } from "~/services/stripeCheckoutService.js";
 import { getApiBaseUrl } from "~/utils/apiBaseUrl";
 
 export default {
+  components: { ZModal },
   data() {
     return {
       user: null,
       loading: true,
+      lgpdCentralModalOpen: false,
+      lgpdCentralAgreed: false,
+      lgpdCentralPassword: "",
+      lgpdCentralSubmitting: false,
       variablesGetUser: {
         id: localStorage.getItem("user")
           ? JSON.parse(localStorage.getItem("user")).id
@@ -252,7 +332,7 @@ export default {
         this.activePlanData.trial_info?.trial_ends_at
       ) {
         return this.formatPlanDate(
-          this.activePlanData.trial_info.trial_ends_at
+          this.activePlanData.trial_info.trial_ends_at,
         );
       }
       const end = this.activePlanData.subscription?.current_period_end;
@@ -305,6 +385,13 @@ export default {
       }
       return n.toUpperCase();
     },
+    lgpdCentralCanSubmit() {
+      return (
+        this.lgpdCentralAgreed &&
+        this.lgpdCentralPassword.length > 0 &&
+        !this.lgpdCentralSubmitting
+      );
+    },
   },
   mounted() {
     this.getUser();
@@ -341,6 +428,47 @@ export default {
         }
         this.loading = false;
       });
+    },
+    openLgpdCentralModal() {
+      this.lgpdCentralAgreed = false;
+      this.lgpdCentralPassword = "";
+      this.lgpdCentralModalOpen = true;
+    },
+    closeLgpdCentralModal() {
+      this.lgpdCentralModalOpen = false;
+    },
+    async confirmCentralLgpdDeletion() {
+      if (!this.lgpdCentralCanSubmit) {
+        return;
+      }
+
+      const customerId = this.activePlanData?.customer_id;
+
+      if (!customerId) {
+        confirmError(
+          "Não foi possível identificar a conta de faturamento. Atualize a página ou entre em contato com o suporte.",
+        );
+        return;
+      }
+
+      this.lgpdCentralSubmitting = true;
+      const { requestCentralDeletion } = useLgpdDeletion();
+
+      try {
+        const result = await requestCentralDeletion(this.lgpdCentralPassword, {
+          customerId,
+          tenantId: localStorage.getItem("tenant_id"),
+        });
+        this.closeLgpdCentralModal();
+        await confirmSuccess(
+          result?.message || "Solicitação processada.",
+          () => {},
+        );
+      } catch (error) {
+        confirmError(getLgpdCentralErrorMessage(error));
+      } finally {
+        this.lgpdCentralSubmitting = false;
+      }
     },
     joinNames(list) {
       if (!Array.isArray(list) || list.length === 0) {
@@ -461,7 +589,7 @@ export default {
         }
         const res = await fetch(
           `${getApiBaseUrl()}/v1/customers/payment-methods?customer_id=${encodeURIComponent(
-            customerId
+            customerId,
           )}`,
           {
             method: "GET",
@@ -469,7 +597,7 @@ export default {
               Authorization: `Bearer ${token}`,
               Accept: "application/json",
             },
-          }
+          },
         );
         if (!res.ok) {
           return;
@@ -531,10 +659,16 @@ useHead({
 
 .account-summary-grid {
   display: grid;
-  grid-template-columns:
-    minmax(280px, 1.35fr) minmax(240px, 1fr) minmax(240px, 1fr);
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr) minmax(0, 1fr);
   gap: 20px;
   align-items: start;
+}
+
+.account-summary-grid--with-lgpd {
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 0.9fr) minmax(
+      0,
+      0.95fr
+    );
 }
 
 .account-card {
@@ -567,12 +701,7 @@ useHead({
   margin: 0 20px 0;
   padding: 22px 22px 18px;
   border-radius: 16px;
-  background: linear-gradient(
-    135deg,
-    #dc2626 0%,
-    #ea580c 48%,
-    #f97316 100%
-  );
+  background: linear-gradient(135deg, #dc2626 0%, #ea580c 48%, #f97316 100%);
   color: #ffffff;
   box-shadow: 0 12px 32px rgba(220, 38, 38, 0.35);
   overflow: hidden;
@@ -730,7 +859,9 @@ useHead({
   border-radius: 8px;
   color: #6b7280;
   text-decoration: none;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
 }
 
 .meus-dados-edit:hover {
@@ -831,7 +962,58 @@ useHead({
   padding-bottom: 8px;
 }
 
-.account-card--tall .account-hint {
+.account-card--lgpd-central {
+  padding: 0;
+  overflow: hidden;
+}
+
+.account-card--lgpd-central .meus-dados-header {
+  padding-bottom: 8px;
+}
+
+.account-lgpd-card__body {
+  padding: 0 20px 20px;
+}
+
+.account-lgpd-card__text,
+.account-lgpd-card__hint {
+  margin: 0 0 10px;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: #4b5563;
+}
+
+.account-lgpd-card__hint {
+  color: #6b7280;
+}
+
+.account-lgpd-card__button {
+  margin-top: 4px;
+  width: 100%;
+}
+
+.account-lgpd-modal__intro {
+  margin: 0 0 16px;
+  color: #374151;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.account-lgpd-modal__checkbox {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  font-size: 14px;
+  color: #374151;
+  cursor: pointer;
+}
+
+.account-lgpd-modal__password {
+  width: 100%;
+}
+
+.account-hint {
   display: flex;
   align-items: flex-start;
   gap: 10px;
@@ -844,7 +1026,8 @@ useHead({
 }
 
 @media (max-width: 1100px) {
-  .account-summary-grid {
+  .account-summary-grid,
+  .account-summary-grid--with-lgpd {
     grid-template-columns: 1fr 1fr;
   }
 
@@ -854,8 +1037,13 @@ useHead({
 }
 
 @media (max-width: 720px) {
-  .account-summary-grid {
+  .account-summary-grid,
+  .account-summary-grid--with-lgpd {
     grid-template-columns: 1fr;
+  }
+
+  .account-card--meus-dados {
+    grid-column: auto;
   }
 
   .account-dl-row dd {

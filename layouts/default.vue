@@ -123,6 +123,14 @@
               <va-icon name="history" size="18px" class="dropdown-item-icon" />
               <span>Auditoria</span>
             </NuxtLink>
+            <NuxtLink
+              to="/settings/privacy"
+              class="dropdown-item"
+              @click="closeDropdown"
+            >
+              <va-icon name="privacy_tip" size="18px" class="dropdown-item-icon" />
+              <span>Privacidade e dados</span>
+            </NuxtLink>
           </div>
         </div>
       </nav>
@@ -575,7 +583,8 @@ export default {
         currentPath === "/settings" ||
         currentPath === "/settings/notifications" ||
         currentPath === "/settings/devices" ||
-        currentPath === "/settings/audit"
+        currentPath === "/settings/audit" ||
+        currentPath === "/settings/privacy"
       );
     },
     toggleDropdown() {

@@ -1,0 +1,6 @@
+mutation requestUserLgpdDeletion($password: String!) {
+  requestUserLgpdDeletion(password: $password) {
+    success
+    message
+  }
+}
