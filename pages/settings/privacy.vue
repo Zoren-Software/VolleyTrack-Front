@@ -21,7 +21,6 @@
 import ZLgpdPrivacyPanel from "~/components/organisms/Privacy/ZLgpdPrivacyPanel.vue";
 
 definePageMeta({
-  hideMainFooter: true,
   pageTransition: false,
 });
 </script>
