@@ -134,6 +134,38 @@ export function confirmError(text, footer) {
   });
 }
 
+export function confirmResendActivationEmail(onConfirm, onCancel = () => {}) {
+  confirmAction(
+    {
+      title: "Reenviar e-mail de ativação",
+      html: `
+        <div style="text-align: left; padding: 4px 0 2px;">
+          <p style="margin: 0 0 14px; font-size: 16px; color: #111827; line-height: 1.5;">
+            <strong>Deseja reenviar o e-mail de ativação da conta?</strong>
+          </p>
+          <div style="background-color: #fff4ef; padding: 14px 16px; border-radius: 10px; border: 1px solid rgba(255, 78, 27, 0.2); border-left: 4px solid #FF4E1B;">
+            <p style="margin: 0; font-size: 14px; color: #374151; line-height: 1.55;">
+              O usuário receberá novamente o link para <strong>confirmar o e-mail e criar a senha</strong>.
+            </p>
+          </div>
+        </div>
+      `,
+      icon: "question",
+      iconColor: "#FF4E1B",
+      showCancelButton: true,
+      confirmButtonText: "Sim, reenviar",
+      confirmButtonColor: "#FF4E1B",
+      cancelButtonText: "Cancelar",
+      cancelButtonColor: "#6b7280",
+      reverseButtons: true,
+      width: "480px",
+      padding: "1.5rem",
+    },
+    onConfirm,
+    onCancel,
+  );
+}
+
 export function confirmAskSendEmailNotification(onConfirm, onCancel) {
   confirmAction(
     {
