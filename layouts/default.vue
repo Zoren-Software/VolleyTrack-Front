@@ -78,7 +78,6 @@
               />
               <span>Configuração de Notificações</span>
             </a>
-            <<<<<<< HEAD
             <NuxtLink
               to="/settings/devices"
               class="dropdown-item"
@@ -107,7 +106,6 @@
               />
               <span>Exclusão de conta</span>
             </NuxtLink>
-            ======= >>>>>>> develop
           </div>
         </div>
         <button
