@@ -65,6 +65,32 @@ export function confirmDeleteMultiple(totalItems, onDelete, onCancel) {
   );
 }
 
+export function confirmReadMultiple(totalItems, onConfirm, onCancel) {
+  confirmAction(
+    {
+      title: "Marcar como lidas?",
+      icon: "question",
+      html: `Você vai marcar <b>${totalItems}</b> notificação(ões) não lida(s) como lidas.`,
+      showCancelButton: true,
+      confirmButtonText: "Sim, marcar como lidas",
+      confirmButtonColor: "#16a34a",
+      cancelButtonColor: "#6b7280",
+      cancelButtonText: "Cancelar",
+    },
+    onConfirm,
+    onCancel
+  );
+}
+
+export function notifyInfo(title, text) {
+  Swal.fire({
+    icon: "info",
+    title,
+    text,
+    confirmButtonColor: "#16a34a",
+  });
+}
+
 export function confirmSuccess(title, onConfirm) {
   confirmAction(
     {

@@ -2,7 +2,7 @@
   <div class="year-chart-card">
     <div v-if="loading" class="year-chart-card__loading">
       <va-progress-circle indeterminate size="small" />
-      <span>Carregando treinos…</span>
+      <span>Carregando grafico mensal...</span>
     </div>
 
     <div v-else-if="errorMessage" class="year-chart-card__error">
@@ -13,39 +13,49 @@
     <template v-else>
       <div class="year-chart-card__body">
         <div class="year-chart-card__chart-wrap">
-          <p class="year-chart-card__eyebrow">{{ eyebrowLabel }}</p>
+          <div class="year-chart-card__chart-header">
+            <p class="year-chart-card__eyebrow">Treinos de {{ periodLabel }}</p>
+            <div
+              class="year-chart-card__period-radios"
+              role="radiogroup"
+              aria-label="Selecionar periodo do grafico"
+            >
+              <label
+                v-for="option in periodOptions"
+                :key="option.value"
+                class="year-chart-card__radio-option"
+                :class="{
+                  'year-chart-card__radio-option--active': selectedPeriod === option.value,
+                }"
+              >
+                <input
+                  v-model="selectedPeriod"
+                  type="radio"
+                  name="chart-period"
+                  :value="option.value"
+                  class="year-chart-card__radio-input"
+                />
+                <span class="year-chart-card__radio-label">{{ option.label }}</span>
+              </label>
+            </div>
+          </div>
           <p v-if="usingDemoData" class="year-chart-card__hint">
-            Valores de exemplo (sem endpoint de agregação).
+            Valores simulados para visualizacao do layout.
           </p>
+
           <div class="year-chart-card__canvas">
-            <Bar v-if="hasAnyData" :data="chartData" :options="chartOptions" />
+            <Line v-if="hasAnyData" :data="chartData" :options="chartOptions" />
             <div v-else class="year-chart-card__empty-chart">
-              <va-icon name="bar_chart" size="40px" color="#c5c5c5" />
-              <p>Nenhum treino neste ano ainda.</p>
+              <va-icon name="show_chart" size="40px" color="#c5c5c5" />
+              <p>Nenhum treino encontrado neste mes.</p>
             </div>
           </div>
         </div>
 
-        <div class="year-chart-card__stats">
-          <div class="year-chart-card__stat year-chart-card__stat--primary">
-            <span class="year-chart-card__stat-dot year-chart-card__stat-dot--orange" />
-            <div class="year-chart-card__stat-text">
-              <span class="year-chart-card__stat-label">{{ currentMonthLabel }}</span>
-              <span class="year-chart-card__stat-value year-chart-card__stat-value--accent">
-                {{ currentMonthTotal }}
-                <span class="year-chart-card__stat-unit">treinos</span>
-              </span>
-            </div>
-          </div>
-
-          <div class="year-chart-card__stat">
-            <span class="year-chart-card__stat-dot year-chart-card__stat-dot--muted" />
-            <div class="year-chart-card__stat-text">
-              <span class="year-chart-card__stat-label year-chart-card__stat-label--muted">{{
-                chartYear
-              }}</span>
-              <span class="year-chart-card__stat-value">{{ yearTotal }} treinos</span>
-            </div>
+        <div class="year-chart-card__pie-panel">
+          <p class="year-chart-card__pie-title">{{ pieTitle }}</p>
+          <div class="year-chart-card__pie-canvas">
+            <Doughnut :data="pieData" :options="pieOptions" />
           </div>
         </div>
       </div>
@@ -54,96 +64,177 @@
 </template>
 
 <script>
-import { Bar } from "vue-chartjs";
+import { Line, Doughnut } from "vue-chartjs";
 import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
-  BarElement,
+  PointElement,
+  LineElement,
+  ArcElement,
   Tooltip,
+  Legend,
+  Filler,
 } from "chart.js";
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip);
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  ArcElement,
+  Tooltip,
+  Legend,
+  Filler,
+);
 
-/** Treinos por mês só para exibição até existir endpoint estável no backend. */
-const DEMO_MONTH_COUNTS = [8, 14, 22, 18, 26, 12, 10, 16, 19, 15, 11, 9];
+const DEMO_MONTH_VIEW = {
+  labels: ["Sem 1", "Sem 2", "Sem 3", "Sem 4", "Sem 5"],
+  scheduled: [8, 9, 7, 10, 6],
+  canceled: [1, 2, 1, 3, 1],
+  finalized: [5, 6, 7, 6, 5],
+};
+
+const DEMO_YEAR_VIEW = {
+  labels: ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"],
+  scheduled: [18, 16, 20, 22, 19, 17, 21, 23, 18, 20, 16, 15],
+  canceled: [3, 2, 4, 3, 2, 3, 2, 4, 3, 2, 2, 1],
+  finalized: [14, 13, 16, 18, 16, 14, 18, 17, 15, 16, 13, 12],
+};
 
 export default {
   name: "ZHomeTrainingsYearChart",
-  components: { Bar },
+  components: { Line, Doughnut },
   data() {
     return {
       loading: true,
       errorMessage: null,
-      monthCounts: [...DEMO_MONTH_COUNTS],
+      selectedPeriod: "month",
+      periodOptions: [
+        { label: "Mes", value: "month" },
+        { label: "Ano", value: "year" },
+      ],
+      labels: [...DEMO_MONTH_VIEW.labels],
+      scheduledSeries: [...DEMO_MONTH_VIEW.scheduled],
+      canceledSeries: [...DEMO_MONTH_VIEW.canceled],
+      finalizedSeries: [...DEMO_MONTH_VIEW.finalized],
       chartYear: new Date().getFullYear(),
       usingDemoData: true,
     };
   },
   computed: {
-    eyebrowLabel() {
-      return `Treinos em ${this.chartYear}`;
-    },
-    monthLabels() {
-      return ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
-    },
-    currentMonthIndex() {
-      const now = new Date();
-      if (now.getFullYear() !== this.chartYear) {
-        return 11;
-      }
-      return now.getMonth();
-    },
-    currentMonthLabel() {
+    monthLabel() {
       try {
-        const d = new Date(this.chartYear, this.currentMonthIndex, 1);
-        const raw = new Intl.DateTimeFormat("pt-BR", { month: "long" }).format(d);
+        const raw = new Intl.DateTimeFormat("pt-BR", { month: "long" }).format(
+          new Date(),
+        );
         return raw.charAt(0).toUpperCase() + raw.slice(1);
       } catch {
-        return "Mês atual";
+        return "Mes atual";
       }
     },
-    currentMonthTotal() {
-      return this.monthCounts[this.currentMonthIndex] ?? 0;
+    periodLabel() {
+      if (this.selectedPeriod === "year") {
+        return this.chartYear;
+      }
+
+      return this.monthLabel;
     },
-    yearTotal() {
-      return this.monthCounts.reduce((a, b) => a + b, 0);
+    pieTitle() {
+      return this.selectedPeriod === "year" ? "Totais do ano" : "Totais do mes";
+    },
+    scheduledTotal() {
+      return this.scheduledSeries.reduce((acc, n) => acc + n, 0);
+    },
+    canceledTotal() {
+      return this.canceledSeries.reduce((acc, n) => acc + n, 0);
+    },
+    finalizedTotal() {
+      return this.finalizedSeries.reduce((acc, n) => acc + n, 0);
     },
     hasAnyData() {
-      return this.yearTotal > 0;
+      return this.scheduledTotal + this.canceledTotal + this.finalizedTotal > 0;
     },
     chartData() {
-      const orange = "#FF4E1B";
       return {
-        labels: this.monthLabels,
+        labels: this.labels,
         datasets: [
           {
-            label: "Treinos",
-            data: [...this.monthCounts],
-            backgroundColor: this.monthLabels.map((_, i) =>
-              i === this.currentMonthIndex ? orange : "rgba(255, 78, 27, 0.85)",
-            ),
-            borderRadius: { topLeft: 8, topRight: 8, bottomLeft: 0, bottomRight: 0 },
-            borderSkipped: false,
-            maxBarThickness: 28,
+            label: "Agendado",
+            data: this.scheduledSeries,
+            borderColor: "#FF4E1B",
+            backgroundColor: "rgba(255, 78, 27, 0.16)",
+            pointBackgroundColor: "#FF4E1B",
+            pointBorderColor: "#ffffff",
+            pointBorderWidth: 2,
+            pointRadius: 4,
+            pointHoverRadius: 5,
+            tension: 0.35,
+            fill: false,
+          },
+          {
+            label: "Cancelado",
+            data: this.canceledSeries,
+            borderColor: "#DC3545",
+            backgroundColor: "rgba(220, 53, 69, 0.14)",
+            pointBackgroundColor: "#DC3545",
+            pointBorderColor: "#ffffff",
+            pointBorderWidth: 2,
+            pointRadius: 4,
+            pointHoverRadius: 5,
+            tension: 0.35,
+            fill: false,
+          },
+          {
+            label: "Finalizado",
+            data: this.finalizedSeries,
+            borderColor: "#16A34A",
+            backgroundColor: "rgba(22, 163, 74, 0.14)",
+            pointBackgroundColor: "#16A34A",
+            pointBorderColor: "#ffffff",
+            pointBorderWidth: 2,
+            pointRadius: 4,
+            pointHoverRadius: 5,
+            tension: 0.35,
+            fill: false,
           },
         ],
       };
     },
     chartOptions() {
-      const maxVal = Math.max(1, ...this.monthCounts);
-      const niceMax = Math.max(5, Math.ceil(maxVal / 5) * 5);
+      const maxValue = Math.max(
+        1,
+        ...this.scheduledSeries,
+        ...this.canceledSeries,
+        ...this.finalizedSeries,
+      );
+
+      const niceMax = Math.max(5, Math.ceil(maxValue / 5) * 5);
 
       return {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { display: false },
+          legend: {
+            display: true,
+            position: "top",
+            align: "start",
+            labels: {
+              usePointStyle: true,
+              boxWidth: 8,
+              boxHeight: 8,
+              color: "#4b5563",
+              font: {
+                size: 12,
+                weight: "600",
+              },
+            },
+          },
           tooltip: {
             callbacks: {
               label: (ctx) => {
                 const n = ctx.parsed.y;
-                return `${n} treino${n === 1 ? "" : "s"}`;
+                return `${ctx.dataset.label}: ${n} treino${n === 1 ? "" : "s"}`;
               },
             },
           },
@@ -152,8 +243,11 @@ export default {
           x: {
             grid: { display: false },
             ticks: {
-              font: { size: 11, weight: "600" },
-              color: "#5c6570",
+              color: "#6b7280",
+              font: {
+                size: 11,
+                weight: "600",
+              },
             },
           },
           y: {
@@ -161,8 +255,10 @@ export default {
             max: niceMax,
             ticks: {
               stepSize: Math.max(1, Math.ceil(niceMax / 5)),
-              font: { size: 11 },
               color: "#8b949e",
+              font: {
+                size: 11,
+              },
             },
             grid: {
               color: "rgba(0, 0, 0, 0.06)",
@@ -172,21 +268,76 @@ export default {
         },
       };
     },
+    pieData() {
+      return {
+        labels: ["Agendado", "Cancelado", "Finalizado"],
+        datasets: [
+          {
+            data: [this.scheduledTotal, this.canceledTotal, this.finalizedTotal],
+            backgroundColor: ["#FF4E1B", "#DC3545", "#16A34A"],
+            borderColor: ["#ffffff", "#ffffff", "#ffffff"],
+            borderWidth: 2,
+            hoverOffset: 6,
+          },
+        ],
+      };
+    },
+    pieOptions() {
+      return {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: "bottom",
+            labels: {
+              usePointStyle: true,
+              boxWidth: 8,
+              boxHeight: 8,
+              color: "#4b5563",
+              font: {
+                size: 11,
+                weight: "600",
+              },
+            },
+          },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => {
+                const n = Number(ctx.parsed || 0);
+                return `${ctx.label}: ${n} treino${n === 1 ? "" : "s"}`;
+              },
+            },
+          },
+        },
+      };
+    },
+  },
+  watch: {
+    selectedPeriod() {
+      this.applyPeriodData();
+    },
   },
   mounted() {
     this.bootstrapChart();
   },
   methods: {
-    /**
-     * Usa dados fixos para o gráfico. Quando houver endpoint (ex.: agregação por mês),
-     * substitua por chamada GraphQL e defina usingDemoData = false.
-     */
+    applyPeriodData() {
+      const source =
+        this.selectedPeriod === "year" ? DEMO_YEAR_VIEW : DEMO_MONTH_VIEW;
+
+      this.labels = [...source.labels];
+      this.scheduledSeries = [...source.scheduled];
+      this.canceledSeries = [...source.canceled];
+      this.finalizedSeries = [...source.finalized];
+      this.usingDemoData = true;
+    },
+
     bootstrapChart() {
       this.loading = true;
       this.errorMessage = null;
       this.chartYear = new Date().getFullYear();
-      this.monthCounts = [...DEMO_MONTH_COUNTS];
-      this.usingDemoData = true;
+      this.applyPeriodData();
+
       this.$nextTick(() => {
         this.loading = false;
       });
@@ -223,7 +374,7 @@ export default {
 
 .year-chart-card__body {
   display: grid;
-  grid-template-columns: 1fr minmax(140px, 200px);
+  grid-template-columns: 1fr minmax(160px, 220px);
   gap: 20px 24px;
   align-items: stretch;
 }
@@ -246,6 +397,58 @@ export default {
 
 .year-chart-card__chart-wrap {
   min-width: 0;
+}
+
+.year-chart-card__chart-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.year-chart-card__period-radios {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.year-chart-card__radio-option {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 68px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid #dbe1e8;
+  background: #f8fafc;
+  color: #64748b;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.year-chart-card__radio-option--active {
+  background: rgba(255, 78, 27, 0.1);
+  border-color: rgba(255, 78, 27, 0.35);
+  color: #c2410c;
+  box-shadow: 0 0 0 3px rgba(255, 78, 27, 0.08);
+}
+
+.year-chart-card__radio-input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.year-chart-card__radio-label {
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .year-chart-card__canvas {
@@ -276,77 +479,28 @@ export default {
   margin: 0;
 }
 
-.year-chart-card__stats {
+.year-chart-card__pie-panel {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 22px;
+  gap: 10px;
   padding: 8px 0 8px 12px;
   border-left: 1px solid #eef0f3;
 }
 
-.year-chart-card__stat {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-}
-
-.year-chart-card__stat-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  margin-top: 5px;
-  flex-shrink: 0;
-}
-
-.year-chart-card__stat-dot--orange {
-  background: #ff4e1b;
-  box-shadow: 0 0 0 3px rgba(255, 78, 27, 0.2);
-}
-
-.year-chart-card__stat-dot--muted {
-  background: #7c4dff;
-  box-shadow: 0 0 0 3px rgba(124, 77, 255, 0.18);
-}
-
-.year-chart-card__stat-text {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-}
-
-.year-chart-card__stat-label {
-  font-size: 15px;
+.year-chart-card__pie-title {
+  margin: 0;
+  font-size: 13px;
   font-weight: 700;
   color: #0b1e3a;
-  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
-.year-chart-card__stat-label--muted {
-  font-size: 13px;
-  font-weight: 600;
-  color: #8b949e;
-}
-
-.year-chart-card__stat-value {
-  font-size: 22px;
-  font-weight: 800;
-  color: #0b1e3a;
-  line-height: 1.15;
-}
-
-.year-chart-card__stat-value--accent {
-  font-size: 26px;
-  font-weight: 800;
-  color: #3949ab;
-}
-
-.year-chart-card__stat-unit {
-  font-size: 13px;
-  font-weight: 600;
-  color: #5c6570;
-  margin-left: 4px;
+.year-chart-card__pie-canvas {
+  position: relative;
+  width: 100%;
+  height: 220px;
 }
 
 @media (max-width: 900px) {
@@ -354,17 +508,15 @@ export default {
     grid-template-columns: 1fr;
   }
 
-  .year-chart-card__stats {
-    flex-direction: row;
-    flex-wrap: wrap;
+  .year-chart-card__pie-panel {
     border-left: none;
     border-top: 1px solid #eef0f3;
     padding: 16px 0 0 0;
-    gap: 20px;
+    gap: 10px;
   }
 
-  .year-chart-card__stat {
-    flex: 1 1 140px;
+  .year-chart-card__pie-canvas {
+    height: 200px;
   }
 }
 </style>

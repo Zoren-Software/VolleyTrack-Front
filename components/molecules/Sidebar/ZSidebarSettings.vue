@@ -38,9 +38,9 @@ export default {
     return {
       menuSettings: [
         {
-          title: "Configurações da Conta",
-          icon: "settings",
-          to: "/settings",
+          title: "Minha conta",
+          icon: "manage_accounts",
+          to: "/account",
           active: false,
         },
         {

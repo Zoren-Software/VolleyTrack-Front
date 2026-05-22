@@ -98,16 +98,6 @@
           </button>
 
           <button
-            v-if="includeActionResendVerificationEmail"
-            type="button"
-            class="action-menu-item"
-            @click="emitResendVerificationEmail(id)"
-          >
-            <va-icon name="mark_email_unread" size="16px" color="#6b7280" />
-            <span>Reenviar verificação</span>
-          </button>
-
-          <button
             v-if="includeActionDeleteList"
             type="button"
             class="action-menu-item"
@@ -167,10 +157,6 @@ export default {
       type: Boolean,
       default: false,
     },
-    includeActionResendVerificationEmail: {
-      type: Boolean,
-      default: false,
-    },
   },
   emits: [
     "stats",
@@ -182,7 +168,6 @@ export default {
     "reactivate",
     "attendanceList",
     "technicalAnalysis",
-    "resendVerificationEmail",
   ],
   methods: {
     emitStats(id) {
@@ -193,9 +178,6 @@ export default {
     },
     emitTechnicalAnalysis(id) {
       this.$emit("technicalAnalysis", id);
-    },
-    emitResendVerificationEmail(id) {
-      this.$emit("resendVerificationEmail", id);
     },
     emitFinalize(id) {
       this.$emit("finalize", id);
@@ -236,12 +218,18 @@ export default {
   min-width: 36px;
   width: 36px;
   height: 36px;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
   border-radius: 12px;
   padding: 0;
   color: #71717a !important;
-  background-color: #f4f4f5 !important;
+  background-color: #e5e7eb !important;
   border: 1px solid #e4e4e7 !important;
   box-shadow: none !important;
+  --va-button-background: #e5e7eb !important;
+  --va-button-background-hover: #e9e9ec !important;
+  --va-button-background-pressed: #dde1e7 !important;
 }
 
 .action-menu-trigger:hover {
@@ -258,6 +246,28 @@ export default {
 .action-menu-trigger :deep(.va-icon) {
   color: #71717a !important;
   font-size: 20px !important;
+  line-height: 1 !important;
+  margin: 0 !important;
+}
+
+.action-menu-trigger :deep(.va-button__content) {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100%;
+  height: 100%;
+  padding: 0 !important;
+}
+
+.action-menu-trigger :deep(.va-button) {
+  background-color: #e5e7eb !important;
+  border: 1px solid #e4e4e7 !important;
+  box-shadow: none !important;
+}
+
+.action-menu-trigger:hover :deep(.va-button) {
+  background-color: #e9e9ec !important;
+  border-color: #d4d4d8 !important;
 }
 
 .action-menu-panel {

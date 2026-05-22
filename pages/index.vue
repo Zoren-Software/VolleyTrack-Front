@@ -46,7 +46,7 @@
             </div>
           </section>
 
-          <!-- Totais do clube (layout dashboard) -->
+          <!-- Totais do clube -->
           <div class="totals-section">
             <div class="total-card total-card--trainings">
               <div class="total-icon">
@@ -165,6 +165,9 @@
 
           <ZHomeTrainingsYearChart />
 
+          <!-- Presence Ranking Section -->
+          <ZPresenceRanking v-if="totalTrainings > 0" />
+
           <!-- Completion Animation -->
           <Transition name="completion">
             <div v-if="showCompletionAnimation" class="completion-animation">
@@ -237,137 +240,53 @@
                     <p class="step-description">
                       Adicione os jogadores da sua equipe.
                     </p>
-                  </div>
-                  <div class="step-actions">
-                    <span
-                      v-if="steps.registerPlayers.completed"
-                      class="status-badge status-completed"
-                    >
-                      Concluído
-                    </span>
                     <va-button
-                      v-else
+                      v-if="!steps.registerPlayers.completed"
                       color="#FF4E1B"
                       size="small"
                       @click="navigateTo('/players')"
                     >
-                      Editar
+                      <va-icon name="send" class="dashboard-hero__cta-icon" />
+                      <span>Começar Configuração</span>
                     </va-button>
                   </div>
-                </div>
-
-                <!-- Step 2: Times -->
-                <div
-                  class="step-item"
-                  :class="{ completed: steps.registerTeams.completed }"
-                >
-                  <div class="step-icon-wrapper">
-                    <va-icon
-                      v-if="steps.registerTeams.completed"
-                      name="check_circle"
-                      color="#28A745"
-                      size="20px"
-                    />
-                    <va-icon
-                      v-else-if="steps.registerTeams.inProgress"
-                      name="hourglass_empty"
-                      color="#1976D2"
-                      size="20px"
-                    />
-                    <va-icon
-                      v-else
-                      name="radio_button_unchecked"
-                      color="#9E9E9E"
-                      size="20px"
-                    />
-                  </div>
-                  <div class="step-content">
-                    <h3 class="step-title">Registrar Times</h3>
-                    <p class="step-description">Organize seus times.</p>
-                  </div>
-                  <div class="step-actions">
-                    <span
-                      v-if="steps.registerTeams.completed"
-                      class="status-badge status-completed"
-                    >
-                      Concluído
-                    </span>
-                    <template v-else-if="steps.registerTeams.inProgress">
-                      <span class="status-badge status-in-progress">
-                        Em andamento
-                      </span>
-                      <va-button
-                        color="#1976D2"
-                        size="small"
-                        @click="navigateTo('/teams')"
-                        style="margin-left: 8px"
-                      >
-                        Continuar
-                      </va-button>
-                    </template>
-                    <span v-else class="status-badge status-pending">
-                      <va-icon name="warning" size="small" />
-                      Pendente
-                    </span>
+                  <div class="dashboard-hero__visual" aria-hidden="true">
+                    <div class="hero-decoration hero-decoration--1">
+                      <va-icon name="sports_volleyball" size="24px" />
+                    </div>
+                    <div class="hero-decoration hero-decoration--2">
+                      <va-icon name="fitness_center" size="22px" />
+                    </div>
+                    <div class="hero-decoration hero-decoration--3">
+                      <va-icon name="emoji_events" size="22px" />
+                    </div>
+                    <div class="hero-decoration hero-decoration--4">
+                      <va-icon name="groups" size="22px" />
+                    </div>
+                    <div class="hero-main-ball">
+                      <va-icon name="sports_volleyball" size="72px" />
+                    </div>
                   </div>
                 </div>
+              </div>
 
-                <!-- Step 3: Treinos -->
-                <div
-                  class="step-item"
-                  :class="{ completed: steps.registerTrainings.completed }"
-                >
-                  <div class="step-icon-wrapper">
-                    <va-icon
-                      v-if="steps.registerTrainings.completed"
-                      name="check_circle"
-                      color="#28A745"
-                      size="20px"
-                    />
-                    <va-icon
-                      v-else-if="steps.registerTrainings.inProgress"
-                      name="hourglass_empty"
-                      color="#1976D2"
-                      size="20px"
-                    />
-                    <va-icon
-                      v-else
-                      name="radio_button_unchecked"
-                      color="#9E9E9E"
-                      size="20px"
-                    />
+              <!-- Totais do clube (layout dashboard) -->
+              <div class="totals-section">
+                <div class="total-card total-card--trainings">
+                  <div class="total-icon">
+                    <va-icon name="event" size="26px" color="#FF4E1B" />
                   </div>
-                  <div class="step-content">
-                    <h3 class="step-title">Registrar Treinos</h3>
-                    <p class="step-description">
-                      Planeje e registre os treinos.
-                    </p>
-                  </div>
-                  <div class="step-actions">
-                    <span
-                      v-if="steps.registerTrainings.completed"
-                      class="status-badge status-completed"
-                    >
-                      Concluído
-                    </span>
-                    <template v-else-if="steps.registerTrainings.inProgress">
-                      <span class="status-badge status-in-progress">
-                        Em andamento
-                      </span>
-                      <va-button
-                        color="#1976D2"
-                        size="small"
-                        @click="navigateTo('/trainings')"
-                        style="margin-left: 8px"
+                  <div class="total-info">
+                    <div class="total-label">Total de treinos</div>
+                    <div class="total-number">
+                      {{ totalTrainings || 0
+                      }}<span
+                        v-if="showPlanLimits && planLimits.maxTrainings"
+                        class="plan-limit"
                       >
-                        Continuar
-                      </va-button>
-                    </template>
-                    <template v-else>
-                      <span class="status-badge status-waiting">
-                        Aguardando
-                      </span>
-                    </template>
+                        / {{ planLimits.maxTrainings }}</span
+                      >
+                    </div>
                   </div>
                 </div>
               </div>
@@ -396,20 +315,10 @@
             </va-card>
           </Transition>
 
-          <!-- Individual Analysis Section -->
-          <ZIndividualAnalysis v-if="totalUsers > 0" />
-
-          <!-- Team Performance Section -->
-          <ZTeamPerformance v-if="totalTeams > 0" />
-
-          <!-- Training Technical Vision Section -->
-          <ZTrainingTechnicalVision v-if="totalTrainings > 0" />
-
           <!-- Presence Analysis Section -->
           <ZPresenceAnalysis v-if="totalTrainings > 0" />
 
-          <!-- Presence Ranking Section -->
-          <ZPresenceRanking v-if="totalTrainings > 0" />
+          <ZHomeRecentFeedbacks />
 
           <!-- Perfil do jogador (usuário logado) -->
           <ZHomePlayerProfileCard
@@ -420,10 +329,60 @@
 
         <aside
           class="dashboard-layout__sidebar"
-          aria-label="Próximos treinos e últimos feedbacks"
+          aria-label="Próximos treinos, totais e últimos feedbacks"
         >
-          <ZHomeUpcomingTrainings />
-          <ZHomeRecentFeedbacks />
+          <ZHomeUpcomingTrainings @summary-change="handleUpcomingSummary" />
+
+          <div class="upcoming-summary-section">
+            <div class="upcoming-summary-section__header">
+              <h3 class="upcoming-summary-section__title">Esta semana</h3>
+              <p class="upcoming-summary-section__subtitle">
+                Resumo rapido dos treinos desta semana
+              </p>
+            </div>
+
+            <div class="upcoming-summary-card upcoming-summary-card--scheduled">
+              <div class="upcoming-summary-card__icon">
+                <va-icon name="event" size="24px" color="#D97706" />
+              </div>
+              <div class="upcoming-summary-card__info">
+                <div class="upcoming-summary-card__label">
+                  Treinos agendados
+                </div>
+                <div class="upcoming-summary-card__value">
+                  {{ upcomingSummary.upcomingThisWeek }}
+                </div>
+              </div>
+            </div>
+
+            <div class="upcoming-summary-card upcoming-summary-card--cancelled">
+              <div class="upcoming-summary-card__icon">
+                <va-icon name="close" size="24px" color="#DC2626" />
+              </div>
+              <div class="upcoming-summary-card__info">
+                <div class="upcoming-summary-card__label">
+                  Treinos cancelados
+                </div>
+                <div class="upcoming-summary-card__value">
+                  {{ upcomingSummary.cancelledThisWeek }}
+                </div>
+              </div>
+            </div>
+
+            <div class="upcoming-summary-card upcoming-summary-card--success">
+              <div class="upcoming-summary-card__icon">
+                <va-icon name="task_alt" size="24px" color="#16A34A" />
+              </div>
+              <div class="upcoming-summary-card__info">
+                <div class="upcoming-summary-card__label">
+                  Treinos finalizados
+                </div>
+                <div class="upcoming-summary-card__value">
+                  {{ upcomingSummary.finalizedThisWeek }}
+                </div>
+              </div>
+            </div>
+          </div>
         </aside>
       </div>
     </div>
@@ -437,8 +396,6 @@ import TEAMSTOTAL from "~/graphql/team/query/teamsTotal.graphql";
 import TRAININGSTOTAL from "~/graphql/training/query/trainingsTotal.graphql";
 import { getActivePlan } from "~/services/stripeCheckoutService.js";
 import ZIndividualAnalysis from "~/components/organisms/Dashboard/ZIndividualAnalysis.vue";
-import ZTeamPerformance from "~/components/organisms/Dashboard/ZTeamPerformance.vue";
-import ZTrainingTechnicalVision from "~/components/organisms/Dashboard/ZTrainingTechnicalVision.vue";
 import ZPresenceAnalysis from "~/components/organisms/Dashboard/ZPresenceAnalysis.vue";
 import ZPresenceRanking from "~/components/organisms/Dashboard/ZPresenceRanking.vue";
 import ZHomePlayerProfileCard from "~/components/organisms/Dashboard/ZHomePlayerProfileCard.vue";
@@ -449,8 +406,6 @@ import ZHomeTrainingsYearChart from "~/components/organisms/Dashboard/ZHomeTrain
 export default {
   components: {
     ZIndividualAnalysis,
-    ZTeamPerformance,
-    ZTrainingTechnicalVision,
     ZPresenceAnalysis,
     ZPresenceRanking,
     ZHomePlayerProfileCard,
@@ -596,7 +551,7 @@ export default {
           year: "numeric",
           hour: "2-digit",
           minute: "2-digit",
-        }).format(this.now);
+        }).format(new Date());
       } catch {
         return "";
       }
@@ -614,6 +569,11 @@ export default {
       showCompletionAnimation: false,
       showConfigurationDetails: false,
       activePlanData: null,
+      upcomingSummary: {
+        upcomingThisWeek: 0,
+        cancelledThisWeek: 2,
+        finalizedThisWeek: 4,
+      },
       paginatorInfo: {},
       variablesGetPlayers: {
         page: 1,
@@ -875,6 +835,13 @@ export default {
     closeConfigurationDetails() {
       this.showConfigurationDetails = false;
     },
+    handleUpcomingSummary(summary) {
+      this.upcomingSummary = {
+        upcomingThisWeek: summary?.upcomingThisWeek || 0,
+        cancelledThisWeek: summary?.cancelledThisWeek || 0,
+        finalizedThisWeek: summary?.finalizedThisWeek || 0,
+      };
+    },
     async loadActivePlan() {
       try {
         const token =
@@ -968,6 +935,110 @@ useHead({
   gap: 20px;
   position: sticky;
   top: 24px;
+}
+
+.upcoming-summary-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.upcoming-summary-section__header {
+  padding: 2px 2px 0;
+}
+
+.upcoming-summary-section__title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0b1e3a;
+}
+
+.upcoming-summary-section__subtitle {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.upcoming-summary-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 16px;
+  background: #fff;
+  border: 1px solid #eef0f3;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.upcoming-summary-card--scheduled {
+  background: #fff;
+  border-color: #eef0f3;
+}
+
+.upcoming-summary-card--cancelled {
+  background: #fff;
+  border-color: #eef0f3;
+}
+
+.upcoming-summary-card--success {
+  background: #fff;
+  border-color: #eef0f3;
+}
+
+.upcoming-summary-card__icon {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  background: #f3f4f6;
+}
+
+.upcoming-summary-card--scheduled .upcoming-summary-card__icon {
+  background: #fef3c7;
+}
+
+.upcoming-summary-card--cancelled .upcoming-summary-card__icon {
+  background: #fee2e2;
+}
+
+.upcoming-summary-card--success .upcoming-summary-card__icon {
+  background: #ecfdf3;
+}
+
+.upcoming-summary-card__info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.upcoming-summary-card__label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.upcoming-summary-card__value {
+  font-size: 30px;
+  line-height: 1;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.upcoming-summary-card--scheduled .upcoming-summary-card__value {
+  color: #92400e;
+}
+
+.upcoming-summary-card--cancelled .upcoming-summary-card__value {
+  color: #991b1b;
+}
+
+.upcoming-summary-card--success .upcoming-summary-card__value {
+  color: #166534;
 }
 
 .dashboard-layout__primary .dashboard-hero__inner {

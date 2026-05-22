@@ -12,7 +12,7 @@ export default {
   },
   methods: {
     color() {
-      return this.$route.path === "/settings"
+      return this.$route.path.startsWith("/settings")
         ? "primary"
         : "background-primary";
     },

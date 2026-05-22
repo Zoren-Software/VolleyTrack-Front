@@ -44,6 +44,21 @@ query playerIndividualAnalysis($playerId: ID!) {
       totalPresences
       totalPlayersInTeam
     }
+    scoutFeedbackByFundamental {
+      trainingName
+      trainingDate
+      scoutLabel
+      feedbackText
+      evaluatorDisplayName
+      teamName
+    }
+    scoutGeneralObservations {
+      trainingName
+      trainingDate
+      observationsText
+      evaluatorDisplayName
+      teamName
+    }
   }
 }
 

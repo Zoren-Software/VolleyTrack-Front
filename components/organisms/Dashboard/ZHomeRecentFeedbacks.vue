@@ -6,7 +6,7 @@
         <h2 class="recent-feedbacks__title">Últimos feedbacks</h2>
       </div>
       <p class="recent-feedbacks__subtitle">
-        Textos de feedback vinculados ao treino e ao jogador
+        Autor, treino, jogador avaliado e comentário mais recente
       </p>
     </div>
 
@@ -44,11 +44,16 @@
         v-for="row in items"
         :key="row.scoutId"
         class="feedback-item"
+        :class="{ 'feedback-item--mock': row.isMock }"
         role="button"
         tabindex="0"
         @click="goDetails(row.trainingId)"
         @keydown.enter="goDetails(row.trainingId)"
       >
+        <div class="feedback-item__author">
+          <va-icon name="rate_review" size="16px" color="#ff4e1b" />
+          <span>Feedback de {{ row.authorName || "Comissão técnica" }}</span>
+        </div>
         <div class="feedback-item__training">
           <va-icon name="sports_volleyball" size="18px" color="#FF4E1B" />
           <div class="feedback-item__training-text">
@@ -65,7 +70,7 @@
         </div>
         <div class="feedback-item__player">
           <va-icon name="person" size="16px" color="#6b7280" />
-          <span>{{ row.playerName || "Jogador" }}</span>
+          <span>Jogador: {{ row.playerName || "Jogador" }}</span>
         </div>
         <p class="feedback-item__body">{{ row.feedback }}</p>
         <div class="feedback-item__footer">
@@ -105,6 +110,39 @@ export default {
     this.loadRecent();
   },
   methods: {
+    buildMockItems() {
+      const now = new Date();
+
+      return [
+        {
+          scoutId: "mock-feedback-1",
+          trainingId: null,
+          trainingName: "Treino Técnico de Saque e Recepção",
+          trainingDate: now.toISOString(),
+          teamName: "Sub-17 Feminino",
+          playerName: "Ana Beatriz",
+          authorName: "Coach Marcelo",
+          feedback:
+            "Mostrou boa leitura de saque e evoluiu no posicionamento defensivo. Precisa manter constância na plataforma em bolas mais rápidas.",
+          updatedAt: now.toISOString(),
+          isMock: true,
+        },
+        {
+          scoutId: "mock-feedback-2",
+          trainingId: null,
+          trainingName: "Treino Tático de Sistema Defensivo",
+          trainingDate: new Date(now.getTime() - 86400000).toISOString(),
+          teamName: "Adulto Masculino",
+          playerName: "Carlos Henrique",
+          authorName: "Técnica Juliana",
+          feedback:
+            "Teve boa comunicação no bloqueio duplo e respondeu bem às correções. Próximo passo é acelerar a recomposição após cobertura.",
+          updatedAt: new Date(now.getTime() - 7200000).toISOString(),
+          isMock: true,
+        },
+      ];
+    },
+
     async loadRecent() {
       this.loading = true;
       this.errorMessage = null;
@@ -158,8 +196,10 @@ export default {
               trainingDate: t.dateStart,
               teamName: t.team?.name || "",
               playerName: player.displayName || player.name || "",
+              authorName: t.user?.name || t.user?.email || "Comissão técnica",
               feedback: fb,
               updatedAt: s.updatedAt || t.updatedAt,
+              isMock: false,
             });
           }
         }
@@ -171,10 +211,13 @@ export default {
         });
 
         this.items = flat.slice(0, MAX_ITEMS);
+
+        if (!this.items.length) {
+          this.items = this.buildMockItems();
+        }
       } catch (e) {
         console.warn("ZHomeRecentFeedbacks:", e);
-        this.errorMessage = "Erro ao carregar feedbacks.";
-        this.items = [];
+        this.items = this.buildMockItems();
       } finally {
         this.loading = false;
       }
@@ -295,10 +338,10 @@ export default {
   margin: 0;
   padding: 0;
   flex: 1;
-  max-height: min(48vh, 340px);
+  max-height: min(64vh, 560px);
   overflow-y: auto;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
 }
 
@@ -313,6 +356,20 @@ export default {
     border-color 0.15s ease,
     box-shadow 0.15s ease;
   text-align: left;
+}
+
+.feedback-item--mock {
+  border-style: dashed;
+}
+
+.feedback-item__author {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #9a3412;
 }
 
 .feedback-item:hover {
@@ -399,6 +456,13 @@ export default {
   border-top: 1px solid #f0f2f5;
   display: flex;
   justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .feedback-list {
+    grid-template-columns: 1fr;
+    max-height: none;
+  }
 }
 
 .see-all-btn {
