@@ -38,14 +38,14 @@
           :to="item.link"
           :class="['sidebar-link', { active: isRouteActive(item.link) }]"
         >
-          <va-icon
-            :name="item.icon"
-            size="20px"
-            class="sidebar-link-icon"
-          />
+          <va-icon :name="item.icon" size="20px" class="sidebar-link-icon" />
           <span class="sidebar-link-text">{{ item.title }}</span>
         </NuxtLink>
-        <div class="dropdown sidebar-dropdown" ref="dropdownRef" @click.stop="toggleDropdown">
+        <div
+          class="dropdown sidebar-dropdown"
+          ref="dropdownRef"
+          @click.stop="toggleDropdown"
+        >
           <span
             class="sidebar-link dropdown-toggle"
             :class="{ active: isSettingsRouteActive() }"
@@ -59,7 +59,11 @@
               class="dropdown-item"
               @click="closeDropdown"
             >
-              <va-icon name="manage_accounts" size="18px" class="dropdown-item-icon" />
+              <va-icon
+                name="manage_accounts"
+                size="18px"
+                class="dropdown-item-icon"
+              />
               <span>Minha conta</span>
             </NuxtLink>
             <a
@@ -67,7 +71,11 @@
               class="dropdown-item"
               @click.prevent="openNotificationSettings"
             >
-              <va-icon name="notifications_active" size="18px" class="dropdown-item-icon" />
+              <va-icon
+                name="notifications_active"
+                size="18px"
+                class="dropdown-item-icon"
+              />
               <span>Configuração de Notificações</span>
             </a>
           </div>
@@ -81,6 +89,12 @@
           <span class="sidebar-link-text">Sair</span>
         </button>
       </nav>
+      <<<<<<< HEAD =======
+      <div class="sidebar-footer">
+        <ZLegalLinks variant="dark" class="sidebar-legal-links" />
+        <span class="sidebar-version">v{{ appVersion }}</span>
+      </div>
+      >>>>>>> develop
     </aside>
     <div class="main-area">
       <div class="top-bar">
@@ -103,7 +117,8 @@
                 v-if="idx < breadcrumbs.length - 1"
                 class="breadcrumb-sep"
                 aria-hidden="true"
-              >{{ ">" }}</span>
+                >{{ ">" }}</span
+              >
             </li>
           </ol>
         </nav>
@@ -123,7 +138,9 @@
                     overlap
                     color="danger"
                     :text="
-                      totalNotifications > 99 ? '99+' : String(totalNotifications)
+                      totalNotifications > 99
+                        ? '99+'
+                        : String(totalNotifications)
                     "
                     class="notification-badge"
                   >
@@ -161,14 +178,22 @@
       </div>
       <div class="content-wrapper">
         <NuxtPage />
+        <footer class="app-main-footer">
+          <ZLegalLinks variant="light" />
+        </footer>
       </div>
     </div>
+    <ZTermsAcceptanceModal />
   </div>
 </template>
 
 <script>
 import ZTopBarLanguageSwitcher from "~/components/molecules/NavBar/ZTopBarLanguageSwitcher.vue";
 import ZListItemsNotification from "~/components/organisms/List/Notification/ZListItemsNotification.vue";
+import ZListItemsUser from "~/components/molecules/List/ZListItemsUser.vue";
+import ZLegalLinks from "~/components/organisms/Footer/ZLegalLinks.vue";
+import ZTermsAcceptanceModal from "~/components/organisms/Modal/ZTermsAcceptanceModal.vue";
+import { useTermsAcceptance } from "~/composables/useTermsAcceptance";
 import NOTIFICATIONSTOTAL from "~/graphql/notification/query/notificationsTotal.graphql";
 import ME from "~/graphql/user/query/me.graphql";
 import { getActivePlan } from "~/services/stripeCheckoutService.js";
@@ -178,6 +203,9 @@ export default {
   components: {
     ZTopBarLanguageSwitcher,
     ZListItemsNotification,
+    ZListItemsUser,
+    ZLegalLinks,
+    ZTermsAcceptanceModal,
   },
   data() {
     return {
@@ -386,7 +414,8 @@ export default {
       };
 
       const isIdSegment = (s) =>
-        /^\d+$/.test(s) || /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        /^\d+$/.test(s) ||
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
           s,
         );
 
@@ -401,7 +430,11 @@ export default {
       while (i < parts.length) {
         const seg = parts[i];
 
-        if (seg === "edit" && i + 1 < parts.length && isIdSegment(parts[i + 1])) {
+        if (
+          seg === "edit" &&
+          i + 1 < parts.length &&
+          isIdSegment(parts[i + 1])
+        ) {
           items.push({
             label: labelMap.edit,
             to: path.split("?")[0],
@@ -680,6 +713,7 @@ export default {
               roles: value.me.roles || [],
             };
             localStorage.setItem("user", JSON.stringify(this.user));
+            useTermsAcceptance().syncFromUser(value.me);
             return;
           }
         } catch (e) {
@@ -789,7 +823,9 @@ export default {
   text-decoration: none;
   font-weight: 500;
   font-size: 15px;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
   min-width: 0;
 }
 
@@ -873,6 +909,26 @@ button.sidebar-link {
   display: flex;
   flex-direction: column;
   background-color: #f3f4f6;
+  margin-left: 260px;
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.content-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.app-main-footer {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+  padding: 12px 16px 20px;
+}
+
+.sidebar-is-collapsed .main-area {
+  margin-left: 64px;
 }
 
 .top-bar {
@@ -1005,7 +1061,7 @@ button.sidebar-link {
 }
 
 .logo-circle {
-  background-color: #FF4E1B;
+  background-color: #ff4e1b;
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -1254,7 +1310,10 @@ button.sidebar-link {
   justify-content: center !important;
   color: #6b7280 !important;
   cursor: pointer;
-  transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease,
+  transition:
+    color 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease,
     box-shadow 0.2s ease;
   --va-background-color: transparent !important;
   background: transparent !important;
@@ -1323,7 +1382,7 @@ button.sidebar-link {
   height: 32px;
   border: 2px solid white !important;
   transition: all 0.2s ease;
-  background: #FF4E1B !important;
+  background: #ff4e1b !important;
   color: white !important;
   font-weight: 700;
   font-size: 14px;
@@ -1333,7 +1392,7 @@ button.sidebar-link {
 
 .user-avatar :deep(.va-avatar) {
   border: 2px solid white !important;
-  background: #FF4E1B !important;
+  background: #ff4e1b !important;
   color: white !important;
   --va-size-computed: 40px !important;
   width: 32px !important;
@@ -1349,22 +1408,143 @@ button.sidebar-link {
   color: #0b1e3a;
   flex-shrink: 0;
 }
-.content-wrapper {
-  flex: 1;
-  padding: 20px;
-  overflow-x: hidden;
-  width: 100%;
-  box-sizing: border-box;
-  position: relative;
-  z-index: 0;
-  min-height: 0;
-}
 
 @media (max-width: 900px) {
   .layout-container {
     flex-direction: column;
   }
+}
 
+.sidebar-toggle-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+/* ── Sidebar Colapsada ── */
+.sidebar--collapsed {
+  width: 64px;
+  padding: 20px 8px;
+}
+
+.sidebar--collapsed .system-name {
+  max-width: 0;
+  opacity: 0;
+  margin-left: 0;
+}
+
+.sidebar--collapsed .plan-icon-logo {
+  max-width: 0;
+  opacity: 0;
+}
+
+.sidebar--collapsed .sidebar-link {
+  justify-content: center;
+  gap: 0;
+  padding: 10px;
+}
+
+.sidebar--collapsed .sidebar-link-text {
+  max-width: 0;
+  opacity: 0;
+}
+
+.sidebar--collapsed .sidebar-brand {
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+}
+
+.sidebar--collapsed .logo {
+  justify-content: center;
+  width: 100%;
+}
+
+.sidebar--collapsed .sidebar-nav {
+  margin-top: 0px;
+}
+
+/* ── Rodapé da Sidebar ── */
+.sidebar-footer {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 0 4px;
+  overflow: hidden;
+}
+
+.sidebar-legal-links {
+  max-width: 100%;
+  overflow: hidden;
+  opacity: 1;
+  transition:
+    opacity 0.15s cubic-bezier(0.4, 0, 0.2, 1),
+    max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar--collapsed .sidebar-legal-links {
+  display: none;
+}
+
+.sidebar-version {
+  font-size: 12px;
+  color: rgba(232, 238, 247, 0.3);
+  white-space: nowrap;
+  overflow: hidden;
+  max-width: 120px;
+  opacity: 1;
+  transition:
+    opacity 0.15s cubic-bezier(0.4, 0, 0.2, 1),
+    max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar--collapsed .sidebar-version {
+  max-width: 0;
+  opacity: 0;
+}
+
+/* ── Mobile Hamburger (só visível em mobile) ── */
+.mobile-hamburger {
+  display: none;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #0b1e3a;
+  padding: 4px;
+  border-radius: 6px;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background-color 0.15s ease;
+}
+
+.mobile-hamburger:hover {
+  background-color: rgba(0, 0, 0, 0.06);
+}
+
+/* ── Backdrop ── */
+.sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.45);
+  z-index: 1000;
+}
+
+.backdrop-fade-enter-active,
+.backdrop-fade-leave-active {
+  transition: opacity 0.25s ease;
+}
+
+.backdrop-fade-enter-from,
+.backdrop-fade-leave-to {
+  opacity: 0;
+}
+
+/* ── Responsividade Mobile (<768px) ── */
+@media (max-width: 768px) {
   .sidebar {
     width: 100%;
     border-right: none;

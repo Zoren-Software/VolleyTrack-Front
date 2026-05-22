@@ -32,9 +32,20 @@
         </div>
       </div>
       <div class="row justify-center px-3 pb-3">
+        <label class="set-password-terms">
+          <input v-model="termsAccepted" type="checkbox" />
+          <span>
+            Li e concordo com os
+            <a :href="termsOfUseUrl" target="_blank" rel="noopener noreferrer">Termos de Uso</a>
+            e
+            <a :href="privacyPolicyUrl" target="_blank" rel="noopener noreferrer">Política de Privacidade</a>
+          </span>
+        </label>
+      </div>
+      <div class="row justify-center px-3 pb-3">
         <ZButton
           :block="true"
-          :disabled="buttonDisabled"
+          :disabled="buttonDisabled || !termsAccepted"
           :loading="loading"
           color="primary"
           @click="registerPassword"
@@ -76,7 +87,19 @@ export default {
       email: this.$route.params.email,
       password: "",
       buttonDisabled: true,
+      termsAccepted: false,
     };
+  },
+
+  computed: {
+    privacyPolicyUrl() {
+      const url = String(this.$config?.public?.privacyPolicyUrl ?? "").trim();
+      return url || "https://volleytrack.com/privacy-policy";
+    },
+    termsOfUseUrl() {
+      const url = String(this.$config?.public?.termsOfUseUrl ?? "").trim();
+      return url || "https://volleytrack.com/terms-of-use";
+    },
   },
 
   methods: {
@@ -92,6 +115,7 @@ export default {
           password: this.password,
           passwordConfirmation: this.password,
           token: this.$route.params.token,
+          termsAccepted: true,
         };
 
         const { mutate } = await useMutation(query, { variables });
@@ -125,3 +149,20 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.set-password-terms {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: #374151;
+  max-width: 420px;
+}
+
+.set-password-terms a {
+  color: #ff4e1b;
+  text-decoration: underline;
+}
+</style>

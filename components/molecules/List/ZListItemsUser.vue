@@ -43,6 +43,7 @@ export default {
       onLogout();
       localStorage.removeItem("user");
       localStorage.removeItem("userToken");
+      useTermsAcceptance().reset();
       this.$router.push("/login");
     },
 

@@ -14,5 +14,11 @@ query me {
       name
     }
     emailVerifiedAt
+    termsAcceptanceStatus {
+      required
+      currentVersion
+      acceptedVersion
+      acceptedAt
+    }
   }
 }
