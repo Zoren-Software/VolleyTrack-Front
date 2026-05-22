@@ -5,13 +5,13 @@ import { useTermsAcceptance } from "~/composables/useTermsAcceptance";
 const isSubmitting = ref(false);
 
 const LGPD_CENTRAL_PASSWORD_INVALID =
-  "Senha incorreta. Não foi possível processar a solicitação.";
+  "Senha incorreta. Não foi possível excluir a conta.";
 
 const LGPD_CENTRAL_UNAUTHENTICATED =
   "Sessão expirada ou inválida. Faça login novamente e tente outra vez.";
 
 const LGPD_CENTRAL_GENERIC_ERROR =
-  "Não foi possível processar a solicitação na conta central. Tente novamente.";
+  "Não foi possível excluir a conta central. Tente novamente.";
 
 const LGPD_CENTRAL_THROTTLED =
   "Muitas tentativas de exclusão. Aguarde alguns minutos e tente novamente.";

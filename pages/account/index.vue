@@ -203,7 +203,7 @@
 
       <section v-if="showLgpdSection" class="account-card account-card--lgpd">
         <div class="meus-dados-header">
-          <h2 class="meus-dados-title">Privacidade e exclusão de dados</h2>
+          <h2 class="meus-dados-title">Privacidade e exclusão de conta</h2>
         </div>
         <div v-if="accountOwnerValidationLoading" class="account-lgpd-card__body">
           <p class="account-lgpd-card__hint">Validando titular da conta…</p>
@@ -211,12 +211,13 @@
         <div v-else class="account-lgpd-card__body">
           <template v-if="isAccountOwner">
             <p class="account-lgpd-card__text">
-              Como titular da conta, você pode encerrar o clube por completo:
-              anonimização dos dados no tenant, faturamento central e remoção
-              do tenant.
+              Como titular da assinatura, você pode excluir sua conta central e
+              encerrar o clube por completo: anonimização dos dados pessoais,
+              tratamento do faturamento e remoção do ambiente do clube, conforme a
+              LGPD.
             </p>
             <p class="account-lgpd-card__hint">
-              Operação irreversível. Use a senha do login do clube.
+              Operação irreversível. Confirme com a senha do login do clube.
             </p>
             <va-button
               color="danger"
@@ -230,12 +231,12 @@
           </template>
           <template v-else>
             <p class="account-lgpd-card__text">
-              Para excluir apenas seus dados pessoais neste clube (perfil,
-              notificações, etc.), use a página de privacidade.
+              Para excluir sua conta neste clube (perfil, acesso e dados
+              pessoais), use a página de privacidade. O tratamento segue a LGPD.
             </p>
             <p class="account-lgpd-card__hint">
-              Faturamento e encerramento do clube são exclusivos do titular da
-              assinatura.
+              Exclusão da conta central e encerramento do clube são exclusivos do
+              titular da assinatura.
             </p>
             <va-button
               color="danger"
@@ -244,7 +245,7 @@
               class="account-lgpd-card__button"
               to="/settings/privacy"
             >
-              Exclusão de dados no clube
+              Excluir minha conta no clube
             </va-button>
           </template>
         </div>
@@ -255,7 +256,7 @@
       v-if="isAccountOwner"
       v-model="lgpdCentralModalOpen"
       title="Confirmar exclusão da conta e do clube"
-      ok-text="Confirmar solicitação"
+      ok-text="Confirmar exclusão"
       cancel-text="Cancelar"
       :ok-disabled="!lgpdCentralCanSubmit"
       :loading="lgpdCentralSubmitting"
@@ -263,15 +264,16 @@
       @cancel="closeLgpdCentralModal"
     >
       <p class="account-lgpd-modal__intro">
-        Digite sua senha para confirmar. Serão anonimizados seus dados no clube e
-        na conta central, e o clube (tenant) será encerrado e removido do
-        sistema. Esta operação é irreversível.
+        Digite sua senha para confirmar a exclusão da sua conta central e o
+        encerramento do clube. Seus dados pessoais identificáveis serão
+        anonimizados ou eliminados conforme a LGPD; o ambiente do clube será
+        removido do sistema. Esta ação é irreversível.
       </p>
       <label class="account-lgpd-modal__checkbox">
         <input v-model="lgpdCentralAgreed" type="checkbox" />
         <span>
-          Entendo que meus dados serão anonimizados, o clube será encerrado e
-          não poderei acessar esta conta com as mesmas credenciais.
+          Entendo que estou excluindo minha conta central, que o clube será
+          encerrado e que não poderei acessar o sistema com as mesmas credenciais.
         </span>
       </label>
       <va-input
@@ -524,7 +526,7 @@ export default {
         this.closeLgpdCentralModal();
         const tenantDeleted = Boolean(result?.tenant_deleted);
         await confirmSuccess(
-          result?.message || "Solicitação processada.",
+          result?.message || "Conta excluída com sucesso.",
           () => {
             logoutAfterDeletion({ tenantDeleted });
           },

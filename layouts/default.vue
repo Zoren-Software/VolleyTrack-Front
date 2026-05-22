@@ -129,7 +129,7 @@
               @click="closeDropdown"
             >
               <va-icon name="privacy_tip" size="18px" class="dropdown-item-icon" />
-              <span>Privacidade e dados</span>
+              <span>Exclusão de conta</span>
             </NuxtLink>
           </div>
         </div>

@@ -11,10 +11,10 @@
         class="lgpd-privacy-panel__state"
       >
         <va-icon name="info" size="28px" color="#ea580c" class="lgpd-privacy-panel__icon" />
-        <h2 class="lgpd-privacy-panel__title">Titular da conta</h2>
+        <h2 class="lgpd-privacy-panel__title">Titular da assinatura</h2>
         <p class="lgpd-privacy-panel__text">
-          Como titular (mesmo e-mail da assinatura), a exclusão completa do clube e da
-          conta central deve ser feita em
+          Como titular (mesmo e-mail da assinatura), a exclusão da conta central e o
+          encerramento do clube devem ser feitos em
           <NuxtLink to="/account" class="lgpd-privacy-panel__link">Minha conta</NuxtLink>.
         </p>
         <va-button color="primary" to="/account" class="lgpd-privacy-panel__cta">
@@ -27,14 +27,16 @@
         class="lgpd-privacy-panel__state"
       >
         <va-icon name="privacy_tip" size="28px" color="#dc2626" class="lgpd-privacy-panel__icon" />
-        <h2 class="lgpd-privacy-panel__title">Exclusão dos seus dados no clube</h2>
+        <h2 class="lgpd-privacy-panel__title">Exclusão da sua conta no clube</h2>
         <p class="lgpd-privacy-panel__text">
-          Anonimiza seu perfil, credenciais e dados sensíveis neste clube. Histórico
-          esportivo pode permanecer desidentificado.
+          Ao confirmar abaixo, sua conta neste clube será excluída imediatamente.
+          Seus dados pessoais identificáveis serão anonimizados e o acesso encerrado,
+          conforme a LGPD. Registros históricos esportivos necessários podem permanecer
+          sem identificação pessoal (exibidos como usuário removido).
         </p>
         <p class="lgpd-privacy-panel__hint">
-          Não altera faturamento na conta VolleyTrack. O titular da assinatura encerra
-          o clube em
+          Não altera faturamento na VolleyTrack. O titular da assinatura exclui a
+          conta central e encerra o clube em
           <NuxtLink to="/account" class="lgpd-privacy-panel__link">Minha conta</NuxtLink>.
         </p>
         <p class="lgpd-privacy-panel__legal">
@@ -48,15 +50,15 @@
           :disabled="validationLoading"
           @click="openDeletionModal"
         >
-          Solicitar exclusão dos meus dados
+          Excluir minha conta no clube
         </va-button>
       </div>
     </div>
 
     <ZModal
       v-model="deletionModalOpen"
-      title="Confirmar exclusão de dados no clube"
-      ok-text="Confirmar solicitação"
+      title="Confirmar exclusão da conta no clube"
+      ok-text="Confirmar exclusão"
       cancel-text="Cancelar"
       :ok-disabled="!canSubmit"
       :loading="isSubmitting"
@@ -64,14 +66,15 @@
       @cancel="closeDeletionModal"
     >
       <p class="lgpd-deletion-modal__intro">
-        Digite sua senha para confirmar. Esta operação é irreversível para seus dados
-        pessoais neste clube.
+        Digite sua senha para confirmar a exclusão da sua conta neste clube. Seus
+        dados pessoais identificáveis serão anonimizados e o acesso encerrado, nos
+        termos da LGPD. Esta ação é irreversível para o uso da conta.
       </p>
       <label class="lgpd-deletion-modal__checkbox">
         <input v-model="hasAgreed" type="checkbox" class="lgpd-deletion-modal__input" />
         <span>
-          Entendo que meus dados pessoais serão anonimizados e que não poderei acessar
-          esta conta com as mesmas credenciais.
+          Entendo que estou excluindo minha conta no clube, que meus dados pessoais
+          serão anonimizados e que não poderei acessá-la com as mesmas credenciais.
         </span>
       </label>
       <va-input
@@ -152,7 +155,7 @@ const onConfirmDeletion = async () => {
 
     if (result?.success) {
       closeDeletionModal();
-      await confirmSuccess(result.message || "Solicitação processada.", () => {
+      await confirmSuccess(result.message || "Conta excluída com sucesso.", () => {
         logoutAfterDeletion();
       });
     }
@@ -160,7 +163,7 @@ const onConfirmDeletion = async () => {
     const message =
       error?.graphQLErrors?.[0]?.message ||
       error?.message ||
-      "Não foi possível processar a solicitação. Tente novamente.";
+      "Não foi possível excluir a conta. Tente novamente.";
     confirmError(message);
   }
 };

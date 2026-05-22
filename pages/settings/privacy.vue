@@ -3,9 +3,11 @@
     <div class="page-header">
       <div class="header-content">
         <div>
-          <h1 class="page-title">Privacidade e dados pessoais</h1>
+          <h1 class="page-title">Exclusão da conta no clube</h1>
           <p class="page-subtitle">
-            Solicite a exclusão dos seus dados conforme a LGPD
+            Ao confirmar com sua senha, a exclusão da sua conta neste clube é feita
+            na hora. O tratamento dos dados pessoais segue a LGPD (anonimização e
+            remoções descritas na política).
           </p>
         </div>
       </div>

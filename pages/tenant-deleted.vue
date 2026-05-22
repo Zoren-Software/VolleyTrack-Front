@@ -10,7 +10,7 @@
       <p class="message">
         {{
           isOwnerLgpdDeletion
-            ? "Sua solicitação de exclusão foi processada e o clube foi encerrado."
+            ? "Sua conta foi excluída e o clube foi encerrado."
             : "Sua conta foi excluída devido à inatividade após o período de trial."
         }}
       </p>
@@ -18,9 +18,9 @@
       <div class="details">
         <p v-if="isOwnerLgpdDeletion" class="detail-text">
           <strong>O que aconteceu?</strong><br />
-          Você confirmou a exclusão dos dados pessoais como titular da conta. Os
-          dados foram anonimizados e o clube (tenant) foi removido do sistema,
-          conforme a LGPD.
+          Você confirmou a exclusão da sua conta como titular da assinatura. Seus
+          dados pessoais identificáveis foram anonimizados ou eliminados e o clube
+          foi removido do sistema, conforme a LGPD.
         </p>
         <p v-else class="detail-text">
           <strong>O que aconteceu?</strong><br />
