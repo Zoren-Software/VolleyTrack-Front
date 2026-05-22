@@ -1132,6 +1132,7 @@ button.sidebar-link {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  margin-left: 10px;
 }
 
 .plan-icon-logo {
