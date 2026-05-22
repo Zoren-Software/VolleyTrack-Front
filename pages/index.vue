@@ -8,15 +8,15 @@
             <div class="dashboard-hero__pattern" aria-hidden="true" />
             <div class="dashboard-hero__inner">
               <div class="dashboard-hero__left">
-            <div class="dashboard-hero__datetime-pill">
-              <va-icon name="calendar_today" size="16px" />
-              <span>{{ heroDateTimeLabel }}</span>
-            </div>
-            <h1 class="dashboard-hero__title">{{ heroHeadline }}</h1>
-            <p class="dashboard-hero__subtitle">{{ heroNiceDayMessage }}</p>
-            <p class="dashboard-hero__tagline">
-              VolleyTrack — gestão de equipes de vôlei.
-            </p>
+                <div class="dashboard-hero__datetime-pill">
+                  <va-icon name="calendar_today" size="16px" />
+                  <span>{{ heroDateTimeLabel }}</span>
+                </div>
+                <h1 class="dashboard-hero__title">{{ heroHeadline }}</h1>
+                <p class="dashboard-hero__subtitle">{{ heroNiceDayMessage }}</p>
+                <p class="dashboard-hero__tagline">
+                  VolleyTrack — gestão de equipes de vôlei.
+                </p>
                 <va-button
                   v-if="!isConfigurationComplete"
                   class="dashboard-hero__cta"
@@ -47,230 +47,6 @@
           </section>
 
           <!-- Totais do clube -->
-      <div class="totals-section">
-        <div class="total-card total-card--trainings">
-          <div class="total-icon">
-            <va-icon name="event" size="26px" color="#FF4E1B" />
-          </div>
-          <div class="total-info">
-            <div class="total-label">Total de treinos</div>
-            <div class="total-number">
-              {{ totalTrainings || 0
-              }}<span
-                v-if="showPlanLimits && planLimits.maxTrainings"
-                class="plan-limit"
-              >
-                / {{ planLimits.maxTrainings }}</span
-              >
-            </div>
-          </div>
-          <va-popover
-            v-if="showPlanLimits && planLimits.maxTrainings"
-            placement="top"
-            trigger="hover"
-            class="plan-popover-wrapper"
-          >
-            <va-icon
-              name="info"
-              size="16px"
-              color="#6c757d"
-              class="plan-info-icon"
-            />
-            <template #title>Limite do Plano</template>
-            <template #body>
-              <p class="plan-popover-text">
-                Você pode cadastrar até {{ planLimits.maxTrainings }} treinos no
-                seu plano atual.
-              </p>
-            </template>
-          </va-popover>
-        </div>
-
-        <div class="total-card total-card--teams">
-          <div class="total-icon">
-            <va-icon name="groups" size="26px" color="#FF6B35" />
-          </div>
-          <div class="total-info">
-            <div class="total-label">Total de times</div>
-            <div class="total-number">
-              {{ totalTeams || 0
-              }}<span
-                v-if="showPlanLimits && planLimits.maxTeams"
-                class="plan-limit"
-              >
-                / {{ planLimits.maxTeams }}</span
-              >
-            </div>
-          </div>
-          <va-popover
-            v-if="showPlanLimits && planLimits.maxTeams"
-            placement="top"
-            trigger="hover"
-            class="plan-popover-wrapper"
-          >
-            <va-icon
-              name="info"
-              size="16px"
-              color="#6c757d"
-              class="plan-info-icon"
-            />
-            <template #title>Limite do Plano</template>
-            <template #body>
-              <p class="plan-popover-text">
-                Você pode cadastrar até {{ planLimits.maxTeams }} times no seu
-                plano atual.
-              </p>
-            </template>
-          </va-popover>
-        </div>
-
-        <div class="total-card total-card--players">
-          <div class="total-icon">
-            <va-icon name="people" size="26px" color="#E65100" />
-          </div>
-          <div class="total-info">
-            <div class="total-label">Total de jogadores</div>
-            <div class="total-number">
-              {{ totalUsers || 0
-              }}<span
-                v-if="showPlanLimits && planLimits.maxPlayers"
-                class="plan-limit"
-              >
-                / {{ planLimits.maxPlayers }}</span
-              >
-            </div>
-          </div>
-          <va-popover
-            v-if="showPlanLimits && planLimits.maxPlayers"
-            placement="top"
-            trigger="hover"
-            class="plan-popover-wrapper"
-          >
-            <va-icon
-              name="info"
-              size="16px"
-              color="#6c757d"
-              class="plan-info-icon"
-            />
-            <template #title>Limite do Plano</template>
-            <template #body>
-              <p class="plan-popover-text">
-                Você pode cadastrar até {{ planLimits.maxPlayers }} jogadores no
-                seu plano atual.
-              </p>
-            </template>
-          </va-popover>
-        </div>
-      </div>
-
-      <ZHomeTrainingsYearChart />
-
-      <!-- Presence Ranking Section -->
-      <ZPresenceRanking v-if="totalTrainings > 0" />
-
-      <!-- Completion Animation -->
-      <Transition name="completion">
-        <div v-if="showCompletionAnimation" class="completion-animation">
-          <div class="completion-content">
-            <div class="completion-icon-wrapper">
-              <va-icon name="check_circle" size="120px" color="#28A745" />
-            </div>
-            <h2 class="completion-title">Configuração Concluída!</h2>
-            <p class="completion-message">
-              Parabéns! Você completou todas as etapas iniciais.
-            </p>
-          </div>
-        </div>
-      </Transition>
-
-      <!-- Progress Section -->
-      <Transition name="fade-out">
-        <va-card
-          v-if="!isConfigurationComplete || showConfigurationDetails"
-          class="progress-card"
-        >
-          <div class="progress-card-header">
-            <h2 class="progress-title">Progresso da Configuração</h2>
-            <va-button
-              v-if="isConfigurationComplete && showConfigurationDetails"
-              preset="plain"
-              icon="close"
-              size="small"
-              class="close-config-button"
-              @click="closeConfigurationDetails"
-            />
-          </div>
-          <div class="progress-bar-container">
-            <div
-              class="progress-bar-fill"
-              :style="{ width: progressPercentage + '%' }"
-            ></div>
-          </div>
-          <p class="progress-text">{{ progressPercentage }}% concluído</p>
-
-          <!-- Steps -->
-          <div class="steps-list">
-            <!-- Step 1: Jogadores -->
-            <div
-              class="step-item"
-              :class="{ completed: steps.registerPlayers.completed }"
-            >
-              <div class="step-icon-wrapper">
-                <va-icon
-                  v-if="steps.registerPlayers.completed"
-                  name="check_circle"
-                  color="#28A745"
-                  size="20px"
-                />
-                <va-icon
-                  v-else-if="steps.registerPlayers.inProgress"
-                  name="hourglass_empty"
-                  color="#1976D2"
-                  size="20px"
-                />
-                <va-icon
-                  v-else
-                  name="radio_button_unchecked"
-                  color="#9E9E9E"
-                  size="20px"
-                />
-              </div>
-              <div class="step-content">
-                <h3 class="step-title">Registrar Jogadores</h3>
-                <p class="step-description">
-                  Adicione os jogadores da sua equipe.
-                </p>
-                <va-button
-                  v-else
-                  color="#FF4E1B"
-                  size="small"
-                  @click="navigateTo('/players')"
-                >
-                  <va-icon name="send" class="dashboard-hero__cta-icon" />
-                  <span>Começar Configuração</span>
-                </va-button>
-              </div>
-              <div class="dashboard-hero__visual" aria-hidden="true">
-                <div class="hero-decoration hero-decoration--1">
-                  <va-icon name="sports_volleyball" size="24px" />
-                </div>
-                <div class="hero-decoration hero-decoration--2">
-                  <va-icon name="fitness_center" size="22px" />
-                </div>
-                <div class="hero-decoration hero-decoration--3">
-                  <va-icon name="emoji_events" size="22px" />
-                </div>
-                <div class="hero-decoration hero-decoration--4">
-                  <va-icon name="groups" size="22px" />
-                </div>
-                <div class="hero-main-ball">
-                  <va-icon name="sports_volleyball" size="72px" />
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <!-- Totais do clube (layout dashboard) -->
           <div class="totals-section">
             <div class="total-card total-card--trainings">
               <div class="total-icon">
@@ -288,43 +64,267 @@
                   >
                 </div>
               </div>
+              <va-popover
+                v-if="showPlanLimits && planLimits.maxTrainings"
+                placement="top"
+                trigger="hover"
+                class="plan-popover-wrapper"
+              >
+                <va-icon
+                  name="info"
+                  size="16px"
+                  color="#6c757d"
+                  class="plan-info-icon"
+                />
+                <template #title>Limite do Plano</template>
+                <template #body>
+                  <p class="plan-popover-text">
+                    Você pode cadastrar até
+                    {{ planLimits.maxTrainings }} treinos no seu plano atual.
+                  </p>
+                </template>
+              </va-popover>
+            </div>
+
+            <div class="total-card total-card--teams">
+              <div class="total-icon">
+                <va-icon name="groups" size="26px" color="#FF6B35" />
+              </div>
+              <div class="total-info">
+                <div class="total-label">Total de times</div>
+                <div class="total-number">
+                  {{ totalTeams || 0
+                  }}<span
+                    v-if="showPlanLimits && planLimits.maxTeams"
+                    class="plan-limit"
+                  >
+                    / {{ planLimits.maxTeams }}</span
+                  >
+                </div>
+              </div>
+              <va-popover
+                v-if="showPlanLimits && planLimits.maxTeams"
+                placement="top"
+                trigger="hover"
+                class="plan-popover-wrapper"
+              >
+                <va-icon
+                  name="info"
+                  size="16px"
+                  color="#6c757d"
+                  class="plan-info-icon"
+                />
+                <template #title>Limite do Plano</template>
+                <template #body>
+                  <p class="plan-popover-text">
+                    Você pode cadastrar até {{ planLimits.maxTeams }} times no
+                    seu plano atual.
+                  </p>
+                </template>
+              </va-popover>
+            </div>
+
+            <div class="total-card total-card--players">
+              <div class="total-icon">
+                <va-icon name="people" size="26px" color="#E65100" />
+              </div>
+              <div class="total-info">
+                <div class="total-label">Total de jogadores</div>
+                <div class="total-number">
+                  {{ totalUsers || 0
+                  }}<span
+                    v-if="showPlanLimits && planLimits.maxPlayers"
+                    class="plan-limit"
+                  >
+                    / {{ planLimits.maxPlayers }}</span
+                  >
+                </div>
+              </div>
+              <va-popover
+                v-if="showPlanLimits && planLimits.maxPlayers"
+                placement="top"
+                trigger="hover"
+                class="plan-popover-wrapper"
+              >
+                <va-icon
+                  name="info"
+                  size="16px"
+                  color="#6c757d"
+                  class="plan-info-icon"
+                />
+                <template #title>Limite do Plano</template>
+                <template #body>
+                  <p class="plan-popover-text">
+                    Você pode cadastrar até
+                    {{ planLimits.maxPlayers }} jogadores no seu plano atual.
+                  </p>
+                </template>
+              </va-popover>
             </div>
           </div>
-        </va-card>
-      </Transition>
 
-      <!-- Motivational Box -->
-      <Transition name="fade-out">
-        <va-card
-          v-if="!isConfigurationComplete || showConfigurationDetails"
-          class="motivational-card"
-        >
-          <div class="motivational-content">
-            <div class="trophy-icon">
-              <va-icon name="emoji_events" size="36px" color="#FF4E1B" />
+          <ZHomeTrainingsYearChart />
+
+          <!-- Presence Ranking Section -->
+          <ZPresenceRanking v-if="totalTrainings > 0" />
+
+          <!-- Completion Animation -->
+          <Transition name="completion">
+            <div v-if="showCompletionAnimation" class="completion-animation">
+              <div class="completion-content">
+                <div class="completion-icon-wrapper">
+                  <va-icon name="check_circle" size="120px" color="#28A745" />
+                </div>
+                <h2 class="completion-title">Configuração Concluída!</h2>
+                <p class="completion-message">
+                  Parabéns! Você completou todas as etapas iniciais.
+                </p>
+              </div>
             </div>
-            <p class="motivational-text">
-              Quanto mais você configurar, mais completo será o acompanhamento
-              da sua equipe! 🚀
-            </p>
-            <p class="motivational-subtitle">
-              Complete todas as etapas para desbloquear o potencial máximo do
-              VolleyTrack.
-            </p>
-          </div>
-        </va-card>
-      </Transition>
+          </Transition>
 
-      <!-- Presence Analysis Section -->
-      <ZPresenceAnalysis v-if="totalTrainings > 0" />
+          <!-- Progress Section -->
+          <Transition name="fade-out">
+            <va-card
+              v-if="!isConfigurationComplete || showConfigurationDetails"
+              class="progress-card"
+            >
+              <div class="progress-card-header">
+                <h2 class="progress-title">Progresso da Configuração</h2>
+                <va-button
+                  v-if="isConfigurationComplete && showConfigurationDetails"
+                  preset="plain"
+                  icon="close"
+                  size="small"
+                  class="close-config-button"
+                  @click="closeConfigurationDetails"
+                />
+              </div>
+              <div class="progress-bar-container">
+                <div
+                  class="progress-bar-fill"
+                  :style="{ width: progressPercentage + '%' }"
+                ></div>
+              </div>
+              <p class="progress-text">{{ progressPercentage }}% concluído</p>
 
-      <ZHomeRecentFeedbacks />
+              <!-- Steps -->
+              <div class="steps-list">
+                <!-- Step 1: Jogadores -->
+                <div
+                  class="step-item"
+                  :class="{ completed: steps.registerPlayers.completed }"
+                >
+                  <div class="step-icon-wrapper">
+                    <va-icon
+                      v-if="steps.registerPlayers.completed"
+                      name="check_circle"
+                      color="#28A745"
+                      size="20px"
+                    />
+                    <va-icon
+                      v-else-if="steps.registerPlayers.inProgress"
+                      name="hourglass_empty"
+                      color="#1976D2"
+                      size="20px"
+                    />
+                    <va-icon
+                      v-else
+                      name="radio_button_unchecked"
+                      color="#9E9E9E"
+                      size="20px"
+                    />
+                  </div>
+                  <div class="step-content">
+                    <h3 class="step-title">Registrar Jogadores</h3>
+                    <p class="step-description">
+                      Adicione os jogadores da sua equipe.
+                    </p>
+                    <va-button
+                      v-if="!steps.registerPlayers.completed"
+                      color="#FF4E1B"
+                      size="small"
+                      @click="navigateTo('/players')"
+                    >
+                      <va-icon name="send" class="dashboard-hero__cta-icon" />
+                      <span>Começar Configuração</span>
+                    </va-button>
+                  </div>
+                  <div class="dashboard-hero__visual" aria-hidden="true">
+                    <div class="hero-decoration hero-decoration--1">
+                      <va-icon name="sports_volleyball" size="24px" />
+                    </div>
+                    <div class="hero-decoration hero-decoration--2">
+                      <va-icon name="fitness_center" size="22px" />
+                    </div>
+                    <div class="hero-decoration hero-decoration--3">
+                      <va-icon name="emoji_events" size="22px" />
+                    </div>
+                    <div class="hero-decoration hero-decoration--4">
+                      <va-icon name="groups" size="22px" />
+                    </div>
+                    <div class="hero-main-ball">
+                      <va-icon name="sports_volleyball" size="72px" />
+                    </div>
+                  </div>
+                </div>
+              </div>
 
-      <!-- Perfil do jogador (usuário logado) -->
-      <ZHomePlayerProfileCard
-        v-if="user && user.id"
-        :setup-progress="progressPercentage"
-      />
+              <!-- Totais do clube (layout dashboard) -->
+              <div class="totals-section">
+                <div class="total-card total-card--trainings">
+                  <div class="total-icon">
+                    <va-icon name="event" size="26px" color="#FF4E1B" />
+                  </div>
+                  <div class="total-info">
+                    <div class="total-label">Total de treinos</div>
+                    <div class="total-number">
+                      {{ totalTrainings || 0
+                      }}<span
+                        v-if="showPlanLimits && planLimits.maxTrainings"
+                        class="plan-limit"
+                      >
+                        / {{ planLimits.maxTrainings }}</span
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </va-card>
+          </Transition>
+
+          <!-- Motivational Box -->
+          <Transition name="fade-out">
+            <va-card
+              v-if="!isConfigurationComplete || showConfigurationDetails"
+              class="motivational-card"
+            >
+              <div class="motivational-content">
+                <div class="trophy-icon">
+                  <va-icon name="emoji_events" size="36px" color="#FF4E1B" />
+                </div>
+                <p class="motivational-text">
+                  Quanto mais você configurar, mais completo será o
+                  acompanhamento da sua equipe! 🚀
+                </p>
+                <p class="motivational-subtitle">
+                  Complete todas as etapas para desbloquear o potencial máximo
+                  do VolleyTrack.
+                </p>
+              </div>
+            </va-card>
+          </Transition>
+
+          <!-- Presence Analysis Section -->
+          <ZPresenceAnalysis v-if="totalTrainings > 0" />
+
+          <ZHomeRecentFeedbacks />
+
+          <!-- Perfil do jogador (usuário logado) -->
+          <ZHomePlayerProfileCard
+            v-if="user && user.id"
+            :setup-progress="progressPercentage"
+          />
         </div>
 
         <aside
@@ -346,7 +346,9 @@
                 <va-icon name="event" size="24px" color="#D97706" />
               </div>
               <div class="upcoming-summary-card__info">
-                <div class="upcoming-summary-card__label">Treinos agendados</div>
+                <div class="upcoming-summary-card__label">
+                  Treinos agendados
+                </div>
                 <div class="upcoming-summary-card__value">
                   {{ upcomingSummary.upcomingThisWeek }}
                 </div>
@@ -358,7 +360,9 @@
                 <va-icon name="close" size="24px" color="#DC2626" />
               </div>
               <div class="upcoming-summary-card__info">
-                <div class="upcoming-summary-card__label">Treinos cancelados</div>
+                <div class="upcoming-summary-card__label">
+                  Treinos cancelados
+                </div>
                 <div class="upcoming-summary-card__value">
                   {{ upcomingSummary.cancelledThisWeek }}
                 </div>
@@ -370,7 +374,9 @@
                 <va-icon name="task_alt" size="24px" color="#16A34A" />
               </div>
               <div class="upcoming-summary-card__info">
-                <div class="upcoming-summary-card__label">Treinos finalizados</div>
+                <div class="upcoming-summary-card__label">
+                  Treinos finalizados
+                </div>
                 <div class="upcoming-summary-card__value">
                   {{ upcomingSummary.finalizedThisWeek }}
                 </div>
@@ -511,9 +517,7 @@ export default {
       const n = (this.user?.displayName || this.user?.name || "").trim();
       if (!n) return "Atleta";
       const first = n.split(/\s+/)[0];
-      return (
-        first.charAt(0).toUpperCase() + first.slice(1).toLowerCase()
-      );
+      return first.charAt(0).toUpperCase() + first.slice(1).toLowerCase();
     },
     heroHeadline() {
       const h = new Date().getHours();
@@ -1275,7 +1279,7 @@ useHead({
 }
 
 .view-config-button:hover {
-  color: #FF4E1B !important;
+  color: #ff4e1b !important;
   opacity: 1;
   background: rgba(255, 78, 27, 0.05) !important;
 }
@@ -1319,7 +1323,7 @@ useHead({
 }
 
 .close-config-button:hover {
-  color: #FF4E1B !important;
+  color: #ff4e1b !important;
   background: rgba(255, 78, 27, 0.1) !important;
 }
 
@@ -1332,7 +1336,7 @@ useHead({
 }
 
 .progress-bar-fill {
-  background-color: #FF4E1B;
+  background-color: #ff4e1b;
   height: 100%;
   border-radius: 8px;
   transition: width 0.3s ease;
