@@ -10,24 +10,10 @@
             sistema
           </p>
         </div>
-        <va-button
-          color="#FF4E1B"
-          class="notifications-button"
-          @click="goToNotifications"
-        >
-          <va-icon name="notifications" class="button-icon" />
-          <span class="button-text">Ver Notificações</span>
-        </va-button>
       </div>
     </div>
 
-    <!-- Eventos Notificáveis -->
     <div class="section-container">
-      <div class="section-header">
-        <va-icon name="settings" class="section-icon" />
-        <h2 class="section-title">Eventos Notificáveis</h2>
-      </div>
-
       <div class="events-table-container">
         <table class="events-table">
           <thead>
@@ -72,7 +58,7 @@
               <td class="toggle-cell" v-if="item.notificationType?.allowEmail">
                 <va-switch
                   v-model="form[item.notificationType.key].viaEmail"
-                  color="#3b82f6"
+                  color="#FF4E1B"
                   size="small"
                 />
               </td>
@@ -95,23 +81,11 @@
       </div>
     </div>
 
-    <!-- Action Buttons -->
     <div class="action-buttons">
-      <va-button
-        preset="secondary"
-        class="back-button"
-        @click="$router.push('/settings')"
-      >
-        <va-icon name="arrow_back" size="16px" />
+      <va-button color="secondary" class="mr-1" @click="$router.push('/')">
         Voltar
       </va-button>
-      <va-button
-        color="#FF4E1B"
-        class="save-button"
-        @click="salvarConfiguracoes"
-        :loading="loading"
-      >
-        <va-icon name="save" size="16px" />
+      <va-button color="primary" :loading="loading" @click="salvarConfiguracoes">
         Salvar
       </va-button>
     </div>
@@ -136,9 +110,6 @@ export default {
     this.getNotificationSettings();
   },
   methods: {
-    goToNotifications() {
-      this.$router.push("/notifications");
-    },
     getNotificationIcon(key) {
       const iconMap = {
         training_created: "check_circle",
@@ -290,9 +261,10 @@ export default {
 
 <style scoped>
 .list-page-container {
-  max-width: 1400px;
+  max-width: 940px;
   margin: 0 auto;
   width: 100%;
+  box-sizing: border-box;
 }
 
 .page-header {
@@ -301,9 +273,8 @@ export default {
 
 .header-content {
   display: flex;
-  justify-content: space-between;
   align-items: flex-start;
-  gap: 20px;
+  gap: 12px;
 }
 
 .page-title {
@@ -321,73 +292,12 @@ export default {
   line-height: 1.5;
 }
 
-.notifications-button {
-  border-radius: 8px;
-  padding: 12px 24px;
-  font-weight: 500;
-  white-space: nowrap;
-  background-color: #FF4E1B !important;
-  color: #ffffff !important;
-  box-shadow: 0 2px 8px rgba(255, 78, 27, 0.3);
-  border: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: all 0.2s ease;
-}
-
-.notifications-button:hover {
-  background-color: #d6652a !important;
-  box-shadow: 0 4px 12px rgba(255, 78, 27, 0.4);
-  transform: translateY(-1px);
-}
-
-.notifications-button:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 6px rgba(255, 78, 27, 0.3);
-}
-
-.notifications-button .button-icon {
-  font-size: 20px;
-  color: #ffffff;
-}
-
-.notifications-button .button-text {
-  font-size: 14px;
-  font-weight: 500;
-  color: #ffffff;
-  letter-spacing: 0.3px;
-}
-
-/* Section */
 .section-container {
   background: white;
   border-radius: 16px;
-  padding: 30px;
-  margin-bottom: 30px;
+  padding: 20px 24px;
+  margin-bottom: 16px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
-.section-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 24px;
-  padding-bottom: 16px;
-  border-bottom: 2px solid #e5e7eb;
-}
-
-.section-icon {
-  color: #FF4E1B;
-  font-size: 24px;
-}
-
-.section-title {
-  font-size: 20px;
-  font-weight: 600;
-  color: #111827;
-  margin: 0;
 }
 
 /* Events Table */
@@ -405,9 +315,9 @@ export default {
 }
 
 .events-table th {
-  padding: 16px;
+  padding: 10px 12px;
   text-align: left;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: #374151;
   text-transform: uppercase;
@@ -434,22 +344,22 @@ export default {
 }
 
 .event-cell {
-  padding: 20px 16px;
+  padding: 10px 12px;
 }
 
 .event-info {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
 }
 
 .event-icon-wrapper {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
   flex-shrink: 0;
 }
 
@@ -458,21 +368,22 @@ export default {
 }
 
 .event-title {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
   color: #111827;
-  margin: 0 0 4px 0;
+  margin: 0 0 2px 0;
+  line-height: 1.25;
 }
 
 .event-description {
-  font-size: 14px;
+  font-size: 13px;
   color: #6b7280;
   margin: 0;
-  line-height: 1.5;
+  line-height: 1.35;
 }
 
 .toggle-cell {
-  padding: 20px 16px;
+  padding: 10px 12px;
   vertical-align: middle;
 }
 
@@ -481,53 +392,17 @@ export default {
   font-style: italic;
 }
 
-/* Action Buttons */
 .action-buttons {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 16px;
-  padding-top: 20px;
+  width: 100%;
+  margin-top: 4px;
+  padding-top: 0;
 }
 
-.back-button {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 24px;
+.action-buttons :deep(.va-button) {
   border-radius: 8px;
-  font-weight: 500;
-  color: #6b7280;
-  background: white;
-  border: 1px solid #d1d5db;
-  transition: all 0.2s ease;
-}
-
-.back-button:hover {
-  background: #f9fafb;
-  border-color: #9ca3af;
-}
-
-.save-button {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-weight: 500;
-  color: #ffffff !important;
-  box-shadow: 0 2px 4px rgba(255, 78, 27, 0.2);
-  transition: all 0.2s ease;
-}
-
-.save-button :deep(.va-button__content),
-.save-button :deep(.va-icon) {
-  color: #ffffff !important;
-}
-
-.save-button:hover {
-  box-shadow: 0 4px 8px rgba(255, 78, 27, 0.3);
-  transform: translateY(-1px);
 }
 
 /* Responsividade */
@@ -544,29 +419,30 @@ export default {
     font-size: 14px;
   }
 
-  .notifications-button {
-    width: 100%;
-  }
-
   .section-container {
-    padding: 20px;
-  }
-
-  .section-title {
-    font-size: 18px;
+    padding: 14px 14px;
   }
 
   .events-table {
-    font-size: 14px;
+    font-size: 13px;
   }
 
   .event-cell {
-    padding: 16px 12px;
+    padding: 8px 10px;
+  }
+
+  .toggle-cell {
+    padding: 8px 10px;
+  }
+
+  .events-table th {
+    padding: 8px 10px;
+    font-size: 12px;
   }
 
   .event-icon-wrapper {
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
   }
 
   .event-title {
@@ -579,10 +455,10 @@ export default {
 
   .action-buttons {
     flex-direction: column-reverse;
+    align-items: stretch;
   }
 
-  .back-button,
-  .save-button {
+  .action-buttons :deep(.va-button) {
     width: 100%;
     justify-content: center;
   }

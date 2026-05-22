@@ -151,7 +151,7 @@
             size="small"
             class="stats-btn action-btn"
             :title="'Ver estatísticas de ' + (rowKey.name || 'Time')"
-            @click="openStatsModal(rowKey.id)"
+            @click="goToTeamStats(rowKey.id)"
           />
           <va-button
             icon="edit"
@@ -172,13 +172,6 @@
         </div>
       </template>
     </ZDatatableGeneric>
-
-    <!-- Modal de Estatísticas do Time -->
-    <ZTeamStatsModal
-      v-if="selectedTeamId"
-      v-model="showTeamStatsModal"
-      :team-id="selectedTeamId"
-    />
 
     <VaModal
       v-model="showTeamPlayersModal"
@@ -227,7 +220,6 @@ import ZUser from "~/components/molecules/Datatable/Slots/ZUser";
 import ZDateTraining from "~/components/molecules/Datatable/Slots/ZDateTraining";
 import ZTeam from "~/components/molecules/Datatable/Slots/ZTeam";
 import ZBadgeCustom from "~/components/molecules/Badges/ZBadgeCustom";
-import ZTeamStatsModal from "~/components/molecules/Modal/ZTeamStatsModal.vue";
 import TEAMDELETE from "~/graphql/team/mutation/teamDelete.graphql";
 import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
 
@@ -244,7 +236,6 @@ export default defineComponent({
     ZSelectUser,
     ZDataTableInputSearch,
     ZBadgeCustom,
-    ZTeamStatsModal,
     ZSelectTeamCategory,
     ZSelectTeamLevel,
   },
@@ -306,8 +297,6 @@ export default defineComponent({
       selectModeOptions: ["single", "multiple"],
       selectColorOptions: ["primary", "danger", "warning", "#EF467F"],
       internalSearchValue: "",
-      showTeamStatsModal: false,
-      selectedTeamId: null,
       fetchTruncatedWarning: null,
       showTeamPlayersModal: false,
       teamPlayersModalList: [],
@@ -351,9 +340,55 @@ export default defineComponent({
     editTeam(id) {
       this.$router.push(`/teams/edit/${id}`);
     },
-    openStatsModal(teamId) {
-      this.selectedTeamId = teamId;
-      this.showTeamStatsModal = true;
+    goToTeamStats(teamId) {
+      this.$router.push(`/teams/stats/${teamId}`);
+    },
+    normalizePlayers(players) {
+      if (!players) return [];
+      return Array.isArray(players) ? players : [players].filter(Boolean);
+    },
+    openTeamPlayersModal(rowKey) {
+      this.teamPlayersModalList = this.normalizePlayers(rowKey?.players);
+      this.teamPlayersModalTeamLabel = rowKey?.name || "";
+      this.showTeamPlayersModal = true;
+    },
+    getTeamLevelIconName(teamLevel) {
+      const raw = (teamLevel?.name || "").trim();
+      if (!raw) {
+        return "help_outline";
+      }
+      const n = raw
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+      if (n.includes("sem nivel")) {
+        return "help_outline";
+      }
+      if (n.includes("ouro") || n.includes("gold")) {
+        return "workspace_premium";
+      }
+      if (n.includes("prata") || n.includes("silver")) {
+        return "grade";
+      }
+      if (n.includes("bronze")) {
+        return "shield";
+      }
+      if (n.includes("iniciante")) {
+        return "fitness_center";
+      }
+      if (n.includes("intermediario")) {
+        return "trending_flat";
+      }
+      if (n.includes("avancado") || n.includes("elite")) {
+        return "trending_up";
+      }
+      if (n.includes("juvenil")) {
+        return "child_care";
+      }
+      if (n.includes("adulto")) {
+        return "groups";
+      }
+      return "bar_chart";
     },
     normalizePlayers(players) {
       if (!players) return [];

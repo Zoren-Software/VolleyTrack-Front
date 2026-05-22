@@ -121,8 +121,29 @@
                   }}
                 </span>
               </button>
+              <button
+                v-if="bulkReadViaSelectionBadge"
+                type="button"
+                class="selected-badge selected-badge--clickable selected-badge--read"
+                :title="`Marcar ${selectedItemsEmitted.length} notificação(ões) selecionada(s) como lidas`"
+                :aria-label="`Ler todos os selecionados: ${selectedItemsEmitted.length}`"
+                @click="onBulkReadFromSelectionBadge"
+              >
+                <va-icon name="check_circle" size="small" class="badge-read-icon" />
+                <span class="badge-read-text">
+                  Ler
+                  <strong class="badge-read-count">{{
+                    selectedItemsEmitted.length
+                  }}</strong>
+                  {{
+                    selectedItemsEmitted.length === 1
+                      ? "selecionado"
+                      : "selecionados"
+                  }}
+                </span>
+              </button>
               <div
-                v-else
+                v-if="!selectionShowsBulkActions"
                 class="selected-badge"
                 role="status"
                 :aria-label="`${selectedItemsEmitted.length} itens selecionados`"
@@ -162,7 +183,11 @@ import ZDataTableInputSearch from "~/components/molecules/Datatable/ZDataTableIn
 import ZDataTable from "~/components/molecules/Datatable/ZDataTable";
 import ZFilter from "~/components/molecules/Filters/ZFilter";
 import ZButton from "~/components/atoms/Buttons/ZButton";
-import { confirmDeleteMultiple } from "~/utils/sweetAlert2/swalHelper";
+import {
+  confirmDeleteMultiple,
+  confirmReadMultiple,
+  notifyInfo,
+} from "~/utils/sweetAlert2/swalHelper";
 
 export default defineComponent({
   components: {
@@ -178,6 +203,7 @@ export default defineComponent({
     "edit",
     "deletes",
     "delete",
+    "reads",
     "search",
     "actionSearch",
     "actionClear",
@@ -220,6 +246,11 @@ export default defineComponent({
     },
     /** Esconde o botão superior de exclusão em massa e usa o badge de seleção (rodapé) para confirmar e excluir. */
     bulkDeleteViaSelectionBadge: {
+      type: Boolean,
+      default: false,
+    },
+    /** Badge no rodapé para marcar como lidos os registros selecionados (ex.: notificações). */
+    bulkReadViaSelectionBadge: {
       type: Boolean,
       default: false,
     },
@@ -302,6 +333,33 @@ export default defineComponent({
       );
     },
 
+    onBulkReadFromSelectionBadge() {
+      if (!this.bulkReadViaSelectionBadge) {
+        return;
+      }
+      const selected = this.selectedItemsEmitted;
+      if (!selected.length) {
+        return;
+      }
+      const unreadIds = selected
+        .filter((item) => !item.readAt)
+        .map((item) => item.id);
+      if (!unreadIds.length) {
+        notifyInfo(
+          "Nada para marcar",
+          "As notificações selecionadas já estão lidas.",
+        );
+        return;
+      }
+      confirmReadMultiple(
+        unreadIds.length,
+        () => {
+          this.$emit("reads", unreadIds);
+        },
+        () => {},
+      );
+    },
+
     actionDelete(id) {
       this.$emit("delete", id);
     },
@@ -333,6 +391,11 @@ export default defineComponent({
   },
 
   computed: {
+    selectionShowsBulkActions() {
+      const deleteBulk =
+        this.bulkDeleteViaSelectionBadge && this.buttonActionDelete;
+      return Boolean(deleteBulk || this.bulkReadViaSelectionBadge);
+    },
     computedItems() {
       if (this.search) {
         return this.items.filter((item) =>
@@ -477,6 +540,40 @@ export default defineComponent({
 }
 
 .selected-badge--delete .badge-delete-count {
+  font-weight: 800;
+  margin: 0 0.2em;
+}
+
+.selected-badge.selected-badge--read {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  box-shadow: 0 2px 8px rgba(22, 163, 74, 0.35);
+  border-radius: 8px;
+  padding: 8px 14px;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+.selected-badge.selected-badge--read.selected-badge--clickable:hover {
+  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+  box-shadow: 0 4px 14px rgba(22, 163, 74, 0.45);
+}
+
+.selected-badge.selected-badge--read::before {
+  display: none;
+}
+
+.selected-badge--read .badge-read-icon {
+  font-size: 20px !important;
+  opacity: 0.95;
+}
+
+.selected-badge--read .badge-read-text {
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+}
+
+.selected-badge--read .badge-read-count {
   font-weight: 800;
   margin: 0 0.2em;
 }

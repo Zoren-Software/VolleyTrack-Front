@@ -7,17 +7,41 @@
     @keydown.enter.prevent="onActivate"
     @keydown.space.prevent="onActivate"
   >
-    <div class="notification-item__text">
-      <p class="notification-item__eyebrow">Aviso</p>
-      <p class="notification-item__title">{{ title }}</p>
-      <p v-if="description" class="notification-item__desc">{{ description }}</p>
-      <p v-if="formatCreatedAt" class="notification-item__received">
-        Recebida em {{ formatCreatedAt }}
-      </p>
-    </div>
-    <div class="notification-item__badge notification-item__badge--neutral" aria-hidden="true">
-      <va-icon name="notifications" size="18px" color="#ffffff" />
-    </div>
+    <template v-if="training">
+      <div class="notification-nc notification-nc--embedded">
+        <span class="notification-nc__tag notification-nc__tag--neutral"
+          >Notificação</span
+        >
+        <div class="notification-nc__title">{{ trainingTitle }}</div>
+        <div
+          v-if="trainingDateLine"
+          class="notification-nc__row notification-nc__row--date"
+        >
+          <va-icon name="event_available" size="14px" color="#64748b" class="notification-nc__ico" />
+          <span>{{ trainingDateLine }}</span>
+        </div>
+        <div v-if="teamName" class="notification-nc__row notification-nc__row--team">
+          <va-icon name="groups" size="14px" color="#64748b" class="notification-nc__ico" />
+          <span>{{ teamName }}</span>
+        </div>
+      </div>
+    </template>
+    <template v-else>
+      <div class="notification-item__text">
+        <p class="notification-item__eyebrow">Aviso</p>
+        <p class="notification-item__title">{{ title }}</p>
+        <p v-if="description" class="notification-item__desc">{{ description }}</p>
+        <p v-if="formatCreatedAt" class="notification-item__received">
+          Recebida em {{ formatCreatedAt }}
+        </p>
+      </div>
+      <div
+        class="notification-item__badge notification-item__badge--neutral"
+        aria-hidden="true"
+      >
+        <va-icon name="notifications" size="18px" color="#ffffff" />
+      </div>
+    </template>
   </div>
 </template>
 
@@ -37,6 +61,25 @@ export default {
       } catch {
         return {};
       }
+    },
+    training() {
+      return this.parsed.training || null;
+    },
+    trainingTitle() {
+      return this.training?.name || this.title;
+    },
+    teamName() {
+      return this.training?.team?.name || "";
+    },
+    trainingDateLine() {
+      if (!this.training?.date_start) return "";
+      const date = new Date(this.training.date_start);
+      const day = date.getDate().toString().padStart(2, "0");
+      const month = (date.getMonth() + 1).toString().padStart(2, "0");
+      const year = date.getFullYear();
+      const hours = date.getHours().toString().padStart(2, "0");
+      const minutes = date.getMinutes().toString().padStart(2, "0");
+      return `${day}/${month}/${year} às ${hours}:${minutes}`;
     },
     title() {
       return (
@@ -65,6 +108,9 @@ export default {
   },
   methods: {
     onActivate() {
+      if (this.training?.id) {
+        this.$router.push(`/trainings/edit/${this.training.id}`);
+      }
       this.$emit("readNotification", this.notification.id);
     },
   },
@@ -76,7 +122,7 @@ export default {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  padding: 12px 4px 14px 0;
+  padding: 8px 4px 8px 0;
   cursor: pointer;
   border-radius: 8px;
   outline: none;
@@ -84,6 +130,62 @@ export default {
 
 .notification-item:focus-visible {
   box-shadow: 0 0 0 2px #fdba74;
+}
+
+.notification-nc--embedded {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 2px 0;
+  text-align: left;
+  max-width: 440px;
+}
+
+.notification-nc__tag {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+.notification-nc__tag--neutral {
+  background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+}
+
+.notification-nc__title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #0b1e3a;
+  line-height: 1.2;
+}
+
+.notification-nc__row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  line-height: 1.25;
+}
+
+.notification-nc__row--date {
+  margin-top: 0;
+  color: #64748b;
+}
+
+.notification-nc__row--team {
+  margin-top: 1px;
+  font-weight: 500;
+  color: #475569;
+}
+
+.notification-nc__ico {
+  flex-shrink: 0;
 }
 
 .notification-item__text {

@@ -178,11 +178,9 @@
             include-action-stats-list
             include-action-edit-list
             include-action-delete-list
-            :include-action-resend-verification-email="!rowKey.emailVerifiedAt"
             @stats="openStatsModal"
             @edit="editPlayer"
             @delete="deletePlayer"
-            @resend-verification-email="resendVerificationEmail"
           />
         </div>
       </template>
@@ -199,9 +197,7 @@
             <button
               type="button"
               class="teams-count-chip"
-              :title="
-                'Ver todos os times de ' + (rowKey.displayName || rowKey.name)
-              "
+              :title="'Ver todos os times de ' + (rowKey.displayName || rowKey.name)"
               @click="openTeamsListModal(rowKey)"
             >
               <va-icon name="groups" size="14px" color="#FF4E1B" />
@@ -750,7 +746,7 @@ export default defineComponent({
   --va-size-computed: 48px !important;
   font-size: 20px !important;
   line-height: 48px !important;
-  background: #ff4e1b !important;
+  background: #FF4E1B !important;
   color: white !important;
   border: 2px solid white !important;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
@@ -758,7 +754,7 @@ export default defineComponent({
 
 .player-avatar :deep(.va-avatar) {
   border: 2px solid white !important;
-  background: #ff4e1b !important;
+  background: #FF4E1B !important;
   color: white !important;
   box-shadow:
     0 2px 8px rgba(0, 0, 0, 1.3),
@@ -882,9 +878,7 @@ export default defineComponent({
   font-weight: 600;
   font-family: inherit;
   cursor: pointer;
-  transition:
-    background 0.15s ease,
-    border-color 0.15s ease;
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
 
 .teams-count-chip:hover {
@@ -1194,7 +1188,7 @@ export default defineComponent({
   max-width: 48px !important;
   max-height: 48px !important;
   font-size: 20px !important;
-  background: #ff4e1b !important;
+  background: #FF4E1B !important;
   color: white !important;
   border: 2px solid white !important;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;

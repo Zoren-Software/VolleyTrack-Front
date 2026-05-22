@@ -55,6 +55,10 @@ query trainings(
       }
       status
       displayStatus
+      confirmationsTraining {
+        playerId
+        status
+      }
       dateStart
       dateEnd
       description

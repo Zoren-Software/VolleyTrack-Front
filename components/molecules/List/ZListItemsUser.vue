@@ -23,7 +23,7 @@ export default {
     return {
       actionsUser: [
         { title: "Minha conta", action: "account", active: false },
-        { title: "Logout", action: "logout", active: false },
+        { title: "Sair", action: "logout", active: false },
       ],
       value: true,
     };

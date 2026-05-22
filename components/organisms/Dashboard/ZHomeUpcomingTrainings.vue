@@ -32,7 +32,8 @@
       </va-button>
     </div>
 
-    <ul v-else class="upcoming-list">
+    <template v-else>
+      <ul class="upcoming-list">
       <li
         v-for="t in items"
         :key="t.id"
@@ -57,7 +58,8 @@
         </div>
         <va-icon name="chevron_right" size="20px" class="upcoming-item__chev" />
       </li>
-    </ul>
+      </ul>
+    </template>
 
     <div v-if="items.length && showSeeAll" class="upcoming-events__footer">
       <va-button preset="plain" size="small" class="see-all-btn" @click="goTrainings">
@@ -77,16 +79,29 @@ const UPCOMING_LIMIT = 8;
 
 export default {
   name: "ZHomeUpcomingTrainings",
+  emits: ["summary-change"],
   data() {
     return {
       loading: true,
       items: [],
       errorMessage: null,
+      cancelledThisWeek: 2,
+      finalizedThisWeek: 4,
     };
   },
   computed: {
     showSeeAll() {
       return true;
+    },
+    upcomingThisWeek() {
+      const startOfWeek = moment().startOf("isoWeek");
+      const endOfWeek = moment().endOf("isoWeek");
+
+      return this.items.filter((item) => {
+        if (!item?.dateStart) return false;
+        const trainingDate = moment(item.dateStart);
+        return trainingDate.isBetween(startOfWeek, endOfWeek, undefined, "[]");
+      }).length;
     },
   },
   mounted() {
@@ -149,10 +164,12 @@ export default {
           .slice(0, UPCOMING_LIMIT);
 
         this.items = upcoming;
+        this.emitSummary();
       } catch (e) {
         console.warn("ZHomeUpcomingTrainings:", e);
         this.errorMessage = "Erro ao carregar treinos.";
         this.items = [];
+        this.emitSummary();
       } finally {
         this.loading = false;
       }
@@ -189,6 +206,13 @@ export default {
     },
     goTrainings() {
       this.$router.push("/trainings");
+    },
+    emitSummary() {
+      this.$emit("summary-change", {
+        upcomingThisWeek: this.upcomingThisWeek,
+        cancelledThisWeek: this.cancelledThisWeek,
+        finalizedThisWeek: this.finalizedThisWeek,
+      });
     },
   },
 };

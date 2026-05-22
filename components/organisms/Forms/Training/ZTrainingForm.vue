@@ -1,11 +1,13 @@
 <template>
   <div
     class="form-container"
-    :class="{ 'form-container-full-width': controlledStep === 3 }"
+    :class="{ 'form-container-full-width': controlledStep === lastStepIndex }"
   >
     <div
       class="training-form-card"
-      :class="{ 'training-form-card-full-width': controlledStep === 3 }"
+      :class="{
+        'training-form-card-full-width': controlledStep === lastStepIndex,
+      }"
     >
       <va-form ref="myForm" class="flex flex-col gap-6 mb-2">
         <va-stepper v-model="controlledStep" :steps="steps" controls-hidden>
@@ -364,8 +366,15 @@
             </div>
           </template>
 
-          <!-- Etapa 4: Marcação dos Scouts -->
+          <!-- Etapa 4: Lista de Presença -->
           <template #step-content-3>
+            <div class="step-content">
+              <ZTrainingAttendanceView :training-id="form.id || ''" />
+            </div>
+          </template>
+
+          <!-- Etapa 5: Marcação dos Scouts -->
+          <template #step-content-4>
             <div class="step-content step-content-full-width">
               <ZListRelationPlayersWithScouts
                 ref="listRelationPlayersWithScoutsRef"
@@ -419,13 +428,11 @@ import ZTextInput from "~/components/molecules/Inputs/ZTextInput";
 import ZSelectTeam from "~/components/molecules/Selects/ZSelectTeam";
 import ZListRelationTeams from "~/components/organisms/List/Relations/ZListRelationTeams";
 import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
-import { resolveListRelationDeleteId } from "~/utils/resolveListRelationDeleteId";
 import Swal from "sweetalert2";
 import ZDateTimeRangePicker from "~/components/molecules/Inputs/ZDateTimeRangePicker.vue";
-import { gql } from "@apollo/client/core";
-import { useNuxtApp } from "#app";
-import FUNDAMENTALS from "~/graphql/fundamental/query/fundamentals.graphql";
-import SPECIFICFUNDAMENTALS from "~/graphql/specificFundamental/query/specificFundamentals.graphql";
+import ZSelectFundamental from "~/components/molecules/Selects/ZSelectFundamental.vue";
+import ZSelectSpecificFundamental from "~/components/molecules/Selects/ZSelectSpecificFundamental.vue";
+import ZTrainingAttendanceView from "~/components/organisms/Training/ZTrainingAttendanceView.vue";
 import ZListRelationPlayersWithScouts from "~/components/molecules/Datatable/ZListRelationPlayersWithScouts";
 import ZSelectUser from "~/components/molecules/Selects/ZSelectUser";
 import TEAM from "~/graphql/team/query/team.graphql";
@@ -481,6 +488,9 @@ export default {
     ZSelectTeam,
     ZListRelationTeams,
     ZDateTimeRangePicker,
+    ZSelectFundamental,
+    ZSelectSpecificFundamental,
+    ZTrainingAttendanceView,
     ZListRelationPlayersWithScouts,
     ZSelectUser,
     ZUser,
@@ -595,30 +605,32 @@ export default {
         // Marcação dos Scouts só após salvar o treino
         if (newStep > 2 && !this.isTrainingSaved) {
           confirmError(
-            "Salve o treino",
-            "Para acessar a Marcação dos Scouts, conclua o cadastro na etapa «Relacionar times» usando o botão Salvar.",
+            "Ação não permitida!",
+            "Você precisa salvar as informações básicas do treino antes de acessar as etapas de Lista de Presença e Scouts. Por favor, salve o treino primeiro."
           );
           return;
         }
         this.internalStep = newStep;
       },
     },
-    // Steps dinâmicos com validação
+    // Steps dinâmicos com validação (índices alinhados a #step-content-N)
     steps() {
       return [
-        { label: "Informações Gerais" },
+        { label: "Informações Essenciais" },
         { label: "Fundamentos" },
-        { label: "Relacionar Times" },
+        { label: "Relacionar times" },
+        {
+          label: "Lista de Presença",
+          disabled: !this.isTrainingSaved,
+        },
         {
           label: "Marcação dos Scouts",
           disabled: !this.isTrainingSaved,
         },
       ];
     },
-    /** Última etapa acessível: cadastro novo para na etapa 2; edição vai até scouts (índice 3). */
     lastStepIndex() {
-      if (!this.isTrainingSaved) return 2;
-      return this.steps.length - 1;
+      return Math.max(0, this.steps.length - 1);
     },
   },
 
@@ -742,171 +754,55 @@ export default {
 
         this.$nextTick(() => {
           this.refreshSpecificFundamentalsCatalog();
-          this.syncStepFromRouteQuery();
+          this.syncStepFromRoute();
         });
       },
       immediate: false,
-    },
-    "$route.query.step"() {
-      this.syncStepFromRouteQuery();
     },
     "data.team": function (newVal) {
       if (newVal && (!this.form.teams || this.form.teams.length === 0)) {
         this.form.teams = [{ id: newVal.id, team: newVal.name }];
       }
     },
+    "form.id"(id) {
+      if (id) {
+        this.$nextTick(() => this.syncStepFromRoute());
+      }
+    },
+    "$route.query.step"() {
+      this.syncStepFromRoute();
+    },
   },
 
   async mounted() {
+    this.$nextTick(() => this.syncStepFromRoute());
     await this.fetchAllFundamentalsCatalog();
     await this.refreshSpecificFundamentalsCatalog();
-    this.syncStepFromRouteQuery();
+    this.$nextTick(() => this.syncStepFromRoute());
   },
 
   methods: {
-    async fetchGraphqlAllPages(query, dataKey, filter) {
-      const nuxtApp = useNuxtApp();
-      const apolloClient = nuxtApp._apolloClients?.default;
-      if (!apolloClient) {
-        return [];
-      }
-      const perPage = 50;
-      let page = 1;
-      let hasMore = true;
-      const all = [];
-      while (hasMore) {
-        const result = await apolloClient.query({
-          query,
-          variables: {
-            filter,
-            first: perPage,
-            page,
-          },
-          fetchPolicy: "network-only",
-        });
-        const payload = result?.data?.[dataKey];
-        const rows = payload?.data ?? [];
-        all.push(...rows);
-        hasMore = Boolean(payload?.paginatorInfo?.hasMorePages);
-        page += 1;
-      }
-      return all;
-    },
-    async fetchAllFundamentalsCatalog() {
-      this.fundamentalsCatalogLoading = true;
-      try {
-        const q = gql`
-          ${FUNDAMENTALS}
-        `;
-        const rows = await this.fetchGraphqlAllPages(q, "fundamentals", {
-          search: "%%",
-          ignoreIds: [],
-        });
-        this.fundamentalCatalog = rows
-          .map((r) => ({ id: Number(r.id), name: r.name }))
-          .sort((a, b) =>
-            a.name.localeCompare(b.name, "pt-BR", { sensitivity: "base" }),
-          );
-      } catch (e) {
-        console.error("ZTrainingForm - fundamentos:", e);
-        this.fundamentalCatalog = [];
-      } finally {
-        this.fundamentalsCatalogLoading = false;
-      }
-    },
-    async refreshSpecificFundamentalsCatalog() {
-      const ids = (this.form.fundamentals || [])
-        .map((f) => Number(f.id))
-        .filter((id) => !Number.isNaN(id));
-      if (!ids.length) {
-        this.specificFundamentalCatalog = [];
-        this.form.specificFundamentals = [];
+    /**
+     * Abre o passo indicado por ?step= na URL (0 a N-1).
+     * Compat: ?step=3 do fluxo antigo (Lista de Presença) → passo 3 no fluxo atual.
+     */
+    syncStepFromRoute() {
+      const raw = this.$route?.query?.step;
+      if (raw === undefined || raw === null || String(raw).trim() === "") {
         return;
       }
-      this.specificFundamentalsLoading = true;
-      try {
-        const q = gql`
-          ${SPECIFICFUNDAMENTALS}
-        `;
-        const rows = await this.fetchGraphqlAllPages(
-          q,
-          "specificFundamentals",
-          {
-            search: "%%",
-            fundamentalsIds: ids,
-            ignoreIds: [],
-          },
-        );
-        this.specificFundamentalCatalog = rows
-          .map((r) => ({ id: Number(r.id), name: r.name }))
-          .sort((a, b) =>
-            a.name.localeCompare(b.name, "pt-BR", { sensitivity: "base" }),
-          );
-        const allowed = new Set(
-          this.specificFundamentalCatalog.map((r) => r.id),
-        );
-        this.form.specificFundamentals = (
-          this.form.specificFundamentals || []
-        ).filter((s) => allowed.has(Number(s.id)));
-      } catch (e) {
-        console.error("ZTrainingForm - fundamentos específicos:", e);
-        this.specificFundamentalCatalog = [];
-      } finally {
-        this.specificFundamentalsLoading = false;
-      }
-    },
-    isFundamentalPicked(id) {
-      return (this.form.fundamentals || []).some(
-        (f) => Number(f.id) === Number(id),
-      );
-    },
-    isSpecificFundamentalPicked(id) {
-      return (this.form.specificFundamentals || []).some(
-        (s) => Number(s.id) === Number(id),
-      );
-    },
-    async toggleFundamentalPick(item) {
-      const id = Number(item.id);
-      const list = this.form.fundamentals || [];
-      const idx = list.findIndex((f) => Number(f.id) === id);
-      if (idx >= 0) {
-        list.splice(idx, 1);
-      } else {
-        list.push({
-          id,
-          fundamental: item.name,
-        });
-      }
-      await this.refreshSpecificFundamentalsCatalog();
-    },
-    toggleSpecificFundamentalPick(item) {
-      const id = Number(item.id);
-      const list = this.form.specificFundamentals || [];
-      const idx = list.findIndex((s) => Number(s.id) === id);
-      if (idx >= 0) {
-        list.splice(idx, 1);
-      } else {
-        list.push({
-          id,
-          specificFundamental: item.name,
-        });
-      }
-    },
-    isTrainingStatusSelected(value) {
-      const s = String(this.form.status ?? "")
-        .toLowerCase()
-        .trim();
-      return s === String(value).toLowerCase();
-    },
-    selectTrainingStatus(value) {
-      if (value === "finished" && this.isTrainingInFuture) {
-        confirmError(
-          "Status inválido",
-          "Não é possível marcar como Finalizado um treino agendado para o futuro.",
-        );
+      let step = parseInt(String(raw), 10);
+      if (Number.isNaN(step)) {
         return;
       }
-      this.form.status = value;
+      const max = this.steps.length - 1;
+      if (step < 0 || step > max) {
+        return;
+      }
+      if (step > 2 && !this.isTrainingSaved) {
+        return;
+      }
+      this.internalStep = step;
     },
     // Valida se os campos obrigatórios estão preenchidos
     validateRequiredFields() {
@@ -955,24 +851,6 @@ export default {
     goBack() {
       this.$router.push("/trainings");
     },
-
-    /** Aplica `?step=` da rota ao stepper (Scouts só após treino salvo). Índices 0–3. */
-    syncStepFromRouteQuery() {
-      const raw = this.$route?.query?.step;
-      if (raw === undefined || raw === null || raw === "") {
-        return;
-      }
-      const parsed = parseInt(String(raw), 10);
-      if (Number.isNaN(parsed)) {
-        return;
-      }
-      let step = Math.max(0, Math.min(3, parsed));
-      if (step > 2 && !this.isTrainingSaved) {
-        return;
-      }
-      this.internalStep = step;
-    },
-
     handleNextStep() {
       if (this.controlledStep < this.lastStepIndex) {
         this.controlledStep = this.controlledStep + 1;
@@ -1031,7 +909,6 @@ export default {
         scouts: [],
       };
     },
-
     addTeams() {
       // Com return-object, o va-select retorna array de objetos {text, value}
       if (
@@ -1179,19 +1056,75 @@ export default {
         return position.id !== id;
       });
 
+      transformedfundamentals.forEach((newFundamental) => {
+        const isAlreadyAdded = this.form.fundamentals.some(
+          (existingFundamental) => existingFundamental.id === newFundamental.id
+        );
+
+        if (!isAlreadyAdded) {
+          this.form.fundamentals.push(newFundamental);
+        }
+      });
+
+      this.fundamentals = [];
+    },
+
+    addSpecificFundamental() {
+      const transformedSpecificFundamentals = this.specificFundamentals.map(
+        (item) => {
+          return {
+            id: item.value,
+            specificFundamental: item.text,
+          };
+        }
+      );
+
+      transformedSpecificFundamentals.forEach((newSpecificFundamental) => {
+        const isAlreadyAdded = this.form.specificFundamentals.some(
+          (existingSpecificFundamental) =>
+            existingSpecificFundamental.id === newSpecificFundamental.id
+        );
+
+        if (!isAlreadyAdded) {
+          this.form.specificFundamentals.push(newSpecificFundamental);
+        }
+      });
+
+      this.specificFundamentals = [];
+    },
+
+    actionDeletePosition(id) {
+      this.form.positions = this.form.positions.filter((position) => {
+        return position.id !== id;
+      });
+
       confirmSuccess("Posição removida com sucesso!");
     },
 
-    actionDeleteTeam(payload) {
-      const idNum = resolveListRelationDeleteId(payload);
-      if (idNum === null) {
-        return;
-      }
-      this.form.teams = this.form.teams.filter(
-        (team) => Number(team.id) !== idNum,
-      );
+    actionDeleteTeam(id) {
+      this.form.teams = this.form.teams.filter((team) => {
+        return team.id !== id;
+      });
 
       confirmSuccess("Time removido com sucesso!");
+    },
+
+    actionDeleteFundamental(id) {
+      this.form.fundamentals = this.form.fundamentals.filter((fundamental) => {
+        return fundamental.id !== id;
+      });
+
+      confirmSuccess("Fundamento removido com sucesso!");
+    },
+
+    actionDeleteSpecificFundamental(id) {
+      this.form.specificFundamentals = this.form.specificFundamentals.filter(
+        (specificFundamental) => {
+          return specificFundamental.id !== id;
+        }
+      );
+
+      confirmSuccess("Fundamento Específico removido com sucesso!");
     },
 
     addPlayers() {
@@ -1242,14 +1175,10 @@ export default {
       this.scouts = [];
     },
 
-    actionDeletePlayer(payload) {
-      const idNum = resolveListRelationDeleteId(payload);
-      if (idNum === null) {
-        return;
-      }
-      this.form.players = this.form.players.filter(
-        (player) => Number(player.id) !== idNum,
-      );
+    actionDeletePlayer(id) {
+      this.form.players = this.form.players.filter((player) => {
+        return player.id !== id;
+      });
 
       confirmSuccess("Jogador removido com sucesso!");
     },
@@ -1526,14 +1455,10 @@ export default {
       }
     },
 
-    actionDeleteScout(payload) {
-      const idNum = resolveListRelationDeleteId(payload);
-      if (idNum === null) {
-        return;
-      }
-      this.form.scouts = this.form.scouts.filter(
-        (scout) => Number(scout.id) !== idNum,
-      );
+    actionDeleteScout(id) {
+      this.form.scouts = this.form.scouts.filter((scout) => {
+        return scout.id !== id;
+      });
 
       confirmSuccess("Scout removido com sucesso!");
     },

@@ -1,19 +1,13 @@
 <template>
-  <div
-    v-if="
-      loading ||
-      (data &&
-        ((data.totalConfirmations || 0) > 0 ||
-          (data.totalPresences || 0) > 0 ||
-          (data.totalAbsences || 0) > 0 ||
-          (data.topTeamsByPresence?.length || 0) > 0))
-    "
+  <section
+    v-if="loading || hasPresenceData"
     class="presence-analysis-section"
+    aria-label="Presença vs Confirmação"
   >
     <div class="section-header">
       <div class="section-title-wrapper">
         <va-icon name="event_available" size="24px" color="#FF4E1B" />
-        <h2 class="section-title">Análise de Presenças</h2>
+        <h2 class="section-title">Presença vs Confirmação</h2>
       </div>
     </div>
 
@@ -22,99 +16,44 @@
       <span class="loading-text">Carregando análise...</span>
     </div>
 
-    <div
-      v-else-if="
-        !data ||
-        ((data.generalPresenceRate === null ||
-          data.generalPresenceRate === undefined) &&
-          !data.topTeamsByPresence?.length)
-      "
-      class="empty-state"
-    >
+    <div v-else-if="!hasPresenceData" class="empty-state">
       <va-icon name="info" size="48px" color="#9E9E9E" />
       <p class="empty-text">Nenhum dado disponível</p>
     </div>
 
-    <div v-else class="presence-cards-grid">
-      <!-- Card: Taxa Geral de Presença -->
-      <div class="presence-card general-card">
-        <h3 class="card-title general-title">Taxa Geral de Presença</h3>
-        <div class="card-content">
-          <div class="main-metric">
-            <div class="metric-value general-value">
-              {{ formatPercentage(data.generalPresenceRate) }}
-            </div>
-            <div class="metric-description">Média do grupo</div>
-          </div>
-          <div class="trend-indicator" :class="getTrendClass(data.previousMonthComparison)">
-            <va-icon
-              :name="getTrendIcon(data.previousMonthComparison)"
-              size="small"
-              :color="getTrendColor(data.previousMonthComparison)"
-            />
-            <span :class="getTrendTextClass(data.previousMonthComparison)">
-              {{ formatComparison(data.previousMonthComparison) }} em relação ao mês passado
-            </span>
-          </div>
-          <div class="additional-metrics">
-            <div class="metric-item">
-              <div class="metric-item-label">Total de Confirmações</div>
-              <div class="metric-item-value">{{ data.totalConfirmations || 0 }}</div>
-            </div>
-            <div class="metric-item">
-              <div class="metric-item-label">Presenças</div>
-              <div class="metric-item-value presence-value">{{ data.totalPresences || 0 }}</div>
-            </div>
-            <div class="metric-item">
-              <div class="metric-item-label">Ausências</div>
-              <div class="metric-item-value absence-value">{{ data.totalAbsences || 0 }}</div>
-            </div>
-          </div>
+    <div v-else class="summary-card">
+      <div class="summary-metrics">
+        <div class="summary-metric-card">
+          <span class="summary-metric-card__label">Confirmados</span>
+          <span class="summary-metric-card__value">{{ formatPercentage(confirmedRate) }}</span>
+        </div>
+
+        <div class="summary-metric-card">
+          <span class="summary-metric-card__label">Presentes</span>
+          <span class="summary-metric-card__value">{{ formatPercentage(presentRate) }}</span>
         </div>
       </div>
 
-      <!-- Card: Presença por Time -->
-      <div class="presence-card teams-card">
-        <h3 class="card-title teams-title">Presença por Time</h3>
-        <div class="card-content">
-          <div
-            v-for="(teamData, index) in data.topTeamsByPresence"
-            :key="teamData.team.id"
-            class="team-presence-item"
-            :class="getTeamItemClass(index)"
-          >
-            <div class="team-info">
-              <div class="team-name" :class="getTeamNameClass(index)">
-                {{ teamData.team.name }}
-              </div>
-              <div class="team-comparison" :class="getTeamComparisonClass(teamData.previousMonthComparison)">
-                <va-icon
-                  :name="getTrendIcon(teamData.previousMonthComparison)"
-                  size="small"
-                  :color="getTrendColor(teamData.previousMonthComparison)"
-                />
-                <span :class="getTrendTextClass(teamData.previousMonthComparison)">
-                  {{ formatComparison(teamData.previousMonthComparison) }} em relação ao mês passado
-                </span>
-              </div>
-            </div>
-            <div class="team-metrics">
-              <div class="team-percentage" :class="getTeamPercentageClass(index)">
-                {{ formatPercentage(teamData.presencePercentage) }}
-              </div>
-              <div class="team-trend-icon" :class="getTeamTrendClass(teamData.previousMonthComparison)">
-                <va-icon
-                  :name="getTrendIcon(teamData.previousMonthComparison)"
-                  size="small"
-                  :color="getTrendColor(teamData.previousMonthComparison)"
-                />
-              </div>
-            </div>
-          </div>
+      <div class="real-rate-card" :class="realRateToneClass">
+        <div class="real-rate-card__left">
+          <span class="real-rate-card__label">Taxa real</span>
+          <span class="real-rate-card__value">{{ formatPercentage(realConfirmationRate) }}</span>
+        </div>
+
+        <div class="real-rate-card__status">
+          <va-icon :name="realRateToneIcon" size="18px" :color="realRateToneColor" />
+          <span class="real-rate-card__status-text">{{ realRateToneLabel }}</span>
         </div>
       </div>
+
+      <div class="warning-card">
+        <va-icon name="warning_amber" size="18px" color="#D97706" />
+        <p class="warning-card__text">
+          {{ formatPercentage(confirmedButAbsentRate) }} confirmaram mas faltaram
+        </p>
+      </div>
     </div>
-  </div>
+  </section>
 </template>
 
 <script>
@@ -129,6 +68,57 @@ export default {
       data: null,
       loading: false,
     };
+  },
+  computed: {
+    hasPresenceData() {
+      return Boolean(
+        this.data &&
+          ((this.data.totalConfirmations || 0) > 0 ||
+            (this.data.totalPresences || 0) > 0 ||
+            (this.data.totalAbsences || 0) > 0),
+      );
+    },
+    attendanceBase() {
+      const confirmations = Number(this.data?.totalConfirmations || 0);
+      const attendanceTotal =
+        Number(this.data?.totalPresences || 0) + Number(this.data?.totalAbsences || 0);
+
+      return Math.max(confirmations, attendanceTotal, 1);
+    },
+    confirmedRate() {
+      return (Number(this.data?.totalConfirmations || 0) / this.attendanceBase) * 100;
+    },
+    presentRate() {
+      return (Number(this.data?.totalPresences || 0) / this.attendanceBase) * 100;
+    },
+    realConfirmationRate() {
+      const confirmations = Number(this.data?.totalConfirmations || 0);
+      if (!confirmations) return 0;
+      return (Number(this.data?.totalPresences || 0) / confirmations) * 100;
+    },
+    confirmedButAbsentRate() {
+      return Math.max(0, 100 - this.realConfirmationRate);
+    },
+    realRateToneLabel() {
+      if (this.realConfirmationRate >= 90) return "Alta";
+      if (this.realConfirmationRate >= 75) return "Atenção";
+      return "Baixa";
+    },
+    realRateToneIcon() {
+      if (this.realConfirmationRate >= 90) return "verified";
+      if (this.realConfirmationRate >= 75) return "brightness_1";
+      return "error";
+    },
+    realRateToneColor() {
+      if (this.realConfirmationRate >= 90) return "#16A34A";
+      if (this.realConfirmationRate >= 75) return "#EAB308";
+      return "#DC2626";
+    },
+    realRateToneClass() {
+      if (this.realConfirmationRate >= 90) return "real-rate-card--positive";
+      if (this.realConfirmationRate >= 75) return "real-rate-card--warning";
+      return "real-rate-card--danger";
+    },
   },
   mounted() {
     this.getPresenceAnalysis();
@@ -170,53 +160,6 @@ export default {
     formatPercentage(value) {
       return `${Math.round(value)}%`;
     },
-    formatComparison(value) {
-      const absValue = Math.abs(value);
-      const sign = value >= 0 ? "+" : "";
-      return `${sign}${Math.round(absValue)}%`;
-    },
-    getTrendIcon(comparison) {
-      if (comparison > 0) return "arrow_upward";
-      if (comparison < 0) return "arrow_downward";
-      return "arrow_forward";
-    },
-    getTrendColor(comparison) {
-      if (comparison > 0) return "#28a745";
-      if (comparison < 0) return "#dc3545";
-      return "#6c757d";
-    },
-    getTrendClass(comparison) {
-      if (comparison > 0) return "trend-positive";
-      if (comparison < 0) return "trend-negative";
-      return "trend-neutral";
-    },
-    getTrendTextClass(comparison) {
-      if (comparison > 0) return "trend-text-positive";
-      if (comparison < 0) return "trend-text-negative";
-      return "trend-text-neutral";
-    },
-    getTeamItemClass(index) {
-      const classes = ["team-item-orange", "team-item-blue", "team-item-black"];
-      return classes[index % classes.length];
-    },
-    getTeamNameClass(index) {
-      const classes = ["name-orange", "name-blue", "name-black"];
-      return classes[index % classes.length];
-    },
-    getTeamPercentageClass(index) {
-      const classes = ["percentage-orange", "percentage-blue", "percentage-black"];
-      return classes[index % classes.length];
-    },
-    getTeamTrendClass(comparison) {
-      if (comparison > 0) return "trend-positive";
-      if (comparison < 0) return "trend-negative";
-      return "trend-neutral";
-    },
-    getTeamComparisonClass(comparison) {
-      if (comparison > 0) return "comparison-positive";
-      if (comparison < 0) return "comparison-negative";
-      return "comparison-neutral";
-    },
   },
 };
 </script>
@@ -232,7 +175,6 @@ export default {
 
 .section-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
   gap: 16px;
@@ -242,7 +184,6 @@ export default {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex: 1;
 }
 
 .section-title {
@@ -252,20 +193,7 @@ export default {
   margin: 0;
 }
 
-.loading-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px;
-  gap: 12px;
-}
-
-.loading-text {
-  color: #6c757d;
-  font-size: 14px;
-}
-
+.loading-container,
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -275,238 +203,119 @@ export default {
   gap: 12px;
 }
 
+.loading-text,
 .empty-text {
   color: #6c757d;
   font-size: 14px;
   margin: 0;
 }
 
-.presence-cards-grid {
+.summary-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.summary-metrics {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
 }
 
-.presence-card {
-  background: white;
-  border-radius: 12px;
-  padding: 20px;
+.summary-metric-card {
   border: 1px solid #e9ecef;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.card-title {
-  font-size: 16px;
-  font-weight: 700;
-  margin: 0 0 16px 0;
-}
-
-.general-title {
-  color: #FF4E1B;
-}
-
-.teams-title {
-  color: #1976d2;
-}
-
-.card-content {
+  border-radius: 14px;
+  background: #f8fafc;
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 6px;
 }
 
-/* General Card Styles */
-.main-metric {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+.summary-metric-card__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
 }
 
-.metric-value {
-  font-size: 48px;
-  font-weight: 700;
+.summary-metric-card__value {
+  font-size: 32px;
+  font-weight: 800;
+  color: #0f172a;
   line-height: 1;
 }
 
-.general-value {
-  color: #FF4E1B;
-}
-
-.metric-description {
-  font-size: 13px;
-  color: #6c757d;
-  font-weight: 500;
-}
-
-.trend-indicator {
+.real-rate-card {
+  border-radius: 16px;
+  padding: 16px;
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.trend-positive .trend-text-positive {
-  color: #28a745;
-}
-
-.trend-negative .trend-text-negative {
-  color: #dc3545;
-}
-
-.trend-neutral .trend-text-neutral {
-  color: #6c757d;
-}
-
-/* Additional Metrics */
-.additional-metrics {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-  margin-top: 20px;
-  padding-top: 20px;
-  border-top: 1px solid #e9ecef;
-}
-
-.metric-item {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  text-align: center;
-  padding: 12px;
-  background: #f8f9fa;
-  border-radius: 8px;
-}
-
-.metric-item-label {
-  font-size: 12px;
-  color: #6c757d;
-  font-weight: 500;
-}
-
-.metric-item-value {
-  font-size: 28px;
-  font-weight: 700;
-  color: #0b1e3a;
-  line-height: 1.2;
-}
-
-.presence-value {
-  color: #28a745;
-}
-
-.absence-value {
-  color: #dc3545;
-}
-
-/* Teams Card Styles */
-.team-presence-item {
-  display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  padding: 12px 0;
-  border-bottom: 1px solid #e9ecef;
   gap: 16px;
+  border: 1px solid transparent;
 }
 
-.team-presence-item:last-child {
-  border-bottom: none;
+.real-rate-card--positive {
+  background: rgba(22, 163, 74, 0.08);
+  border-color: rgba(22, 163, 74, 0.16);
 }
 
-.team-info {
-  flex: 1;
-  min-width: 0;
+.real-rate-card--warning {
+  background: rgba(234, 179, 8, 0.12);
+  border-color: rgba(234, 179, 8, 0.24);
+}
+
+.real-rate-card--danger {
+  background: rgba(220, 38, 38, 0.08);
+  border-color: rgba(220, 38, 38, 0.16);
+}
+
+.real-rate-card__left {
   display: flex;
   flex-direction: column;
+  gap: 4px;
+}
+
+.real-rate-card__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.real-rate-card__value {
+  font-size: 30px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1;
+}
+
+.real-rate-card__status {
+  display: inline-flex;
+  align-items: center;
   gap: 6px;
 }
 
-.team-name {
-  font-size: 15px;
-  font-weight: 600;
+.real-rate-card__status-text {
+  font-size: 13px;
+  font-weight: 700;
+  color: #475569;
 }
 
-.name-orange {
-  color: #FF4E1B;
-}
-
-.name-blue {
-  color: #1976d2;
-}
-
-.name-black {
-  color: #0b1e3a;
-}
-
-.team-comparison {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 11px;
-  font-weight: 500;
-}
-
-.team-metrics {
+.warning-card {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-shrink: 0;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
 }
 
-.team-percentage {
-  font-size: 18px;
-  font-weight: 700;
-}
-
-.team-trend-icon {
-  display: flex;
-  align-items: center;
-}
-
-.percentage-orange {
-  color: #FF4E1B;
-}
-
-.percentage-blue {
-  color: #1976d2;
-}
-
-.percentage-black {
-  color: #0b1e3a;
-}
-
-.team-trend-icon {
-  display: flex;
-  align-items: center;
-}
-
-.team-comparison {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 11px;
-  font-weight: 500;
-  margin-top: 4px;
-}
-
-.comparison-positive .trend-text-positive {
-  color: #28a745;
-}
-
-.comparison-negative .trend-text-negative {
-  color: #dc3545;
-}
-
-.comparison-neutral .trend-text-neutral {
-  color: #6c757d;
-}
-
-/* Responsive */
-@media (max-width: 1024px) {
-  .presence-cards-grid {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
+.warning-card__text {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #9a3412;
 }
 
 @media (max-width: 768px) {
@@ -515,41 +324,17 @@ export default {
     margin-top: 16px;
   }
 
-  .section-header {
-    margin-bottom: 16px;
-  }
-
   .section-title {
     font-size: 18px;
   }
 
-  .presence-card {
-    padding: 16px;
-  }
-
-  .card-title {
-    font-size: 15px;
-    margin-bottom: 12px;
-  }
-
-  .metric-value {
-    font-size: 40px;
-  }
-
-  .team-percentage {
-    font-size: 16px;
-  }
-
-  .additional-metrics {
+  .summary-metrics {
     grid-template-columns: 1fr;
-    gap: 10px;
-    margin-top: 12px;
-    padding-top: 12px;
   }
 
-  .metric-item-value {
-    font-size: 16px;
+  .real-rate-card {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
 </style>
-
