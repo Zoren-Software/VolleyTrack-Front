@@ -369,11 +369,7 @@
           <!-- Etapa 4: Lista de Presença -->
           <template #step-content-3>
             <div class="step-content">
-              <ZTrainingAttendanceContent
-                :form="form"
-                @update:errors="$emit('update:errors', $event)"
-                @update:errorFields="$emit('update:errorFields', $event)"
-              />
+              <ZTrainingAttendanceView :training-id="form.id || ''" />
             </div>
           </template>
 
@@ -436,7 +432,7 @@ import Swal from "sweetalert2";
 import ZDateTimeRangePicker from "~/components/molecules/Inputs/ZDateTimeRangePicker.vue";
 import ZSelectFundamental from "~/components/molecules/Selects/ZSelectFundamental.vue";
 import ZSelectSpecificFundamental from "~/components/molecules/Selects/ZSelectSpecificFundamental.vue";
-import ZTrainingAttendanceContent from "~/components/organisms/Training/ZTrainingAttendanceContent.vue";
+import ZTrainingAttendanceView from "~/components/organisms/Training/ZTrainingAttendanceView.vue";
 import ZListRelationPlayersWithScouts from "~/components/molecules/Datatable/ZListRelationPlayersWithScouts";
 import ZSelectUser from "~/components/molecules/Selects/ZSelectUser";
 import TEAM from "~/graphql/team/query/team.graphql";
@@ -494,7 +490,7 @@ export default {
     ZDateTimeRangePicker,
     ZSelectFundamental,
     ZSelectSpecificFundamental,
-    ZTrainingAttendanceContent,
+    ZTrainingAttendanceView,
     ZListRelationPlayersWithScouts,
     ZSelectUser,
     ZUser,
