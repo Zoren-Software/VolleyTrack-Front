@@ -89,12 +89,10 @@
           <span class="sidebar-link-text">Sair</span>
         </button>
       </nav>
-      <<<<<<< HEAD =======
       <div class="sidebar-footer">
         <ZLegalLinks variant="dark" class="sidebar-legal-links" />
         <span class="sidebar-version">v{{ appVersion }}</span>
       </div>
-      >>>>>>> develop
     </aside>
     <div class="main-area">
       <div class="top-bar">
@@ -909,7 +907,6 @@ button.sidebar-link {
   display: flex;
   flex-direction: column;
   background-color: #f3f4f6;
-  margin-left: 260px;
   transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
