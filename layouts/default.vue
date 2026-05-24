@@ -78,6 +78,34 @@
               />
               <span>Configuração de Notificações</span>
             </a>
+            <NuxtLink
+              to="/settings/devices"
+              class="dropdown-item"
+              @click="closeDropdown"
+            >
+              <va-icon name="devices" size="18px" class="dropdown-item-icon" />
+              <span>Dispositivos</span>
+            </NuxtLink>
+            <NuxtLink
+              to="/settings/audit"
+              class="dropdown-item"
+              @click="closeDropdown"
+            >
+              <va-icon name="history" size="18px" class="dropdown-item-icon" />
+              <span>Auditoria</span>
+            </NuxtLink>
+            <NuxtLink
+              to="/settings/privacy"
+              class="dropdown-item"
+              @click="closeDropdown"
+            >
+              <va-icon
+                name="privacy_tip"
+                size="18px"
+                class="dropdown-item-icon"
+              />
+              <span>Exclusão de conta</span>
+            </NuxtLink>
           </div>
         </div>
         <button
@@ -176,9 +204,6 @@
       </div>
       <div class="content-wrapper">
         <NuxtPage />
-        <footer class="app-main-footer">
-          <ZLegalLinks variant="light" />
-        </footer>
       </div>
     </div>
     <ZTermsAcceptanceModal />
@@ -614,7 +639,13 @@ export default {
     },
     isSettingsRouteActive() {
       const currentPath = this.$route.path;
-      return currentPath.startsWith("/settings");
+      return (
+        currentPath === "/settings" ||
+        currentPath === "/settings/notifications" ||
+        currentPath === "/settings/devices" ||
+        currentPath === "/settings/audit" ||
+        currentPath === "/settings/privacy"
+      );
     },
     toggleDropdown() {
       this.dropdownOpen = !this.dropdownOpen;
@@ -786,8 +817,13 @@ export default {
 }
 
 .sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
   width: 260px;
-  flex-shrink: 0;
+  height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   background-color: #0b1e3a;
@@ -795,7 +831,7 @@ export default {
   padding: 20px 16px;
   box-sizing: border-box;
   z-index: 999;
-  flex-shrink: 0;
+  overflow: hidden;
 }
 
 .sidebar-brand {
@@ -809,6 +845,20 @@ export default {
   margin-top: 28px;
   flex: 1;
   min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+}
+
+.sidebar-nav::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.25);
+  border-radius: 3px;
 }
 
 .sidebar-link {
@@ -904,6 +954,9 @@ button.sidebar-link {
 .main-area {
   flex: 1;
   min-width: 0;
+  margin-left: 260px;
+  width: calc(100% - 260px);
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   background-color: #f3f4f6;
@@ -917,15 +970,13 @@ button.sidebar-link {
   min-height: 0;
 }
 
-.app-main-footer {
-  flex-shrink: 0;
-  display: flex;
-  justify-content: center;
-  padding: 12px 16px 20px;
+.sidebar-is-collapsed .sidebar {
+  width: 64px;
 }
 
 .sidebar-is-collapsed .main-area {
   margin-left: 64px;
+  width: calc(100% - 64px);
 }
 
 .top-bar {
@@ -1081,6 +1132,7 @@ button.sidebar-link {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  margin-left: 10px;
 }
 
 .plan-icon-logo {
@@ -1410,6 +1462,26 @@ button.sidebar-link {
   .layout-container {
     flex-direction: column;
   }
+
+  .sidebar {
+    position: sticky;
+    top: 0;
+    left: auto;
+    bottom: auto;
+    width: 100%;
+    height: auto;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .sidebar-nav {
+    overflow-y: visible;
+  }
+
+  .main-area {
+    margin-left: 0;
+    width: 100%;
+  }
 }
 
 .sidebar-toggle-btn:hover {
@@ -1470,7 +1542,8 @@ button.sidebar-link {
   justify-content: center;
   gap: 6px;
   padding: 12px 0 4px;
-  overflow: hidden;
+  margin-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .sidebar-legal-links {
@@ -1543,10 +1616,14 @@ button.sidebar-link {
 /* ── Responsividade Mobile (<768px) ── */
 @media (max-width: 768px) {
   .sidebar {
+    position: sticky;
+    top: 0;
     width: 100%;
+    height: auto;
     border-right: none;
     border-bottom: 1px solid #1e3a5f;
     padding: 14px 16px;
+    overflow: visible;
   }
 
   .sidebar-nav {
@@ -1554,6 +1631,7 @@ button.sidebar-link {
     flex-wrap: wrap;
     margin-top: 16px;
     gap: 6px 8px;
+    overflow-y: visible;
   }
 
   .sidebar-link {

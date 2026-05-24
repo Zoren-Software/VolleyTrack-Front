@@ -1,48 +1,54 @@
 <template>
-  <va-card stripe stripe-color="primary" class="mx-5">
-    <va-card-title> Set Password </va-card-title>
-    <va-form @keyup.enter="registerPassword">
-      <div class="row justify-center px-3 pb-4">
-        <div class="flex flex-col">
-          <div class="item">
-            <ZEmailInput
-              v-model="email"
-              disabled
-              label="E-mail"
-              id="email"
-              placeholder="E-mail"
-            />
-          </div>
+  <div class="set-password-shell mx-5">
+    <va-card stripe stripe-color="primary" class="set-password-card">
+      <va-card-title> Set Password </va-card-title>
+      <va-form class="set-password-form" @keyup.enter="registerPassword">
+        <div class="set-password-field">
+          <ZEmailInput
+            v-model="email"
+            disabled
+            label="E-mail"
+            id="email"
+            placeholder="E-mail"
+          />
         </div>
-      </div>
-      <div class="row justify-center px-3 pb-4">
-        <div class="flex flex-col">
-          <div class="item">
-            <ZPasswordInputWithConfirmPassword
-              v-model="password"
-              confirmPasswordInput
-              name="password"
-              passwordLabel="Senha Provisória"
-              :error-messages="errorMessage"
-              id="password"
-              class="mb-3"
-              @validForm="emitValidFormEvent"
-            />
-          </div>
+
+        <div class="set-password-field">
+          <ZPasswordInputWithConfirmPassword
+            v-model="password"
+            confirmPasswordInput
+            name="password"
+            passwordLabel="Senha Provisória"
+            :error-messages="errorMessage"
+            id="password"
+            class="mb-3"
+            @validForm="emitValidFormEvent"
+          />
         </div>
-      </div>
-      <div class="row justify-center px-3 pb-3">
+
         <label class="set-password-terms">
-          <input v-model="termsAccepted" type="checkbox" />
-          <span>
-            Li e concordo com os
-            <a :href="termsOfUseUrl" target="_blank" rel="noopener noreferrer">Termos de Uso</a>
-            e
-            <a :href="privacyPolicyUrl" target="_blank" rel="noopener noreferrer">Política de Privacidade</a>
+          <input
+            v-model="termsAccepted"
+            type="checkbox"
+            class="set-password-terms__checkbox"
+          />
+          <span class="set-password-terms__text">
+            <span class="set-password-terms__line">Li e concordo com os</span>
+            <span class="set-password-terms__line">
+              <a :href="termsOfUseUrl" target="_blank" rel="noopener noreferrer"
+                >Termos de Uso</a
+              >
+              e
+              <a
+                :href="privacyPolicyUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Política de Privacidade</a
+              >
+            </span>
           </span>
         </label>
-      </div>
-      <div class="row justify-center px-3 pb-3">
+
         <ZButton
           :block="true"
           :disabled="buttonDisabled || !termsAccepted"
@@ -52,9 +58,9 @@
         >
           Registrar Senha
         </ZButton>
-      </div>
-    </va-form>
-  </va-card>
+      </va-form>
+    </va-card>
+  </div>
 </template>
 
 <script>
@@ -151,18 +157,79 @@ export default {
 </script>
 
 <style scoped>
-.set-password-terms {
+.set-password-shell {
+  width: 320px;
+  max-width: calc(100vw - 2rem);
+  min-width: 0;
+}
+
+.set-password-shell :deep(.va-card) {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+.set-password-shell :deep(.va-card__content),
+.set-password-shell :deep(.va-form) {
+  min-width: 0 !important;
+}
+
+.set-password-form {
   display: flex;
-  align-items: flex-start;
-  gap: 8px;
+  flex-direction: column;
+  gap: 16px;
+  padding: 0 12px 16px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.set-password-field {
+  width: 100%;
+  min-width: 0;
+}
+
+.set-password-field :deep(.va-input-wrapper),
+.set-password-field :deep(.va-input) {
+  width: 100%;
+}
+
+.set-password-terms {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  column-gap: 10px;
+  align-items: start;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  cursor: pointer;
   font-size: 14px;
   line-height: 1.45;
   color: #374151;
-  max-width: 420px;
+}
+
+.set-password-terms__checkbox {
+  margin-top: 3px;
+}
+
+.set-password-terms__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  white-space: normal !important;
+}
+
+.set-password-terms__line {
+  display: block;
+  white-space: normal !important;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .set-password-terms a {
   color: #ff4e1b;
   text-decoration: underline;
+  white-space: normal !important;
 }
 </style>

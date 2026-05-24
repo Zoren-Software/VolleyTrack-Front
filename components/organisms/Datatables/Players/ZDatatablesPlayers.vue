@@ -176,9 +176,12 @@
           <ZDataTableActions
             :id="Number(rowKey.id)"
             include-action-stats-list
+            include-action-resend-activation-email
+            :show-resend-activation-email="!isEmailVerified(rowKey)"
             include-action-edit-list
             include-action-delete-list
             @stats="openStatsModal"
+            @resend-activation-email="handleResendActivationEmail"
             @edit="editPlayer"
             @delete="deletePlayer"
           />
@@ -276,7 +279,11 @@ import ZCPF from "~/components/molecules/Datatable/Slots/ZCPF";
 import USERDELETE from "~/graphql/user/mutation/userDelete.graphql";
 import USERRESENDVERIFICATIONEMAIL from "~/graphql/user/mutation/userResendVerificationEmail.graphql";
 import ROLES from "~/graphql/role/query/roles.graphql";
-import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
+import {
+  confirmSuccess,
+  confirmError,
+  confirmResendActivationEmail,
+} from "~/utils/sweetAlert2/swalHelper";
 
 //import { toRaw } from "vue"; // NOTE - Para debug
 
@@ -425,6 +432,15 @@ export default defineComponent({
     addPlayer() {
       this.$router.push("/players/create");
     },
+    isEmailVerified(row) {
+      const value = row?.emailVerifiedAt;
+      return value !== null && value !== undefined && value !== "";
+    },
+    handleResendActivationEmail(id) {
+      confirmResendActivationEmail(() => {
+        this.resendVerificationEmail(id);
+      });
+    },
     async resendVerificationEmail(id) {
       try {
         const query = gql`
@@ -437,7 +453,7 @@ export default defineComponent({
 
         await mutate();
 
-        confirmSuccess("E-mail de verificação reenviado com sucesso!");
+        confirmSuccess("E-mail de ativação reenviado com sucesso!");
       } catch (error) {
         const message =
           error?.graphQLErrors?.[0]?.message ||

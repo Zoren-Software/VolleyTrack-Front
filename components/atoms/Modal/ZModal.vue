@@ -2,17 +2,14 @@
   <VaModal
     v-bind="$attrs"
     :model-value="modelValue"
-    @update:modelValue="onModelUpdate"
-    :ok-text="okText"
-    :cancel-text="cancelText"
-    :ok-disabled="okDisabled"
-    @ok="$emit('ok')"
-    @cancel="$emit('cancel')"
+    hide-default-actions
     size="medium"
     :close-button="!hideCloseButton"
     :no-dismiss="persistent"
     class="z-modal"
     style="z-index: 1001"
+    @update:model-value="onModelUpdate"
+    @cancel="onCancelClick"
   >
     <template #header>
       <h5 class="font-bold text-lg va-h5">
@@ -20,11 +17,42 @@
       </h5>
     </template>
 
-    <slot />
+    <form
+      :id="formId"
+      class="z-modal__form"
+      @submit.prevent="onOkClick"
+    >
+      <slot />
+    </form>
+
+    <template #footer>
+      <div class="z-modal__footer">
+        <VaButton
+          v-if="cancelText"
+          preset="secondary"
+          :disabled="loading"
+          @click="onCancelClick"
+        >
+          {{ cancelText }}
+        </VaButton>
+        <VaButton
+          class="z-modal__ok-btn"
+          type="submit"
+          :form="formId"
+          :disabled="okDisabled || loading"
+          :loading="loading"
+          @click="onOkClick"
+        >
+          {{ okText || "OK" }}
+        </VaButton>
+      </div>
+    </template>
   </VaModal>
 </template>
 
 <script>
+let zModalFormSeq = 0;
+
 export default {
   name: "ZModal",
   props: {
@@ -48,6 +76,10 @@ export default {
       type: Boolean,
       default: false,
     },
+    loading: {
+      type: Boolean,
+      default: false,
+    },
     persistent: {
       type: Boolean,
       default: false,
@@ -59,12 +91,30 @@ export default {
   },
   emits: ["update:modelValue", "ok", "cancel"],
   inheritAttrs: false,
+  data() {
+    zModalFormSeq += 1;
+    return {
+      formId: `z-modal-form-${zModalFormSeq}`,
+    };
+  },
   methods: {
     onModelUpdate(value) {
       if (this.persistent && value === false) {
         return;
       }
       this.$emit("update:modelValue", value);
+    },
+    onOkClick() {
+      if (this.okDisabled || this.loading) {
+        return;
+      }
+      this.$emit("ok");
+    },
+    onCancelClick() {
+      this.$emit("cancel");
+      if (!this.persistent) {
+        this.$emit("update:modelValue", false);
+      }
     },
   },
 };
@@ -77,7 +127,6 @@ export default {
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
 }
 
-/* Permitir que dropdowns apareçam fora do container */
 :deep(.z-modal .va-modal__content) {
   overflow-y: auto;
   overflow-x: visible;
@@ -101,13 +150,21 @@ export default {
   overflow-y: auto;
 }
 
+.z-modal__form {
+  margin: 0;
+}
+
 :deep(.z-modal .va-modal__footer) {
   padding: 20px 24px;
   border-top: 1px solid #e5e7eb;
   background: #f9fafb;
+}
+
+.z-modal__footer {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
+  width: 100%;
 }
 
 :deep(.z-modal .va-button) {
@@ -128,16 +185,24 @@ export default {
   border-color: #9ca3af;
 }
 
-:deep(.z-modal .va-button--primary) {
-  background: #FF4E1B;
+:deep(.z-modal .z-modal__ok-btn) {
+  background: #ff4e1b;
   border: none;
   color: white;
   box-shadow: 0 2px 4px rgba(255, 78, 27, 0.2);
 }
 
-:deep(.z-modal .va-button--primary:hover) {
+:deep(.z-modal .z-modal__ok-btn:hover:not(:disabled)) {
   background: #d8651f;
   box-shadow: 0 4px 8px rgba(255, 78, 27, 0.3);
   transform: translateY(-1px);
+}
+
+:deep(.z-modal .z-modal__ok-btn:disabled) {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+  pointer-events: none;
 }
 </style>

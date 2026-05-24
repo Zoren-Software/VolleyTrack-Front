@@ -17,7 +17,11 @@
       <va-button color="primary" @click="getUser">Tentar novamente</va-button>
     </div>
 
-    <div v-else class="account-summary-grid">
+    <div
+      v-else
+      class="account-summary-grid"
+      :class="{ 'account-summary-grid--with-lgpd': showLgpdSection }"
+    >
       <!-- Meus dados: cabeçalho + resumo (ícone + texto à esquerda) -->
       <section class="account-card account-card--meus-dados">
         <div class="meus-dados-header">
@@ -115,11 +119,15 @@
             <div class="payment-cc-card__bottom">
               <div class="payment-cc-card__holder-block">
                 <span class="payment-cc-card__k">CARD HOLDER</span>
-                <span class="payment-cc-card__v">{{ paymentCardHolderVisual }}</span>
+                <span class="payment-cc-card__v">{{
+                  paymentCardHolderVisual
+                }}</span>
               </div>
               <div class="payment-cc-card__expire-block">
                 <span class="payment-cc-card__k">VALIDADE</span>
-                <span class="payment-cc-card__v">{{ paymentCardExpiryShort }}</span>
+                <span class="payment-cc-card__v">{{
+                  paymentCardExpiryShort
+                }}</span>
               </div>
             </div>
           </div>
@@ -186,15 +194,108 @@
         </dl>
         <div class="account-hint">
           <va-icon name="info" size="18px" color="#9ca3af" />
-          <span>Para alterar dados sensíveis ou permissões, use <strong>Editar</strong>.</span>
+          <span
+            >Para alterar dados sensíveis ou permissões, use
+            <strong>Editar</strong>.</span
+          >
+        </div>
+      </section>
+
+      <section v-if="showLgpdSection" class="account-card account-card--lgpd">
+        <div class="meus-dados-header">
+          <h2 class="meus-dados-title">Privacidade e exclusão de conta</h2>
+        </div>
+        <div v-if="accountOwnerValidationLoading" class="account-lgpd-card__body">
+          <p class="account-lgpd-card__hint">Validando titular da conta…</p>
+        </div>
+        <div v-else class="account-lgpd-card__body">
+          <template v-if="isAccountOwner">
+            <p class="account-lgpd-card__text">
+              Como titular da assinatura, você pode excluir sua conta central e
+              encerrar o clube por completo: anonimização dos dados pessoais,
+              tratamento do faturamento e remoção do ambiente do clube, conforme a
+              LGPD.
+            </p>
+            <p class="account-lgpd-card__hint">
+              Operação irreversível. Confirme com a senha do login do clube.
+            </p>
+            <va-button
+              color="danger"
+              size="small"
+              class="account-lgpd-card__button"
+              :loading="lgpdCentralSubmitting"
+              @click="openLgpdCentralModal"
+            >
+              Excluir conta e encerrar clube
+            </va-button>
+          </template>
+          <template v-else>
+            <p class="account-lgpd-card__text">
+              Para excluir sua conta neste clube (perfil, acesso e dados
+              pessoais), use a página de privacidade. O tratamento segue a LGPD.
+            </p>
+            <p class="account-lgpd-card__hint">
+              Exclusão da conta central e encerramento do clube são exclusivos do
+              titular da assinatura.
+            </p>
+            <va-button
+              color="danger"
+              size="small"
+              preset="secondary"
+              class="account-lgpd-card__button"
+              to="/settings/privacy"
+            >
+              Excluir minha conta no clube
+            </va-button>
+          </template>
         </div>
       </section>
     </div>
+
+    <ZModal
+      v-if="isAccountOwner"
+      v-model="lgpdCentralModalOpen"
+      title="Confirmar exclusão da conta e do clube"
+      ok-text="Confirmar exclusão"
+      cancel-text="Cancelar"
+      :ok-disabled="!lgpdCentralCanSubmit"
+      :loading="lgpdCentralSubmitting"
+      @ok="confirmCentralLgpdDeletion"
+      @cancel="closeLgpdCentralModal"
+    >
+      <p class="account-lgpd-modal__intro">
+        Digite sua senha para confirmar a exclusão da sua conta central e o
+        encerramento do clube. Seus dados pessoais identificáveis serão
+        anonimizados ou eliminados conforme a LGPD; o ambiente do clube será
+        removido do sistema. Esta ação é irreversível.
+      </p>
+      <label class="account-lgpd-modal__checkbox">
+        <input v-model="lgpdCentralAgreed" type="checkbox" />
+        <span>
+          Entendo que estou excluindo minha conta central, que o clube será
+          encerrado e que não poderei acessar o sistema com as mesmas credenciais.
+        </span>
+      </label>
+      <va-input
+        v-model="lgpdCentralPassword"
+        type="password"
+        label="Senha atual"
+        class="account-lgpd-modal__password"
+        :disabled="lgpdCentralSubmitting"
+      />
+    </ZModal>
   </div>
 </template>
 
 <script>
+import ZModal from "~/components/atoms/Modal/ZModal.vue";
 import PLAYER from "~/graphql/user/query/user.graphql";
+import { useCustomerAccountOwner } from "~/composables/useCustomerAccountOwner";
+import {
+  getLgpdCentralErrorMessage,
+  useLgpdDeletion,
+} from "~/composables/useLgpdDeletion";
+import { confirmError, confirmSuccess } from "~/utils/sweetAlert2/swalHelper";
 import moment from "moment";
 import {
   formatCPF,
@@ -205,10 +306,19 @@ import { getActivePlan } from "~/services/stripeCheckoutService.js";
 import { getApiBaseUrl } from "~/utils/apiBaseUrl";
 
 export default {
+  components: { ZModal },
   data() {
     return {
       user: null,
       loading: true,
+      lgpdCentralModalOpen: false,
+      lgpdCentralAgreed: false,
+      lgpdCentralPassword: "",
+      lgpdCentralSubmitting: false,
+      isAccountOwner: false,
+      accountOwnerValidationLoading: false,
+      accountOwnerValidationReady: false,
+      accountOwnerCustomerId: null,
       variablesGetUser: {
         id: localStorage.getItem("user")
           ? JSON.parse(localStorage.getItem("user")).id
@@ -252,7 +362,7 @@ export default {
         this.activePlanData.trial_info?.trial_ends_at
       ) {
         return this.formatPlanDate(
-          this.activePlanData.trial_info.trial_ends_at
+          this.activePlanData.trial_info.trial_ends_at,
         );
       }
       const end = this.activePlanData.subscription?.current_period_end;
@@ -305,10 +415,20 @@ export default {
       }
       return n.toUpperCase();
     },
+    lgpdCentralCanSubmit() {
+      return (
+        this.lgpdCentralAgreed &&
+        this.lgpdCentralPassword.length > 0 &&
+        !this.lgpdCentralSubmitting
+      );
+    },
+    showLgpdSection() {
+      return Boolean(this.user) && this.accountOwnerValidationReady;
+    },
   },
-  mounted() {
+  async mounted() {
     this.getUser();
-    this.loadPaymentInfo();
+    await Promise.all([this.loadPaymentInfo(), this.validateAccountOwner()]);
   },
   methods: {
     getUser() {
@@ -341,6 +461,81 @@ export default {
         }
         this.loading = false;
       });
+    },
+    async validateAccountOwner() {
+      this.accountOwnerValidationLoading = true;
+      const { validateCustomerAccountOwner } = useCustomerAccountOwner();
+
+      try {
+        const result = await validateCustomerAccountOwner();
+        this.isAccountOwner = Boolean(result?.isOwner);
+        this.accountOwnerCustomerId = result?.customer?.id ?? null;
+      } catch {
+        this.isAccountOwner = false;
+        this.accountOwnerCustomerId = null;
+      } finally {
+        this.accountOwnerValidationLoading = false;
+        this.accountOwnerValidationReady = true;
+      }
+    },
+    openLgpdCentralModal() {
+      if (!this.isAccountOwner) {
+        confirmError(
+          "Seu usuário é inválido para excluir a conta central. Entre em contato com o suporte se for necessário rever isso.",
+        );
+        return;
+      }
+
+      this.lgpdCentralAgreed = false;
+      this.lgpdCentralPassword = "";
+      this.lgpdCentralModalOpen = true;
+    },
+    closeLgpdCentralModal() {
+      this.lgpdCentralModalOpen = false;
+    },
+    async confirmCentralLgpdDeletion() {
+      if (!this.lgpdCentralCanSubmit) {
+        return;
+      }
+
+      if (!this.isAccountOwner) {
+        confirmError(
+          "Seu usuário é inválido para excluir a conta central. Entre em contato com o suporte se for necessário rever isso.",
+        );
+        return;
+      }
+
+      const customerId =
+        this.accountOwnerCustomerId ?? this.activePlanData?.customer_id;
+
+      if (!customerId) {
+        confirmError(
+          "Não foi possível identificar a conta de faturamento. Atualize a página ou entre em contato com o suporte.",
+        );
+        return;
+      }
+
+      this.lgpdCentralSubmitting = true;
+      const { requestCentralDeletion, logoutAfterDeletion } = useLgpdDeletion();
+
+      try {
+        const result = await requestCentralDeletion(this.lgpdCentralPassword, {
+          customerId,
+          tenantId: localStorage.getItem("tenant_id"),
+        });
+        this.closeLgpdCentralModal();
+        const tenantDeleted = Boolean(result?.tenant_deleted);
+        await confirmSuccess(
+          result?.message || "Conta excluída com sucesso.",
+          () => {
+            logoutAfterDeletion({ tenantDeleted });
+          },
+        );
+      } catch (error) {
+        confirmError(getLgpdCentralErrorMessage(error));
+      } finally {
+        this.lgpdCentralSubmitting = false;
+      }
     },
     joinNames(list) {
       if (!Array.isArray(list) || list.length === 0) {
@@ -461,7 +656,7 @@ export default {
         }
         const res = await fetch(
           `${getApiBaseUrl()}/v1/customers/payment-methods?customer_id=${encodeURIComponent(
-            customerId
+            customerId,
           )}`,
           {
             method: "GET",
@@ -469,7 +664,7 @@ export default {
               Authorization: `Bearer ${token}`,
               Accept: "application/json",
             },
-          }
+          },
         );
         if (!res.ok) {
           return;
@@ -531,10 +726,16 @@ useHead({
 
 .account-summary-grid {
   display: grid;
-  grid-template-columns:
-    minmax(280px, 1.35fr) minmax(240px, 1fr) minmax(240px, 1fr);
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr) minmax(0, 1fr);
   gap: 20px;
   align-items: start;
+}
+
+.account-summary-grid--with-lgpd {
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 0.9fr) minmax(
+      0,
+      0.95fr
+    );
 }
 
 .account-card {
@@ -567,12 +768,7 @@ useHead({
   margin: 0 20px 0;
   padding: 22px 22px 18px;
   border-radius: 16px;
-  background: linear-gradient(
-    135deg,
-    #dc2626 0%,
-    #ea580c 48%,
-    #f97316 100%
-  );
+  background: linear-gradient(135deg, #dc2626 0%, #ea580c 48%, #f97316 100%);
   color: #ffffff;
   box-shadow: 0 12px 32px rgba(220, 38, 38, 0.35);
   overflow: hidden;
@@ -730,7 +926,9 @@ useHead({
   border-radius: 8px;
   color: #6b7280;
   text-decoration: none;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
 }
 
 .meus-dados-edit:hover {
@@ -831,7 +1029,58 @@ useHead({
   padding-bottom: 8px;
 }
 
-.account-card--tall .account-hint {
+.account-card--lgpd {
+  padding: 0;
+  overflow: hidden;
+}
+
+.account-card--lgpd-central .meus-dados-header {
+  padding-bottom: 8px;
+}
+
+.account-lgpd-card__body {
+  padding: 0 20px 20px;
+}
+
+.account-lgpd-card__text,
+.account-lgpd-card__hint {
+  margin: 0 0 10px;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: #4b5563;
+}
+
+.account-lgpd-card__hint {
+  color: #6b7280;
+}
+
+.account-lgpd-card__button {
+  margin-top: 4px;
+  width: 100%;
+}
+
+.account-lgpd-modal__intro {
+  margin: 0 0 16px;
+  color: #374151;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.account-lgpd-modal__checkbox {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  font-size: 14px;
+  color: #374151;
+  cursor: pointer;
+}
+
+.account-lgpd-modal__password {
+  width: 100%;
+}
+
+.account-hint {
   display: flex;
   align-items: flex-start;
   gap: 10px;
@@ -844,7 +1093,8 @@ useHead({
 }
 
 @media (max-width: 1100px) {
-  .account-summary-grid {
+  .account-summary-grid,
+  .account-summary-grid--with-lgpd {
     grid-template-columns: 1fr 1fr;
   }
 
@@ -854,8 +1104,13 @@ useHead({
 }
 
 @media (max-width: 720px) {
-  .account-summary-grid {
+  .account-summary-grid,
+  .account-summary-grid--with-lgpd {
     grid-template-columns: 1fr;
+  }
+
+  .account-card--meus-dados {
+    grid-column: auto;
   }
 
   .account-dl-row dd {

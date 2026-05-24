@@ -58,6 +58,16 @@
           </button>
 
           <button
+            v-if="includeActionResendActivationEmail && showResendActivationEmail"
+            type="button"
+            class="action-menu-item"
+            @click="emitResendActivationEmail(id)"
+          >
+            <va-icon name="mark_email_unread" size="16px" color="#6b7280" />
+            <span>Reenviar e-mail de ativação</span>
+          </button>
+
+          <button
             v-if="includeActionEditList"
             type="button"
             class="action-menu-item"
@@ -129,6 +139,15 @@ export default {
       type: Boolean,
       default: false,
     },
+    includeActionResendActivationEmail: {
+      type: Boolean,
+      default: false,
+    },
+    /** Quando false, oculta o item (ex.: conta já verificada). */
+    showResendActivationEmail: {
+      type: Boolean,
+      default: true,
+    },
     includeActionEditList: {
       type: Boolean,
       default: false,
@@ -161,6 +180,7 @@ export default {
   emits: [
     "stats",
     "details",
+    "resendActivationEmail",
     "edit",
     "delete",
     "finalize",
@@ -190,6 +210,9 @@ export default {
     },
     actionDetails(id) {
       this.$emit("details", id);
+    },
+    emitResendActivationEmail(id) {
+      this.$emit("resendActivationEmail", id);
     },
     actEdit(id) {
       this.$emit("edit", id);

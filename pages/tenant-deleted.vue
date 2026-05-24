@@ -8,11 +8,21 @@
       <h1 class="title">Conta Excluída</h1>
 
       <p class="message">
-        Sua conta foi excluída devido à inatividade após o período de trial.
+        {{
+          isOwnerLgpdDeletion
+            ? "Sua conta foi excluída e o clube foi encerrado."
+            : "Sua conta foi excluída devido à inatividade após o período de trial."
+        }}
       </p>
 
       <div class="details">
-        <p class="detail-text">
+        <p v-if="isOwnerLgpdDeletion" class="detail-text">
+          <strong>O que aconteceu?</strong><br />
+          Você confirmou a exclusão da sua conta como titular da assinatura. Seus
+          dados pessoais identificáveis foram anonimizados ou eliminados e o clube
+          foi removido do sistema, conforme a LGPD.
+        </p>
+        <p v-else class="detail-text">
           <strong>O que aconteceu?</strong><br />
           Seu período de trial expirou e após 90 dias sem contratação de um
           plano, sua conta foi automaticamente excluída conforme nossa política
@@ -52,9 +62,15 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
+import { useRoute } from "vue-router";
 
+const route = useRoute();
 const errorInfo = ref(null);
+
+const isOwnerLgpdDeletion = computed(
+  () => route.query.reason === "owner_lgpd",
+);
 
 onMounted(() => {
   // Tentar recuperar informações do erro do localStorage
