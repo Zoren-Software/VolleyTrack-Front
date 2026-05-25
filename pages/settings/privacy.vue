@@ -3,21 +3,23 @@
     <div class="page-header">
       <div class="header-content">
         <div>
-          <h1 class="page-title">Exclusão da conta no clube</h1>
+          <h1 class="page-title">Privacidade e dados pessoais</h1>
           <p class="page-subtitle">
-            Ao confirmar com sua senha, a exclusão da sua conta neste clube é feita
-            na hora. O tratamento dos dados pessoais segue a LGPD (anonimização e
-            remoções descritas na política).
+            Portabilidade e exclusão da conta no clube, conforme a LGPD. A exportação
+            gera um arquivo com seus dados; a exclusão anonimiza informações pessoais
+            e encerra o acesso.
           </p>
         </div>
       </div>
     </div>
 
+    <ZLgpdPortabilityPanel />
     <ZLgpdPrivacyPanel />
   </div>
 </template>
 
 <script setup>
+import ZLgpdPortabilityPanel from "~/components/organisms/Privacy/ZLgpdPortabilityPanel.vue";
 import ZLgpdPrivacyPanel from "~/components/organisms/Privacy/ZLgpdPrivacyPanel.vue";
 
 definePageMeta({

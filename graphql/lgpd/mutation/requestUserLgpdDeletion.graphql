@@ -1,5 +1,11 @@
-mutation requestUserLgpdDeletion($password: String!) {
-  requestUserLgpdDeletion(password: $password) {
+mutation requestUserLgpdDeletion(
+  $password: String!
+  $sendDataExportBeforeDeletion: Boolean
+) {
+  requestUserLgpdDeletion(
+    password: $password
+    sendDataExportBeforeDeletion: $sendDataExportBeforeDeletion
+  ) {
     success
     message
   }

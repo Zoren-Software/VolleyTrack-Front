@@ -21,6 +21,7 @@
             :levels-loading="levelsLoading"
             :error-fields="errorFields"
             :errors="errors"
+            @update:name="form.name = $event"
             @select-category="selectCategory"
             @select-level="selectLevel"
           />
@@ -53,6 +54,7 @@
                   :levels-loading="levelsLoading"
                   :error-fields="errorFields"
                   :errors="errors"
+                  @update:name="form.name = $event"
                   @select-category="selectCategory"
                   @select-level="selectLevel"
                 />
@@ -94,7 +96,7 @@
         <va-button
           v-if="useWizard && wizardStep < 1"
           color="primary"
-          @click="wizardStep++"
+          @click="goToPlayersStep"
         >
           Próximo
         </va-button>
@@ -158,11 +160,14 @@ export default {
     },
   },
 
+  emits: ["save", "validation-failed"],
+
   data() {
     return {
       users: [],
       form: {
-        ...this.data,
+        name: this.data.name ?? "",
+        users: this.data.users ?? [],
         teamCategory: this.data.teamCategory || null,
         teamLevel: this.data.teamLevel || null,
       },
@@ -205,7 +210,8 @@ export default {
   watch: {
     data(val) {
       this.form = {
-        ...val,
+        name: val.name ?? "",
+        users: val.users ?? [],
         teamCategory: val.teamCategory || null,
         teamLevel: val.teamLevel || null,
       };
@@ -319,7 +325,33 @@ export default {
       confirmSuccess("Jogador removido com sucesso!");
     },
 
+    validateEssentialFields() {
+      const name = String(this.form.name ?? "").trim();
+      const errors = [];
+
+      if (!name || name.length < 3) {
+        errors.push("name");
+      }
+
+      return { valid: errors.length === 0, errorFields: errors, name };
+    },
+
+    goToPlayersStep() {
+      const { valid, errorFields } = this.validateEssentialFields();
+      if (!valid) {
+        this.$emit("validation-failed", { fields: errorFields, name });
+        return;
+      }
+      this.wizardStep++;
+    },
+
     save() {
+      const { valid, errorFields, name } = this.validateEssentialFields();
+      if (!valid) {
+        this.$emit("validation-failed", { fields: errorFields, name });
+        return;
+      }
+      this.form.name = name;
       this.$emit("save", this.form);
     },
 

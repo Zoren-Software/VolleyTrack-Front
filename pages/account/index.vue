@@ -209,6 +209,12 @@
           <p class="account-lgpd-card__hint">Validando titular da conta…</p>
         </div>
         <div v-else class="account-lgpd-card__body">
+          <ZLgpdPortabilityPanel
+            v-if="isAccountOwner"
+            include-central-hint
+            include-central-on-export
+            class="account-lgpd-portability"
+          />
           <template v-if="isAccountOwner">
             <p class="account-lgpd-card__text">
               Como titular da assinatura, você pode excluir sua conta central e
@@ -230,6 +236,9 @@
             </va-button>
           </template>
           <template v-else>
+            <NuxtLink to="/settings/privacy" class="account-lgpd-card__link-block">
+              Exportar ou importar dados (portabilidade LGPD)
+            </NuxtLink>
             <p class="account-lgpd-card__text">
               Para excluir sua conta neste clube (perfil, acesso e dados
               pessoais), use a página de privacidade. O tratamento segue a LGPD.
@@ -276,6 +285,12 @@
           encerrado e que não poderei acessar o sistema com as mesmas credenciais.
         </span>
       </label>
+      <label class="account-lgpd-modal__checkbox">
+        <input v-model="lgpdCentralSendDataExport" type="checkbox" />
+        <span>
+          Enviar cópia dos meus dados por e-mail antes de excluir (portabilidade LGPD).
+        </span>
+      </label>
       <va-input
         v-model="lgpdCentralPassword"
         type="password"
@@ -289,6 +304,7 @@
 
 <script>
 import ZModal from "~/components/atoms/Modal/ZModal.vue";
+import ZLgpdPortabilityPanel from "~/components/organisms/Privacy/ZLgpdPortabilityPanel.vue";
 import PLAYER from "~/graphql/user/query/user.graphql";
 import { useCustomerAccountOwner } from "~/composables/useCustomerAccountOwner";
 import {
@@ -306,7 +322,7 @@ import { getActivePlan } from "~/services/stripeCheckoutService.js";
 import { getApiBaseUrl } from "~/utils/apiBaseUrl";
 
 export default {
-  components: { ZModal },
+  components: { ZModal, ZLgpdPortabilityPanel },
   data() {
     return {
       user: null,
@@ -314,6 +330,7 @@ export default {
       lgpdCentralModalOpen: false,
       lgpdCentralAgreed: false,
       lgpdCentralPassword: "",
+      lgpdCentralSendDataExport: true,
       lgpdCentralSubmitting: false,
       isAccountOwner: false,
       accountOwnerValidationLoading: false,
@@ -487,6 +504,7 @@ export default {
       }
 
       this.lgpdCentralAgreed = false;
+      this.lgpdCentralSendDataExport = true;
       this.lgpdCentralPassword = "";
       this.lgpdCentralModalOpen = true;
     },
@@ -522,6 +540,7 @@ export default {
         const result = await requestCentralDeletion(this.lgpdCentralPassword, {
           customerId,
           tenantId: localStorage.getItem("tenant_id"),
+          sendDataExportBeforeDeletion: this.lgpdCentralSendDataExport,
         });
         this.closeLgpdCentralModal();
         const tenantDeleted = Boolean(result?.tenant_deleted);
@@ -1057,6 +1076,26 @@ useHead({
 .account-lgpd-card__button {
   margin-top: 4px;
   width: 100%;
+}
+
+.account-lgpd-portability {
+  max-width: none;
+  margin-bottom: 16px;
+}
+
+.account-lgpd-portability :deep(.lgpd-portability-panel__card) {
+  border: none;
+  box-shadow: none;
+  padding: 0;
+}
+
+.account-lgpd-card__link-block {
+  display: inline-block;
+  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #ff4e1b;
+  text-decoration: underline;
 }
 
 .account-lgpd-modal__intro {

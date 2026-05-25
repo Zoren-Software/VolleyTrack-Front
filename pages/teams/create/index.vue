@@ -7,6 +7,7 @@
     <ZTeamForm
       use-wizard
       @save="create"
+      @validation-failed="onValidationFailed"
       :loading="loading"
       :errorFields="errorFields"
       :errors="errors"
@@ -44,7 +45,30 @@ export default {
         playerId: [],
       };
     },
+    onValidationFailed(payload) {
+      const fields = payload?.fields ?? payload ?? [];
+      const nameValue = String(payload?.name ?? "").trim();
+      this.error = true;
+      this.errorFields = fields;
+      if (fields.includes("name")) {
+        const nameMsg =
+          nameValue.length > 0 && nameValue.length < 3
+            ? "O campo nome deve conter no mínimo 3 caracteres."
+            : "O campo nome é obrigatório.";
+        this.errors = {
+          ...this.errorsDefault(),
+          name: [nameMsg],
+        };
+      }
+    },
+
     async create(form) {
+      const name = String(form.name ?? "").trim();
+      if (!name || name.length < 3) {
+        this.onValidationFailed({ fields: ["name"], name });
+        return;
+      }
+
       this.loading = true;
       this.error = false;
 
@@ -56,8 +80,10 @@ export default {
             `;
 
             const variables = {
-              name: form.name ?? "",
-              playerId: (form.users || []).map((item) => item.id).filter(Boolean),
+              name,
+              playerId: (form.users || [])
+                .map((item) => item?.id)
+                .filter((id) => id != null && id !== ""),
               teamCategoryId: form.teamCategory?.value ?? null,
               teamLevelId: form.teamLevel?.value ?? null,
             };

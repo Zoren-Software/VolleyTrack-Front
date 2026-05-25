@@ -66,7 +66,10 @@ export function getLgpdCentralErrorMessage(error) {
 }
 
 export const useLgpdDeletion = () => {
-  const requestTenantDeletion = async (password) => {
+  const requestTenantDeletion = async (
+    password,
+    { sendDataExportBeforeDeletion = true } = {},
+  ) => {
     if (isSubmitting.value) {
       return null;
     }
@@ -78,7 +81,10 @@ export const useLgpdDeletion = () => {
         ${REQUEST_USER_LGPD_DELETION}
       `;
       const { mutate } = useMutation(mutation);
-      const result = await mutate({ password });
+      const result = await mutate({
+        password,
+        sendDataExportBeforeDeletion,
+      });
 
       return result?.data?.requestUserLgpdDeletion ?? null;
     } finally {
@@ -103,7 +109,10 @@ export const useLgpdDeletion = () => {
     navigateTo({ path: "/login", query: { lgpd: "processed" } });
   };
 
-  const requestCentralDeletion = async (password, { customerId, tenantId } = {}) => {
+  const requestCentralDeletion = async (
+    password,
+    { customerId, tenantId, sendDataExportBeforeDeletion = true } = {},
+  ) => {
     const config = useRuntimeConfig();
     const apiBase = String(config.public.apiEndpoint ?? "").replace(/\/$/, "");
     const token = localStorage.getItem("userToken");
@@ -129,6 +138,7 @@ export const useLgpdDeletion = () => {
         password,
         customer_id: Number(customerId),
         tenant_id: resolvedTenantId,
+        send_data_export_before_deletion: sendDataExportBeforeDeletion,
       },
     });
   };

@@ -3,12 +3,13 @@
     <h2 class="section-title">Informações Essenciais</h2>
     <ZTextInput
       id="name"
-      v-model="form.name"
+      :model-value="form.name ?? ''"
       name="name"
       label="Nome do Time"
       placeholder="Ex: Águias de Ouro"
       :error="errorFields.includes('name')"
       :error-messages="errors.name || []"
+      @update:model-value="$emit('update:name', $event)"
     />
     <div class="field-block">
       <span class="field-label-upper">Categoria</span>
@@ -132,7 +133,7 @@ export default {
       default: () => ({}),
     },
   },
-  emits: ["select-category", "select-level"],
+  emits: ["select-category", "select-level", "update:name"],
   methods: {
     levelIconName(name) {
       const n = String(name || "")

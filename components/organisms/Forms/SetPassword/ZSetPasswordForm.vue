@@ -2,7 +2,7 @@
   <div class="set-password-shell mx-5">
     <va-card stripe stripe-color="primary" class="set-password-card">
       <va-card-title> Set Password </va-card-title>
-      <va-form class="set-password-form" @keyup.enter="registerPassword">
+      <va-form class="set-password-form" @submit.prevent="onSubmit" @keyup.enter.prevent="onSubmit">
         <div class="set-password-field">
           <ZEmailInput
             v-model="email"
@@ -26,11 +26,15 @@
           />
         </div>
 
-        <label class="set-password-terms">
+        <label
+          class="set-password-terms"
+          :class="{ 'set-password-terms--error': termsError && !termsAccepted }"
+        >
           <input
             v-model="termsAccepted"
             type="checkbox"
             class="set-password-terms__checkbox"
+            @change="clearTermsError"
           />
           <span class="set-password-terms__text">
             <span class="set-password-terms__line">Li e concordo com os</span>
@@ -54,7 +58,8 @@
           :disabled="buttonDisabled || !termsAccepted"
           :loading="loading"
           color="primary"
-          @click="registerPassword"
+          type="submit"
+          @click.prevent="onSubmit"
         >
           Registrar Senha
         </ZButton>
@@ -94,10 +99,14 @@ export default {
       password: "",
       buttonDisabled: true,
       termsAccepted: false,
+      termsError: false,
     };
   },
 
   computed: {
+    canSubmit() {
+      return !this.buttonDisabled && this.termsAccepted;
+    },
     privacyPolicyUrl() {
       const url = String(this.$config?.public?.privacyPolicyUrl ?? "").trim();
       return url || "https://volleytrack.com/privacy-policy";
@@ -109,7 +118,42 @@ export default {
   },
 
   methods: {
+    onSubmit() {
+      if (!this.canSubmit) {
+        if (!this.termsAccepted) {
+          this.termsError = true;
+          this.error = true;
+          this.errorMessage = [
+            "Você precisa aceitar os Termos de Uso e a Política de Privacidade.",
+          ];
+        }
+
+        return;
+      }
+
+      this.registerPassword();
+    },
+
+    clearTermsError() {
+      if (this.termsAccepted) {
+        this.termsError = false;
+        if (
+          this.errorMessage.length === 1 &&
+          this.errorMessage[0]?.includes("Termos de Uso")
+        ) {
+          this.error = false;
+          this.errorMessage = [];
+        }
+      }
+    },
+
     async registerPassword() {
+      if (!this.canSubmit) {
+        this.onSubmit();
+
+        return;
+      }
+
       try {
         this.loading = true;
 
@@ -231,5 +275,14 @@ export default {
   color: #ff4e1b;
   text-decoration: underline;
   white-space: normal !important;
+}
+
+.set-password-terms--error {
+  color: #b91c1c;
+}
+
+.set-password-terms--error .set-password-terms__checkbox {
+  outline: 2px solid #ef4444;
+  outline-offset: 2px;
 }
 </style>
