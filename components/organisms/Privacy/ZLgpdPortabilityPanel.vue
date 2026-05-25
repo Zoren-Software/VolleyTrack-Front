@@ -26,8 +26,8 @@
       <div class="lgpd-portability-panel__import">
         <h3 class="lgpd-portability-panel__subtitle">Importar dados de outro clube</h3>
         <p class="lgpd-portability-panel__text">
-          Envie o ZIP recebido em outro clube. O histórico esportivo importado aparece
-          nas estatísticas; treinos do calendário deste clube não são recriados.
+          Envie o ZIP recebido em outro clube. Treinos, confirmações e vínculos podem
+          ser recriados neste clube conforme as opções da importação.
         </p>
         <va-button
           preset="secondary"
@@ -94,11 +94,19 @@
         :disabled="isImporting"
       />
     </ZModal>
+
+    <ZLgpdImportResultModal
+      v-model="importResultOpen"
+      :message="importResult.message"
+      :imported-sections="importResult.importedSections"
+      :warnings="importResult.warnings"
+    />
   </div>
 </template>
 
 <script setup>
 import ZModal from "~/components/atoms/Modal/ZModal.vue";
+import ZLgpdImportResultModal from "~/components/organisms/Privacy/ZLgpdImportResultModal.vue";
 import { useLgpdPortability } from "~/composables/useLgpdPortability";
 import { confirmError, confirmSuccess } from "~/utils/sweetAlert2/swalHelper";
 
@@ -128,6 +136,25 @@ const importPassword = ref("");
 const importFile = ref(null);
 const importFileName = ref("");
 const importFileInput = ref(null);
+const importResultOpen = ref(false);
+const importResult = ref({
+  message: "",
+  importedSections: [],
+  warnings: [],
+});
+
+const normalizeImportResult = (result) => {
+  const sections = result?.imported_sections ?? result?.importedSections ?? [];
+  const warnings = result?.warnings ?? [];
+
+  return {
+    message:
+      result?.message ||
+      "Seus dados foram importados com sucesso neste clube.",
+    importedSections: Array.isArray(sections) ? sections : [],
+    warnings: Array.isArray(warnings) ? warnings : [],
+  };
+};
 
 const exportCanSubmit = computed(
   () => exportPassword.value.length > 0 && !isExporting.value,
@@ -201,22 +228,8 @@ const onConfirmImport = async () => {
 
     closeImportModal();
 
-    const warnings = Array.isArray(result?.warnings) ? result.warnings : [];
-    const sections = Array.isArray(result?.imported_sections)
-      ? result.imported_sections.join(", ")
-      : "";
-
-    let message = result?.message || "Dados importados com sucesso.";
-
-    if (sections) {
-      message += ` Seções: ${sections}.`;
-    }
-
-    if (warnings.length > 0) {
-      message += ` Avisos: ${warnings.join(" ")}`;
-    }
-
-    await confirmSuccess(message);
+    importResult.value = normalizeImportResult(result);
+    importResultOpen.value = true;
   } catch (error) {
     confirmError(getLgpdPortabilityErrorMessage(error));
   }
