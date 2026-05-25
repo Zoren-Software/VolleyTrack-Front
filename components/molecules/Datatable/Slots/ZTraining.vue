@@ -1,6 +1,9 @@
 <template>
   <div class="training-cell">
-    <div class="training-name">{{ data.name }}</div>
+    <div class="training-name-row">
+      <span class="training-name">{{ data.name }}</span>
+      <ZLgpdImportBadge :imported-at="data.importedAt" />
+    </div>
     <div class="training-meta">
       <div class="training-date-line">
         <va-icon name="event" size="14px" color="#6c757d" />
@@ -16,8 +19,12 @@
 
 <script>
 import moment from "moment";
+import ZLgpdImportBadge from "~/components/atoms/Badges/ZLgpdImportBadge.vue";
 
 export default {
+  components: {
+    ZLgpdImportBadge,
+  },
   props: {
     data: {
       type: Object,
@@ -69,6 +76,13 @@ export default {
   font-size: 12px;
   color: #6c757d;
   font-weight: 500;
+}
+
+.training-name-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
 }
 
 .training-name {

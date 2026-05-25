@@ -77,6 +77,16 @@
           serão anonimizados e que não poderei acessá-la com as mesmas credenciais.
         </span>
       </label>
+      <label class="lgpd-deletion-modal__checkbox">
+        <input
+          v-model="sendDataExportBeforeDeletion"
+          type="checkbox"
+          class="lgpd-deletion-modal__input"
+        />
+        <span>
+          Enviar cópia dos meus dados por e-mail antes de excluir (portabilidade LGPD).
+        </span>
+      </label>
       <va-input
         v-model="password"
         type="password"
@@ -117,6 +127,7 @@ const { isSubmitting, requestTenantDeletion, logoutAfterDeletion } =
 
 const deletionModalOpen = ref(false);
 const hasAgreed = ref(false);
+const sendDataExportBeforeDeletion = ref(true);
 const password = ref("");
 
 const canSubmit = computed(
@@ -137,6 +148,7 @@ const openDeletionModal = () => {
   }
 
   hasAgreed.value = false;
+  sendDataExportBeforeDeletion.value = true;
   password.value = "";
   deletionModalOpen.value = true;
 };
@@ -151,7 +163,9 @@ const onConfirmDeletion = async () => {
   }
 
   try {
-    const result = await requestTenantDeletion(password.value);
+    const result = await requestTenantDeletion(password.value, {
+      sendDataExportBeforeDeletion: sendDataExportBeforeDeletion.value,
+    });
 
     if (result?.success) {
       closeDeletionModal();

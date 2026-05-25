@@ -24,6 +24,17 @@
             />
           </div>
           <div class="filter-item">
+            <label class="filter-label">Origem</label>
+            <VaSelect
+              v-model="variablesGetTrainings.filter.importScope"
+              :options="importScopeOptions"
+              text-by="label"
+              value-by="value"
+              label=""
+              style="width: 100%"
+            />
+          </div>
+          <div class="filter-item">
             <label class="filter-label">Time</label>
             <ZSelectTeam
               label=""
@@ -170,11 +181,18 @@
       <!-- CELL -->
       <template
         #cell(name)="{
-          rowKey: { id, name, dateStart, dateEnd, confirmationTrainingMetrics },
+          rowKey: {
+            id,
+            name,
+            importedAt,
+            dateStart,
+            dateEnd,
+            confirmationTrainingMetrics,
+          },
         }"
       >
         <ZTraining
-          :data="{ id, name, dateStart, dateEnd }"
+          :data="{ id, name, importedAt, dateStart, dateEnd }"
           :metrics="confirmationTrainingMetrics"
         />
       </template>
@@ -332,6 +350,7 @@ export default defineComponent({
         first: 50,
         filter: {
           status: null,
+          importScope: "TENANT_ONLY",
           teamsIds: [],
           playersIds: [],
           search: "%%",
@@ -345,6 +364,11 @@ export default defineComponent({
         { label: "Agendado", value: "PENDING" },
         { label: "Finalizado", value: "FINISHED" },
         { label: "Cancelado", value: "CANCELLED" },
+      ],
+      importScopeOptions: [
+        { label: "Do clube", value: "TENANT_ONLY" },
+        { label: "Importados (LGPD)", value: "IMPORTED_ONLY" },
+        { label: "Todos", value: "ALL" },
       ],
       selectedItems: [],
       selectedItemsEmitted: [],
@@ -395,6 +419,9 @@ export default defineComponent({
       if (f.dateEnd) {
         return true;
       }
+      if (f.importScope && f.importScope !== "TENANT_ONLY") {
+        return true;
+      }
       return false;
     },
   },
@@ -407,6 +434,12 @@ export default defineComponent({
         // Resetar para primeira página quando mudar o filtro
         this.variablesGetTrainings.page = 1;
         // Executar busca automaticamente
+        this.getTrainings({ fetchPolicy: "network-only" });
+      }
+    },
+    "variablesGetTrainings.filter.importScope"(newScope, oldScope) {
+      if (oldScope !== undefined && newScope !== oldScope) {
+        this.variablesGetTrainings.page = 1;
         this.getTrainings({ fetchPolicy: "network-only" });
       }
     },
@@ -872,6 +905,7 @@ export default defineComponent({
       this.internalSearchValue = "";
       this.variablesGetTrainings.filter = {
         status: null,
+        importScope: "TENANT_ONLY",
         teamsIds: [],
         playersIds: [],
         search: "%%",

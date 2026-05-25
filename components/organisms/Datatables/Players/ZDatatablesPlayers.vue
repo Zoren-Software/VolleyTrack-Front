@@ -300,6 +300,17 @@ export default defineComponent({
     ZDataTableActions,
   },
 
+  props: {
+    includeActionEditList: {
+      type: Boolean,
+      default: false,
+    },
+    includeActionDeleteList: {
+      type: Boolean,
+      default: false,
+    },
+  },
+
   created() {
     this.getPlayers();
   },

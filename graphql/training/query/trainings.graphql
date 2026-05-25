@@ -21,6 +21,7 @@ query trainings(
     data {
       id
       name
+      importedAt
       userId
       user {
         id
