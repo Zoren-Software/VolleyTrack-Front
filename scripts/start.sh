@@ -141,8 +141,12 @@ ensure_env() {
   say "✅ Criado .env a partir de .env.example"
 }
 
+update_browserslist_db() {
+  run_step "Atualizando base do Browserslist (caniuse-lite)" pnpm run browserslist:update
+}
+
 main() {
-  ui_msg "Bem-vindo ao inicializador do Front.\n\nEste script vai:\n\n- Validar Node.js\n- Validar pnpm\n- Validar lockfiles\n- Garantir .env\n- Rodar pnpm install\n- Rodar pnpm dev\n\nProjeto:\n$PROJECT_ROOT" 20 74
+  ui_msg "Bem-vindo ao inicializador do Front.\n\nEste script vai:\n\n- Validar Node.js\n- Validar pnpm\n- Validar lockfiles\n- Garantir .env\n- Rodar pnpm install\n- (Opcional) Atualizar Browserslist DB\n- Rodar pnpm dev\n\nProjeto:\n$PROJECT_ROOT" 22 74
 
   if ! ui_yesno "Deseja iniciar agora?"; then
     ui_msg "Operação cancelada.\n\nQuando quiser, rode:\n./scripts/start.sh"
@@ -156,6 +160,12 @@ main() {
 
   ui_msg "Agora vou instalar dependências.\n\nIsso pode levar alguns minutos." 10 72
   run_step "Instalando dependências (pnpm install)" pnpm install
+
+  if ui_yesno "Deseja atualizar agora a base do Browserslist para evitar warnings de caniuse-lite desatualizado?"; then
+    update_browserslist_db
+  else
+    say "ℹ️  Atualização do Browserslist ignorada."
+  fi
 
   ui_msg "Tudo pronto.\n\nVou iniciar o servidor de desenvolvimento com pnpm dev.\n(Pressione Ctrl+C para encerrar)." 12 72
   say "▶️  Subindo o dev server (pnpm dev)..."
