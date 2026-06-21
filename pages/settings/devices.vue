@@ -159,8 +159,7 @@
       title="Detalhes da sessão"
       ok-text="Fechar"
       cancel-text=""
-      size="medium"
-      @ok="modalAberto = false"
+      @ok="fecharDetalhes"
     >
       <div v-if="deviceSelecionado" class="token-detail">
         <div class="token-detail-row">
@@ -219,6 +218,7 @@
 </template>
 
 <script>
+import ZModal from "~/components/atoms/Modal/ZModal.vue";
 import MYDEVICES from "~/graphql/device/query/myDevices.graphql";
 import CURRENTDEVICEID from "~/graphql/device/query/currentDeviceId.graphql";
 import REVOKEDEVICE from "~/graphql/device/mutation/revokeDevice.graphql";
@@ -227,6 +227,9 @@ import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
 
 export default {
   name: "DevicesPage",
+  components: {
+    ZModal,
+  },
   data() {
     return {
       devices: [],
@@ -270,6 +273,10 @@ export default {
     abrirDetalhes(device) {
       this.deviceSelecionado = device;
       this.modalAberto = true;
+    },
+    fecharDetalhes() {
+      this.modalAberto = false;
+      this.deviceSelecionado = null;
     },
     carregarCurrentDeviceId() {
       const query = gql`

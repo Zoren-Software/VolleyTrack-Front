@@ -11,9 +11,32 @@
     </div>
 
     <div v-else-if="teamData" class="team-stats-view">
-      <!-- Header do Time -->
-      <div class="team-header-section">
-        <ZTeam :data="teamData.team" :showCategoryAndLevel="true" />
+      <div class="team-profile-card">
+        <div class="team-profile-top">
+          <div class="team-profile-main">
+            <va-avatar class="team-profile-avatar" :size="64">
+              {{ teamNameInitial(teamData.team) }}
+            </va-avatar>
+
+            <div class="team-profile-body">
+              <h2 class="team-profile-name">{{ teamData.team.name }}</h2>
+              <div class="team-profile-tags">
+                <span
+                  v-if="teamData.team.teamCategory"
+                  class="team-tag team-tag--category"
+                >
+                  {{ teamData.team.teamCategory.name }}
+                </span>
+                <span
+                  v-if="teamData.team.teamLevel"
+                  class="team-tag team-tag--level"
+                >
+                  {{ teamData.team.teamLevel.name }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Estatísticas Principais do Time -->
@@ -360,7 +383,6 @@
 
 <script>
 import { gql } from "@apollo/client/core";
-import ZTeam from "~/components/molecules/Datatable/Slots/ZTeam.vue";
 import TEAM_PERFORMANCE_ANALYSIS_DETAIL from "~/graphql/dashboard/query/teamPerformanceAnalysisDetail.graphql";
 import { Radar } from "vue-chartjs";
 import {
@@ -378,7 +400,6 @@ ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, Tooltip);
 export default {
   name: "ZTeamStatsView",
   components: {
-    ZTeam,
     Radar,
   },
   props: {
@@ -521,6 +542,10 @@ export default {
     },
     formatPercentage(value) {
       return `${Math.round(value)}%`;
+    },
+    teamNameInitial(team) {
+      const name = team?.name || "?";
+      return String(name).charAt(0).toUpperCase();
     },
     playerNameInitial(player) {
       const nameToUse = player?.displayName || player?.name || "?";
@@ -709,9 +734,80 @@ export default {
   gap: 24px;
 }
 
-.team-header-section {
-  padding-bottom: 20px;
-  border-bottom: 1px solid #e9ecef;
+.team-profile-card {
+  position: relative;
+  background: #fff;
+  border-radius: 10px;
+  border: 1px solid #e8ecf1;
+  border-left: 4px solid #ff4e1b;
+  box-shadow:
+    0 1px 3px rgba(15, 23, 42, 0.06),
+    0 4px 14px rgba(15, 23, 42, 0.04);
+  overflow: hidden;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.team-profile-card:hover {
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08);
+  transform: translateY(-1px);
+}
+
+.team-profile-top {
+  padding: 22px 24px;
+}
+
+.team-profile-main {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.team-profile-avatar {
+  flex-shrink: 0;
+  border-radius: 10px !important;
+  font-size: 22px !important;
+  font-weight: 700 !important;
+  background: linear-gradient(145deg, #ff4e1b 0%, #e03d12 100%) !important;
+  color: #fff !important;
+}
+
+.team-profile-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.team-profile-name {
+  margin: 0 0 12px;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #1e293b;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.team-profile-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.team-tag {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.team-tag--category {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.team-tag--level {
+  background: #dcfce7;
+  color: #15803d;
 }
 
 .main-stats-section {

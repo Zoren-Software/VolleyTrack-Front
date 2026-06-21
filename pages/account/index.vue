@@ -20,190 +20,228 @@
     <div
       v-else
       class="account-summary-grid"
-      :class="{ 'account-summary-grid--with-lgpd': showLgpdSection }"
     >
-      <!-- Meus dados: cabeçalho + resumo (ícone + texto à esquerda) -->
+      <!-- Meus dados -->
       <section class="account-card account-card--meus-dados">
-        <div class="meus-dados-header">
-          <h2 class="meus-dados-title">Meus dados</h2>
+        <div class="account-card-header">
+          <h2 class="account-card-title">Meus dados</h2>
           <NuxtLink
             to="/account/edit"
-            class="meus-dados-edit"
+            class="account-card-edit"
             aria-label="Editar dados"
           >
             <va-icon name="edit" size="20px" color="#6b7280" />
           </NuxtLink>
         </div>
 
-        <ul class="meus-dados-list">
-          <li class="meus-dados-row">
-            <va-icon name="person" size="20px" color="#9ca3af" />
-            <span class="meus-dados-value">{{ user.name || "—" }}</span>
-          </li>
-          <li class="meus-dados-row">
-            <va-icon name="text_fields" size="20px" color="#9ca3af" />
-            <span class="meus-dados-value">{{
-              user.information?.nickname || "—"
-            }}</span>
-          </li>
-          <li class="meus-dados-row">
-            <va-icon name="visibility" size="20px" color="#9ca3af" />
-            <span class="meus-dados-value">{{
-              user.information?.showNickname ? "Sim" : "Não"
-            }}</span>
-          </li>
-          <li class="meus-dados-row meus-dados-row--spaced">
-            <va-icon name="email" size="20px" color="#9ca3af" />
-            <span class="meus-dados-value">{{ user.email || "—" }}</span>
-          </li>
-          <li class="meus-dados-row">
-            <va-icon name="smartphone" size="20px" color="#9ca3af" />
-            <span class="meus-dados-value">{{
-              formatPhone(user.information?.phone)
-            }}</span>
-          </li>
-          <li class="meus-dados-row">
-            <va-icon name="event" size="20px" color="#9ca3af" />
-            <span class="meus-dados-value">{{
-              formatBirthDate(user.information?.birthDate)
-            }}</span>
-          </li>
-          <li class="meus-dados-row">
-            <va-icon name="assignment_ind" size="20px" color="#9ca3af" />
-            <span class="meus-dados-value">{{
-              formatCpf(user.information?.cpf)
-            }}</span>
-          </li>
-          <li class="meus-dados-row">
-            <va-icon name="article" size="20px" color="#9ca3af" />
-            <span class="meus-dados-value">{{
-              formatRg(user.information?.rg)
-            }}</span>
-          </li>
-        </ul>
-      </section>
-
-      <!-- Pagamentos (plano + cartão; detalhe em /payment) -->
-      <section class="account-card account-card--pagamentos">
-        <div class="meus-dados-header">
-          <h2 class="meus-dados-title">Pagamentos</h2>
-          <NuxtLink
-            to="/payment"
-            class="meus-dados-edit"
-            aria-label="Gerenciar pagamentos"
-          >
-            <va-icon name="edit" size="20px" color="#6b7280" />
-          </NuxtLink>
-        </div>
-
-        <div v-if="paymentLoading" class="payment-card-loading">
-          <va-progress-circle indeterminate size="small" />
-          <span>Carregando…</span>
-        </div>
-
-        <template v-else>
-          <!-- Cartão visual (referência Payment Methods) -->
-          <div
-            class="payment-cc-card"
-            :class="{ 'payment-cc-card--empty': !hasPaymentCard }"
-            aria-hidden="true"
-          >
-            <div class="payment-cc-card__shine" />
-            <div class="payment-cc-card__top">
-              <span class="payment-cc-card__chip" />
-              <span class="payment-cc-card__brand">{{
-                paymentCardBrandUpper
-              }}</span>
-            </div>
-            <p class="payment-cc-card__number">{{ paymentCardNumberMasked }}</p>
-            <div class="payment-cc-card__bottom">
-              <div class="payment-cc-card__holder-block">
-                <span class="payment-cc-card__k">CARD HOLDER</span>
-                <span class="payment-cc-card__v">{{
-                  paymentCardHolderVisual
-                }}</span>
-              </div>
-              <div class="payment-cc-card__expire-block">
-                <span class="payment-cc-card__k">VALIDADE</span>
-                <span class="payment-cc-card__v">{{
-                  paymentCardExpiryShort
-                }}</span>
-              </div>
-            </div>
+        <div class="account-profile-header">
+          <va-avatar class="account-profile-avatar" :size="56">
+            {{ userInitial }}
+          </va-avatar>
+          <div class="account-profile-meta">
+            <p class="account-profile-name">{{ user.name || "—" }}</p>
+            <p class="account-profile-email">{{ user.email || "—" }}</p>
           </div>
+        </div>
 
-          <!-- Resumo: rótulo (cinza) | valor — sem linhas entre linhas -->
-          <dl class="payment-kv">
-            <div class="payment-kv-row">
-              <dt>Plano</dt>
-              <dd>{{ paymentPlanTitle }}</dd>
+        <div class="account-kv-group">
+          <h3 class="account-kv-group-title">Identificação</h3>
+          <dl class="account-kv">
+            <div class="account-kv-row">
+              <dt>Nome completo</dt>
+              <dd>{{ user.name || "—" }}</dd>
             </div>
-            <div class="payment-kv-row">
-              <dt>Situação</dt>
-              <dd>{{ paymentStatusText }}</dd>
+            <div class="account-kv-row">
+              <dt>Apelido</dt>
+              <dd>{{ user.information?.nickname || "—" }}</dd>
             </div>
-            <div class="payment-kv-row">
-              <dt>Renovação / fim do período</dt>
-              <dd>{{ paymentPeriodEndText }}</dd>
-            </div>
-            <div class="payment-kv-row">
-              <dt>Tipo do cartão</dt>
-              <dd>{{ paymentCardBrandUpper }}</dd>
-            </div>
-            <div class="payment-kv-row">
-              <dt>Portador</dt>
-              <dd>{{ paymentCardHolderName }}</dd>
-            </div>
-            <div class="payment-kv-row">
-              <dt>Validade</dt>
-              <dd>{{ paymentCardExpiryText }}</dd>
-            </div>
-            <div class="payment-kv-row">
-              <dt>Número</dt>
-              <dd>{{ paymentCardNumberMasked }}</dd>
+            <div class="account-kv-row">
+              <dt>Exibir apelido</dt>
+              <dd>{{ user.information?.showNickname ? "Sim" : "Não" }}</dd>
             </div>
           </dl>
-        </template>
+        </div>
+
+        <div class="account-kv-group">
+          <h3 class="account-kv-group-title">Contato</h3>
+          <dl class="account-kv">
+            <div class="account-kv-row">
+              <dt>E-mail</dt>
+              <dd>{{ user.email || "—" }}</dd>
+            </div>
+            <div class="account-kv-row">
+              <dt>Telefone</dt>
+              <dd>{{ formatPhone(user.information?.phone) }}</dd>
+            </div>
+          </dl>
+        </div>
+
+        <div class="account-kv-group account-kv-group--last">
+          <h3 class="account-kv-group-title">Documentos</h3>
+          <dl class="account-kv">
+            <div class="account-kv-row">
+              <dt>Data de nascimento</dt>
+              <dd>{{ formatBirthDate(user.information?.birthDate) }}</dd>
+            </div>
+            <div class="account-kv-row">
+              <dt>CPF</dt>
+              <dd>{{ formatCpf(user.information?.cpf) }}</dd>
+            </div>
+            <div class="account-kv-row">
+              <dt>RG</dt>
+              <dd>{{ formatRg(user.information?.rg) }}</dd>
+            </div>
+          </dl>
+        </div>
       </section>
 
-      <!-- Funções / sistema -->
-      <section class="account-card account-card--tall">
-        <div class="meus-dados-header">
-          <h2 class="meus-dados-title">Funções, times e posições</h2>
-          <NuxtLink
-            to="/account/edit"
-            class="meus-dados-edit"
-            aria-label="Editar funções e times"
-          >
-            <va-icon name="edit" size="20px" color="#6b7280" />
-          </NuxtLink>
-        </div>
-        <dl class="account-dl account-dl--plain">
-          <div class="account-dl-row account-dl-row--block">
-            <dt>Funções no sistema</dt>
-            <dd>{{ joinNames(user.roles) }}</dd>
+      <div class="account-summary-side">
+        <!-- Pagamentos -->
+        <section class="account-card account-card--pagamentos">
+          <div class="account-card-header">
+            <h2 class="account-card-title">Pagamentos</h2>
+            <NuxtLink
+              to="/payment"
+              class="account-card-edit"
+              aria-label="Gerenciar pagamentos"
+            >
+              <va-icon name="edit" size="20px" color="#6b7280" />
+            </NuxtLink>
           </div>
-          <div class="account-dl-row account-dl-row--block">
-            <dt>Times</dt>
-            <dd>{{ joinTeamNames(user.teams) }}</dd>
+
+          <div v-if="paymentLoading" class="payment-card-loading">
+            <va-progress-circle indeterminate size="small" />
+            <span>Carregando…</span>
           </div>
-          <div class="account-dl-row account-dl-row--block">
-            <dt>Posições</dt>
-            <dd>{{ joinNames(user.positions) }}</dd>
+
+          <template v-else>
+            <div
+              class="payment-cc-card"
+              :class="{ 'payment-cc-card--empty': !hasPaymentCard }"
+              aria-hidden="true"
+            >
+              <div class="payment-cc-card__shine" />
+              <div class="payment-cc-card__top">
+                <span class="payment-cc-card__chip" />
+                <span class="payment-cc-card__brand">{{
+                  paymentCardBrandUpper
+                }}</span>
+              </div>
+              <p class="payment-cc-card__number">{{ paymentCardNumberMasked }}</p>
+              <div class="payment-cc-card__bottom">
+                <div class="payment-cc-card__holder-block">
+                  <span class="payment-cc-card__k">PORTADOR</span>
+                  <span class="payment-cc-card__v">{{
+                    paymentCardHolderVisual
+                  }}</span>
+                </div>
+                <div class="payment-cc-card__expire-block">
+                  <span class="payment-cc-card__k">VALIDADE</span>
+                  <span class="payment-cc-card__v">{{
+                    paymentCardExpiryShort
+                  }}</span>
+                </div>
+              </div>
+            </div>
+
+            <dl class="account-kv account-kv--payment">
+              <div class="account-kv-row">
+                <dt>Plano</dt>
+                <dd>{{ paymentPlanTitle }}</dd>
+              </div>
+              <div class="account-kv-row">
+                <dt>Situação</dt>
+                <dd>
+                  <span
+                    class="account-status-badge"
+                    :class="paymentStatusBadgeClass"
+                  >
+                    {{ paymentStatusText }}
+                  </span>
+                </dd>
+              </div>
+              <div class="account-kv-row">
+                <dt>Renovação / fim do período</dt>
+                <dd>{{ paymentPeriodEndText }}</dd>
+              </div>
+            </dl>
+          </template>
+        </section>
+
+        <!-- Funções / sistema -->
+        <section class="account-card account-card--roles">
+          <div class="account-card-header">
+            <h2 class="account-card-title">Funções, times e posições</h2>
+            <NuxtLink
+              to="/account/edit"
+              class="account-card-edit"
+              aria-label="Editar funções e times"
+            >
+              <va-icon name="edit" size="20px" color="#6b7280" />
+            </NuxtLink>
           </div>
-        </dl>
-        <div class="account-hint">
-          <va-icon name="info" size="18px" color="#9ca3af" />
-          <span
-            >Para alterar dados sensíveis ou permissões, use
-            <strong>Editar</strong>.</span
-          >
-        </div>
-      </section>
+
+          <dl class="account-kv account-kv--roles">
+            <div class="account-kv-row account-kv-row--stacked">
+              <dt>Funções no sistema</dt>
+              <dd>
+                <div v-if="user.roles?.length" class="account-tags">
+                  <span
+                    v-for="role in user.roles"
+                    :key="role.id || role.name"
+                    class="account-tag account-tag--role"
+                  >
+                    {{ role.name }}
+                  </span>
+                </div>
+                <span v-else class="account-kv-empty">—</span>
+              </dd>
+            </div>
+            <div class="account-kv-row account-kv-row--stacked">
+              <dt>Times</dt>
+              <dd>
+                <div v-if="user.teams?.length" class="account-tags">
+                  <span
+                    v-for="team in user.teams"
+                    :key="team.id || team.name"
+                    class="account-tag account-tag--team"
+                  >
+                    {{ team.name }}
+                  </span>
+                </div>
+                <span v-else class="account-kv-empty">—</span>
+              </dd>
+            </div>
+            <div class="account-kv-row account-kv-row--stacked">
+              <dt>Posições</dt>
+              <dd>
+                <div v-if="user.positions?.length" class="account-tags">
+                  <span
+                    v-for="position in user.positions"
+                    :key="position.id || position.name"
+                    class="account-tag account-tag--position"
+                  >
+                    {{ position.name }}
+                  </span>
+                </div>
+                <span v-else class="account-kv-empty">—</span>
+              </dd>
+            </div>
+          </dl>
+
+          <div class="account-hint">
+            <va-icon name="info" size="18px" color="#9ca3af" />
+            <span>
+              Para alterar dados sensíveis ou permissões, use
+              <strong>Editar</strong>.
+            </span>
+          </div>
+        </section>
+      </div>
 
       <section v-if="showLgpdSection" class="account-card account-card--lgpd">
-        <div class="meus-dados-header">
-          <h2 class="meus-dados-title">Privacidade e exclusão de conta</h2>
+        <div class="account-card-header">
+          <h2 class="account-card-title">Privacidade e exclusão de conta</h2>
         </div>
         <div v-if="accountOwnerValidationLoading" class="account-lgpd-card__body">
           <p class="account-lgpd-card__hint">Validando titular da conta…</p>
@@ -442,6 +480,29 @@ export default {
     showLgpdSection() {
       return Boolean(this.user) && this.accountOwnerValidationReady;
     },
+    userInitial() {
+      const name = this.user?.name?.trim() || "?";
+      return name.charAt(0).toUpperCase();
+    },
+    paymentStatusBadgeClass() {
+      if (!this.activePlanData) {
+        return "account-status-badge--neutral";
+      }
+      if (this.activePlanData.isTrial) {
+        return "account-status-badge--trial";
+      }
+      const status = this.activePlanData.subscription?.status;
+      if (status === "active" || status === "trialing") {
+        return "account-status-badge--active";
+      }
+      if (status === "past_due" || status === "unpaid") {
+        return "account-status-badge--warning";
+      }
+      if (status === "canceled" || status === "incomplete_expired") {
+        return "account-status-badge--danger";
+      }
+      return "account-status-badge--neutral";
+    },
   },
   async mounted() {
     this.getUser();
@@ -555,20 +616,6 @@ export default {
       } finally {
         this.lgpdCentralSubmitting = false;
       }
-    },
-    joinNames(list) {
-      if (!Array.isArray(list) || list.length === 0) {
-        return "—";
-      }
-      const names = list.map((item) => item?.name).filter(Boolean);
-      return names.length ? names.join(" • ") : "—";
-    },
-    joinTeamNames(teams) {
-      if (!Array.isArray(teams) || teams.length === 0) {
-        return "—";
-      }
-      const names = teams.map((t) => t?.name).filter(Boolean);
-      return names.length ? names.join(" • ") : "—";
     },
     formatBirthDate(raw) {
       if (!raw) {
@@ -745,30 +792,246 @@ useHead({
 
 .account-summary-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
   gap: 20px;
   align-items: start;
 }
 
-.account-summary-grid--with-lgpd {
-  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 0.9fr) minmax(
-      0,
-      0.95fr
-    );
+.account-summary-side {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
 }
 
 .account-card {
   background: #ffffff;
   border-radius: 12px;
-  padding: 20px 22px;
+  padding: 0;
   box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
   border: 1px solid #e5e7eb;
+  overflow: hidden;
 }
 
-.account-card--meus-dados,
-.account-card--pagamentos {
+.account-card--lgpd {
+  grid-column: 1 / -1;
+}
+
+.account-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.account-card-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #374151;
+  letter-spacing: -0.01em;
+}
+
+.account-card-edit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  color: #6b7280;
+  text-decoration: none;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.account-card-edit:hover {
+  background-color: #f3f4f6;
+  color: #ff4e1b;
+}
+
+.account-profile-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  background: linear-gradient(180deg, #fff7f4 0%, #ffffff 100%);
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.account-profile-avatar {
+  flex-shrink: 0;
+  border-radius: 12px !important;
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
+  background: linear-gradient(145deg, #ff4e1b 0%, #e03d12 100%) !important;
+  color: #fff !important;
+}
+
+.account-profile-meta {
+  min-width: 0;
+}
+
+.account-profile-name {
+  margin: 0 0 4px;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #0b1e3a;
+  line-height: 1.3;
+  word-break: break-word;
+}
+
+.account-profile-email {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #6b7280;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.account-kv-group {
+  padding: 16px 20px 0;
+}
+
+.account-kv-group--last {
+  padding-bottom: 20px;
+}
+
+.account-kv-group-title {
+  margin: 0 0 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #9ca3af;
+}
+
+.account-kv {
+  margin: 0;
   padding: 0;
-  overflow: hidden;
+}
+
+.account-kv-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 9px 0;
+  border-bottom: 1px solid #f9fafb;
+}
+
+.account-kv-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.account-kv-row--stacked {
+  flex-direction: column;
+  gap: 8px;
+}
+
+.account-kv dt {
+  margin: 0;
+  flex: 0 1 46%;
+  font-size: 0.8125rem;
+  color: #9ca3af;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.account-kv dd {
+  margin: 0;
+  flex: 1;
+  text-align: right;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: #111827;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.account-kv-row--stacked dd {
+  text-align: left;
+}
+
+.account-kv-empty {
+  color: #9ca3af;
+}
+
+.account-kv--payment {
+  padding: 16px 20px 20px;
+}
+
+.account-kv--roles {
+  padding: 4px 20px 0;
+}
+
+.account-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.account-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.account-tag--role {
+  background: #ede9fe;
+  color: #6d28d9;
+}
+
+.account-tag--team {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.account-tag--position {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.account-status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.account-status-badge--active {
+  background: #d1fae5;
+  color: #047857;
+}
+
+.account-status-badge--trial {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.account-status-badge--warning {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.account-status-badge--danger {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.account-status-badge--neutral {
+  background: #f3f4f6;
+  color: #6b7280;
 }
 
 .payment-card-loading {
@@ -784,7 +1047,7 @@ useHead({
 /* Cartão de crédito visual (referência) */
 .payment-cc-card {
   position: relative;
-  margin: 0 20px 0;
+  margin: 20px 20px 0;
   padding: 22px 22px 18px;
   border-radius: 16px;
   background: linear-gradient(135deg, #dc2626 0%, #ea580c 48%, #f97316 100%);
@@ -879,182 +1142,16 @@ useHead({
   word-break: break-word;
 }
 
-.payment-kv {
-  margin: 20px 0 0;
-  padding: 20px 20px 22px;
+.account-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0 20px 20px;
+  padding: 14px 0 0;
   border-top: 1px solid #f3f4f6;
-}
-
-.payment-kv-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 16px;
-  padding: 8px 0;
-}
-
-.payment-kv-row:first-child {
-  padding-top: 0;
-}
-
-.payment-kv-row:last-child {
-  padding-bottom: 0;
-}
-
-.payment-kv dt {
-  margin: 0;
-  flex: 0 1 48%;
   font-size: 0.8125rem;
-  color: #9ca3af;
-  font-weight: 500;
-  line-height: 1.4;
-}
-
-.payment-kv dd {
-  margin: 0;
-  flex: 1;
-  text-align: right;
-  font-size: 0.9375rem;
-  font-weight: 500;
-  color: #111827;
-  line-height: 1.4;
-  word-break: break-word;
-}
-
-.meus-dados-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 18px 20px 12px;
-}
-
-.meus-dados-title {
-  margin: 0;
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: #374151;
-  letter-spacing: -0.01em;
-}
-
-.meus-dados-edit {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
   color: #6b7280;
-  text-decoration: none;
-  transition:
-    background-color 0.15s ease,
-    color 0.15s ease;
-}
-
-.meus-dados-edit:hover {
-  background-color: #f3f4f6;
-  color: #ff4e1b;
-}
-
-/* Resumo: ícone + texto alinhados à esquerda */
-.meus-dados-list {
-  list-style: none;
-  margin: 0;
-  padding: 6px 20px 22px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.meus-dados-row {
-  display: flex;
-  align-items: flex-start;
-  justify-content: flex-start;
-  gap: 10px;
-  text-align: left;
-}
-
-.meus-dados-row :deep(.va-icon) {
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-
-.meus-dados-value {
-  flex: 1;
-  min-width: 0;
-  text-align: left;
-  font-size: 0.9375rem;
-  font-weight: 400;
-  color: #374151;
   line-height: 1.45;
-  word-break: break-word;
-}
-
-.meus-dados-row--spaced {
-  margin-top: 6px;
-  padding-top: 10px;
-}
-
-.account-dl {
-  margin: 0;
-  padding: 0 20px 20px;
-}
-
-.account-dl--plain {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.account-dl-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 16px;
-  padding: 0;
-}
-
-.account-dl-row--block {
-  flex-direction: column;
-  gap: 6px;
-}
-
-.account-dl-row dt {
-  margin: 0;
-  font-size: 0.8125rem;
-  color: #9ca3af;
-  font-weight: 500;
-}
-
-.account-dl-row dd {
-  margin: 0;
-  font-size: 0.9375rem;
-  color: #111827;
-  text-align: right;
-  max-width: 58%;
-  word-break: break-word;
-}
-
-.account-dl-row--block dd {
-  text-align: left;
-  max-width: none;
-}
-
-.account-card--tall {
-  padding: 0;
-  overflow: hidden;
-}
-
-.account-card--tall .meus-dados-header {
-  padding-bottom: 8px;
-}
-
-.account-card--lgpd {
-  padding: 0;
-  overflow: hidden;
-}
-
-.account-card--lgpd-central .meus-dados-header {
-  padding-bottom: 8px;
 }
 
 .account-lgpd-card__body {
@@ -1119,41 +1216,24 @@ useHead({
   width: 100%;
 }
 
-.account-hint {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  margin: 0 20px 20px;
-  padding: 14px 0 0;
-  border-top: 1px solid #f3f4f6;
-  font-size: 0.8125rem;
-  color: #6b7280;
-  line-height: 1.45;
-}
-
-@media (max-width: 1100px) {
-  .account-summary-grid,
-  .account-summary-grid--with-lgpd {
-    grid-template-columns: 1fr 1fr;
+@media (max-width: 960px) {
+  .account-summary-grid {
+    grid-template-columns: 1fr;
   }
 
-  .account-card--meus-dados {
-    grid-column: 1 / -1;
+  .account-card--lgpd {
+    grid-column: auto;
   }
 }
 
 @media (max-width: 720px) {
-  .account-summary-grid,
-  .account-summary-grid--with-lgpd {
-    grid-template-columns: 1fr;
+  .account-kv-row {
+    flex-direction: column;
+    gap: 4px;
   }
 
-  .account-card--meus-dados {
-    grid-column: auto;
-  }
-
-  .account-dl-row dd {
-    max-width: 65%;
+  .account-kv dd {
+    text-align: left;
   }
 }
 </style>

@@ -1,14 +1,6 @@
 <template>
   <div class="list-page-container player-stats-page">
     <div class="page-header">
-      <va-button
-        preset="secondary"
-        class="back-button"
-        @click="$router.push('/players')"
-      >
-        <va-icon name="arrow_back" class="button-icon" />
-        <span>Voltar</span>
-      </va-button>
       <div class="header-text">
         <h1 class="page-title">
           Estatísticas
@@ -24,6 +16,17 @@
     </div>
 
     <ZPlayerStatsView :player-id="playerId" @loaded="onStatsLoaded" />
+
+    <div class="action-buttons">
+      <va-button
+        preset="secondary"
+        class="back-button"
+        @click="$router.push('/players')"
+      >
+        <va-icon name="arrow_back" class="button-icon" />
+        <span>Voltar</span>
+      </va-button>
+    </div>
   </div>
 </template>
 
@@ -75,10 +78,7 @@ useHead({
 }
 
 .page-header {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 16px;
+  text-align: center;
   margin-bottom: 32px;
 }
 
@@ -103,6 +103,13 @@ useHead({
   color: #6c757d;
   margin: 0;
   line-height: 1.5;
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: flex-start;
+  gap: 12px;
+  margin-top: 24px;
 }
 
 .back-button {
