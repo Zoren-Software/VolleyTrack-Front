@@ -469,6 +469,7 @@
 
 <script>
 import moment from "moment";
+import USER from "~/graphql/user/query/user.graphql";
 import PLAYERSTOTAL from "~/graphql/user/query/usersTotal.graphql";
 import TEAMSTOTAL from "~/graphql/team/query/teamsTotal.graphql";
 import TRAININGSTOTAL from "~/graphql/training/query/trainingsTotal.graphql";
@@ -506,6 +507,7 @@ export default {
     }
     this.checkConfigurationStatus();
     this.loadActivePlan();
+    this.loadCurrentUser();
     const msUntilNextMinute = (60 - new Date().getSeconds()) * 1000;
     this._clockTimeout = setTimeout(() => {
       this.now = new Date();
@@ -596,10 +598,12 @@ export default {
       };
     },
     greetingDisplayName() {
+      const info = this.user?.information;
+      if (info?.showNickname && info?.nickname?.trim()) {
+        return info.nickname.trim();
+      }
       const n = (this.user?.displayName || this.user?.name || "").trim();
-      if (!n) return "Atleta";
-      const first = n.split(/\s+/)[0];
-      return first.charAt(0).toUpperCase() + first.slice(1).toLowerCase();
+      return n || "Atleta";
     },
     heroHeadline() {
       const h = new Date().getHours();
@@ -707,6 +711,41 @@ export default {
           this.checkConfigurationStatus();
         }, 500);
       });
+    },
+
+    async loadCurrentUser() {
+      try {
+        const raw = localStorage.getItem("user");
+        if (raw) {
+          this.user = JSON.parse(raw);
+        }
+
+        const id = this.user?.id;
+        if (!id) {
+          return;
+        }
+
+        const query = gql`
+          ${USER}
+        `;
+        const nuxtApp = useNuxtApp();
+        const apolloClient = nuxtApp._apolloClients?.default;
+        if (!apolloClient) {
+          return;
+        }
+
+        const result = await apolloClient.query({
+          query,
+          variables: { id: String(id) },
+          fetchPolicy: "cache-first",
+        });
+
+        if (result?.data?.user) {
+          this.user = { ...this.user, ...result.data.user };
+        }
+      } catch (e) {
+        console.warn("Dashboard: erro ao carregar usuário", e);
+      }
     },
 
     getPlayers(fetchPolicyOptions = {}) {

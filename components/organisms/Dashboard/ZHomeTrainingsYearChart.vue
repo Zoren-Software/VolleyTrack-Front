@@ -64,7 +64,9 @@
 </template>
 
 <script>
+import { gql } from "@apollo/client/core";
 import { Line, Doughnut } from "vue-chartjs";
+import HOME_TRAININGS_STATUS_CHART from "~/graphql/dashboard/query/homeTrainingsStatusChart.graphql";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -88,20 +90,6 @@ ChartJS.register(
   Filler,
 );
 
-const DEMO_MONTH_VIEW = {
-  labels: ["Sem 1", "Sem 2", "Sem 3", "Sem 4", "Sem 5"],
-  scheduled: [8, 9, 7, 10, 6],
-  canceled: [1, 2, 1, 3, 1],
-  finalized: [5, 6, 7, 6, 5],
-};
-
-const DEMO_YEAR_VIEW = {
-  labels: ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"],
-  scheduled: [18, 16, 20, 22, 19, 17, 21, 23, 18, 20, 16, 15],
-  canceled: [3, 2, 4, 3, 2, 3, 2, 4, 3, 2, 2, 1],
-  finalized: [14, 13, 16, 18, 16, 14, 18, 17, 15, 16, 13, 12],
-};
-
 export default {
   name: "ZHomeTrainingsYearChart",
   components: { Line, Doughnut },
@@ -114,12 +102,12 @@ export default {
         { label: "Mes", value: "month" },
         { label: "Ano", value: "year" },
       ],
-      labels: [...DEMO_MONTH_VIEW.labels],
-      scheduledSeries: [...DEMO_MONTH_VIEW.scheduled],
-      canceledSeries: [...DEMO_MONTH_VIEW.canceled],
-      finalizedSeries: [...DEMO_MONTH_VIEW.finalized],
+      labels: [],
+      scheduledSeries: [],
+      canceledSeries: [],
+      finalizedSeries: [],
       chartYear: new Date().getFullYear(),
-      usingDemoData: true,
+      usingDemoData: false,
     };
   },
   computed: {
@@ -314,33 +302,74 @@ export default {
   },
   watch: {
     selectedPeriod() {
-      this.applyPeriodData();
+      this.loadChartData();
     },
   },
   mounted() {
-    this.bootstrapChart();
+    this.loadChartData();
   },
   methods: {
-    applyPeriodData() {
-      const source =
-        this.selectedPeriod === "year" ? DEMO_YEAR_VIEW : DEMO_MONTH_VIEW;
-
-      this.labels = [...source.labels];
-      this.scheduledSeries = [...source.scheduled];
-      this.canceledSeries = [...source.canceled];
-      this.finalizedSeries = [...source.finalized];
-      this.usingDemoData = true;
+    graphqlPeriod() {
+      return this.selectedPeriod === "year" ? "YEAR" : "MONTH";
     },
 
-    bootstrapChart() {
+    resetSeries() {
+      this.labels = [];
+      this.scheduledSeries = [];
+      this.canceledSeries = [];
+      this.finalizedSeries = [];
+    },
+
+    applyChartPayload(payload) {
+      this.labels = [...(payload?.labels || [])];
+      this.scheduledSeries = [...(payload?.scheduled || [])];
+      this.canceledSeries = [...(payload?.cancelled || [])];
+      this.finalizedSeries = [...(payload?.finished || [])];
+      this.chartYear = payload?.year || new Date().getFullYear();
+      this.usingDemoData = false;
+    },
+
+    async loadChartData() {
       this.loading = true;
       this.errorMessage = null;
-      this.chartYear = new Date().getFullYear();
-      this.applyPeriodData();
+      this.resetSeries();
 
-      this.$nextTick(() => {
+      try {
+        const query = gql`
+          ${HOME_TRAININGS_STATUS_CHART}
+        `;
+        const nuxtApp = useNuxtApp();
+        const apolloClient = nuxtApp._apolloClients?.default;
+        if (!apolloClient) {
+          throw new Error("Cliente GraphQL indisponivel.");
+        }
+
+        const now = new Date();
+        const variables = {
+          period: this.graphqlPeriod(),
+          year: now.getFullYear(),
+          month: now.getMonth() + 1,
+        };
+
+        const result = await apolloClient.query({
+          query,
+          variables,
+          fetchPolicy: "network-only",
+        });
+
+        const payload = result?.data?.homeTrainingsStatusChart;
+        if (!payload) {
+          throw new Error("Nao foi possivel carregar os dados do grafico.");
+        }
+
+        this.applyChartPayload(payload);
+      } catch (error) {
+        console.warn("ZHomeTrainingsYearChart: erro ao carregar grafico", error);
+        this.errorMessage = "Nao foi possivel carregar o grafico de treinos.";
+        this.usingDemoData = false;
+      } finally {
         this.loading = false;
-      });
+      }
     },
   },
 };
