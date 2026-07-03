@@ -1,5 +1,5 @@
 <template>
-  <div class="list-page-container team-stats-page">
+  <ZListPageContainer class="team-stats-page">
     <div class="page-header">
       <div class="header-text">
         <h1 class="page-title">
@@ -27,7 +27,7 @@
         <span>Voltar</span>
       </va-button>
     </div>
-  </div>
+  </ZListPageContainer>
 </template>
 
 <script>
@@ -71,12 +71,6 @@ useHead({
 </script>
 
 <style scoped>
-.list-page-container {
-  max-width: 1400px;
-  margin: 0 auto;
-  width: 100%;
-}
-
 .page-header {
   text-align: center;
   margin-bottom: 32px;

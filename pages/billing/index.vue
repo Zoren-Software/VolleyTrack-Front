@@ -1,6 +1,6 @@
 <template>
   <div class="billing-page">
-    <div class="list-page-container">
+    <ZListPageContainer>
       <!-- Page Header -->
       <div class="page-header">
         <div class="header-content">
@@ -369,7 +369,7 @@
           <span>Ver Planos de Assinatura</span>
         </NuxtLink>
       </div>
-    </div>
+    </ZListPageContainer>
   </div>
 </template>
 
@@ -692,12 +692,6 @@ onMounted(() => {
 <style scoped>
 .billing-page {
   min-height: 100vh;
-}
-
-.list-page-container {
-  max-width: 1400px;
-  margin: 0 auto;
-  width: 100%;
 }
 
 /* Page Header */

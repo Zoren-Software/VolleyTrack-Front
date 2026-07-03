@@ -1,5 +1,5 @@
 <template>
-  <div class="list-page-container">
+  <ZListPageContainer>
     <!-- Page Header -->
     <div class="page-header">
       <div class="header-content">
@@ -214,7 +214,7 @@
         </div>
       </div>
     </ZModal>
-  </div>
+  </ZListPageContainer>
 </template>
 
 <script>
@@ -347,12 +347,6 @@ export default {
 </script>
 
 <style scoped>
-.list-page-container {
-  max-width: 1400px;
-  margin: 0 auto;
-  width: 100%;
-}
-
 .page-header {
   margin-bottom: 32px;
 }

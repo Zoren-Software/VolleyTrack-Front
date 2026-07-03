@@ -1,5 +1,5 @@
 <template>
-  <div class="list-page-container">
+  <ZListPageContainer>
     <!-- Page Header -->
     <div class="page-header">
       <div class="header-content">
@@ -103,7 +103,7 @@
         </p>
       </div>
     </div>
-  </div>
+  </ZListPageContainer>
 </template>
 
 <script setup>
@@ -180,12 +180,6 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.list-page-container {
-  max-width: 1400px;
-  margin: 0 auto;
-  width: 100%;
-}
-
 .page-header {
   margin-bottom: 32px;
 }
@@ -433,10 +427,6 @@ onMounted(async () => {
 
 /* Responsividade */
 @media (max-width: 768px) {
-  .list-page-container {
-    padding: 0 16px;
-  }
-
   .page-header {
     margin-bottom: 24px;
   }

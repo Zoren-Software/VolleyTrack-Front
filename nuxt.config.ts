@@ -136,8 +136,9 @@ export default defineNuxtConfig({
   },
   components: [
     {
+      path: "~/components",
       pathPrefix: true,
-      extensions: ['.vue'],
+      extensions: [".vue"],
     },
   ],
   head: {

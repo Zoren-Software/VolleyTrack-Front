@@ -1,8 +1,5 @@
 <template>
-  <div
-    class="list-page-container"
-    :class="{ 'list-page-container--failure': pageFailureMode }"
-  >
+  <ZListPageContainer :failure="pageFailureMode">
     <!-- Page Header -->
     <div class="page-header">
       <div class="header-content">
@@ -234,7 +231,7 @@
         </div>
       </div>
     </div>
-  </div>
+  </ZListPageContainer>
 </template>
 
 <script setup>
@@ -472,20 +469,6 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.list-page-container {
-  max-width: 1400px;
-  margin: 0 auto;
-  width: 100%;
-  transition: background 0.25s ease;
-}
-
-.list-page-container--failure {
-  background: linear-gradient(180deg, #fff5f5 0%, #fafafa 42%, #ffffff 100%);
-  min-height: 100vh;
-  padding-top: 8px;
-  padding-bottom: 48px;
-}
-
 .page-header {
   margin-bottom: 32px;
 }
@@ -886,10 +869,6 @@ onMounted(async () => {
 
 /* Responsividade */
 @media (max-width: 768px) {
-  .list-page-container {
-    padding: 0 16px;
-  }
-
   .page-header {
     margin-bottom: 24px;
   }

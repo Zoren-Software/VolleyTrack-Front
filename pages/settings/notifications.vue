@@ -1,5 +1,5 @@
 <template>
-  <div class="list-page-container">
+  <ZListPageContainer narrow>
     <!-- Page Header -->
     <div class="page-header">
       <div class="header-content">
@@ -89,7 +89,7 @@
         Salvar
       </va-button>
     </div>
-  </div>
+  </ZListPageContainer>
 </template>
 
 <script>
@@ -260,13 +260,6 @@ export default {
 </script>
 
 <style scoped>
-.list-page-container {
-  max-width: 940px;
-  margin: 0 auto;
-  width: 100%;
-  box-sizing: border-box;
-}
-
 .page-header {
   margin-bottom: 32px;
 }

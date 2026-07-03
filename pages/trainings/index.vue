@@ -1,5 +1,5 @@
 <template>
-  <div class="list-page-container">
+  <ZListPageContainer>
     <!-- Page Header -->
     <div class="page-header">
       <div class="header-content">
@@ -28,7 +28,7 @@
       @select-single="goToCreateTraining"
       @select-scheduled="goToCreateScheduled"
     />
-  </div>
+  </ZListPageContainer>
 </template>
 
 <script>
@@ -63,14 +63,8 @@ useHead({
 </script>
 
 <style scoped>
-.list-page-container {
-  max-width: 1400px;
-  margin: 0 auto;
-  width: 100%;
-}
-
 .page-header {
-  margin-bottom: 32px;
+  margin-bottom: 0;
 }
 
 .header-content {
