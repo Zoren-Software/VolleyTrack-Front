@@ -165,6 +165,218 @@
 
           <ZHomeTrainingsYearChart />
 
+          <!-- Progress Section -->
+          <Transition name="fade-out">
+            <va-card
+              v-if="!isConfigurationComplete || showConfigurationDetails"
+              class="progress-card"
+            >
+              <div class="progress-card-header">
+                <h2 class="progress-title">Progresso da Configuração</h2>
+                <va-button
+                  v-if="isConfigurationComplete && showConfigurationDetails"
+                  preset="plain"
+                  icon="close"
+                  size="small"
+                  class="close-config-button"
+                  @click="closeConfigurationDetails"
+                />
+              </div>
+              <div class="progress-bar-container">
+                <div
+                  class="progress-bar-fill"
+                  :style="{ width: progressPercentage + '%' }"
+                />
+              </div>
+              <p class="progress-text">{{ progressPercentage }}% concluído</p>
+
+              <div class="steps-list">
+                <div
+                  class="step-item"
+                  :class="{ completed: steps.registerPlayers.completed }"
+                >
+                  <div class="step-icon-wrapper">
+                    <va-icon
+                      v-if="steps.registerPlayers.completed"
+                      name="check_circle"
+                      color="#28A745"
+                      size="20px"
+                    />
+                    <va-icon
+                      v-else-if="steps.registerPlayers.inProgress"
+                      name="hourglass_empty"
+                      color="#1976D2"
+                      size="20px"
+                    />
+                    <va-icon
+                      v-else
+                      name="radio_button_unchecked"
+                      color="#9E9E9E"
+                      size="20px"
+                    />
+                  </div>
+                  <div class="step-content">
+                    <h3 class="step-title">Registrar Jogadores</h3>
+                    <p class="step-description">
+                      Adicione os jogadores da sua equipe.
+                    </p>
+                  </div>
+                  <div class="step-actions">
+                    <span
+                      v-if="steps.registerPlayers.completed"
+                      class="status-badge status-completed"
+                    >
+                      Concluído
+                    </span>
+                    <va-button
+                      v-else
+                      color="#FF4E1B"
+                      size="small"
+                      @click="navigateTo('/players')"
+                    >
+                      Editar
+                    </va-button>
+                  </div>
+                </div>
+
+                <div
+                  class="step-item"
+                  :class="{ completed: steps.registerTeams.completed }"
+                >
+                  <div class="step-icon-wrapper">
+                    <va-icon
+                      v-if="steps.registerTeams.completed"
+                      name="check_circle"
+                      color="#28A745"
+                      size="20px"
+                    />
+                    <va-icon
+                      v-else-if="steps.registerTeams.inProgress"
+                      name="hourglass_empty"
+                      color="#1976D2"
+                      size="20px"
+                    />
+                    <va-icon
+                      v-else
+                      name="radio_button_unchecked"
+                      color="#9E9E9E"
+                      size="20px"
+                    />
+                  </div>
+                  <div class="step-content">
+                    <h3 class="step-title">Registrar Times</h3>
+                    <p class="step-description">Organize seus times.</p>
+                  </div>
+                  <div class="step-actions">
+                    <span
+                      v-if="steps.registerTeams.completed"
+                      class="status-badge status-completed"
+                    >
+                      Concluído
+                    </span>
+                    <template v-else-if="steps.registerTeams.inProgress">
+                      <span class="status-badge status-in-progress">
+                        Em andamento
+                      </span>
+                      <va-button
+                        color="#1976D2"
+                        size="small"
+                        style="margin-left: 8px"
+                        @click="navigateTo('/teams')"
+                      >
+                        Continuar
+                      </va-button>
+                    </template>
+                    <span v-else class="status-badge status-pending">
+                      <va-icon name="warning" size="small" />
+                      Pendente
+                    </span>
+                  </div>
+                </div>
+
+                <div
+                  class="step-item"
+                  :class="{ completed: steps.registerTrainings.completed }"
+                >
+                  <div class="step-icon-wrapper">
+                    <va-icon
+                      v-if="steps.registerTrainings.completed"
+                      name="check_circle"
+                      color="#28A745"
+                      size="20px"
+                    />
+                    <va-icon
+                      v-else-if="steps.registerTrainings.inProgress"
+                      name="hourglass_empty"
+                      color="#1976D2"
+                      size="20px"
+                    />
+                    <va-icon
+                      v-else
+                      name="radio_button_unchecked"
+                      color="#9E9E9E"
+                      size="20px"
+                    />
+                  </div>
+                  <div class="step-content">
+                    <h3 class="step-title">Registrar Treinos</h3>
+                    <p class="step-description">Planeje e registre os treinos.</p>
+                  </div>
+                  <div class="step-actions">
+                    <span
+                      v-if="steps.registerTrainings.completed"
+                      class="status-badge status-completed"
+                    >
+                      Concluído
+                    </span>
+                    <template v-else-if="steps.registerTrainings.inProgress">
+                      <span class="status-badge status-in-progress">
+                        Em andamento
+                      </span>
+                      <va-button
+                        color="#1976D2"
+                        size="small"
+                        style="margin-left: 8px"
+                        @click="navigateTo('/trainings')"
+                      >
+                        Continuar
+                      </va-button>
+                    </template>
+                    <template v-else>
+                      <span class="status-badge status-waiting"> Aguardando </span>
+                    </template>
+                  </div>
+                </div>
+              </div>
+            </va-card>
+          </Transition>
+
+          <Transition name="fade-out">
+            <va-card
+              v-if="!isConfigurationComplete || showConfigurationDetails"
+              class="motivational-card"
+            >
+              <div class="motivational-content">
+                <div class="trophy-icon">
+                  <va-icon name="emoji_events" size="36px" color="#FF4E1B" />
+                </div>
+                <p class="motivational-text">
+                  Quanto mais você configurar, mais completo será o acompanhamento
+                  da sua equipe! 🚀
+                </p>
+                <p class="motivational-subtitle">
+                  Complete todas as etapas para desbloquear o potencial máximo do
+                  VolleyTrack.
+                </p>
+              </div>
+            </va-card>
+          </Transition>
+
+          <ZIndividualAnalysis v-if="totalUsers > 0" />
+          <ZTeamPerformance v-if="totalTeams > 0" />
+          <ZTrainingTechnicalVision v-if="totalTrainings > 0" />
+          <ZPresenceAnalysis v-if="totalTrainings > 0" />
+
           <!-- Presence Ranking Section -->
           <ZPresenceRanking v-if="totalTrainings > 0" />
 
@@ -183,6 +395,11 @@
             </div>
           </Transition>
   
+
+          <ZHomePlayerProfileCard
+            v-if="user && user.id"
+            :setup-progress="progressPercentage"
+          />
 
           <ZHomeRecentFeedbacks />
 
@@ -257,6 +474,8 @@ import TEAMSTOTAL from "~/graphql/team/query/teamsTotal.graphql";
 import TRAININGSTOTAL from "~/graphql/training/query/trainingsTotal.graphql";
 import { getActivePlan } from "~/services/stripeCheckoutService.js";
 import ZIndividualAnalysis from "~/components/organisms/Dashboard/ZIndividualAnalysis.vue";
+import ZTeamPerformance from "~/components/organisms/Dashboard/ZTeamPerformance.vue";
+import ZTrainingTechnicalVision from "~/components/organisms/Dashboard/ZTrainingTechnicalVision.vue";
 import ZPresenceAnalysis from "~/components/organisms/Dashboard/ZPresenceAnalysis.vue";
 import ZPresenceRanking from "~/components/organisms/Dashboard/ZPresenceRanking.vue";
 import ZHomePlayerProfileCard from "~/components/organisms/Dashboard/ZHomePlayerProfileCard.vue";
@@ -267,6 +486,8 @@ import ZHomeTrainingsYearChart from "~/components/organisms/Dashboard/ZHomeTrain
 export default {
   components: {
     ZIndividualAnalysis,
+    ZTeamPerformance,
+    ZTrainingTechnicalVision,
     ZPresenceAnalysis,
     ZPresenceRanking,
     ZHomePlayerProfileCard,
