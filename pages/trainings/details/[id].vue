@@ -1,4 +1,5 @@
 <template>
+  <ZListPageContainer>
   <div class="training-details-page">
     <div class="page-header">
       <h1 class="title">Detalhes do Treino</h1>
@@ -203,6 +204,7 @@
       </div>
     </div>
   </div>
+  </ZListPageContainer>
 </template>
 
 <script>
@@ -439,8 +441,6 @@ useHead({
 <style scoped>
 .training-details-page {
   width: 100%;
-  max-width: 960px;
-  margin: 0 auto;
 }
 
 .page-header {

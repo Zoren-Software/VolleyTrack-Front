@@ -1,4 +1,5 @@
 <template>
+  <ZListPageContainer narrow>
   <div class="test-stripe">
     <h1>Teste da Integração com Stripe</h1>
 
@@ -29,6 +30,7 @@
       <ZStripeCardForm :amount="7500" />
     </div>
   </div>
+  </ZListPageContainer>
 </template>
 
 <script setup>
@@ -76,9 +78,7 @@ onMounted(() => {
 
 <style scoped>
 .test-stripe {
-  padding: 24px;
-  max-width: 800px;
-  margin: 0 auto;
+  width: 100%;
 }
 
 .status {

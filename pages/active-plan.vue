@@ -1,4 +1,5 @@
 <template>
+  <ZListPageContainer>
   <div class="active-plan-page">
     <div class="container">
       <div class="page-header">
@@ -45,6 +46,7 @@
       </div>
     </div>
   </div>
+  </ZListPageContainer>
 </template>
 
 <script setup>
@@ -90,14 +92,13 @@ const onPlanUpdated = () => {
 
 <style scoped>
 .active-plan-page {
-  padding: 40px 20px;
+  width: 100%;
   background: #f8fafc;
   min-height: 100vh;
 }
 
 .container {
-  max-width: 1200px;
-  margin: 0 auto;
+  width: 100%;
 }
 
 .page-header {

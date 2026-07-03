@@ -1,5 +1,5 @@
 <template>
-  <div class="privacy-settings-page">
+  <ZListPageContainer narrow>
     <div class="page-header">
       <div class="header-content">
         <div>
@@ -15,7 +15,7 @@
 
     <ZLgpdPortabilityPanel />
     <ZLgpdPrivacyPanel />
-  </div>
+  </ZListPageContainer>
 </template>
 
 <script setup>
@@ -28,16 +28,6 @@ definePageMeta({
 </script>
 
 <style scoped>
-.privacy-settings-page {
-  max-width: 720px;
-  margin: 0 auto;
-  width: 100%;
-}
-
-.page-header {
-  margin-bottom: 24px;
-}
-
 .header-content {
   display: flex;
   justify-content: space-between;

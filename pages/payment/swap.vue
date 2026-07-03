@@ -1,4 +1,5 @@
 <template>
+  <ZListPageContainer>
   <div class="plan-swap-page">
     <div class="container">
       <!-- Header -->
@@ -110,6 +111,7 @@
       </div>
     </div>
   </div>
+  </ZListPageContainer>
 </template>
 
 <script setup>
@@ -557,14 +559,13 @@ onMounted(() => {
 
 <style scoped>
 .plan-swap-page {
-  padding: 40px 20px;
+  width: 100%;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   min-height: 100vh;
 }
 
 .container {
-  max-width: 800px;
-  margin: 0 auto;
+  width: 100%;
 }
 
 .page-header {

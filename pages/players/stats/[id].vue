@@ -73,7 +73,7 @@ useHead({
 <style scoped>
 .page-header {
   text-align: center;
-  margin-bottom: 32px;
+  margin-bottom: 0;
 }
 
 .header-text {

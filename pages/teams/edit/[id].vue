@@ -1,4 +1,5 @@
 <template>
+  <ZListPageContainer>
   <div class="team-form-page">
     <div class="page-header">
       <h1 class="title">Editar Time</h1>
@@ -13,6 +14,7 @@
       :errors="errors"
     />
   </div>
+  </ZListPageContainer>
 </template>
 
 <script>

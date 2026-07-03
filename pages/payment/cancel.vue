@@ -181,7 +181,7 @@ onMounted(async () => {
 
 <style scoped>
 .page-header {
-  margin-bottom: 32px;
+  margin-bottom: 0;
 }
 
 .header-content {

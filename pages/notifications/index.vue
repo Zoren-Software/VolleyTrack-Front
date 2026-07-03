@@ -1,5 +1,5 @@
 <template>
-  <ZListPageContainer narrow>
+  <ZListPageContainer>
     <!-- Page Header -->
     <div class="page-header">
       <div class="header-content">
@@ -45,7 +45,7 @@ useHead({
 
 <style scoped>
 .page-header {
-  margin-bottom: 32px;
+  margin-bottom: 0;
 }
 
 .header-content {

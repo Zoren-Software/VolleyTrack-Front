@@ -1,4 +1,5 @@
 <template>
+  <ZListPageContainer>
   <div class="edit-training-page">
     <div class="page-header">
       <h1 class="title">Editar Treino</h1>
@@ -20,6 +21,7 @@
       ref="trainingForm"
     />
   </div>
+  </ZListPageContainer>
 </template>
 
 <script>

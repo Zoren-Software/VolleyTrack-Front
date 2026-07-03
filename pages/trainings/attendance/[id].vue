@@ -1,4 +1,5 @@
 <template>
+  <ZListPageContainer>
   <div class="attendance-page">
     <div class="page-header">
       <h1 class="title">Lista de Presença</h1>
@@ -15,6 +16,7 @@
       <va-button color="primary" @click="goToEdit">Editar treino</va-button>
     </div>
   </div>
+  </ZListPageContainer>
 </template>
 
 <script>
@@ -52,12 +54,10 @@ useHead({
 <style scoped>
 .attendance-page {
   width: 100%;
-  max-width: 1100px;
-  margin: 0 auto;
 }
 
 .page-header {
-  margin-bottom: 24px;
+  margin-bottom: 0;
 }
 
 .title {

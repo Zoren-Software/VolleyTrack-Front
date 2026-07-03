@@ -1,5 +1,5 @@
 <template>
-  <ZListPageContainer narrow>
+  <ZListPageContainer>
     <!-- Page Header -->
     <div class="page-header">
       <div class="header-content">
@@ -261,7 +261,7 @@ export default {
 
 <style scoped>
 .page-header {
-  margin-bottom: 32px;
+  margin-bottom: 0;
 }
 
 .header-content {
@@ -289,7 +289,6 @@ export default {
   background: white;
   border-radius: 16px;
   padding: 20px 24px;
-  margin-bottom: 16px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 

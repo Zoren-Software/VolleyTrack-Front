@@ -48,7 +48,7 @@ export default {
 }
 
 .z-list-page-container--narrow {
-  --z-list-page-max-width: 920px;
+  --z-list-page-max-width: 840px;
 }
 
 .z-list-page-container--failure {
@@ -58,7 +58,9 @@ export default {
   --z-list-page-padding-bottom: 48px;
 }
 
-.z-list-page-container :deep(.page-header) {
+/* O gap do container substitui margin-bottom dos cabeçalhos internos */
+.z-list-page-container :deep(.page-header),
+.z-list-page-container :deep(.account-summary-intro) {
   margin-bottom: 0;
 }
 
@@ -78,7 +80,7 @@ export default {
   }
 
   .z-list-page-container--narrow {
-    --z-list-page-max-width: 900px;
+    --z-list-page-max-width: 880px;
   }
 }
 

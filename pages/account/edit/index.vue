@@ -1,4 +1,5 @@
 <template>
+  <ZListPageContainer>
   <ZUserForm
     :data="data"
     header-title="Editar perfil"
@@ -8,6 +9,7 @@
     :error-fields="errorFields"
     :errors="errors"
   />
+  </ZListPageContainer>
 </template>
 
 <script>

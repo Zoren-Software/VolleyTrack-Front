@@ -1,4 +1,5 @@
 <template>
+  <ZListPageContainer>
   <div class="account-summary">
     <header class="account-summary-intro">
       <h1 class="account-summary-title">Minha conta</h1>
@@ -338,6 +339,7 @@
       />
     </ZModal>
   </div>
+  </ZListPageContainer>
 </template>
 
 <script>
@@ -758,12 +760,11 @@ useHead({
 
 <style scoped>
 .account-summary {
-  max-width: 1200px;
-  margin: 0 auto;
+  width: 100%;
 }
 
 .account-summary-intro {
-  margin-bottom: 24px;
+  margin-bottom: 0;
 }
 
 .account-summary-title {

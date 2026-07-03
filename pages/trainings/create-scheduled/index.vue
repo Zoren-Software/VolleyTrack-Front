@@ -1,4 +1,5 @@
 <template>
+  <ZListPageContainer>
   <div class="create-scheduled-page">
     <div class="page-header">
       <div class="title-row">
@@ -44,6 +45,7 @@
 
     <ZTrainingBulkCreateForm @cancel="goBack" @success="goBack" />
   </div>
+  </ZListPageContainer>
 </template>
 
 <script>
@@ -70,9 +72,7 @@ useHead({
 <style scoped>
 .create-scheduled-page {
   width: 100%;
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 0 16px 40px;
+  padding-bottom: 40px;
 }
 
 .page-header {

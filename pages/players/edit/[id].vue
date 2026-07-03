@@ -1,4 +1,5 @@
 <template>
+  <ZListPageContainer>
   <ZUserForm
     use-wizard
     hide-password-fields
@@ -10,6 +11,7 @@
     header-title="Editar Jogador"
     header-subtitle="Atualize as informações do jogador"
   />
+  </ZListPageContainer>
 </template>
 
 <script>

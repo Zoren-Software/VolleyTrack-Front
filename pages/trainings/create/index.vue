@@ -1,4 +1,5 @@
 <template>
+  <ZListPageContainer>
   <div class="create-training-page">
     <div class="page-header">
       <h1 class="title">Cadastro de Treino</h1>
@@ -13,6 +14,7 @@
       :errors="errors"
     />
   </div>
+  </ZListPageContainer>
 </template>
 
 <script>
