@@ -20,6 +20,7 @@
     "sass": "^1.94.2"
   },
   "dependencies": {
+    "@simplewebauthn/browser": "^13.3.0",
     "@stripe/stripe-js": "^2.4.0",
     "@vuestic/nuxt": "^1.0.21",
     "chart.js": "^4.5.1",

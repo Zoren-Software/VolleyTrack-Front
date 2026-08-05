@@ -1,0 +1,10 @@
+mutation confirmTotp($code: String!) {
+  confirmTotp(input: { code: $code }) {
+    recoveryCodes
+    twoFactorEnabled
+    totpEnabled
+    methods
+    passkeyEnabled
+    recoveryCodesRemaining
+  }
+}

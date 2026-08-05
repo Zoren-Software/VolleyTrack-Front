@@ -1,0 +1,16 @@
+mutation confirmPasskeyChallenge(
+  $challengeToken: String!
+  $assertionId: String!
+  $credentialJson: String!
+) {
+  confirmPasskeyChallenge(
+    input: {
+      challengeToken: $challengeToken
+      assertionId: $assertionId
+      credentialJson: $credentialJson
+    }
+  ) {
+    token
+    twoFactorRequired
+  }
+}

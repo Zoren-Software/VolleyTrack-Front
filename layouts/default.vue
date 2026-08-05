@@ -87,6 +87,14 @@
               <span>Dispositivos</span>
             </NuxtLink>
             <NuxtLink
+              to="/settings/security"
+              class="dropdown-item"
+              @click="closeDropdown"
+            >
+              <va-icon name="security" size="18px" class="dropdown-item-icon" />
+              <span>Segurança</span>
+            </NuxtLink>
+            <NuxtLink
               to="/settings/audit"
               class="dropdown-item"
               @click="closeDropdown"
@@ -203,6 +211,16 @@
         </div>
       </div>
       <div class="content-wrapper">
+        <div
+          v-if="twoFactorStatus && !twoFactorStatus.twoFactorEnabled"
+          class="two-factor-banner"
+        >
+          <va-icon name="shield" size="20px" />
+          <span>Proteja sua conta ativando a verificação em duas etapas.</span>
+          <NuxtLink to="/settings/security" class="two-factor-banner-link">
+            Configurar
+          </NuxtLink>
+        </div>
         <NuxtPage />
       </div>
     </div>
@@ -219,6 +237,7 @@ import ZTermsAcceptanceModal from "~/components/organisms/Modal/ZTermsAcceptance
 import { useTermsAcceptance } from "~/composables/useTermsAcceptance";
 import NOTIFICATIONSTOTAL from "~/graphql/notification/query/notificationsTotal.graphql";
 import ME from "~/graphql/user/query/me.graphql";
+import TWO_FACTOR_STATUS from "~/graphql/user/query/twoFactorStatus.graphql";
 import { getActivePlan } from "~/services/stripeCheckoutService.js";
 import { version as appVersion } from "~/package.json";
 
@@ -250,6 +269,7 @@ export default {
         roles: [],
       },
       activePlanData: null,
+      twoFactorStatus: null,
       appVersion,
     };
   },
@@ -585,6 +605,7 @@ export default {
   mounted() {
     this.notificationsTotal();
     this.getUser();
+    this.loadTwoFactorStatus();
     this.loadActivePlan();
     // Fechar dropdown ao clicar fora
     document.addEventListener("click", this.handleClickOutside);
@@ -643,6 +664,7 @@ export default {
         currentPath === "/settings" ||
         currentPath === "/settings/notifications" ||
         currentPath === "/settings/devices" ||
+        currentPath === "/settings/security" ||
         currentPath === "/settings/audit" ||
         currentPath === "/settings/privacy"
       );
@@ -764,6 +786,26 @@ export default {
         } catch {
           /* ignore */
         }
+      }
+    },
+    async loadTwoFactorStatus() {
+      const token =
+        localStorage.getItem("userToken") ||
+        localStorage.getItem("apollo:default.token");
+      if (!token) {
+        return;
+      }
+
+      try {
+        const query = gql`
+          ${TWO_FACTOR_STATUS}
+        `;
+        const {
+          data: { value },
+        } = await useAsyncQuery(query, {});
+        this.twoFactorStatus = value?.twoFactorStatus ?? null;
+      } catch {
+        this.twoFactorStatus = null;
       }
     },
     async loadActivePlan() {
@@ -968,6 +1010,30 @@ button.sidebar-link {
   display: flex;
   flex-direction: column;
   min-height: 0;
+}
+
+.two-factor-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 16px 24px 0;
+  padding: 10px 14px;
+  border: 1px solid #fde68a;
+  border-radius: 8px;
+  color: #92400e;
+  background: #fffbeb;
+  font-size: 13px;
+}
+
+.two-factor-banner-link {
+  margin-left: auto;
+  color: #b45309;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.two-factor-banner-link:hover {
+  text-decoration: underline;
 }
 
 .sidebar-is-collapsed .sidebar {
