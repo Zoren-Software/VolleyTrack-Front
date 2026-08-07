@@ -116,6 +116,16 @@
             </NuxtLink>
           </div>
         </div>
+        <NuxtLink
+          v-if="showTwoFactorSidebarWarning"
+          to="/settings/security"
+          class="sidebar-link sidebar-link--security-attention"
+          :class="{ active: isRouteActive('/settings/security') }"
+          title="Proteja sua conta ativando a verificação em duas etapas."
+        >
+          <va-icon name="shield" size="20px" class="sidebar-link-icon" />
+          <span class="sidebar-link-text">Ativar verificação em 2 etapas</span>
+        </NuxtLink>
         <button
           type="button"
           class="sidebar-link sidebar-link--logout"
@@ -211,16 +221,6 @@
         </div>
       </div>
       <div class="content-wrapper">
-        <div
-          v-if="twoFactorStatus && !twoFactorStatus.twoFactorEnabled"
-          class="two-factor-banner"
-        >
-          <va-icon name="shield" size="20px" />
-          <span>Proteja sua conta ativando a verificação em duas etapas.</span>
-          <NuxtLink to="/settings/security" class="two-factor-banner-link">
-            Configurar
-          </NuxtLink>
-        </div>
         <NuxtPage />
       </div>
     </div>
@@ -288,6 +288,9 @@ export default {
       }
       const names = roles.map((r) => r?.name).filter(Boolean);
       return names.length ? names.join(" • ") : "Sem função definida";
+    },
+    showTwoFactorSidebarWarning() {
+      return this.twoFactorStatus?.twoFactorEnabled === false;
     },
     activePlanIcon() {
       if (!this.activePlanData) {
@@ -600,6 +603,7 @@ export default {
   watch: {
     $route() {
       this.closeMobileSidebar();
+      this.loadTwoFactorStatus();
     },
   },
   mounted() {
@@ -968,6 +972,44 @@ button.sidebar-link {
   color: #fca5a5;
 }
 
+.sidebar-link--security-attention {
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 180, 80, 0.35);
+  color: #ffd59a;
+  background: rgba(255, 180, 80, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(255, 180, 80, 0.55);
+}
+
+.sidebar-link--security-attention .sidebar-link-icon {
+  color: #ffd59a !important;
+}
+
+.sidebar-link--security-attention:hover {
+  background: rgba(255, 180, 80, 0.2);
+  color: #ffe4b8;
+  box-shadow: inset 0 0 0 1px rgba(255, 200, 120, 0.9);
+}
+
+.sidebar-link--security-attention:hover .sidebar-link-icon {
+  color: #ffe4b8 !important;
+}
+
+.sidebar-link--security-attention.active {
+  background: rgba(255, 180, 80, 0.22);
+  color: #ffe4b8;
+}
+
+.sidebar-link--security-attention.active .sidebar-link-icon {
+  color: #ffe4b8 !important;
+}
+
+.sidebar-link--security-attention + .sidebar-link--logout {
+  margin-top: 8px;
+  padding-top: 10px;
+  border-top: none;
+}
+
 .sidebar-link--logout .sidebar-link-icon {
   color: #fca5a5 !important;
 }
@@ -1010,30 +1052,6 @@ button.sidebar-link {
   display: flex;
   flex-direction: column;
   min-height: 0;
-}
-
-.two-factor-banner {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 16px 24px 0;
-  padding: 10px 14px;
-  border: 1px solid #fde68a;
-  border-radius: 8px;
-  color: #92400e;
-  background: #fffbeb;
-  font-size: 13px;
-}
-
-.two-factor-banner-link {
-  margin-left: auto;
-  color: #b45309;
-  font-weight: 700;
-  text-decoration: none;
-}
-
-.two-factor-banner-link:hover {
-  text-decoration: underline;
 }
 
 .sidebar-is-collapsed .sidebar {
@@ -1719,6 +1737,16 @@ button.sidebar-link {
     margin-top: 8px;
     flex-basis: 100%;
     width: 100%;
+  }
+
+  .sidebar-link--security-attention {
+    margin-top: 8px;
+    flex-basis: 100%;
+    width: 100%;
+  }
+
+  .sidebar-link--security-attention + .sidebar-link--logout {
+    margin-top: 6px;
   }
 }
 </style>

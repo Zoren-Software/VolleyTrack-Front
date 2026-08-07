@@ -153,7 +153,7 @@
             Adicionar chave de acesso
           </va-button>
           <p v-if="!passkeysSupported" class="passkey-unsupported">
-            Este navegador não oferece chaves de acesso.
+            {{ passkeyUnsupportedMessage }}
           </p>
 
           <div v-if="passkeysLoading" class="passkey-loading">
@@ -215,7 +215,16 @@
       </template>
 
       <div v-else class="status-unavailable">
-        Não foi possível carregar as configurações de segurança.
+        <p>Não foi possível carregar as configurações de segurança.</p>
+        <va-button
+          color="primary"
+          preset="secondary"
+          size="small"
+          :loading="loading"
+          @click="reloadSecuritySettings"
+        >
+          Tentar novamente
+        </va-button>
       </div>
 
       <p v-if="errorMessage" class="error-message" role="alert">
@@ -233,6 +242,7 @@
 </template>
 
 <script>
+import { gql } from "@apollo/client/core";
 import TWO_FACTOR_STATUS from "~/graphql/user/query/twoFactorStatus.graphql";
 import PASSKEYS from "~/graphql/user/query/passkeys.graphql";
 import ENABLE_TOTP from "~/graphql/user/mutation/enableTotp.graphql";
@@ -245,6 +255,7 @@ import { confirmSuccess } from "~/utils/sweetAlert2/swalHelper";
 import {
   createPasskeyCredential,
   credentialToJson,
+  passkeySupportMessage,
   supportsPasskeys,
 } from "~/utils/passkeys";
 
@@ -264,28 +275,65 @@ export default {
       passkeys: [],
       passkeysLoading: false,
       passkeyBusy: false,
-      passkeysSupported: supportsPasskeys(),
+      passkeysSupported: false,
+      passkeyUnsupportedMessage: "",
       passkeyToDelete: null,
       deletePasskeyPassword: "",
       deletingPasskeyId: null,
     };
   },
   mounted() {
-    this.loadStatus();
-    this.loadPasskeys();
+    this.refreshPasskeySupport();
+    this.reloadSecuritySettings();
   },
   methods: {
+    refreshPasskeySupport() {
+      this.passkeysSupported = supportsPasskeys();
+      this.passkeyUnsupportedMessage = passkeySupportMessage();
+    },
+    getApolloClient() {
+      return useNuxtApp()._apolloClients?.default ?? null;
+    },
+    async waitForApolloClient(attempts = 10) {
+      for (let attempt = 0; attempt < attempts; attempt += 1) {
+        const client = this.getApolloClient();
+        if (client) {
+          return client;
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      }
+
+      return null;
+    },
+    async reloadSecuritySettings() {
+      await Promise.all([this.loadStatus(), this.loadPasskeys()]);
+    },
     async loadStatus() {
       this.loading = true;
       this.errorMessage = "";
 
       try {
-        const query = gql`
-          ${TWO_FACTOR_STATUS}
-        `;
-        const { data } = await useAsyncQuery(query, {});
-        this.status = data.value?.twoFactorStatus ?? null;
+        const client = await this.waitForApolloClient();
+        if (!client) {
+          throw new Error("Cliente GraphQL indisponível. Recarregue a página.");
+        }
+
+        const result = await client.query({
+          query: gql`
+            ${TWO_FACTOR_STATUS}
+          `,
+          fetchPolicy: "network-only",
+        });
+
+        this.status = result?.data?.twoFactorStatus ?? null;
+        if (!this.status) {
+          throw new Error(
+            "Não foi possível carregar as configurações de segurança.",
+          );
+        }
       } catch (error) {
+        this.status = null;
         this.errorMessage = this.getErrorMessage(
           error,
           "Não foi possível carregar as configurações de segurança.",
@@ -298,12 +346,22 @@ export default {
       this.passkeysLoading = true;
 
       try {
-        const query = gql`
-          ${PASSKEYS}
-        `;
-        const { data } = await useAsyncQuery(query, {});
-        this.passkeys = data.value?.passkeys ?? [];
+        const client = await this.waitForApolloClient();
+        if (!client) {
+          this.passkeys = [];
+          return;
+        }
+
+        const result = await client.query({
+          query: gql`
+            ${PASSKEYS}
+          `,
+          fetchPolicy: "network-only",
+        });
+
+        this.passkeys = result?.data?.passkeys ?? [];
       } catch (error) {
+        this.passkeys = [];
         this.errorMessage = this.getErrorMessage(
           error,
           "Não foi possível carregar as chaves de acesso.",
@@ -359,7 +417,9 @@ export default {
       );
     },
     async addPasskey() {
+      this.refreshPasskeySupport();
       if (!this.passkeysSupported) {
+        this.errorMessage = this.passkeyUnsupportedMessage;
         return;
       }
 
@@ -367,17 +427,17 @@ export default {
       this.errorMessage = "";
 
       try {
-        const beginMutation = gql`
-          ${BEGIN_PASSKEY_REGISTRATION}
-        `;
-        const { mutate: beginMutate } = await useMutation(beginMutation, {
-          variables: {},
-        });
-        const { data: beginData } = await beginMutate();
-        const begin = beginData?.beginPasskeyRegistration;
+        const begin = await this.runMutation(
+          BEGIN_PASSKEY_REGISTRATION,
+          {},
+          (data) => data?.beginPasskeyRegistration ?? null,
+        );
 
         if (!begin?.optionsJson || !begin?.registrationId) {
-          throw new Error("Não foi possível iniciar o registro da passkey.");
+          if (!this.errorMessage) {
+            throw new Error("Não foi possível iniciar o registro da passkey.");
+          }
+          return;
         }
 
         const credential = await createPasskeyCredential(begin.optionsJson);
@@ -470,23 +530,36 @@ export default {
       this.errorMessage = "";
 
       try {
-        const mutation = gql`
-          ${document}
-        `;
-        const { mutate } = await useMutation(mutation, { variables });
-        const { data } = await mutate();
-        onSuccess(data);
+        const client = await this.waitForApolloClient();
+        if (!client) {
+          throw new Error("Cliente GraphQL indisponível. Recarregue a página.");
+        }
+
+        const result = await client.mutate({
+          mutation: gql`
+            ${document}
+          `,
+          variables,
+        });
+
+        return onSuccess(result?.data);
       } catch (error) {
         this.errorMessage = this.getErrorMessage(
           error,
           "Não foi possível concluir esta ação. Tente novamente.",
         );
+        return null;
       } finally {
         this.busy = false;
       }
     },
     getErrorMessage(error, fallback) {
-      return error.graphQLErrors?.[0]?.message || error.message || fallback;
+      return (
+        error.graphQLErrors?.[0]?.message ||
+        error.networkError?.result?.errors?.[0]?.message ||
+        error.message ||
+        fallback
+      );
     },
   },
 };
@@ -699,6 +772,12 @@ export default {
   margin: 12px 0 0;
   color: #6b7280;
   font-size: 13px;
+  line-height: 1.5;
+}
+
+.passkey-unsupported {
+  color: #92400e;
+  max-width: 42rem;
 }
 
 .passkey-list {
@@ -737,10 +816,18 @@ export default {
 }
 
 .status-unavailable {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
   padding: 16px;
   border-radius: 8px;
   color: #991b1b;
   background: #fef2f2;
+}
+
+.status-unavailable p {
+  margin: 0;
 }
 
 .action-buttons {

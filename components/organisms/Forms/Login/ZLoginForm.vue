@@ -160,6 +160,7 @@ import { confirmSuccess } from "~/utils/sweetAlert2/swalHelper";
 import {
   assertPasskeyCredential,
   credentialToJson,
+  passkeySupportMessage,
   supportsPasskeys,
 } from "~/utils/passkeys";
 
@@ -313,6 +314,7 @@ export default {
 
       if (!supportsPasskeys()) {
         this.passkeyError =
+          passkeySupportMessage() ||
           "Este navegador não oferece chaves de acesso. Use o autenticador.";
         this.showTotpFallback = true;
         return;

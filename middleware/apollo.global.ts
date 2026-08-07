@@ -21,14 +21,16 @@ export default defineNuxtPlugin(nuxtAppMain => {
 
   const httpLink = new HttpLink({ uri: `${getApiUrl()}/graphql`, })
 
-  const token = localStorage.getItem('userToken'); // Recuperar o token do localStorage
-
   const authLink = setContext((_, { headers }) => {
+    const token =
+      localStorage.getItem('userToken') ||
+      localStorage.getItem('apollo:default.token')
+
     return {
       headers: {
         ...headers,
         'x-tenant': getTenant(),
-        'Authorization': token ? `Bearer ${token}` : "", // Incluir o token no cabeçalho de autorização
+        'Authorization': token ? `Bearer ${token}` : '',
       },
     }
   })
