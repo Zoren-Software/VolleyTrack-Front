@@ -1,0 +1,7 @@
+mutation enableTotp {
+  enableTotp {
+    secret
+    otpauthUrl
+    qrCodeSvg
+  }
+}

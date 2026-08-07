@@ -1,0 +1,9 @@
+query passkeys {
+  passkeys {
+    id
+    name
+    authenticator
+    lastUsedAt
+    createdAt
+  }
+}

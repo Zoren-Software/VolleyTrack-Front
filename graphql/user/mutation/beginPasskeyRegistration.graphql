@@ -1,0 +1,6 @@
+mutation beginPasskeyRegistration {
+  beginPasskeyRegistration {
+    optionsJson
+    registrationId
+  }
+}

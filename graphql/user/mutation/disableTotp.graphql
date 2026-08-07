@@ -1,0 +1,9 @@
+mutation disableTotp($password: String!, $code: String!) {
+  disableTotp(input: { password: $password, code: $code }) {
+    twoFactorEnabled
+    totpEnabled
+    methods
+    passkeyEnabled
+    recoveryCodesRemaining
+  }
+}
