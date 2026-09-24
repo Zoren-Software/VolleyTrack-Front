@@ -475,6 +475,8 @@ export const updateCustomerBilling = async (params) => {
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
+        name: params.name,
+        email: params.email,
         federal_tax_number: params.federal_tax_number.replace(/\D/g, ''),
         billing_address: params.billing_address,
       }),
