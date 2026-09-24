@@ -1,49 +1,38 @@
 <template>
   <div class="user-wrapper">
     <div class="user-avatar-wrapper">
-      <va-avatar v-if="data.id" class="user-avatar">{{
-        firstLatter
+      <va-avatar v-if="data.id" class="user-avatar user-avatar--initial">{{
+        firstLetter
       }}</va-avatar>
       <va-icon v-else name="account_circle" class="user-icon" />
     </div>
     <div class="user-info-wrapper">
       <div class="user-name">
-        <b>{{ data.name }}</b>
+        {{ data.name }}
       </div>
-      <div v-if="data.position" class="user-detail">
+      <div v-if="data.email" class="user-detail">
         <va-icon
-          size="small"
-          name="trip_origin"
-          color="secondary"
-          class="detail-icon"
-        />
-        <span>{{ data.position }}</span>
-      </div>
-      <div v-if="data.information?.phone" class="user-detail">
-        <va-icon
-          size="small"
-          name="phone"
-          color="secondary"
-          class="detail-icon"
-        />
-        <span>{{ formattedPhone }}</span>
-      </div>
-      <div class="user-detail email-container">
-        <va-icon
-          size="small"
           name="email"
-          color="secondary"
-          class="detail-icon email-icon"
+          size="small"
+          color="#6b7280"
+          class="detail-icon"
         />
-        <span class="email-text">{{ data.email }}</span>
+        <span class="detail-text">{{ data.email }}</span>
+      </div>
+      <div v-if="positionsLine" class="user-detail">
+        <va-icon
+          name="trip_origin"
+          size="small"
+          color="#6b7280"
+          class="detail-icon"
+        />
+        <span class="detail-text">{{ positionsLine }}</span>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import { formatPhoneOnType } from "~/utils/formatting/formatHelper";
-
 export default {
   props: {
     data: {
@@ -52,20 +41,18 @@ export default {
     },
   },
   computed: {
-    firstLatter() {
+    firstLetter() {
       return this.data.name.charAt(0).toUpperCase();
     },
-    formattedPhone() {
-      return this.formatPhone(this.data.information?.phone);
-    },
-  },
-  methods: {
-    removeNonNumericCharacters(value) {
-      return value.replace(/\D/g, "");
-    },
-    formatPhone(value) {
-      const onlyNumbers = this.removeNonNumericCharacters(value);
-      return formatPhoneOnType(onlyNumbers);
+    positionsLine() {
+      const list = this.data.positions;
+      if (!Array.isArray(list) || list.length === 0) {
+        return "";
+      }
+      return list
+        .map((p) => p?.name)
+        .filter(Boolean)
+        .join(" • ");
     },
   },
 };
@@ -74,34 +61,64 @@ export default {
 <style scoped>
 .user-wrapper {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 12px;
   width: 100%;
   min-width: 0;
+  min-height: 0;
 }
 
 .user-avatar-wrapper {
   flex-shrink: 0;
-}
-
-.user-avatar {
   width: 40px;
-  border: 2px solid white !important;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  background: #e9742b !important;
-  color: white !important;
+  min-width: 40px;
+  height: 40px;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.user-avatar :deep(.va-avatar) {
-  border: 2px solid white !important;
-  background: #e9742b !important;
-  color: white !important;
+.user-avatar--initial {
+  width: 40px !important;
+  height: 40px !important;
+  min-width: 40px !important;
+  min-height: 40px !important;
+  max-width: 40px !important;
+  max-height: 40px !important;
+  flex-shrink: 0;
+  aspect-ratio: 1;
+  border-radius: 50% !important;
+  border: 2px solid #ffffff !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  background: #ff4e1b !important;
+  color: #ffffff !important;
+  font-weight: 600;
+  font-size: 14px;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow: hidden;
+}
+
+.user-avatar--initial :deep(.va-avatar__content) {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 50% !important;
+  background: transparent !important;
+  color: #ffffff !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 .user-icon {
   width: 40px;
   height: 40px;
-  color: #6c757d;
+  min-width: 40px;
+  min-height: 40px;
+  flex-shrink: 0;
+  color: #6b7280;
 }
 
 .user-info-wrapper {
@@ -116,7 +133,7 @@ export default {
   font-weight: 600;
   font-size: 14px;
   color: #0b1e3a;
-  line-height: 1.4;
+  line-height: 1.35;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -127,31 +144,21 @@ export default {
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: #6c757d;
-  line-height: 1.4;
+  color: #6b7280;
+  line-height: 1.35;
   min-width: 0;
 }
 
 .detail-icon {
   flex-shrink: 0;
-  opacity: 0.7;
+  opacity: 0.85;
 }
 
-.email-container {
-  width: 100%;
-  min-width: 0;
-}
-
-.email-icon {
-  flex-shrink: 0;
-}
-
-.email-text {
+.detail-text {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   min-width: 0;
-  flex: 1;
 }
 
 @media (max-width: 768px) {
@@ -159,10 +166,28 @@ export default {
     gap: 8px;
   }
 
-  .user-avatar,
+  .user-avatar-wrapper {
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
+    min-height: 36px;
+  }
+
+  .user-avatar--initial {
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+    min-height: 36px !important;
+    max-width: 36px !important;
+    max-height: 36px !important;
+    font-size: 13px;
+  }
+
   .user-icon {
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
   }
 
   .user-name {
@@ -171,32 +196,6 @@ export default {
 
   .user-detail {
     font-size: 11px;
-  }
-}
-
-@media (max-width: 480px) {
-  .user-wrapper {
-    gap: 6px;
-  }
-
-  .user-avatar,
-  .user-icon {
-    width: 28px;
-    height: 28px;
-  }
-
-  .user-name {
-    font-size: 12px;
-  }
-
-  .user-detail {
-    font-size: 10px;
-    gap: 4px;
-  }
-
-  .detail-icon {
-    width: 14px;
-    height: 14px;
   }
 }
 </style>

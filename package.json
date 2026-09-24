@@ -1,24 +1,26 @@
 {
   "private": true,
-  "version": "2.7.0",
+  "version": "2.9.0",
   "scripts": {
     "build": "nuxt build",
-    "dev": "NODE_OPTIONS='--no-deprecation' nuxt dev",
+    "dev": "BROWSERSLIST_IGNORE_OLD_DATA=1 NODE_OPTIONS='--no-deprecation' nuxt dev --open",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
+    "browserslist:update": "pnpm dlx update-browserslist-db@latest",
     "lint": "eslint .",
     "lint-fix": "eslint . --fix"
   },
   "devDependencies": {
     "@nuxt/eslint-config": "^1.10.0",
     "@nuxtjs/apollo": "5.0.0-alpha.6",
-    "baseline-browser-mapping": "^2.10.0",
+    "baseline-browser-mapping": "^2.10.32",
     "eslint": "^9.39.1",
     "nuxt": "3.20.1",
     "sass": "^1.94.2"
   },
   "dependencies": {
+    "@simplewebauthn/browser": "^13.3.0",
     "@stripe/stripe-js": "^2.4.0",
     "@vuestic/nuxt": "^1.0.21",
     "chart.js": "^4.5.1",

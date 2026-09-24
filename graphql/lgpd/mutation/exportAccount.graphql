@@ -1,0 +1,7 @@
+mutation exportAccount($password: String!, $includeCentral: Boolean) {
+  exportAccount(password: $password, includeCentral: $includeCentral) {
+    exportId
+    status
+    message
+  }
+}

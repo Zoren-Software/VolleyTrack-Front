@@ -20,7 +20,7 @@
       <h3>Teste com CSS Custom</h3>
       <span
         class="material-symbols-outlined"
-        style="font-size: 48px; color: #ff4e1b"
+        style="font-size: 48px; color: #FF4E1B"
         >guardian</span
       >
       <span

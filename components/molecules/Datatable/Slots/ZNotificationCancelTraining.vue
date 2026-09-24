@@ -1,29 +1,27 @@
 <template>
-  <va-list-item class="hover pb-3" @click="redirect()">
-    <va-list-item-section>
-      <va-list-item-label class="text-center va-title">
-        {{ parsedData.message }}
-      </va-list-item-label>
-      <va-list-item-label>{{ parsedData.training.name }}</va-list-item-label>
-      <va-list-item-label caption class="data-hora-treino">
-        {{ formattedDate }}
-      </va-list-item-label>
-    </va-list-item-section>
-  </va-list-item>
+  <div class="notification-nc" role="button" tabindex="0" @click="redirect">
+    <span class="notification-nc__tag notification-nc__tag--cancel"
+      >TREINO CANCELADO</span
+    >
+    <div class="notification-nc__title">{{ trainingName }}</div>
+    <div v-if="formattedDate" class="notification-nc__row notification-nc__row--date">
+      <va-icon name="calendar_today" size="14px" color="#64748b" class="notification-nc__ico" />
+      <span>{{ formattedDate }}</span>
+    </div>
+    <div v-if="teamName" class="notification-nc__row notification-nc__row--team">
+      <va-icon name="groups" size="14px" color="#64748b" class="notification-nc__ico" />
+      <span>{{ teamName }}</span>
+    </div>
+  </div>
 </template>
 
 <script>
-import ZUser from "~/components/molecules/Datatable/Slots/ZUser";
-
 export default {
   props: {
     notification: {
       type: Object,
       required: true,
     },
-  },
-  components: {
-    ZUser,
   },
   emits: ["readNotification"],
   computed: {
@@ -32,14 +30,19 @@ export default {
         return JSON.parse(this.notification.data);
       } catch (e) {
         console.error("Erro ao analisar os dados da notificação:", e);
-        return {}; // Retorna um objeto vazio em caso de erro
+        return {};
       }
     },
+    trainingName() {
+      return this.parsedData.training?.name || "Treino";
+    },
+    teamName() {
+      return this.parsedData.training?.team?.name || "";
+    },
     formattedDate() {
-      if (!this.parsedData.training || !this.parsedData.training.date_start) {
-        return "";
-      }
-      const date = new Date(this.parsedData.training.date_start);
+      const t = this.parsedData.training;
+      if (!t?.date_start) return "";
+      const date = new Date(t.date_start);
       const day = date.getDate().toString().padStart(2, "0");
       const month = (date.getMonth() + 1).toString().padStart(2, "0");
       const year = date.getFullYear();
@@ -50,7 +53,9 @@ export default {
   },
   methods: {
     redirect() {
-      this.$router.push(`/trainings/edit/${this.parsedData.training.id}`);
+      if (this.parsedData.training?.id) {
+        this.$router.push(`/trainings/edit/${this.parsedData.training.id}`);
+      }
       this.$emit("readNotification", this.notification.id);
     },
   },
@@ -58,11 +63,60 @@ export default {
 </script>
 
 <style scoped>
-.notification-item-list {
-  display: inline-block; /* Ou block, conforme necessário */
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 200px; /* Ajuste conforme necessário */
+.notification-nc {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 2px 0;
+  cursor: pointer;
+  text-align: left;
+  max-width: 440px;
+}
+
+.notification-nc__tag {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+.notification-nc__tag--cancel {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+}
+
+.notification-nc__title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #0b1e3a;
+  line-height: 1.2;
+}
+
+.notification-nc__row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  line-height: 1.25;
+}
+
+.notification-nc__row--date {
+  margin-top: 0;
+  color: #64748b;
+}
+
+.notification-nc__row--team {
+  margin-top: 1px;
+  font-weight: 500;
+  color: #475569;
+}
+
+.notification-nc__ico {
+  flex-shrink: 0;
 }
 </style>

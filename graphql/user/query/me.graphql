@@ -8,7 +8,17 @@ query me {
       name
       createdAt
       updatedAt
-    },
+    }
+    permissions {
+      id
+      name
+    }
     emailVerifiedAt
+    termsAcceptanceStatus {
+      required
+      currentVersion
+      acceptedVersion
+      acceptedAt
+    }
   }
 }

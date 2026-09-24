@@ -2,10 +2,11 @@
   <ZInput
     v-model="internalValue"
     name="cpf"
-    label="CPF"
+    :label="label"
     id="cpf"
     class="mb-3"
     v-mask="'###.###.###-##'"
+    :placeholder="placeholder"
   />
 </template>
 
@@ -24,6 +25,14 @@ export default {
     modelValue: {
       type: String,
       default: "",
+    },
+    label: {
+      type: String,
+      default: "CPF",
+    },
+    placeholder: {
+      type: String,
+      default: "000.000.000-00",
     },
   },
   computed: {

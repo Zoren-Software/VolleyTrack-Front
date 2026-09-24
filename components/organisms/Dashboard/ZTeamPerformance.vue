@@ -2,7 +2,7 @@
   <div v-if="loading || teams.length > 0" class="team-performance-section">
     <div class="section-header">
       <div class="section-title-wrapper">
-        <va-icon name="groups" size="24px" color="#E9742B" />
+        <va-icon name="groups" size="24px" color="#FF4E1B" />
         <h2 class="section-title">Desempenho por Time</h2>
         <ZTop3Badge />
       </div>
@@ -87,25 +87,17 @@
           </div>
 
           <div class="team-footer">
-            <a
-              href="#"
+            <NuxtLink
+              :to="`/teams/stats/${teamData.team.id}`"
               class="team-details-link"
-              @click.prevent="openTeamStatsModal(teamData.team.id)"
             >
               Ver Estatísticas
-            </a>
+            </NuxtLink>
           </div>
         </div>
       </div>
     </div>
   </div>
-
-  <!-- Modal de Estatísticas do Time -->
-  <ZTeamStatsModal
-    v-if="selectedTeamId"
-    v-model="showTeamStatsModal"
-    :team-id="selectedTeamId"
-  />
 </template>
 
 <script>
@@ -114,21 +106,16 @@ import { useQuery } from "@vue/apollo-composable";
 import TEAMS_PERFORMANCE_ANALYSIS from "~/graphql/dashboard/query/teamsPerformanceAnalysis.graphql";
 import ZTeam from "~/components/molecules/Datatable/Slots/ZTeam.vue";
 import ZTop3Badge from "~/components/molecules/Badges/ZTop3Badge.vue";
-import ZTeamStatsModal from "~/components/molecules/Modal/ZTeamStatsModal.vue";
-
 export default {
   name: "ZTeamPerformance",
   components: {
     ZTeam,
     ZTop3Badge,
-    ZTeamStatsModal,
   },
   data() {
     return {
       teams: [],
       loading: false,
-      showTeamStatsModal: false,
-      selectedTeamId: null,
     };
   },
   mounted() {
@@ -184,7 +171,7 @@ export default {
       return classes[index % classes.length];
     },
     getTeamColor(index) {
-      const colors = ["#E9742B", "#1976D2", "#0B1E3A"];
+      const colors = ["#FF4E1B", "#1976D2", "#0B1E3A"];
       return colors[index % colors.length];
     },
     getTrainingsClass(index) {
@@ -209,10 +196,6 @@ export default {
     },
     navigateToTeams() {
       this.$router.push("/teams");
-    },
-    openTeamStatsModal(teamId) {
-      this.selectedTeamId = teamId;
-      this.showTeamStatsModal = true;
     },
   },
 };
@@ -315,7 +298,7 @@ export default {
 }
 
 .border-orange {
-  background-color: #e9742b;
+  background-color: #FF4E1B;
 }
 
 .border-blue {
@@ -443,7 +426,7 @@ export default {
 }
 
 .value-orange {
-  color: #e9742b;
+  color: #FF4E1B;
 }
 
 .value-blue {
@@ -469,7 +452,7 @@ export default {
 }
 
 .info-icon:hover {
-  color: #e9742b;
+  color: #FF4E1B;
 }
 
 .info-popover-text {

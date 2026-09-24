@@ -112,7 +112,8 @@ export default {
 
           confirmError("Ocorreu um erro ao salvar o treino!", footer);
         } else {
-          confirmError("Ocorreu um erro ao salvar o treino!");
+          const message = error.graphQLErrors?.[0]?.message || null;
+          confirmError("Ocorreu um erro ao salvar o treino!", message);
         }
       }
       this.loading = false;
@@ -162,7 +163,7 @@ export default {
 
         console.log("nem passei aqui");
         // Redireciona para a página de edição com o ID do treino criado e etapa 4
-        this.$router.push(`/trainings/edit/${data.trainingCreate.id}?step=3`);
+        this.$router.push(`/trainings/attendance/${data.trainingCreate.id}`);
       } catch (error) {
         console.error(error);
         this.error = true;
@@ -185,7 +186,8 @@ export default {
 
           confirmError("Ocorreu um erro ao salvar o treino!", footer);
         } else {
-          confirmError("Ocorreu um erro ao salvar o treino!");
+          const message = error.graphQLErrors?.[0]?.message || null;
+          confirmError("Ocorreu um erro ao salvar o treino!", message);
         }
       }
       this.loading = false;

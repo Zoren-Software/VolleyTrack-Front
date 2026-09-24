@@ -1,0 +1,7 @@
+mutation revokeDevice($id: ID!) {
+  revokeDevice(id: $id) {
+    id
+    name
+    deviceName
+  }
+}

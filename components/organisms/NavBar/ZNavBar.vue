@@ -120,6 +120,6 @@ export default {
 }
 
 .nav-link.active {
-  color: #e9742b;
+  color: #FF4E1B;
 }
 </style>

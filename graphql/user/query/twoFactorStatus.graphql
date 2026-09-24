@@ -1,0 +1,9 @@
+query twoFactorStatus {
+  twoFactorStatus {
+    twoFactorEnabled
+    methods
+    totpEnabled
+    passkeyEnabled
+    recoveryCodesRemaining
+  }
+}

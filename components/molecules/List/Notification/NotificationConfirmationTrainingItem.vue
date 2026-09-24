@@ -1,35 +1,44 @@
 <template>
-  <va-list-item class="cursor-pointer hover pb-3" @click="redirect()">
-    <va-list-item-section>
-      <va-list-item-label class="text-center va-title">
-        {{ parsedData.message }}
-      </va-list-item-label>
-      <va-list-item-label>{{ parsedData.training.name }}</va-list-item-label>
-      <va-list-item-label caption class="data-hora-treino">
-        {{ formattedDate }}
-      </va-list-item-label>
-      <va-list-item-label caption class="data-hora-treino">
-        <ZUser :data="parsedData.userAction" showEmail showConfirmTraining />
-      </va-list-item-label>
-    </va-list-item-section>
-    <va-list-item-section icon>
-      <va-icon name="visibility" color="primary" />
-    </va-list-item-section>
-  </va-list-item>
+  <div
+    class="notification-item"
+    role="button"
+    tabindex="0"
+    @click="redirect"
+    @keydown.enter.prevent="redirect"
+    @keydown.space.prevent="redirect"
+  >
+    <div class="notification-item__text">
+      <p class="notification-item__eyebrow">Confirmação</p>
+      <p class="notification-item__title">
+        {{ parsedData.message || "Presença confirmada" }}
+      </p>
+      <p v-if="parsedData.training?.name" class="notification-item__line">
+        {{ parsedData.training.name }}
+      </p>
+      <p v-if="formattedDate" class="notification-item__meta">{{ formattedDate }}</p>
+      <p v-if="actorLabel" class="notification-item__actor">{{ actorLabel }}</p>
+      <p v-if="formatCreatedAt" class="notification-item__received">
+        Recebida em {{ formatCreatedAt }}
+      </p>
+    </div>
+    <div
+      class="notification-item__badge notification-item__badge--success"
+      :title="actorLabel || ''"
+      aria-hidden="true"
+    >
+      <span v-if="userInitial" class="notification-item__initial">{{ userInitial }}</span>
+      <va-icon v-else name="how_to_reg" size="18px" color="#ffffff" />
+    </div>
+  </div>
 </template>
 
 <script>
-import ZUser from "~/components/molecules/Datatable/Slots/ZUser";
-
 export default {
   props: {
     notification: {
       type: Object,
       required: true,
     },
-  },
-  components: {
-    ZUser,
   },
   emits: ["readNotification"],
   computed: {
@@ -38,7 +47,7 @@ export default {
         return JSON.parse(this.notification.data);
       } catch (e) {
         console.error("Erro ao analisar os dados da notificação:", e);
-        return {}; // Retorna um objeto vazio em caso de erro
+        return {};
       }
     },
     formattedDate() {
@@ -53,10 +62,31 @@ export default {
       const minutes = date.getMinutes().toString().padStart(2, "0");
       return `${day}/${month}/${year} às ${hours}:${minutes}`;
     },
+    formatCreatedAt() {
+      if (!this.notification.createdAt) return "";
+      const d = new Date(this.notification.createdAt);
+      return d.toLocaleString("pt-BR", {
+        dateStyle: "medium",
+        timeStyle: "short",
+      });
+    },
+    actorLabel() {
+      const u = this.parsedData.userAction;
+      if (!u) return "";
+      return u.displayName || u.name || "";
+    },
+    userInitial() {
+      const label = this.actorLabel;
+      if (!label) return "";
+      return label.trim().charAt(0).toUpperCase();
+    },
   },
   methods: {
     redirect() {
-      this.$router.push(`/trainings/edit/${this.parsedData.training.id}`);
+      const id = this.parsedData.training?.id;
+      if (id != null) {
+        this.$router.push(`/trainings/edit/${id}`);
+      }
       this.$emit("readNotification", this.notification.id);
     },
   },
@@ -64,23 +94,91 @@ export default {
 </script>
 
 <style scoped>
-.notification-item-list {
-  display: inline-block; /* Ou block, conforme necessário */
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 200px; /* Ajuste conforme necessário */
-}
-
-.cursor-pointer {
+.notification-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 4px 14px 0;
   cursor: pointer;
-  transition: all 0.1s ease;
-  border-radius: 5px;
-  padding: 1rem;
+  border-radius: 8px;
+  outline: none;
 }
 
-.cursor-pointer:hover {
-  background-color: #eaeaea; /* Cor de fundo ao passar o mouse */
-  /* Outros estilos que deseja aplicar no hover podem ser adicionados aqui */
+.notification-item:focus-visible {
+  box-shadow: 0 0 0 2px #fdba74;
+}
+
+.notification-item__text {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-item__eyebrow {
+  margin: 0 0 2px 0;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #64748b;
+}
+
+.notification-item__title {
+  margin: 0 0 4px 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #ea580c;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.notification-item__line {
+  margin: 0 0 4px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.notification-item__meta {
+  margin: 0 0 4px 0;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.notification-item__actor {
+  margin: 0;
+  font-size: 12px;
+  color: #475569;
+}
+
+.notification-item__received {
+  margin: 6px 0 0 0;
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.notification-item__badge {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+}
+
+.notification-item__badge--success {
+  background: linear-gradient(145deg, #22c55e, #16a34a);
+  box-shadow: 0 2px 6px rgba(22, 163, 74, 0.35);
+}
+
+.notification-item__initial {
+  font-size: 15px;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
 }
 </style>

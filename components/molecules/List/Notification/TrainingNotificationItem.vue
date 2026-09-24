@@ -1,19 +1,27 @@
 <template>
-  <va-list-item class="cursor-pointer hover pb-3" @click="redirect()">
-    <va-list-item-section>
-      <va-list-item-label class="va-title">Treino</va-list-item-label>
-      <va-list-item-label>{{ parsedData.training.name }}</va-list-item-label>
-      <va-list-item-label caption class="data-hora-treino">
-        {{ formattedDate }}
-      </va-list-item-label>
-      <va-list-item-label caption class="notification-item-list">
+  <div
+    class="notification-item"
+    role="button"
+    tabindex="0"
+    @click="redirect"
+    @keydown.enter.prevent="redirect"
+    @keydown.space.prevent="redirect"
+  >
+    <div class="notification-item__text">
+      <p class="notification-item__eyebrow">Treino</p>
+      <p class="notification-item__title">{{ parsedData.training?.name || "Treino" }}</p>
+      <p v-if="formattedDate" class="notification-item__meta">{{ formattedDate }}</p>
+      <p v-if="parsedData.training?.description" class="notification-item__desc">
         {{ parsedData.training.description }}
-      </va-list-item-label>
-    </va-list-item-section>
-    <va-list-item-section icon>
-      <va-icon name="visibility" color="primary" />
-    </va-list-item-section>
-  </va-list-item>
+      </p>
+      <p v-if="formatCreatedAt" class="notification-item__received">
+        Recebida em {{ formatCreatedAt }}
+      </p>
+    </div>
+    <div class="notification-item__badge notification-item__badge--primary" aria-hidden="true">
+      <va-icon name="fitness_center" size="18px" color="#ffffff" />
+    </div>
+  </div>
 </template>
 
 <script>
@@ -31,7 +39,7 @@ export default {
         return JSON.parse(this.notification.data);
       } catch (e) {
         console.error("Erro ao analisar os dados da notificação:", e);
-        return {}; // Retorna um objeto vazio em caso de erro
+        return {};
       }
     },
     formattedDate() {
@@ -46,10 +54,21 @@ export default {
       const minutes = date.getMinutes().toString().padStart(2, "0");
       return `${day}/${month}/${year} às ${hours}:${minutes}`;
     },
+    formatCreatedAt() {
+      if (!this.notification.createdAt) return "";
+      const d = new Date(this.notification.createdAt);
+      return d.toLocaleString("pt-BR", {
+        dateStyle: "medium",
+        timeStyle: "short",
+      });
+    },
   },
   methods: {
     redirect() {
-      this.$router.push(`/trainings/edit/${this.parsedData.training.id}`);
+      const id = this.parsedData.training?.id;
+      if (id != null) {
+        this.$router.push(`/trainings/edit/${id}`);
+      }
       this.$emit("readNotification", this.notification.id);
     },
   },
@@ -57,22 +76,82 @@ export default {
 </script>
 
 <style scoped>
-.notification-item-list {
-  display: inline-block; /* Ou block, conforme necessário */
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 200px; /* Ajuste conforme necessário */
+.notification-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 4px 14px 0;
+  cursor: pointer;
+  border-radius: 8px;
+  outline: none;
 }
 
-.cursor-pointer {
-  cursor: pointer;
-  transition: all 0.1s ease;
-  border-radius: 5px;
-  padding: 1rem;
+.notification-item:focus-visible {
+  box-shadow: 0 0 0 2px #fdba74;
 }
-.cursor-pointer:hover {
-  background-color: #eaeaea; /* Cor de fundo ao passar o mouse */
-  /* Outros estilos que deseja aplicar no hover podem ser adicionados aqui */
+
+.notification-item__text {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-item__eyebrow {
+  margin: 0 0 2px 0;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #64748b;
+}
+
+.notification-item__title {
+  margin: 0 0 4px 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.notification-item__meta {
+  margin: 0 0 4px 0;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.notification-item__desc {
+  margin: 0;
+  font-size: 12px;
+  color: #475569;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.notification-item__received {
+  margin: 6px 0 0 0;
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.notification-item__badge {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+}
+
+.notification-item__badge--primary {
+  background: linear-gradient(145deg, #ff7a45, #ff4e1b);
+  box-shadow: 0 2px 6px rgba(255, 78, 27, 0.4);
 }
 </style>

@@ -141,7 +141,7 @@ export default {
 .progress-bar-percentage {
   font-size: 16px;
   font-weight: 700;
-  color: #e9742b;
+  color: #FF4E1B;
 }
 
 .progress-bar-percentage.success {

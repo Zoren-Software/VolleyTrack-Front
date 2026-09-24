@@ -38,16 +38,10 @@ export default {
     return {
       menuSettings: [
         {
-          title: "Configurações da Conta",
-          icon: "settings",
-          to: "/settings",
+          title: "Minha conta",
+          icon: "manage_accounts",
+          to: "/account",
           active: false,
-        },
-        {
-          title: "Configurações de Notificação",
-          icon: "notifications",
-          active: false,
-          to: "/settings/notifications",
         },
         {
           title: "Fechar Configurações",

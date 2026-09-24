@@ -6,6 +6,26 @@
       <p>Validando e-mail...</p>
     </div>
     <div v-else class="container">
+      <div
+        v-if="showVolleytrackRegionalDevBanner"
+        class="pricing-override-banner"
+        role="status"
+      >
+        <strong>Preço por região:</strong>
+        listagem como
+        <code>{{ effectivePricingIpCountry ?? "—" }}</code>
+        <template v-if="forcedBillingCountry">
+          · billing (env)
+          <code>{{ forcedBillingCountry }}</code>
+        </template>
+        <template
+          v-else-if="effectivePricingBillingCountry && !forcedBillingCountry"
+        >
+          · billing (IP ou padrão BR)
+          <code>{{ effectivePricingBillingCountry }}</code>
+        </template>
+        (valor cobrado no Stripe segue o cartão; use cartões de teste por país).
+      </div>
       <!-- Mensagem de Sucesso Discreta (Canto Inferior Esquerdo) -->
       <div
         v-if="emailValidation.validated && emailValidation.valid"
@@ -65,22 +85,43 @@
             </button>
           </div>
         </div>
-        <div v-else key="header-plans" class="page-header-modern">
+        <div
+          v-else
+          key="header-plans"
+          class="page-header-modern page-header-plans-step"
+        >
           <h1 class="main-title">Escolha o plano ideal para sua equipe</h1>
           <p class="main-subtitle">
             Compare os recursos e selecione o plano que melhor atende às suas
             necessidades
           </p>
-        </div>
-      </Transition>
-
-      <!-- Botão Voltar (apenas na etapa 2) -->
-      <Transition name="fade">
-        <div v-if="showPlansSelection" class="back-button-top">
-          <button @click="showPlansSelection = false" class="back-link-modern">
-            <span class="back-icon">←</span>
-            <span>Voltar para meu plano</span>
-          </button>
+          <div class="billing-period-toggle">
+            <div class="toggle-buttons">
+              <button
+                type="button"
+                class="toggle-btn"
+                :class="{
+                  active: selectedBilling === 'monthly',
+                }"
+                @click="selectedBilling = 'monthly'"
+              >
+                Mensal
+              </button>
+              <button
+                type="button"
+                class="toggle-btn"
+                :class="{
+                  active: selectedBilling === 'yearly',
+                }"
+                @click="selectedBilling = 'yearly'"
+              >
+                Anual
+                <span class="discount-badge"
+                  >-{{ getGeneralYearlyDiscount }}%</span
+                >
+              </button>
+            </div>
+          </div>
         </div>
       </Transition>
 
@@ -105,36 +146,6 @@
               <PaymentMethodCard :customer-id="activePlanData.customer_id" />
             </div>
           </template>
-        </div>
-      </Transition>
-
-      <!-- Seletor de Periodicidade (apenas na etapa 2) -->
-      <Transition name="slide-fade">
-        <div v-if="showPlansSelection" class="billing-toggle">
-          <span class="toggle-label">Planos:</span>
-          <div class="toggle-buttons">
-            <button
-              class="toggle-btn"
-              :class="{
-                active: selectedBilling === 'monthly',
-              }"
-              @click="selectedBilling = 'monthly'"
-            >
-              Mensal
-            </button>
-            <button
-              class="toggle-btn"
-              :class="{
-                active: selectedBilling === 'yearly',
-              }"
-              @click="selectedBilling = 'yearly'"
-            >
-              Anual
-              <span class="discount-badge"
-                >-{{ getGeneralYearlyDiscount }}%</span
-              >
-            </button>
-          </div>
         </div>
       </Transition>
 
@@ -241,18 +252,23 @@
         <div v-else>
           <p><strong>Usuário:</strong> Não logado</p>
         </div>
-        <div v-if="selectedPlan && selectedPlan.prices?.data?.[0]">
-          <p><strong>Price ID:</strong> {{ selectedPlan.prices.data[0].id }}</p>
+        <div v-if="selectedPlan && getPlanPrimaryPrice(selectedPlan)">
           <p>
-            <strong>Price Amount:</strong> R$ {{ getPlanPrice(selectedPlan) }}
+            <strong>Price ID:</strong>
+            {{ getPlanPrimaryPrice(selectedPlan).id }}
           </p>
           <p>
-            <strong>Price Type:</strong> {{ selectedPlan.prices.data[0].type }}
+            <strong>Price Amount:</strong>
+            {{ formatPlanMoney(selectedPlan) }}
           </p>
-          <p v-if="selectedPlan.prices.data[0].recurring">
+          <p>
+            <strong>Price Type:</strong>
+            {{ getPlanPrimaryPrice(selectedPlan).type }}
+          </p>
+          <p v-if="getPlanPrimaryPrice(selectedPlan).recurring">
             <strong>Recurring:</strong>
-            {{ selectedPlan.prices.data[0].recurring.interval_count }}
-            {{ selectedPlan.prices.data[0].recurring.interval }}
+            {{ getPlanPrimaryPrice(selectedPlan).recurring.interval_count }}
+            {{ getPlanPrimaryPrice(selectedPlan).recurring.interval }}
           </p>
         </div>
       </div>
@@ -279,131 +295,209 @@
                 'plan-lifetime': plan.metadata?.plan_type === 'lifetime',
                 'plan-active': isPlanActive(plan),
                 'plan-disabled': isPlanDisabled(plan),
+                'featured-pricing': isFeaturedPricingPlan(plan),
+                'plan-layout-standard': !isFeaturedPricingPlan(plan),
+                'plan-layout-featured': isFeaturedPricingPlan(plan),
               }"
               @click="!isPlanActive(plan) && selectPlan(plan)"
             >
-              <!-- Badges -->
-              <div class="plan-badges-container">
-                <!-- Badge Plano Ativo (esquerda) -->
-                <div v-if="isPlanActive(plan)" class="plan-badge-left">
-                  <span class="badge badge-active"> Plano Ativo </span>
+              <!-- Nome à esquerda, tag à direita (mesma linha) -->
+              <div class="plan-card-head">
+                <div class="plan-card-head__left">
+                  <div
+                    class="plan-head-icon-wrap"
+                    :class="{
+                      'plan-head-icon-wrap--featured':
+                        isFeaturedPricingPlan(plan),
+                    }"
+                  >
+                    <div class="plan-icon plan-icon--compact">
+                      <va-icon
+                        v-if="isFeaturedPricingPlan(plan)"
+                        name="star"
+                        size="40px"
+                        :color="getPlanHeadIconColor(plan)"
+                      />
+                      <va-icon
+                        v-else-if="plan.metadata?.plan_type === 'trial'"
+                        name="card_giftcard"
+                        size="36px"
+                        :color="getPlanHeadIconColor(plan)"
+                      />
+                      <va-icon
+                        v-else-if="plan.metadata?.plan_type === 'pro'"
+                        name="star"
+                        size="36px"
+                        :color="getPlanHeadIconColor(plan)"
+                      />
+                      <va-icon
+                        v-else-if="plan.metadata?.plan_type === 'clubes'"
+                        name="emoji_events"
+                        size="36px"
+                        :color="getPlanHeadIconColor(plan)"
+                      />
+                      <va-icon
+                        v-else-if="plan.metadata?.plan_type === 'lifetime'"
+                        name="all_inclusive"
+                        size="36px"
+                        :color="getPlanHeadIconColor(plan)"
+                      />
+                      <va-icon
+                        v-else
+                        name="workspace_premium"
+                        size="36px"
+                        :color="getPlanHeadIconColor(plan)"
+                      />
+                    </div>
+                  </div>
+                  <h3 class="plan-name plan-name--head">
+                    {{ getPlanDisplayName(plan) }}
+                  </h3>
                 </div>
-
-                <!-- Badges do tipo de plano (direita) -->
-                <div class="plan-badge-top">
-                  <span
-                    v-if="plan.metadata?.plan_type === 'trial'"
-                    class="badge badge-trial"
-                  >
-                    15 dias grátis
+                <div class="plan-card-head__badges">
+                  <span v-if="isPlanActive(plan)" class="badge badge-active">
+                    Plano Ativo
                   </span>
-                  <span
-                    v-else-if="plan.metadata?.plan_type === 'pro'"
-                    class="badge badge-pro"
-                  >
-                    Recomendado
-                  </span>
-                  <span
-                    v-else-if="plan.metadata?.plan_type === 'clubes'"
-                    class="badge badge-clubers"
-                  >
-                    Equipes Grandes
-                  </span>
-                  <span
-                    v-else-if="plan.metadata?.plan_type === 'lifetime'"
-                    class="badge badge-lifetime"
-                  >
-                    Oferta Vitalícia
-                  </span>
+                  <template v-else>
+                    <span
+                      v-if="plan.metadata?.plan_type === 'trial'"
+                      class="badge badge-trial"
+                    >
+                      15 dias grátis
+                    </span>
+                    <span
+                      v-else-if="plan.metadata?.plan_type === 'pro'"
+                      class="badge badge-pro"
+                    >
+                      Recomendado
+                    </span>
+                    <span
+                      v-else-if="plan.metadata?.plan_type === 'clubes'"
+                      class="badge badge-clubers"
+                    >
+                      Equipes Grandes
+                    </span>
+                    <span
+                      v-else-if="plan.metadata?.plan_type === 'lifetime'"
+                      class="badge badge-lifetime"
+                    >
+                      Oferta Vitalícia
+                    </span>
+                  </template>
                 </div>
               </div>
 
-              <!-- Ícone do Plano -->
-              <div class="plan-icon">
-                <va-icon
-                  v-if="plan.metadata?.plan_type === 'trial'"
-                  name="card_giftcard"
-                  size="48px"
-                  :color="getPlanColor(plan)"
-                />
-                <va-icon
-                  v-else-if="plan.metadata?.plan_type === 'pro'"
-                  name="star"
-                  size="48px"
-                  :color="getPlanColor(plan)"
-                />
-                <va-icon
-                  v-else-if="plan.metadata?.plan_type === 'clubes'"
-                  name="emoji_events"
-                  size="48px"
-                  :color="getPlanColor(plan)"
-                />
-                <va-icon
-                  v-else-if="plan.metadata?.plan_type === 'lifetime'"
-                  name="all_inclusive"
-                  size="48px"
-                  :color="getPlanColor(plan)"
-                />
-                <va-icon
-                  v-else
-                  name="workspace_premium"
-                  size="48px"
-                  :color="getPlanColor(plan)"
-                />
-              </div>
-
-              <!-- Nome do Plano -->
-              <h3 class="plan-name">{{ plan.name }}</h3>
-
-              <!-- Descrição do Plano (se disponível) -->
-              <div v-if="getPlanDescription(plan)" class="plan-description">
-                {{ getPlanDescription(plan) }}
-              </div>
-
-              <!-- Preço -->
-              <div class="plan-price-modern">
-                <span class="price-amount">R$ {{ getPlanPrice(plan) }}</span>
-                <span v-if="getPlanPeriod(plan)" class="price-period">{{
-                  getPlanPeriod(plan)
-                }}</span>
-                <span
-                  v-if="plan.metadata?.plan_type === 'lifetime'"
-                  class="price-lifetime"
-                >
-                  Pagamento único
-                </span>
-                <!-- Mostrar opção anual apenas para planos mensais -->
-                <span
-                  v-else-if="
-                    plan.metadata?.type === 'monthly' && getYearlyDiscount(plan)
-                  "
-                  class="price-yearly"
-                >
-                  ou R$ {{ getYearlyPrice(plan) }}/ano
-                </span>
-              </div>
-
-              <!-- Duração (para trial) -->
+              <!-- Destaque Pro: descrição → faixa de preço -->
               <div
-                v-if="plan.metadata?.plan_type === 'trial'"
-                class="plan-duration"
+                v-if="isFeaturedPricingPlan(plan)"
+                class="plan-card-hero plan-card-hero--featured"
               >
-                Duração: 15 dias
+                <div
+                  v-if="getPlanDescription(plan)"
+                  class="plan-description plan-description--featured"
+                >
+                  {{ getPlanDescription(plan) }}
+                </div>
+
+                <div class="plan-featured-price-wrap">
+                  <div class="plan-price-modern plan-price-modern--featured">
+                    <div class="plan-price-line">
+                      <span class="price-amount"
+                        >R$ {{ getPlanPrice(plan) }}</span
+                      >
+                      <template v-if="getPlanPeriod(plan)">
+                        <span class="price-sep" aria-hidden="true">|</span>
+                        <span class="price-period-label">{{
+                          formatPlanPeriodLabel(plan)
+                        }}</span>
+                      </template>
+                    </div>
+                    <span
+                      v-if="
+                        plan.metadata?.type === 'monthly' &&
+                        getYearlyDiscount(plan)
+                      "
+                      class="price-yearly"
+                    >
+                      ou R$ {{ getYearlyPrice(plan) }}/ano
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Demais planos: descrição → preço -->
+              <div v-else class="plan-card-hero plan-card-hero--standard">
+                <div v-if="getPlanDescription(plan)" class="plan-description">
+                  {{ getPlanDescription(plan) }}
+                </div>
+
+                <div class="plan-price-modern">
+                  <div class="plan-price-line">
+                    <span class="price-amount">{{
+                      formatPlanMoney(plan)
+                    }}</span>
+                    <template v-if="getPlanPeriod(plan)">
+                      <span class="price-sep" aria-hidden="true">|</span>
+                      <span class="price-period-label">{{
+                        formatPlanPeriodLabel(plan)
+                      }}</span>
+                    </template>
+                  </div>
+                  <span
+                    v-if="plan.metadata?.plan_type === 'lifetime'"
+                    class="price-lifetime"
+                  >
+                    Pagamento único
+                  </span>
+                  <span
+                    v-else-if="
+                      plan.metadata?.type === 'monthly' &&
+                      getYearlyDiscount(plan)
+                    "
+                    class="price-yearly"
+                  >
+                    ou {{ formatYearlyAlternateMoney(plan) }}/ano
+                  </span>
+                </div>
+
+                <div
+                  v-if="plan.metadata?.plan_type === 'trial'"
+                  class="plan-duration"
+                >
+                  Duração: 15 dias
+                </div>
               </div>
 
               <!-- Features -->
               <div class="plan-features-modern">
-                <div
-                  v-for="feature in getMainPlanFeatures(plan)"
-                  :key="feature"
-                  class="feature-item"
-                >
-                  <va-icon
-                    name="check_circle"
-                    size="20px"
-                    :color="getPlanColor(plan)"
-                  />
-                  <span>{{ feature }}</span>
+                <div class="plan-features-inner">
+                  <div
+                    v-for="feature in getMainPlanFeatures(plan)"
+                    :key="feature"
+                    class="feature-item"
+                  >
+                    <span
+                      class="feature-check-icon"
+                      :class="{
+                        'feature-check-icon--accent':
+                          !isPlanActive(plan) && !isPlanDisabled(plan),
+                      }"
+                    >
+                      <va-icon
+                        v-if="!isPlanActive(plan) && !isPlanDisabled(plan)"
+                        name="check"
+                        size="15px"
+                        :color="getPlanChecklistIconColor(plan)"
+                      />
+                      <va-icon
+                        v-else
+                        name="check_circle"
+                        size="20px"
+                        :color="getPlanChecklistIconColor(plan)"
+                      />
+                    </span>
+                    <span>{{ feature }}</span>
+                  </div>
                 </div>
               </div>
 
@@ -417,7 +511,7 @@
                   <va-icon
                     :name="note.icon"
                     size="16px"
-                    :color="getPlanColor(plan)"
+                    :color="getPlanFeatureIconColor(plan)"
                   />
                   <span>{{ note.text }}</span>
                 </div>
@@ -452,54 +546,83 @@
                 </div>
               </div>
 
-              <!-- Botão de Ação -->
-              <button
-                class="plan-button-modern"
-                :class="{
-                  'button-trial': plan.metadata?.plan_type === 'trial',
-                  'button-pro': plan.metadata?.plan_type === 'pro',
-                  'button-clubers': plan.metadata?.plan_type === 'clubes',
-                  'button-lifetime': plan.metadata?.plan_type === 'lifetime',
-                  'button-active': isPlanActive(plan),
-                  disabled: isPlanDisabled(plan),
-                }"
-                :disabled="isPlanDisabled(plan)"
-                @click.stop="handlePlanClick(plan)"
-              >
-                <va-icon
-                  v-if="isPlanActive(plan)"
-                  name="check_circle"
-                  size="18px"
-                />
-                <va-icon
-                  v-else-if="plan.metadata?.plan_type === 'pro'"
-                  name="bolt"
-                  size="18px"
-                />
-                <va-icon
-                  v-else-if="plan.metadata?.plan_type === 'clubes'"
-                  name="groups"
-                  size="18px"
-                />
-                <va-icon
-                  v-else-if="plan.metadata?.plan_type === 'lifetime'"
-                  name="diamond"
-                  size="18px"
-                />
-                <span v-if="isPlanActive(plan)">Plano Ativo</span>
-                <span v-else-if="plan.metadata?.plan_type === 'pro'"
-                  >Escolher Pro</span
+              <div class="plan-card-footer">
+                <button
+                  class="plan-button-modern plan-button-footer"
+                  :class="{
+                    'button-active': isPlanActive(plan),
+                    disabled: isPlanDisabled(plan),
+                  }"
+                  :disabled="isPlanDisabled(plan)"
+                  @click.stop="handlePlanClick(plan)"
                 >
-                <span v-else-if="plan.metadata?.plan_type === 'clubes'"
-                  >Escolher Clubers</span
-                >
-                <span v-else-if="plan.metadata?.plan_type === 'lifetime'"
-                  >Escolher Vitalícia</span
-                >
-                <span v-else>Escolher Plano</span>
-              </button>
+                  <va-icon
+                    v-if="isPlanActive(plan)"
+                    name="check_circle"
+                    size="18px"
+                    :color="getPlanButtonIconColor(plan)"
+                  />
+                  <va-icon
+                    v-else-if="plan.metadata?.plan_type === 'pro'"
+                    name="bolt"
+                    size="18px"
+                    :color="getPlanButtonIconColor(plan)"
+                  />
+                  <va-icon
+                    v-else-if="plan.metadata?.plan_type === 'clubes'"
+                    name="groups"
+                    size="18px"
+                    :color="getPlanButtonIconColor(plan)"
+                  />
+                  <va-icon
+                    v-else-if="plan.metadata?.plan_type === 'lifetime'"
+                    name="diamond"
+                    size="18px"
+                    :color="getPlanButtonIconColor(plan)"
+                  />
+                  <va-icon
+                    v-else-if="plan.metadata?.plan_type === 'trial'"
+                    name="card_giftcard"
+                    size="18px"
+                    :color="getPlanButtonIconColor(plan)"
+                  />
+                  <va-icon
+                    v-else
+                    name="bolt"
+                    size="18px"
+                    :color="getPlanButtonIconColor(plan)"
+                  />
+                  <span v-if="isPlanActive(plan)">Plano Ativo</span>
+                  <span v-else-if="plan.metadata?.plan_type === 'pro'"
+                    >Escolher Pro</span
+                  >
+                  <span v-else-if="plan.metadata?.plan_type === 'clubes'"
+                    >Escolher Clubers</span
+                  >
+                  <span v-else-if="plan.metadata?.plan_type === 'lifetime'"
+                    >Escolher Vitalícia</span
+                  >
+                  <span v-else>Escolher Plano</span>
+                </button>
+              </div>
             </div>
           </div>
+        </div>
+      </Transition>
+
+      <Transition name="slide-fade">
+        <div
+          v-if="showPlansSelection && !loading && plans.length > 0"
+          class="plans-back-row"
+        >
+          <button
+            type="button"
+            class="billing-edit-button plans-back-button"
+            @click="showPlansSelection = false"
+          >
+            <span class="billing-icon">←</span>
+            <span>Voltar para meu plano</span>
+          </button>
         </div>
       </Transition>
 
@@ -543,10 +666,10 @@
                           hasPurchasedLifetimePlan()
                         ? "💎 Plano Vitalício já comprado"
                         : canSwapPlan
-                          ? `🔄 Trocar para ${selectedPlan.name} - R$ ${getPlanPrice(
+                          ? `🔄 Trocar para ${selectedPlan.name} - ${formatPlanMoney(
                               selectedPlan,
                             )}${getPlanPeriod(selectedPlan)}`
-                          : `Assinar ${selectedPlan.name} - R$ ${getPlanPrice(
+                          : `Assinar ${selectedPlan.name} - ${formatPlanMoney(
                               selectedPlan,
                             )}${getPlanPeriod(selectedPlan)}`
             }}
@@ -602,7 +725,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick } from "vue";
+import { ref, computed, onMounted, nextTick, watch } from "vue";
 import { loadStripe } from "@stripe/stripe-js";
 import {
   createCheckoutSession,
@@ -618,6 +741,7 @@ import BillingFormModal from "~/components/BillingFormModal.vue";
 import PaymentMethodCard from "~/components/PaymentMethodCard.vue";
 import PlanLimitErrorModal from "~/components/PlanLimitErrorModal.vue";
 import { usePlanLimitError } from "~/composables/usePlanLimitError.js";
+import { useVolleytrackPricingTestOverride } from "~/composables/useVolleytrackPricingTestOverride.js";
 import { confirmSuccess, confirmError } from "~/utils/sweetAlert2/swalHelper";
 import { getApiBaseUrl } from "~/utils/apiBaseUrl";
 import { useQuery } from "@vue/apollo-composable";
@@ -628,6 +752,35 @@ const runtimeConfig = useRuntimeConfig();
 const stripeKey = runtimeConfig.public.stripePublishableKey;
 const route = useRoute();
 const router = useRouter();
+
+const {
+  forcedIpCountry,
+  forcedBillingCountry,
+  isPricingOverrideActive,
+  effectivePricingIpCountry,
+  effectivePricingBillingCountry,
+} = useVolleytrackPricingTestOverride();
+
+/** Banner “Preço por região” só no desenvolvimento (NODE_ENV / Nuxt dev / APP_ENV). */
+const showVolleytrackRegionalDevBanner = computed(() => {
+  if (!isPricingOverrideActive.value) {
+    return false;
+  }
+  if (import.meta.dev) {
+    return true;
+  }
+  if (
+    typeof process !== "undefined" &&
+    process.env?.NODE_ENV === "development"
+  ) {
+    return true;
+  }
+  const appEnv = String(runtimeConfig.public?.appEnv ?? "")
+    .trim()
+    .toLowerCase();
+
+  return appEnv === "development" || appEnv === "dev";
+});
 
 // Composable para usuário
 const { user, getUserInfo, getUserEmail } = useUser();
@@ -662,7 +815,7 @@ const refreshingPlans = ref(false);
 const lifetimeCounter = ref(null);
 
 const PLANS_CACHE_KEY = "subscription_plans_cache";
-const PLANS_CACHE_VERSION = "v2";
+const PLANS_CACHE_VERSION = "v4";
 const PLANS_CACHE_TTL_MS = 1000 * 60 * 60 * 4; // 4 horas
 const PLANS_REQUEST_TIMEOUT_MS = 15000; // 15 segundos
 
@@ -783,15 +936,48 @@ const lifetimePurchaseLabel = computed(() => {
 
 // Removido: Estado do modal de troca de planos (agora redirecionamos para rota específica)
 
-// API URL (baseada em API_ENDPOINT / NUXT_PUBLIC_API_ENDPOINT)
-const getProductsUrl = () => `${getApiBaseUrl()}/v1/products`;
+const getProductsIpCountry = () => effectivePricingIpCountry.value;
+
+const getPlansStorageKey = () =>
+  `${PLANS_CACHE_KEY}:${getProductsIpCountry() ?? "default"}`;
+
+// API: lista produtos; ip_country opcional alinha preço exibido com pricing_catalog (BR vs US).
+const getProductsUrl = () => {
+  const base = `${getApiBaseUrl()}/v1/products`;
+  const ip = getProductsIpCountry();
+  if (!ip) {
+    return base;
+  }
+  return `${base}?${new URLSearchParams({ ip_country: ip }).toString()}`;
+};
 
 // URLs de redirecionamento
 const successURL = `${window.location.origin}/payment/success`;
 const cancelURL = `${window.location.origin}/payment/cancel`;
 
-// Planos exibidos baseados na periodicidade selecionada
-const getPlanPrimaryPrice = (plan) => plan?.prices?.data?.[0] || null;
+// Preço “principal” para UI: alinha com a região (BR → BRL; demais → USD), não só data[0].
+const getPlanPrimaryPrice = (plan) => {
+  const rows = plan?.prices?.data;
+  if (!Array.isArray(rows) || rows.length === 0) {
+    return null;
+  }
+  const region = effectivePricingIpCountry.value;
+  const preferCurrency =
+    region === "BR" ? "brl" : region && region.length === 2 ? "usd" : null;
+
+  if (preferCurrency) {
+    const found = rows.find(
+      (p) =>
+        p &&
+        typeof p === "object" &&
+        String(p.currency || "").toLowerCase() === preferCurrency,
+    );
+    if (found) {
+      return found;
+    }
+  }
+  return rows[0] || null;
+};
 
 const isPlanRenderable = (plan) => {
   if (!plan || !plan.metadata?.plan_type) {
@@ -882,7 +1068,7 @@ const checkoutMode = computed(() => {
   if (!selectedPlan.value) return "subscription";
 
   // Verificar se o preço é recorrente ou único
-  const priceData = selectedPlan.value.prices?.data?.[0];
+  const priceData = getPlanPrimaryPrice(selectedPlan.value);
   if (!priceData) {
     console.log(
       "⚠️ Price data não encontrado, usando subscription como padrão",
@@ -1041,7 +1227,7 @@ const loadPlansFromCache = () => {
   }
 
   try {
-    const cached = localStorage.getItem(PLANS_CACHE_KEY);
+    const cached = localStorage.getItem(getPlansStorageKey());
     if (!cached) {
       return false;
     }
@@ -1055,7 +1241,7 @@ const loadPlansFromCache = () => {
       !parsed.timestamp ||
       Date.now() - parsed.timestamp > PLANS_CACHE_TTL_MS
     ) {
-      localStorage.removeItem(PLANS_CACHE_KEY);
+      localStorage.removeItem(getPlansStorageKey());
       return false;
     }
 
@@ -1064,7 +1250,7 @@ const loadPlansFromCache = () => {
     return true;
   } catch (cacheError) {
     console.warn("⚠️ Falha ao ler cache local de planos:", cacheError);
-    localStorage.removeItem(PLANS_CACHE_KEY);
+    localStorage.removeItem(getPlansStorageKey());
     return false;
   }
 };
@@ -1076,7 +1262,7 @@ const savePlansToCache = (planList) => {
 
   try {
     localStorage.setItem(
-      PLANS_CACHE_KEY,
+      getPlansStorageKey(),
       JSON.stringify({
         version: PLANS_CACHE_VERSION,
         timestamp: Date.now(),
@@ -1094,7 +1280,7 @@ const clearPlansCache = () => {
     return;
   }
 
-  localStorage.removeItem(PLANS_CACHE_KEY);
+  localStorage.removeItem(getPlansStorageKey());
   console.log("🧹 Cache de planos limpo manualmente");
 };
 
@@ -1192,6 +1378,47 @@ const getPlanPrice = (plan) => {
   return formatted ?? "—";
 };
 
+const currencyPrefixFromPlan = (plan) => {
+  const c = (getPlanPrimaryPrice(plan)?.currency || "brl").toLowerCase();
+  if (c === "brl") {
+    return "R$";
+  }
+  if (c === "usd") {
+    return "US$";
+  }
+  if (c === "eur") {
+    return "€";
+  }
+  return c.toUpperCase();
+};
+
+const formatPlanMoney = (plan) => {
+  const amt = getPlanPrice(plan);
+  if (amt === "—") {
+    return "—";
+  }
+  return `${currencyPrefixFromPlan(plan)} ${amt}`;
+};
+
+const formatYearlyAlternateMoney = (plan) => {
+  if (plan.metadata?.type !== "monthly") {
+    return "";
+  }
+  const yearlyPlan = plans.value.find(
+    (p) =>
+      p.metadata?.plan_type === plan.metadata?.plan_type &&
+      p.metadata?.type === "yearly",
+  );
+  if (yearlyPlan) {
+    return formatPlanMoney(yearlyPlan);
+  }
+  const v = getYearlyPrice(plan);
+  if (!v || v === "—") {
+    return "—";
+  }
+  return `${currencyPrefixFromPlan(plan)} ${v}`;
+};
+
 // Calcular desconto anual baseado nos preços reais
 const getYearlyDiscount = (plan) => {
   if (plan.metadata?.type !== "yearly") return null;
@@ -1263,11 +1490,56 @@ const getPlanPeriod = (plan) => {
 
 // Obter cor do plano baseado no tipo
 const getPlanColor = (plan) => {
-  if (plan.metadata?.plan_type === "trial") return "#e9742b"; // Laranja
-  if (plan.metadata?.plan_type === "pro") return "#3b82f6"; // Azul
+  if (plan.metadata?.plan_type === "trial") return "#FF4E1B"; // Laranja
+  if (plan.metadata?.plan_type === "pro") return "#FF4E1B"; // Laranja (identidade)
   if (plan.metadata?.plan_type === "clubes") return "#10b981"; // Verde
   if (plan.metadata?.plan_type === "lifetime") return "#2563eb"; // Azul vibrante (vôlei)
   return "#6b7280"; // Cinza padrão
+};
+
+/** Plano Pro em destaque (card sólido) quando ainda não é o plano ativo */
+const isFeaturedPricingPlan = (plan) =>
+  Boolean(plan?.metadata?.plan_type === "pro" && !isPlanActive(plan));
+
+const formatPlanPeriodLabel = (plan) => {
+  const p = getPlanPeriod(plan);
+  if (!p) return "";
+  return p.replace(/^\s*\//, "").trim();
+};
+
+/** Título exibido no card (sem periodicidade Stripe para Pro / Clubes) */
+const getPlanDisplayName = (plan) => {
+  const type = plan?.metadata?.plan_type;
+  if (type === "pro") return "Plano Pro";
+  if (type === "clubes") return "Plano Clubes";
+  return plan?.name ?? "";
+};
+
+const getPlanFeatureIconColor = (plan) => {
+  if (isPlanDisabled(plan)) return "#9ca3af";
+  if (isFeaturedPricingPlan(plan)) return "#ffffff";
+  if (isPlanActive(plan)) return getPlanColor(plan);
+  return getPlanColor(plan);
+};
+
+/** Ícone à esquerda do nome do plano (laranja quando não ativo) */
+const getPlanHeadIconColor = (plan) => {
+  if (isPlanDisabled(plan)) return "#9ca3af";
+  if (isPlanActive(plan)) return getPlanColor(plan);
+  return "#FF4E1B";
+};
+
+/** Checklist: inativo = check branco sobre círculo laranja (via CSS) */
+const getPlanChecklistIconColor = (plan) => {
+  if (isPlanDisabled(plan)) return "#9ca3af";
+  if (isPlanActive(plan)) return getPlanColor(plan);
+  return "#ffffff";
+};
+
+const getPlanButtonIconColor = (plan) => {
+  if (isPlanActive(plan)) return "#FF4E1B";
+  /* CTA laranja com texto branco: ícones em branco */
+  return "#ffffff";
 };
 
 // Obter features principais do plano
@@ -1525,7 +1797,7 @@ const isPlanActive = (plan) => {
   }
 
   const activePriceId = activePlanData.value.subscription.price_id;
-  const planPriceId = plan.prices?.data?.[0]?.id;
+  const planPriceId = getPlanPrimaryPrice(plan)?.id;
 
   const activeProduct = activePlanData.value.product || {};
   const activeProductId = activeProduct.stripe_id || activeProduct.id || null;
@@ -1720,10 +1992,11 @@ const isBetterPlan = (plan) => {
 
 // Obter valor do plano para comparação
 const getPlanValue = (plan) => {
-  if (!plan.prices?.data?.[0]?.unit_amount) {
+  const p = getPlanPrimaryPrice(plan);
+  if (!p || typeof p.unit_amount !== "number") {
     return 0;
   }
-  return plan.prices.data[0].unit_amount;
+  return p.unit_amount;
 };
 
 // Obter nível de animação baseado na diferença de valor
@@ -1919,9 +2192,9 @@ const handleSubscriptionAction = async () => {
     activePlanData.value?.subscription?.type === "one_time_payment";
 
   // Verificar se o plano selecionado é recorrente (subscription)
+  const selPrice = getPlanPrimaryPrice(selectedPlan.value);
   const selectedPlanIsRecurring =
-    selectedPlan.value?.prices?.data?.[0]?.recurring !== null &&
-    selectedPlan.value?.prices?.data?.[0]?.type !== "one_time";
+    Boolean(selPrice?.recurring) && selPrice?.type !== "one_time";
 
   console.log("🔍 isLifetimePlan:", isLifetimePlan);
   console.log("🔍 selectedPlanIsRecurring:", selectedPlanIsRecurring);
@@ -1978,7 +2251,7 @@ const handleSubscriptionAction = async () => {
 
     // Para outros casos (subscription ativa tentando comprar outra subscription),
     // redirecionar para swap
-    const priceId = selectedPlan.value.prices?.data?.[0]?.id;
+    const priceId = getPlanPrimaryPrice(selectedPlan.value)?.id;
     const customerId = activePlanData.value.customer_id;
     console.log("🔍 priceId encontrado:", priceId);
     console.log("🔍 customerId encontrado:", customerId);
@@ -2045,6 +2318,8 @@ const onBillingFormSubmit = async (payload) => {
   const tenantId = getTenantId();
   const result = await updateCustomerBilling({
     tenant_id: tenantId,
+    name: payload.name,
+    email: payload.email,
     federal_tax_number: payload.federal_tax_number,
     billing_address: payload.billing_address,
   });
@@ -2392,7 +2667,7 @@ const subscribeToPlan = async () => {
     }
 
     // Verificar se o plano tem preço válido
-    const priceId = selectedPlan.value.prices?.data?.[0]?.id;
+    const priceId = getPlanPrimaryPrice(selectedPlan.value)?.id;
     if (!priceId) {
       alert("Erro: Preço não encontrado para este plano. Tente novamente.");
       return;
@@ -2446,7 +2721,7 @@ const subscribeToPlan = async () => {
     stripeLoading.value = true;
 
     // Verificar compatibilidade do modo com o preço
-    const priceData = selectedPlan.value.prices?.data?.[0];
+    const priceData = getPlanPrimaryPrice(selectedPlan.value);
     const isRecurring = priceData?.recurring;
     const priceType = priceData?.type;
     const mode = checkoutMode.value;
@@ -2523,7 +2798,7 @@ const subscribeToPlan = async () => {
         );
         console.log("🔍 Dados do erro:", sessionResult.errorData);
 
-        const priceId = selectedPlan.value.prices?.data?.[0]?.id;
+        const priceId = getPlanPrimaryPrice(selectedPlan.value)?.id;
         if (priceId) {
           const swapUrl = `/payment/swap?price_id=${encodeURIComponent(
             priceId,
@@ -2664,6 +2939,23 @@ const loadLifetimeCounter = async () => {
   }
 };
 
+watch(
+  [() => route.query.ip_country, effectivePricingIpCountry],
+  async ([nextQuery, nextEffective], [prevQuery, prevEffective]) => {
+    if (
+      String(nextQuery ?? "") === String(prevQuery ?? "") &&
+      String(nextEffective ?? "") === String(prevEffective ?? "")
+    ) {
+      return;
+    }
+    if (!emailValidationReady.value) {
+      return;
+    }
+    clearPlansCache();
+    await loadPlans({ forceRefresh: true });
+  },
+);
+
 onMounted(async () => {
   try {
     console.log("🚀 Iniciando carregamento da página...");
@@ -2730,7 +3022,7 @@ onMounted(async () => {
 
 <style scoped>
 .subscription-plans-page {
-  background: #f9fafb;
+  width: 100%;
 }
 
 .page-loading-email-validation {
@@ -2746,7 +3038,7 @@ onMounted(async () => {
   width: 40px;
   height: 40px;
   border: 3px solid #e5e7eb;
-  border-top-color: #e9742b;
+  border-top-color: #ff4e1b;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -2760,9 +3052,25 @@ onMounted(async () => {
   max-width: 1400px;
   margin: 0 auto;
   width: 100%;
-  padding-left: 24px;
-  padding-right: 24px;
+  padding: 0 16px 40px;
   box-sizing: border-box;
+}
+
+.pricing-override-banner {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: #fff7ed;
+  border: 1px solid #fdba74;
+  color: #9a3412;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+.pricing-override-banner code {
+  background: #ffedd5;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.85em;
 }
 
 /* Header + botões na mesma linha (alinhado com o conteúdo abaixo) */
@@ -2811,17 +3119,31 @@ onMounted(async () => {
 }
 
 .page-header-modern .main-title {
-  font-size: 2rem;
+  font-size: 32px;
   font-weight: 700;
-  color: #e9742b;
-  margin-bottom: 8px;
-  margin-top: 0;
+  color: #0b1e3a;
+  margin: 0 0 8px 0;
+  line-height: 1.2;
 }
 
 .page-header-modern .main-subtitle {
-  font-size: 1rem;
+  font-size: 16px;
   color: #6b7280;
   margin: 0;
+  line-height: 1.5;
+}
+
+.page-header-plans-step {
+  margin-bottom: 28px;
+}
+
+/* Mensal / Anual: logo abaixo do subtítulo, sem card */
+.billing-period-toggle {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* Botão Ver Faturamentos + Editar dados de faturamento (dentro de .header-with-actions ou sozinho) */
@@ -2842,12 +3164,12 @@ onMounted(async () => {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  padding: 14px 24px;
+  padding: 12px 20px;
   background: white;
   color: #374151;
   border-radius: 10px;
   font-weight: 600;
-  font-size: 1rem;
+  font-size: 14px;
   transition: all 0.3s ease;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   border: 2px solid #e5e7eb;
@@ -2872,10 +3194,10 @@ onMounted(async () => {
   font-size: 1.25rem;
 }
 
-/* Botão Voltar */
-.back-button-top {
+.plans-back-row {
   display: flex;
-  justify-content: flex-start;
+  justify-content: center;
+  margin-top: 8px;
   margin-bottom: 20px;
   max-width: 1200px;
   margin-left: auto;
@@ -2884,33 +3206,11 @@ onMounted(async () => {
   box-sizing: border-box;
 }
 
-.back-link-modern {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 14px 24px;
-  background: white;
-  color: #374151;
-  text-decoration: none;
-  border-radius: 10px;
-  font-weight: 600;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  border: 2px solid #e5e7eb;
-  cursor: pointer;
-}
-
-.back-link-modern:hover {
-  background: #f9fafb;
+.plans-back-row .plans-back-button:hover:not(:disabled) {
   border-color: #d1d5db;
-  transform: translateX(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-}
-
-.back-link-modern .back-icon {
-  font-size: 1.25rem;
-  font-weight: 700;
+  color: #374151;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 /* Transições */
@@ -3255,47 +3555,22 @@ p {
   transform: translateY(-2px);
 }
 
-/* Toggle de Faturamento */
-.billing-toggle {
+.billing-period-toggle .toggle-buttons {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 32px;
-  max-width: 1200px;
-  margin-left: auto;
-  margin-right: auto;
-  padding: 16px 30px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.toggle-label {
-  color: #374151;
-  font-weight: 600;
-  font-size: 1rem;
-  flex-shrink: 0;
-  width: auto;
-}
-
-.toggle-buttons {
-  display: flex;
+  flex-wrap: wrap;
   background: transparent;
   border-radius: 8px;
   padding: 0;
   position: relative;
-  flex: 1;
   justify-content: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .toggle-btn {
   background: #f3f4f6;
   border: 2px solid #e5e7eb;
   color: #6b7280;
-  padding: 12px 24px;
+  padding: 12px 28px;
   border-radius: 8px;
   cursor: pointer;
   font-weight: 600;
@@ -3307,10 +3582,10 @@ p {
 }
 
 .toggle-btn.active {
-  background: white;
-  color: #667eea;
-  border-color: #667eea;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  background: #ff4e1b;
+  color: #ffffff;
+  border-color: #ff4e1b;
+  box-shadow: 0 4px 14px rgba(255, 78, 27, 0.35);
 }
 
 .toggle-btn:hover:not(.active) {
@@ -3319,17 +3594,24 @@ p {
   color: #374151;
 }
 
+.toggle-btn.active:hover {
+  background: #e04218;
+  border-color: #e04218;
+  color: #ffffff;
+}
+
 .toggle-btn.auto-selected {
-  background: linear-gradient(135deg, #10b981, #059669);
-  color: white;
-  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
-  border: 2px solid #10b981;
+  background: #f3f4f6;
+  color: #6b7280;
+  border: 2px solid #e5e7eb;
+  box-shadow: none;
 }
 
 .toggle-btn.auto-selected.active {
-  background: linear-gradient(135deg, #10b981, #059669);
-  color: white;
-  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+  background: #ff4e1b;
+  color: #ffffff;
+  border-color: #ff4e1b;
+  box-shadow: 0 4px 14px rgba(255, 78, 27, 0.35);
 }
 
 .auto-selected-badge {
@@ -3350,12 +3632,18 @@ p {
   position: absolute;
   top: -8px;
   right: -8px;
-  background: #f59e0b;
-  color: white;
+  background: #16a34a;
+  color: #ffffff;
   font-size: 0.7rem;
   padding: 4px 8px;
   border-radius: 12px;
   font-weight: 700;
+  box-shadow: 0 2px 6px rgba(22, 163, 74, 0.35);
+}
+
+.toggle-btn.active .discount-badge {
+  background: #16a34a;
+  color: #ffffff;
 }
 
 /* Loading State */
@@ -3517,11 +3805,11 @@ p {
   padding-right: 0;
 }
 
-/* Grid Horizontal de Planos */
+/* Grid Horizontal de Planos (referência: 3 colunas em desktop) */
 .plans-grid-modern {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
   margin-bottom: 32px;
   align-items: stretch;
   max-width: 100%;
@@ -3530,9 +3818,9 @@ p {
 /* Card de Plano Moderno */
 .plan-card-modern {
   background: white;
-  border-radius: 12px;
-  padding: 24px 30px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-radius: 14px;
+  padding: 22px 24px 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
   transition: all 0.3s ease;
   cursor: pointer;
   position: relative;
@@ -3544,8 +3832,8 @@ p {
 }
 
 .plan-card-modern:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
 }
 
 .plan-card-modern.selected {
@@ -3554,19 +3842,19 @@ p {
 }
 
 .plan-card-modern.plan-trial {
-  border-color: #e9742b;
+  border-color: #ff4e1b;
 }
 
 .plan-card-modern.plan-trial.selected {
-  box-shadow: 0 8px 24px rgba(233, 116, 43, 0.25);
+  box-shadow: 0 8px 24px rgba(255, 78, 27, 0.25);
 }
 
 .plan-card-modern.plan-pro {
-  border-color: #3b82f6;
+  border-color: #f97316;
 }
 
-.plan-card-modern.plan-pro.selected {
-  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.25);
+.plan-card-modern.plan-pro.selected:not(.featured-pricing) {
+  box-shadow: 0 8px 24px rgba(255, 78, 27, 0.28);
 }
 
 .plan-card-modern.plan-clubers {
@@ -3598,27 +3886,185 @@ p {
   box-shadow: 0 4px 16px rgba(16, 185, 129, 0.2);
 }
 
+.plan-card-modern.plan-active .plan-name {
+  color: #065f46 !important;
+}
+
+.plan-card-modern.plan-active .price-amount,
+.plan-card-modern.plan-active .price-period-label {
+  color: #047857 !important;
+}
+
+.plan-card-modern.plan-active .price-sep {
+  color: #86efac !important;
+}
+
+.plan-card-modern.plan-active .plan-description,
+.plan-card-modern.plan-active .price-lifetime,
+.plan-card-modern.plan-active .price-yearly,
+.plan-card-modern.plan-active .plan-duration {
+  color: #15803d !important;
+}
+
+.plan-card-modern.plan-active .feature-item {
+  color: #166534 !important;
+}
+
 .plan-card-modern.plan-disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
-/* Badge no topo direito */
-.plan-badges-container {
-  position: relative;
+/* Pro em destaque: fundo laranja, texto claro, CTA invertido */
+.plan-card-modern.featured-pricing {
+  background: linear-gradient(165deg, #ff6a3d 0%, #ff4e1b 42%, #e63f0f 100%);
+  border-color: #ff4e1b;
+  box-shadow: 0 12px 32px rgba(255, 78, 27, 0.35);
+}
+
+.plan-card-modern.featured-pricing:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 38px rgba(255, 78, 27, 0.42);
+}
+
+.plan-card-modern.featured-pricing.selected {
+  border-color: rgba(255, 255, 255, 0.95);
+  box-shadow:
+    0 16px 40px rgba(255, 78, 27, 0.45),
+    0 0 0 2px rgba(255, 255, 255, 0.9);
+}
+
+.plan-card-modern.featured-pricing .plan-name,
+.plan-card-modern.featured-pricing .price-amount {
+  color: #ffffff;
+}
+
+.plan-card-modern.featured-pricing .price-sep {
+  color: rgba(255, 255, 255, 0.55);
+  font-weight: 500;
+}
+
+.plan-card-modern.featured-pricing .price-period-label {
+  color: rgba(255, 255, 255, 0.92);
+  font-weight: 500;
+}
+
+.plan-card-modern.featured-pricing .price-lifetime,
+.plan-card-modern.featured-pricing .price-yearly,
+.plan-card-modern.featured-pricing .plan-duration,
+.plan-card-modern.featured-pricing .plan-description {
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.plan-card-modern.featured-pricing .plan-features-modern {
+  border-top-color: rgba(255, 255, 255, 0.28);
+}
+
+.plan-card-modern.featured-pricing .feature-item {
+  color: rgba(255, 255, 255, 0.96);
+}
+
+.plan-card-modern.featured-pricing .plan-special-notes {
+  border-top-color: rgba(255, 255, 255, 0.22);
+}
+
+.plan-card-modern.featured-pricing .special-note {
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.plan-card-modern.featured-pricing .badge-pro {
+  background: rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+  backdrop-filter: blur(6px);
+}
+
+/* Layout destaque Pro: título primeiro, faixa de preço em destaque */
+.plan-card-hero--featured {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.plan-card-modern.featured-pricing .plan-name--head {
+  font-size: 1.25rem;
+  letter-spacing: 0.02em;
+}
+
+.plan-description--featured {
+  margin-top: 0 !important;
+  margin-bottom: 6px !important;
+  color: rgba(255, 255, 255, 0.92) !important;
+  font-style: normal !important;
+  line-height: 1.45 !important;
+}
+
+.plan-featured-price-wrap {
+  margin: 4px 0 6px;
+  padding: 16px 18px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+}
+
+.plan-price-modern--featured {
+  margin-bottom: 0 !important;
+}
+
+.plan-price-modern--featured .plan-price-line {
+  align-items: baseline;
+}
+
+/* Demais planos: fundo branco, hierarquia título → texto → preço, detalhes laranja */
+.plan-card-modern.plan-layout-standard:not(.plan-active) {
+  background: #ffffff !important;
+  border-color: #fed7aa !important;
+}
+
+.plan-card-modern.plan-layout-standard:not(.plan-active) .plan-name,
+.plan-card-modern.plan-layout-standard:not(.plan-active) .price-amount {
+  color: #ea580c !important;
+}
+
+.plan-card-hero--standard .plan-price-modern {
+  margin-top: 6px;
+}
+
+/* Cabeçalho: ícone + nome à esquerda, tag à direita (mesma linha) */
+.plan-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   width: 100%;
-  min-height: 40px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
+  flex-shrink: 0;
 }
 
-.plan-badge-left {
-  position: absolute;
-  top: 16px;
-  left: 16px;
-  z-index: 10;
+.plan-card-head__left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
 }
 
-.plan-badge-left .badge {
+.plan-card-head__badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.plan-name--head {
+  margin: 0 !important;
+  min-width: 0;
+}
+
+.plan-card-head__badges .badge {
   display: inline-block;
   padding: 6px 12px;
   border-radius: 12px;
@@ -3627,89 +4073,152 @@ p {
   color: white;
 }
 
-.plan-badge-top {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  z-index: 10;
+.plan-card-head__badges .badge-trial {
+  background: #ff4e1b;
 }
 
-.plan-badge-top .badge {
-  display: inline-block;
-  padding: 6px 12px;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: white;
+.plan-card-head__badges .badge-pro {
+  background: #ff4e1b;
 }
 
-.plan-badge-top .badge-trial {
-  background: #e9742b;
+.plan-card-head__badges .badge-clubers {
+  background: #ff4e1b;
 }
 
-.plan-badge-top .badge-pro {
-  background: #3b82f6;
+.plan-card-head__badges .badge-lifetime {
+  background: linear-gradient(135deg, #ff6a3d 0%, #ff4e1b 100%);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(255, 78, 27, 0.35);
 }
 
-.plan-badge-top .badge-clubers {
-  background: #10b981;
-}
-
-.plan-badge-top .badge-lifetime {
-  background: #2563eb;
-}
-
-.plan-badge-left .badge-active,
-.plan-badge-top .badge-active {
+.plan-card-head__badges .badge-active {
   background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   color: white;
   font-weight: 700;
   box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
 }
 
+.plan-head-icon-wrap {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.plan-head-icon-wrap--featured {
+  border-radius: 50%;
+  padding: 6px;
+  background: rgba(255, 255, 255, 0.22);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+/* CTA fixo no rodapé do card */
+.plan-card-footer {
+  margin-top: auto;
+  padding-top: 18px;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.plan-card-modern.featured-pricing .plan-card-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.22);
+  padding-top: 20px;
+}
+
+.plan-card-modern:not(.featured-pricing) .plan-card-footer {
+  border-top: 1px solid #f3f4f6;
+}
+
+/* Cabeçalho do card: preço → título+ícone → texto → CTA */
+.plan-card-hero {
+  width: 100%;
+  text-align: left;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
 /* Ícone do Plano */
 .plan-icon {
   display: flex;
   justify-content: center;
-  margin: 16px 0 12px;
+  align-items: center;
+  margin: 8px 0 10px;
+}
+
+.plan-icon--compact {
+  margin: 0;
+  flex-shrink: 0;
 }
 
 /* Nome do Plano */
 .plan-name {
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   font-weight: 700;
   color: #1f2937;
-  text-align: center;
-  margin: 0 0 12px;
+  text-align: left;
+  margin: 0 0 8px;
+  line-height: 1.3;
 }
 
-.plan-description {
-  font-size: 0.9rem;
+.plan-card-modern.plan-trial .plan-name {
+  color: #ea580c;
+}
+
+.plan-card-modern.plan-clubers .plan-name {
+  color: #0f766e;
+}
+
+/* Escopo do card: evita conflito com seletores legados no fim desta folha. */
+.plan-card-modern .plan-description {
+  font-size: 0.875rem;
   color: #6b7280;
-  text-align: center;
-  margin: 0 0 16px;
+  text-align: left;
+  margin: 0 0 14px;
   line-height: 1.5;
   font-style: italic;
+  max-width: 100%;
 }
 
-/* Preço Moderno */
+/* Preço (linha tipo R$ X | mês) */
 .plan-price-modern {
-  text-align: center;
-  margin-bottom: 12px;
+  text-align: left;
+  margin-bottom: 0;
+}
+
+.plan-price-line {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 6px 10px;
 }
 
 .plan-price-modern .price-amount {
   font-size: 2rem;
   font-weight: 700;
   color: #1f2937;
-  display: block;
-  margin-bottom: 4px;
+  line-height: 1.1;
+}
+
+.plan-price-modern .price-sep {
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: #9ca3af;
+  line-height: 1;
+}
+
+.plan-price-modern .price-period-label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #4b5563;
 }
 
 .plan-price-modern .price-period {
   font-size: 1rem;
+  font-weight: 500;
   color: #6b7280;
-  display: block;
 }
 
 .plan-price-modern .price-lifetime,
@@ -3717,30 +4226,65 @@ p {
   font-size: 0.875rem;
   color: #6b7280;
   display: block;
-  margin-top: 4px;
+  margin-top: 8px;
 }
 
 /* Duração */
 .plan-duration {
-  text-align: center;
+  text-align: left;
   font-size: 0.875rem;
   color: #6b7280;
-  margin-bottom: 24px;
+  margin-top: 0;
+  margin-bottom: 0;
 }
 
-/* Features Modernas */
+/* Lista de benefícios abaixo do CTA */
 .plan-features-modern {
   flex-grow: 1;
+  margin-top: 20px;
   margin-bottom: 16px;
+  padding-top: 20px;
+  border-top: 1px solid #f3f4f6;
+  width: 100%;
+}
+
+.plan-features-inner {
+  max-width: 100%;
+  margin: 0;
+  text-align: left;
 }
 
 .plan-features-modern .feature-item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
-  padding: 6px 0;
+  padding: 5px 0;
   font-size: 0.875rem;
   color: #374151;
+  line-height: 1.35;
+}
+
+.plan-features-modern .feature-check-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.plan-features-modern .feature-check-icon--accent {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
+  border-radius: 50%;
+  background: #ff4e1b;
+  border: none;
+  box-shadow: none;
+}
+
+.plan-features-modern .feature-item .va-icon {
+  flex-shrink: 0;
 }
 
 /* Notas Especiais */
@@ -3766,7 +4310,9 @@ p {
 /* Disponibilidade Vitalícia */
 .lifetime-availability-modern {
   margin-bottom: 16px;
-  padding-top: 12px;
+  margin-top: 4px;
+  padding-top: 16px;
+  border-top: 1px solid #f3f4f6;
 }
 
 .lifetime-availability-modern .availability-progress {
@@ -3806,11 +4352,11 @@ p {
   color: #6b7280;
 }
 
-/* Botão Moderno */
+/* Botão tipo pill abaixo do título/descrição */
 .plan-button-modern {
   width: 100%;
-  padding: 10px 20px;
-  border-radius: 8px;
+  padding: 12px 22px;
+  border-radius: 9999px;
   font-size: 0.875rem;
   font-weight: 600;
   border: none;
@@ -3820,29 +4366,71 @@ p {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  margin-top: auto;
+  margin-top: 18px;
+}
+
+/* CTA no rodapé: inativo = laranja + texto branco; ativo = branco + texto laranja */
+.plan-button-modern.plan-button-footer {
+  margin-top: 0;
+}
+
+.plan-button-modern.plan-button-footer:not(.button-active):not(:disabled) {
+  background: #ff4e1b !important;
+  color: #fff !important;
+  border: 2px solid transparent;
+  box-shadow: 0 2px 10px rgba(255, 78, 27, 0.28);
+}
+
+.plan-button-modern.plan-button-footer:not(.button-active):not(
+    :disabled
+  ):hover {
+  background: #e04218 !important;
+  color: #fff !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(255, 78, 27, 0.35);
+}
+
+.plan-button-modern.plan-button-footer.button-active:not(:disabled) {
+  background: #fff !important;
+  color: #ff4e1b !important;
+  border: 2px solid #ff4e1b !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  cursor: default;
+}
+
+.plan-button-modern.plan-button-footer.button-active:not(:disabled):hover {
+  transform: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.plan-card-modern.featured-pricing
+  .plan-button-footer.button-active:not(:disabled) {
+  background: #fff !important;
+  color: #ff4e1b !important;
 }
 
 .plan-button-modern.button-trial {
-  background: #e9742b;
+  background: #ff4e1b;
   color: white;
 }
 
 .plan-button-modern.button-trial:hover {
   background: #d4631f;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(233, 116, 43, 0.3);
+  box-shadow: 0 4px 12px rgba(255, 78, 27, 0.3);
 }
 
 .plan-button-modern.button-pro {
-  background: #3b82f6;
-  color: white;
+  background: #ffffff;
+  color: #ff4e1b;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .plan-button-modern.button-pro:hover {
-  background: #2563eb;
+  background: #fff7f4;
+  color: #d63a12;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
 }
 
 .plan-button-modern.button-clubers {
@@ -3857,19 +4445,21 @@ p {
 }
 
 .plan-button-modern.button-lifetime {
-  background: #2563eb;
+  background: #ff4e1b;
   color: white;
+  box-shadow: 0 2px 8px rgba(255, 78, 27, 0.3);
 }
 
 .plan-button-modern.button-lifetime:hover {
-  background: #1d4ed8;
+  background: #e04218;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+  box-shadow: 0 4px 14px rgba(255, 78, 27, 0.38);
 }
 
 .plan-button-modern.button-active {
-  background: #10b981;
-  color: white;
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
   cursor: default;
 }
 
@@ -3889,9 +4479,18 @@ p {
 
 .plan-button-modern.button-active.disabled,
 .plan-button-modern.button-active:disabled {
-  background: #d1fae5 !important;
-  color: #065f46 !important;
-  border: 2px solid #10b981;
+  background: #f0fdf4 !important;
+  color: #059669 !important;
+  border: 1px solid #86efac !important;
+  opacity: 1;
+}
+
+.plan-button-modern.plan-button-footer.button-active:disabled,
+.plan-button-modern.plan-button-footer.button-active.disabled {
+  background: #f3f4f6 !important;
+  color: #9ca3af !important;
+  border: 1px solid #e5e7eb !important;
+  opacity: 0.85;
 }
 
 .plan-button-modern.disabled:hover {
@@ -4095,20 +4694,6 @@ p {
   color: #10b981;
   font-weight: 600;
   font-size: 0.9rem;
-}
-
-.plan-description {
-  text-align: center;
-  margin-bottom: 20px;
-  color: #666 !important;
-  font-size: 0.95rem;
-  line-height: 1.4;
-  flex-shrink: 0;
-}
-
-.plan-description p {
-  color: #666 !important;
-  margin: 0;
 }
 
 .plan-limits {
@@ -4469,12 +5054,6 @@ p {
   font-size: 1.5rem;
 }
 
-.plan-description {
-  color: #666;
-  margin-bottom: 15px;
-  font-size: 1.1rem;
-}
-
 .plan-billing-info {
   color: #667eea;
   margin-bottom: 25px;
@@ -4778,21 +5357,22 @@ p {
     grid-template-columns: repeat(2, 1fr);
     gap: 20px;
   }
+
+  .plans-grid-modern {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+  }
 }
 
 @media (max-width: 768px) {
-  .billing-toggle {
-    flex-direction: column;
-    gap: 15px;
-  }
-
-  .toggle-buttons {
+  .billing-period-toggle .toggle-buttons {
     width: 100%;
+    justify-content: stretch;
   }
 
-  .toggle-btn {
+  .billing-period-toggle .toggle-btn {
     flex: 1;
-    min-width: auto;
+    min-width: 0;
   }
 
   .auto-selected-badge {
@@ -4970,12 +5550,16 @@ p {
     font-size: 2rem;
   }
 
-  .plan-icon {
+  .plan-icon:not(.plan-icon--compact) {
     margin: 16px 0 12px;
   }
 
-  .plan-icon va-icon {
+  .plan-icon:not(.plan-icon--compact) va-icon {
     font-size: 36px !important;
+  }
+
+  .plan-card-head .plan-icon--compact va-icon {
+    font-size: 32px !important;
   }
 
   .plan-name {

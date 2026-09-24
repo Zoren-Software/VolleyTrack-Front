@@ -119,14 +119,14 @@ export default {
 
 .va-data-table__table-tbody tr:hover {
   background-color: #f8f9fa;
-  border-color: #e9742b;
-  box-shadow: 0 4px 12px rgba(233, 116, 43, 0.15);
+  border-color: #FF4E1B;
+  box-shadow: 0 4px 12px rgba(255, 78, 27, 0.15);
   transform: translateY(-1px);
 }
 
 .va-data-table__table-tbody tr:active {
   transform: translateY(0);
-  box-shadow: 0 2px 6px rgba(233, 116, 43, 0.1);
+  box-shadow: 0 2px 6px rgba(255, 78, 27, 0.1);
 }
 
 .va-data-table__table-tbody td {
@@ -156,13 +156,13 @@ export default {
 /* Efeito para linhas selecionadas */
 .va-data-table__table-tbody tr.va-data-table__table-tr--selected {
   background-color: #fff4ec;
-  border-color: #e9742b;
-  box-shadow: 0 2px 8px rgba(233, 116, 43, 0.2);
+  border-color: #FF4E1B;
+  box-shadow: 0 2px 8px rgba(255, 78, 27, 0.2);
 }
 
 .va-data-table__table-tbody tr.va-data-table__table-tr--selected:hover {
   background-color: #ffe8d6;
-  box-shadow: 0 4px 12px rgba(233, 116, 43, 0.25);
+  box-shadow: 0 4px 12px rgba(255, 78, 27, 0.25);
 }
 
 /* Estilização do checkbox */

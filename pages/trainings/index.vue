@@ -9,17 +9,9 @@
         </div>
         <div class="header-buttons">
           <va-button
-            color="#6B7280"
-            class="bulk-create-button"
-            @click="showBulkCreateModal = true"
-          >
-            <va-icon name="event_repeat" class="button-icon" />
-            <span class="button-text">Cadastrar Treinos Futuros</span>
-          </va-button>
-          <va-button
-            color="#E9742B"
+            color="#FF4E1B"
             class="new-item-button"
-            @click="addTraining"
+            @click="showCreateChoiceModal = true"
           >
             <va-icon name="add" class="button-icon" />
             <span class="button-text">Novo Treino</span>
@@ -31,39 +23,34 @@
     <!-- Datatable Component -->
     <ZDatatablesTraining />
 
-    <!-- Modal de Cadastro em Massa -->
-    <ZTrainingBulkCreateModal
-      v-model="showBulkCreateModal"
-      @success="handleBulkCreateSuccess"
+    <ZTrainingCreateChoiceModal
+      v-model="showCreateChoiceModal"
+      @select-single="goToCreateTraining"
+      @select-scheduled="goToCreateScheduled"
     />
   </div>
 </template>
 
 <script>
 import ZDatatablesTraining from "~/components/organisms/Datatables/Trainings/ZDatatablesTrainings.vue";
-import ZTrainingBulkCreateModal from "~/components/molecules/Modal/ZTrainingBulkCreateModal.vue";
+import ZTrainingCreateChoiceModal from "~/components/molecules/Modal/ZTrainingCreateChoiceModal.vue";
 
 export default {
   components: {
     ZDatatablesTraining,
-    ZTrainingBulkCreateModal,
+    ZTrainingCreateChoiceModal,
   },
   data() {
     return {
-      showBulkCreateModal: false,
+      showCreateChoiceModal: false,
     };
   },
   methods: {
-    addTraining() {
+    goToCreateTraining() {
       this.$router.push("/trainings/create");
     },
-    handleBulkCreateSuccess() {
-      // Recarregar a listagem de treinos
-      this.$nextTick(() => {
-        // O componente ZDatatablesTraining deve recarregar automaticamente
-        // ou podemos emitir um evento se necessário
-        window.location.reload();
-      });
+    goToCreateScheduled() {
+      this.$router.push("/trainings/create-scheduled");
     },
   },
 };
@@ -99,33 +86,6 @@ useHead({
   align-items: center;
 }
 
-.bulk-create-button {
-  border-radius: 8px;
-  padding: 12px 24px;
-  font-weight: 500;
-  white-space: nowrap;
-  background-color: #6b7280 !important;
-  color: white !important;
-  box-shadow: 0 2px 8px rgba(107, 114, 128, 0.3);
-  border: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: all 0.2s ease;
-}
-
-.bulk-create-button:hover {
-  background-color: #4b5563 !important;
-  box-shadow: 0 4px 12px rgba(107, 114, 128, 0.4);
-  transform: translateY(-1px);
-}
-
-.bulk-create-button:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 6px rgba(107, 114, 128, 0.3);
-}
-
 .page-title {
   font-size: 32px;
   font-weight: 700;
@@ -146,9 +106,9 @@ useHead({
   padding: 12px 24px;
   font-weight: 500;
   white-space: nowrap;
-  background-color: #e9742b !important;
+  background-color: #FF4E1B !important;
   color: white !important;
-  box-shadow: 0 2px 8px rgba(233, 116, 43, 0.3);
+  box-shadow: 0 2px 8px rgba(255, 78, 27, 0.3);
   border: none;
   display: inline-flex;
   align-items: center;
@@ -159,13 +119,13 @@ useHead({
 
 .new-item-button:hover {
   background-color: #d6652a !important;
-  box-shadow: 0 4px 12px rgba(233, 116, 43, 0.4);
+  box-shadow: 0 4px 12px rgba(255, 78, 27, 0.4);
   transform: translateY(-1px);
 }
 
 .new-item-button:active {
   transform: translateY(0);
-  box-shadow: 0 2px 6px rgba(233, 116, 43, 0.3);
+  box-shadow: 0 2px 6px rgba(255, 78, 27, 0.3);
 }
 
 .button-icon {
@@ -190,8 +150,7 @@ useHead({
     flex-direction: column;
   }
 
-  .new-item-button,
-  .bulk-create-button {
+  .new-item-button {
     width: 100%;
   }
 }

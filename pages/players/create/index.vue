@@ -1,12 +1,14 @@
 <template>
-  <ZUserForm
-    @save="create"
-    :loading="loading"
-    :errorFields="errorFields"
-    :errors="errors"
-    header-title="Cadastro de Jogador"
-    header-subtitle="Crie um novo jogador para sua equipe"
-  />
+    <ZUserForm
+      use-wizard
+      hide-password-fields
+      @save="create"
+      :loading="loading"
+      :errorFields="errorFields"
+      :errors="errors"
+      header-title="Cadastro de Jogador"
+      header-subtitle="Crie um novo jogador para sua equipe"
+    />
 </template>
 
 <script>
@@ -129,6 +131,9 @@ export default {
 </script>
 
 <script setup>
+definePageMeta({
+  middleware: ['player-permission'],
+})
 useHead({
   titleTemplate: "Criar Jogador",
 });

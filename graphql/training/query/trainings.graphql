@@ -21,6 +21,7 @@ query trainings(
     data {
       id
       name
+      importedAt
       userId
       user {
         id
@@ -55,12 +56,26 @@ query trainings(
       }
       status
       displayStatus
+      confirmationsTraining {
+        playerId
+        status
+      }
       dateStart
       dateEnd
       description
       isBulkCreated
       createdAt
       updatedAt
+      scoutFundamentalsTraining {
+        id
+        feedback
+        updatedAt
+        player {
+          id
+          name
+          displayName
+        }
+      }
     }
   }
 }

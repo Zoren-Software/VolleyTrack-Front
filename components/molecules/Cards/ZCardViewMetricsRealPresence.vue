@@ -4,20 +4,14 @@
       <h3 class="metrics-card-title">{{ title }}</h3>
     </div>
     <div class="metrics-card-content">
-      <div class="metrics-row">
-        <div class="metrics-item">
-          <span class="metrics-label">Presentes:</span>
-          <span class="metrics-value">{{ data.presence }}</span>
-          <span class="metrics-percentage success"
-            >{{ formatPercentage(data.presencePercentage) }}%</span
-          >
+      <div class="metrics-columns">
+        <div class="metric-column">
+          <span class="column-label">Presentes</span>
+          <span class="column-value">{{ data.presence }}</span>
         </div>
-        <div class="metrics-item">
-          <span class="metrics-label">Ausentes:</span>
-          <span class="metrics-value">{{ data.absence }}</span>
-          <span class="metrics-percentage danger"
-            >{{ formatPercentage(data.absencePercentage) }}%</span
-          >
+        <div class="metric-column">
+          <span class="column-label">Ausentes</span>
+          <span class="column-value">{{ data.absence }}</span>
         </div>
       </div>
     </div>
@@ -76,14 +70,6 @@ export default {
       default: () => ({}),
     },
   },
-  methods: {
-    formatPercentage(value) {
-      if (value == null || value === undefined || isNaN(value)) {
-        return "0.00";
-      }
-      return Number(value).toFixed(2);
-    },
-  },
 };
 </script>
 
@@ -114,60 +100,55 @@ export default {
   padding: 20px;
 }
 
-.metrics-row {
+.metrics-columns {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.metric-column {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-}
-
-.metrics-item {
-  display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 12px;
+  text-align: center;
+  padding: 14px 10px;
   background: #f8f9fa;
   border-radius: 8px;
-  gap: 12px;
+  gap: 8px;
 }
 
-.metrics-label {
-  font-size: 14px;
+.column-label {
+  font-size: 13px;
   color: #6c757d;
-  font-weight: 500;
-  flex: 1;
+  font-weight: 600;
+  line-height: 1.2;
 }
 
-.metrics-value {
-  font-size: 16px;
+.column-value {
+  font-size: 22px;
   font-weight: 700;
   color: #0b1e3a;
-  min-width: 40px;
-  text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 
-.metrics-percentage {
-  font-size: 14px;
-  font-weight: 600;
-  min-width: 50px;
-  text-align: right;
-}
-
-.metrics-percentage.success {
-  color: #28a745;
-}
-
-.metrics-percentage.danger {
-  color: #dc3545;
-}
-
-@media (max-width: 768px) {
-  .metrics-item {
-    flex-wrap: wrap;
+@media (max-width: 520px) {
+  .metrics-columns {
+    flex-direction: column;
   }
 
-  .metrics-value,
-  .metrics-percentage {
-    min-width: auto;
+  .metric-column {
+    flex-direction: row;
+    justify-content: space-between;
+    text-align: left;
+    align-items: center;
+  }
+
+  .column-label {
+    text-align: left;
   }
 }
 </style>

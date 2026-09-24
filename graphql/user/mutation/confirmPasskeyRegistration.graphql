@@ -1,0 +1,22 @@
+mutation confirmPasskeyRegistration(
+  $registrationId: String!
+  $name: String!
+  $credentialJson: String!
+) {
+  confirmPasskeyRegistration(
+    input: {
+      registrationId: $registrationId
+      name: $name
+      credentialJson: $credentialJson
+    }
+  ) {
+    id
+    name
+    authenticator
+    twoFactorEnabled
+    methods
+    totpEnabled
+    passkeyEnabled
+    recoveryCodesRemaining
+  }
+}

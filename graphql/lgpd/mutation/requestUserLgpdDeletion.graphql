@@ -1,0 +1,12 @@
+mutation requestUserLgpdDeletion(
+  $password: String!
+  $sendDataExportBeforeDeletion: Boolean
+) {
+  requestUserLgpdDeletion(
+    password: $password
+    sendDataExportBeforeDeletion: $sendDataExportBeforeDeletion
+  ) {
+    success
+    message
+  }
+}

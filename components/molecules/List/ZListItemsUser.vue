@@ -23,7 +23,7 @@ export default {
     return {
       actionsUser: [
         { title: "Minha conta", action: "account", active: false },
-        { title: "Logout", action: "logout", active: false },
+        { title: "Sair", action: "logout", active: false },
       ],
       value: true,
     };
@@ -43,11 +43,15 @@ export default {
       onLogout();
       localStorage.removeItem("user");
       localStorage.removeItem("userToken");
+      useTermsAcceptance().reset();
       this.$router.push("/login");
     },
 
     isSelected(action) {
-      if (this.$route.path === "/account") {
+      if (
+        this.$route.path === "/account" ||
+        this.$route.path.startsWith("/account/")
+      ) {
         return action === "account";
       }
     },

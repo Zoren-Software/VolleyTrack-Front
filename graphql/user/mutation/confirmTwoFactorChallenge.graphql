@@ -1,0 +1,8 @@
+mutation confirmTwoFactorChallenge($challengeToken: String!, $code: String!) {
+  confirmTwoFactorChallenge(
+    input: { challengeToken: $challengeToken, code: $code }
+  ) {
+    token
+    twoFactorRequired
+  }
+}

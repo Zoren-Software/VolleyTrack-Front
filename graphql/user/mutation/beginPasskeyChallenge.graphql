@@ -1,0 +1,6 @@
+mutation beginPasskeyChallenge($challengeToken: String!) {
+  beginPasskeyChallenge(input: { challengeToken: $challengeToken }) {
+    optionsJson
+    assertionId
+  }
+}

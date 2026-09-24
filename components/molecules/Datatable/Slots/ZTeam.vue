@@ -11,6 +11,7 @@
         <span class="team-name"
           ><b>{{ data.name }}</b></span
         >
+        <ZLgpdImportBadge :imported-at="data.importedAt" />
       </div>
       <template v-if="showCategoryAndLevel">
         <div v-if="data.teamCategory" class="info-item">
@@ -42,7 +43,12 @@
 </template>
 
 <script>
+import ZLgpdImportBadge from "~/components/atoms/Badges/ZLgpdImportBadge.vue";
+
 export default {
+  components: {
+    ZLgpdImportBadge,
+  },
   props: {
     data: {
       type: Object,
@@ -102,6 +108,10 @@ export default {
 }
 
 .team-name-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
   margin-bottom: 2px;
 }
 

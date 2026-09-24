@@ -1,0 +1,9 @@
+mutation deletePasskey($id: ID!, $password: String!) {
+  deletePasskey(input: { id: $id, password: $password }) {
+    twoFactorEnabled
+    methods
+    totpEnabled
+    passkeyEnabled
+    recoveryCodesRemaining
+  }
+}

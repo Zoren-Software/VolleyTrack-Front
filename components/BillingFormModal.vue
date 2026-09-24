@@ -41,6 +41,29 @@
         />
       </div>
 
+      <VaInput
+        v-model="form.name"
+        :label="form.tipo === 'pj' ? 'Razão social' : 'Nome completo'"
+        class="form-field"
+        :rules="[validators.required]"
+      />
+
+      <VaInput
+        v-model="form.email"
+        label="E-mail"
+        type="email"
+        class="form-field"
+        :rules="emailRules"
+      />
+
+      <VaInput
+        model-value="Brasil"
+        label="País"
+        class="form-field"
+        readonly
+        disabled
+      />
+
       <div class="form-row single">
         <VaInput
           v-model="form.cep"
@@ -98,9 +121,21 @@
           label="UF"
           placeholder="UF"
           class="form-field state-field"
-          :rules="[validators.required]"
+          :rules="stateRules"
           maxlength="2"
         />
+      </div>
+
+      <div>
+        <VaInput
+          v-model="form.cityCode"
+          label="Código IBGE"
+          placeholder="7 dígitos"
+          class="form-field"
+          :rules="ibgeRules"
+          maxlength="7"
+        />
+        <p class="field-hint">Preenchido pela consulta do CEP. Confira se a cidade estiver correta.</p>
       </div>
 
       <div v-if="submitError" class="submit-error">
@@ -148,6 +183,8 @@ const tipoOptions = [
 
 const form = ref({
   tipo: 'pf',
+  name: '',
+  email: '',
   federal_tax_number: '',
   cep: '',
   street: '',
@@ -205,6 +242,21 @@ function isValidCNPJ(value) {
   if (digit2 !== parseInt(digits[13], 10)) return false;
   return true;
 }
+
+const emailRules = [
+  validators.required,
+  (v) => (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v || '').trim()) ? true : 'E-mail inválido'),
+];
+
+const stateRules = [
+  validators.required,
+  (v) => (/^[A-Za-z]{2}$/.test(String(v || '').trim()) ? true : 'UF deve ter 2 letras'),
+];
+
+const ibgeRules = [
+  validators.required,
+  (v) => (/^\d{7}$/.test(String(v || '').trim()) ? true : 'Código IBGE deve ter 7 dígitos'),
+];
 
 const taxNumberRules = computed(() => {
   const isPJ = form.value.tipo === 'pj';
@@ -274,9 +326,11 @@ function cancel() {
 
 function buildPayload() {
   const raw = form.value.federal_tax_number.replace(/\D/g, '');
-  const cityCode = form.value.cityCode || '3550308';
+  const cityCode = String(form.value.cityCode || '').replace(/\D/g, '').slice(0, 7);
   const postalCode = (form.value.postal_code || form.value.cep || '').replace(/\D/g, '');
   return {
+    name: form.value.name.trim(),
+    email: form.value.email.trim(),
     federal_tax_number: raw,
     billing_address: {
       street: form.value.street?.trim() || '',
@@ -305,6 +359,15 @@ async function onSubmit() {
     submitError.value = form.value.tipo === 'pj' ? 'Informe um CNPJ válido (14 dígitos).' : 'Informe um CPF válido (11 dígitos).';
     return;
   }
+  const postalCode = (form.value.postal_code || form.value.cep || '').replace(/\D/g, '');
+  if (postalCode.length !== 8) {
+    submitError.value = 'Informe um CEP com 8 dígitos.';
+    return;
+  }
+  if (!/^\d{7}$/.test(String(form.value.cityCode || '').trim())) {
+    submitError.value = 'Informe o código IBGE da cidade (7 dígitos). A consulta do CEP preenche esse campo.';
+    return;
+  }
   saving.value = true;
   try {
     const payload = buildPayload();
@@ -322,6 +385,8 @@ function applyInitialData(data) {
   const postal = (addr.postal_code || '').replace(/\D/g, '');
   form.value = {
     tipo: tax.length === 14 ? 'pj' : 'pf',
+    name: data.name || '',
+    email: data.email || '',
     federal_tax_number: tax,
     cep: postal.length >= 8 ? postal.replace(/(\d{5})(\d{3})/, '$1-$2') : '',
     street: addr.street || '',
@@ -339,11 +404,13 @@ function applyInitialData(data) {
 watch(isOpen, (open) => {
   if (open) {
     addressFetchedFromCep.value = false;
-    if (props.initialData && (props.initialData.federal_tax_number || props.initialData.billing_address)) {
+    if (props.initialData && (props.initialData.federal_tax_number || props.initialData.billing_address || props.initialData.name || props.initialData.email)) {
       applyInitialData(props.initialData);
     } else {
       form.value = {
         tipo: 'pf',
+        name: '',
+        email: '',
         federal_tax_number: '',
         cep: '',
         street: '',
@@ -425,6 +492,11 @@ watch(isOpen, (open) => {
 }
 @keyframes cep-spin {
   to { transform: rotate(360deg); }
+}
+.field-hint {
+  margin: 0.35rem 0 0;
+  color: #6b7280;
+  font-size: 0.8125rem;
 }
 .submit-error {
   color: #dc2626;

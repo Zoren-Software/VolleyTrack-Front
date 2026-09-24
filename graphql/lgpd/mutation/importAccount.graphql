@@ -1,0 +1,8 @@
+mutation importAccount($password: String!, $package: String!) {
+  importAccount(password: $password, package: $package) {
+    success
+    message
+    warnings
+    importedSections
+  }
+}

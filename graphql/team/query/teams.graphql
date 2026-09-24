@@ -17,6 +17,7 @@ query teams($filter: TeamSearchInput, $first: Int, $page: Int) {
     data {
       id
       name
+      importedAt
       userId
       teamCategoryId
       teamLevelId

@@ -6,6 +6,7 @@
       :id="id + '-password'"
       :type="isPasswordVisible ? 'text' : 'password'"
       :label="passwordLabel"
+      :placeholder="placeholder"
       :rules="passwordRules"
       @input="validatePassword"
       :error-messages="normalizedErrorMessages"
@@ -38,6 +39,10 @@ export default {
     passwordLabel: {
       type: String,
       default: "Senha",
+    },
+    placeholder: {
+      type: String,
+      default: "",
     },
     passwordMessages: {
       type: Array,

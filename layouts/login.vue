@@ -12,6 +12,10 @@
           </div>
         </div>
       </div>
+      <div class="login-footer">
+        <ZLegalLinks variant="light" />
+        <span class="login-version">v{{ appVersion }}</span>
+      </div>
     </div>
     <div class="flex flex-col md6 vuestic-hide-on-xs">
       <va-carousel
@@ -28,9 +32,16 @@
 </template>
 
 <script>
+import { version as appVersion } from "~/package.json";
+import ZLegalLinks from "~/components/organisms/Footer/ZLegalLinks.vue";
+
 export default {
+  components: {
+    ZLegalLinks,
+  },
   data() {
     return {
+      appVersion,
       items: [
         "/images/balls/ball-1.jpg",
         "/images/balls/ball-2.jpg",
@@ -54,5 +65,24 @@ export default {
 
 .custom-width {
   min-width: 54rem !important;
+}
+
+.login-footer {
+  position: absolute;
+  bottom: 16px;
+  left: 0;
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+}
+
+.login-version {
+  font-size: 11px;
+  color: rgba(0, 0, 0, 0.25);
+  user-select: none;
+  pointer-events: none;
 }
 </style>

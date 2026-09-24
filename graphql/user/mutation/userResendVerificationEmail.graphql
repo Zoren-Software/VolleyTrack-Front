@@ -1,0 +1,8 @@
+mutation userResendVerificationEmail($id: ID!) {
+  userResendVerificationEmail(id: $id) {
+    id
+    name
+    email
+    emailVerifiedAt
+  }
+}

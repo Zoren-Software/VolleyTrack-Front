@@ -9,27 +9,32 @@ function convertDate(dateString) {
 }
 
 export function transformTrainingData(training) {
-  let teams = []
+  let teams = [];
 
-  if(training.teams) {
-    teams = [{
-      id: training.team.id, 
-      team: training.team.name
-    }]
+  if (training.team) {
+    teams = [
+      {
+        id: training.team.id,
+        team: training.team.name,
+      },
+    ];
   }
+
+  const fundamentals = training.fundamentals || [];
+  const specificFundamentals = training.specificFundamentals || [];
 
   return {
     ...training,
     dateValue: convertDate(training.dateStart),
     timeStartValue: convertDate(training.dateStart),
     timeEndValue: convertDate(training.dateEnd),
-    fundamentals: training.fundamentals.map((fundamental) => {
+    fundamentals: fundamentals.map((fundamental) => {
       return {
         id: Number(fundamental.id),
         fundamental: fundamental.name,
       };
     }),
-    specificFundamentals: training.specificFundamentals.map((specificFundamental) => {
+    specificFundamentals: specificFundamentals.map((specificFundamental) => {
       return {
         id: Number(specificFundamental.id),
         specificFundamental: specificFundamental.name,
