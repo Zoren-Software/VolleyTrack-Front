@@ -2318,6 +2318,8 @@ const onBillingFormSubmit = async (payload) => {
   const tenantId = getTenantId();
   const result = await updateCustomerBilling({
     tenant_id: tenantId,
+    name: payload.name,
+    email: payload.email,
     federal_tax_number: payload.federal_tax_number,
     billing_address: payload.billing_address,
   });
