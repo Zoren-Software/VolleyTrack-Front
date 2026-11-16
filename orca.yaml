@@ -1,0 +1,7 @@
+# Hooks do Orca: portas/env por worktree (VT-153). Espelho do FRONT SRP (pnpm orca:setup).
+scripts:
+  setup: |
+    pnpm orca:setup
+  archive: |
+    pnpm orca:clean
+setupAgentStartupPolicy: wait-for-setup
