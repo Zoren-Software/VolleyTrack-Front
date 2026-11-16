@@ -9,7 +9,10 @@
     "postinstall": "nuxt prepare",
     "browserslist:update": "pnpm dlx update-browserslist-db@latest",
     "lint": "eslint .",
-    "lint-fix": "eslint . --fix"
+    "lint-fix": "eslint . --fix",
+    "orca:setup": "node scripts/orca-setup.mjs",
+    "orca:clean": "node scripts/orca-clean.mjs",
+    "orca:selftest": "node scripts/orca-selftest.mjs"
   },
   "devDependencies": {
     "@nuxt/eslint-config": "^1.10.0",
