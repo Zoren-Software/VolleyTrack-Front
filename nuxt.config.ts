@@ -2,19 +2,24 @@
 import * as dotenv from 'dotenv'
 
 // Configurar dotenv para ser silencioso e obter variáveis de ambiente
-const env = dotenv.config({ quiet: true }).parsed || {}
+const env = {
+  ...dotenv.config({ path: '.env', quiet: true }).parsed,
+  ...dotenv.config({ path: '.env.local', quiet: true, override: true }).parsed,
+}
+
+const devPort = Number(process.env.PORT || env.PORT) || 3000
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: '2025-11-21',
   devServer: {
     host: 'test.volleytrack.local',
-    port: 3000,
-    url: 'http://test.volleytrack.local:3000',
+    port: devPort,
+    url: `http://test.volleytrack.local:${devPort}`,
   },
   hooks: {
     'listen'(_server, listener) {
-      const port = listener.port ?? 3000
+      const port = listener.port ?? devPort
       process.stdout.write(
         `  \x1b[32m➜\x1b[0m Local test and development (subdomain): \x1b[36mhttp://test.volleytrack.local:${port}/\x1b[0m\n`
       )
